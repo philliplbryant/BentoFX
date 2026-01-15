@@ -4,8 +4,8 @@ Copyright (c) 2023 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 import software.coley.gradle.conventions.test.TestSuites.UNIT_TEST
-import bento.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
-import bento.gradle.lifecycle.TestLifecycle.enableJacoco
+import software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
+import software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id("jacoco")

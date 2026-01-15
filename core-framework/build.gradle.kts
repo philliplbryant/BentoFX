@@ -1,147 +1,163 @@
+import org.gradle.api.JavaVersion.VERSION_17
+import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
+
 plugins {
-    id 'java'
-    id 'maven-publish'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'org.jreleaser' version '1.22.0'
-    id 'xyz.wagyourtail.jvmdowngrader' version '1.3.4'
+    java
+    `maven-publish`
+    signing
+
+    alias(libs.plugins.javafx.gradlePlugin)
+    alias(libs.plugins.jreleaser.gradlePlugin)
+    alias(libs.plugins.jvmDownGrader.gradlePlugin)
 }
 
 dependencies {
-    // Provided dependencies
-    compileOnly 'org.openjfx:javafx-controls:19.0.2.1'
-    compileOnly 'jakarta.annotation:jakarta.annotation-api:3.0.0'
-    testCompileOnly 'jakarta.annotation:jakarta.annotation-api:3.0.0'
+    compileOnly(libs.javafx.controls)
+    compileOnly(libs.jakarta.annotation)
 
-    // Test dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-surefire-provider:1.3.2'
-    testImplementation 'org.testfx:testfx-junit5:4.0.18'
+    testCompileOnly(libs.jakarta.annotation)
+
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.testfx.junit5)
+
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.surefire.provider)
 }
 
 javafx {
-    version = '19'
-    modules = ['javafx.controls']
+    version = "19"
+    modules = listOf("javafx.controls")
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(JAVA_VERSION.toString())
     }
-
     withJavadocJar()
     withSourcesJar()
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << '-parameters'
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-parameters")
 }
 
 jvmdg {
-    downgradeTo = JavaVersion.VERSION_17
+    downgradeTo = VERSION_17
 }
 
-javadoc {
-    options {
-        addStringOption('Xdoclint:none', '-quiet')
-    }
+tasks.javadoc {
+    (options as? StandardJavadocDocletOptions)
+        ?.addStringOption("Xdoclint:none", "-quiet")
 }
 
 // This configuration is required because the BoxApp *application* is included
 // in the test folder but there are no actual *tests* in the folder.
 // FIXME ISSUE-13: Move the BoxApp application to a separate module?
-test {
+tasks.test {
     failOnNoDiscoveredTests = false
 }
 
-    // There is currently a bug with the shading portion of 'jvmdowngrader' which
-    // prevents the 'module-info' class from being copied into the final output.
-    // These two tasks will generate a modified shaded output jar that includes it.
-tasks.register('copyModuleInfo', Copy) {
-        // Ensure the downgrader tasks all run
-        dependsOn(tasks.named("shadeDowngradedApi"))
+// There is currently a bug with the shading portion of 'jvmdowngrader' which
+// prevents the 'module-info' class from being copied into the final output.
+// These two tasks will generate a modified shaded output jar that includes it.
 
-        // Copy the downgraded module-info into a temporary location
-        from(zipTree(tasks.named("downgradeJar").get().outputs.files.singleFile)) {
-            include('module-info.class')
-        }
-        into(project.layout.buildDirectory.dir('module-info-temp'))
+val copyModuleInfo by tasks.registering(Copy::class) {
+    // Ensure the downgrader tasks all run
+    dependsOn(tasks.named("shadeDowngradedApi"))
+
+    // Copy the downgraded module-info into a temporary location
+    from(zipTree(tasks.named("downgradeJar").get().outputs.files.singleFile)) {
+        include("module-info.class")
     }
-tasks.register('mergeShadedJar', Jar) {
-        // Run the copy task defined above
-        dependsOn(tasks.named('copyModuleInfo'))
+    into(layout.buildDirectory.dir("module-info-temp"))
+}
 
-        archiveClassifier.set('merged-shaded')
+val mergeShadedJar by tasks.registering(Jar::class) {
+    // Run the copy task defined above
+    dependsOn(copyModuleInfo)
 
-        // Merge the shaded output and our module-info class we put in the temp dir
-        from(zipTree(tasks.named("shadeDowngradedApi").get().outputs.files.singleFile))
-        from(project.layout.buildDirectory.dir('module-info-temp'))
-    }
+    archiveClassifier.set("merged-shaded")
+
+    // Merge the shaded output and our module-info class we put in the temp dir
+    from(zipTree(tasks.named("shadeDowngradedApi").get().outputs.files.singleFile))
+    from(layout.buildDirectory.dir("module-info-temp"))
+}
 
 // Ensure builds emit the corrected shaded jar
-assemble.dependsOn mergeShadedJar
+tasks.assemble {
+    dependsOn(mergeShadedJar)
+}
 
 // Setup publishing to pull from our slightly modified outputs
-def includeTransitives = false
+val includeTransitives = false
+
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            groupId = project.group
+        create<MavenPublication>("mavenJava") {
+            groupId = project.group.toString()
             artifactId = project.name
-            version = project.version
+            version = project.version.toString()
 
             // Include our corrected shaded/downgraded jar
-            artifact(tasks.named('mergeShadedJar').get().outputs.files.singleFile) {
-                builtBy tasks.named('mergeShadedJar')
+            artifact(mergeShadedJar.map { it.outputs.files.singleFile }) {
+                builtBy(mergeShadedJar)
             }
 
             // Include sources + javadoc jars
-            artifact(tasks.named('sourcesJar').get())
-            artifact(tasks.named('javadocJar').get())
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
 
             pom {
-                name = project.name
-                description = 'A docking system for JavaFX.'
-                url = 'https://github.com/Col-E/BentoFX'
-                inceptionYear = '2025'
+                name.set(project.name)
+                description.set("A docking system for JavaFX.")
+                url.set("https://github.com/Col-E/BentoFX")
+                inceptionYear.set("2025")
+
                 licenses {
                     license {
-                        name = 'MIT'
-                        url = 'https://spdx.org/licenses/MIT.html'
+                        name.set("MIT")
+                        url.set("https://spdx.org/licenses/MIT.html")
                     }
                 }
                 developers {
                     developer {
-                        id = 'Col-E'
-                        name = 'Matt Coley'
+                        id.set("Col-E")
+                        name.set("Matt Coley")
                     }
                 }
                 scm {
-                    connection = 'scm:git:https://github.com/Col-E/BentoFX.git'
-                    developerConnection = 'scm:git:ssh://github.com/Col-E/BentoFX.git'
-                    url = 'https://github.com/Col-E/BentoFX'
+                    connection.set("scm:git:https://github.com/Col-E/BentoFX.git")
+                    developerConnection.set("scm:git:ssh://github.com/Col-E/BentoFX.git")
+                    url.set("https://github.com/Col-E/BentoFX")
                 }
 
-                // We aren't using "from components.java" so we need to rebuild the dependencies node ourselves
-                if (includeTransitives) withXml {
-                    def allDeps = project.configurations.compileClasspath.resolvedConfiguration.firstLevelModuleDependencies
-                    def root = asNode()
-                    def depNode = root.appendNode("dependencies")
-                    allDeps.each { d ->
-                        def dn = depNode.appendNode("dependency")
-                        dn.appendNode("groupId", d.moduleGroup)
-                        dn.appendNode("artifactId", d.name)
-                        dn.appendNode("version", d.moduleVersion)
+                // We aren't using `from(components["java"])` so we need to rebuild the dependencies node ourselves
+                if (includeTransitives) {
+                    withXml {
+                        val allDeps =
+                            project.configurations.getByName("compileClasspath")
+                                .resolvedConfiguration
+                                .firstLevelModuleDependencies
+
+                        val root = asNode()
+                        val depNode = root.appendNode("dependencies")
+                        allDeps.forEach { d ->
+                            val dn = depNode.appendNode("dependency")
+                            dn.appendNode("groupId", d.moduleGroup)
+                            dn.appendNode("artifactId", d.name)
+                            dn.appendNode("version", d.moduleVersion)
+                        }
                     }
                 }
             }
         }
     }
+
     repositories {
         mavenLocal()
         maven {
-            url = layout.buildDirectory.dir('staging-deploy')
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
 }
@@ -149,7 +165,7 @@ publishing {
 jreleaser {
     signing {
         pgp {
-            active = 'RELEASE'
+            setActive("RELEASE")
             armored = true
         }
     }
@@ -157,12 +173,13 @@ jreleaser {
         // TODO: This doesn't auto-publish github releases and the 'distribution' block also isn't a viable alternative
         //  Need to look into why it doesn't work. Probably related to the project's "alternative" artifact model...
         github {
-            tagName = project.version
+            tagName = project.version.toString()
             changelog {
-                formatted = 'ALWAYS'
-                preset = 'conventional-commits'
+                setFormatted("ALWAYS")
+                preset = "conventional-commits"
                 contributors {
-                    format = '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+                    format =
+                        "- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}"
                 }
             }
         }
@@ -170,11 +187,14 @@ jreleaser {
     deploy {
         maven {
             mavenCentral {
-                sonatype {
-                    active = 'RELEASE'
-                    url = 'https://central.sonatype.com/api/v1/publisher'
+                create("sonatype") {
+                    setActive("RELEASE")
+                    url = "https://central.sonatype.com/api/v1/publisher"
                     applyMavenCentralRules = true
-                    stagingRepository('build/staging-deploy')
+                    stagingRepository(
+                        layout.buildDirectory.dir("staging-deploy")
+                            .get().asFile.path
+                    )
                 }
             }
         }

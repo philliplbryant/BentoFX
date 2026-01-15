@@ -3,12 +3,12 @@ This is an unpublished work of SAIC.
 Copyright (c) 2023 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package bento.gradle.lifecycle
+package software.coley.gradle.lifecycle
 
-import bento.gradle.lifecycle.TestReportMode.ALL
-import bento.gradle.lifecycle.TestReportMode.CI
-import bento.gradle.lifecycle.TestReportMode.DEV
-import bento.gradle.lifecycle.TestReportMode.OFF
+import software.coley.gradle.lifecycle.TestReportMode.ALL
+import software.coley.gradle.lifecycle.TestReportMode.CI
+import software.coley.gradle.lifecycle.TestReportMode.DEV
+import software.coley.gradle.lifecycle.TestReportMode.OFF
 import org.gradle.api.Project
 
 /**

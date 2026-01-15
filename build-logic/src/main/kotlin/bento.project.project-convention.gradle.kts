@@ -4,19 +4,17 @@ Copyright (c) 2019 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 import software.coley.gradle.artifacts.TestFxAlignmentRule
-import bento.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
-import bento.gradle.lifecycle.TestLifecycle.enableJacoco
-import bento.gradle.lifecycle.TestLifecycle.getTestReportMode
-import bento.gradle.lifecycle.TestReportMode.ALL
-import bento.gradle.lifecycle.TestReportMode.CI
-import bento.gradle.lifecycle.TestReportMode.DEV
-import bento.gradle.project.ProjectConstants.JAVA_VERSION
-import bento.gradle.project.JvmTarget
 import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_ACTIVATION_API
 import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_ANNOTATION_API
 import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_INJECT_API
 import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_VALIDATION_API
 import org.gradlex.jvm.dependency.conflict.resolution.JvmDependencyConflictsExtension
+import software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
+import software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
+import software.coley.gradle.lifecycle.TestLifecycle.getTestReportMode
+import software.coley.gradle.lifecycle.TestReportMode
+import software.coley.gradle.lifecycle.TestReportMode.ALL
+import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
     id("java-library")
@@ -40,7 +38,7 @@ val versionCatalog = versionCatalogs.named("libs")
 val javaMajorVersionAsInt: Int = JAVA_VERSION.majorVersion.toInt()
 val javaLanguageVersion: JavaLanguageVersion =
     JavaLanguageVersion.of(JAVA_VERSION.toString())
-val jvmTargetVersion: JvmTarget = JvmTarget.fromTarget(JAVA_VERSION.toString())
+val jvmTargetVersion: JavaVersion = JAVA_VERSION
 
 val csvCodeCoverageRequired = false
 val htmlCodeCoverageRequired = false
@@ -236,7 +234,7 @@ tasks {
             languageVersion = javaLanguageVersion
         }
 
-        reports.html.required.set(testReportMode in listOf(ALL, DEV))
-        reports.junitXml.required.set(testReportMode in listOf(ALL, CI))
+        reports.html.required.set(testReportMode in listOf(ALL, TestReportMode.DEV))
+        reports.junitXml.required.set(testReportMode in listOf(ALL, TestReportMode.CI))
     }
 }

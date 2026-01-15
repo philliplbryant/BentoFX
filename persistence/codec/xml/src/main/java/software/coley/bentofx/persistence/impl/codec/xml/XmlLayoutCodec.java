@@ -1,0 +1,99 @@
+/*******************************************************************************
+ This is an unpublished work of SAIC.
+ Copyright (c) 2026 SAIC. All Rights Reserved.
+ ******************************************************************************/
+
+package software.coley.bentofx.persistence.impl.codec.xml;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import software.coley.bentofx.persistence.api.codec.BentoState;
+import software.coley.bentofx.persistence.api.codec.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+/**
+ * XML codec for {@link BentoState} using Jakarta JAXB.
+ */
+public final class XmlLayoutCodec implements LayoutCodec {
+
+    private final JAXBContext context;
+
+    public XmlLayoutCodec() {
+        try {
+            this.context = JAXBContext.newInstance(BentoStateDto.class);
+        } catch (final JAXBException e) {
+            throw new IllegalStateException("Failed to initialize JAXBContext", e);
+        }
+    }
+
+    @Override
+    public @NotNull BentoState newBentoState() {
+        return new BentoState.BentoStateBuilder("bento").build();
+    }
+
+    @Override
+    public void encode(
+            final @NotNull BentoState state,
+            final @NotNull OutputStream outputStream
+    ) throws BentoStateException {
+        try {
+            final Marshaller marshaller = context.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+            final BentoStateDto dto = BentoStateMapper.toDto(state);
+
+            // Marshal to DOM for better "pretty printing"
+            final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            documentBuilderFactory.setNamespaceAware(true);
+            final Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
+            marshaller.marshal(dto, document);
+
+            // Pretty print DOM to output stream
+            final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            final Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            // Best-effort: configure indent amount for common Transformer implementations.
+            try {
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            } catch (final Exception ignored) {
+                // Some transformer implementations may not recognize this property.
+            }
+
+            transformer.transform(new DOMSource(document), new StreamResult(outputStream));
+        } catch (final Exception e) {
+
+            throw new BentoStateException("Failed to encode BentoState as XML", e);
+        }
+    }
+
+    @Override
+    public @NotNull BentoState decode(final @NotNull InputStream inputStream) throws BentoStateException {
+        try {
+            final Unmarshaller unmarshaller = context.createUnmarshaller();
+            final Object obj = unmarshaller.unmarshal(inputStream);
+            if (!(obj instanceof final BentoStateDto dto)) {
+                throw new BentoStateException("Unexpected JAXB root type: " + obj);
+            }
+            return BentoStateMapper.fromDto(dto);
+        } catch (final JAXBException e) {
+            throw new BentoStateException("Failed to unmarshall BentoState from XML", e);
+        }
+    }
+}
