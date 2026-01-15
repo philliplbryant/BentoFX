@@ -30,19 +30,20 @@ application {
 
 javafx {
     version = "19"
+// TODO BENTO-13: Create and use a common declaration for the JavaFX version
 //    version = libs.versions.javafx.get()
     modules = listOf(
         "javafx.base",
         "javafx.controls",
-        "javafx.fxml",
         "javafx.graphics",
-        "javafx.media",
-        "javafx.swing",
-        "javafx.web",
         )
 }
 
 dependencies {
+
+    // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
+    //  of libs.jakarta.annotation.
+    compileOnly(libs.jakarta.annotation)
 
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)

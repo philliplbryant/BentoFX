@@ -14,18 +14,12 @@ plugins {
 dependencies {
     compileOnly(libs.javafx.controls)
     compileOnly(libs.jakarta.annotation)
-
-    testCompileOnly(libs.jakarta.annotation)
-
-    testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.junit.jupiter.params)
-    testImplementation(libs.testfx.junit5)
-
-    testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly(libs.junit.platform.surefire.provider)
 }
 
 javafx {
+    // TODO BENTO-13: Create and use a common declaration for the JavaFX
+    //  version and DRY up common JavaFX configuration into a precompiled script
+    //  plugin.
     version = "19"
     modules = listOf("javafx.controls")
 }
@@ -49,13 +43,6 @@ jvmdg {
 tasks.javadoc {
     (options as? StandardJavadocDocletOptions)
         ?.addStringOption("Xdoclint:none", "-quiet")
-}
-
-// This configuration is required because the BoxApp *application* is included
-// in the test folder but there are no actual *tests* in the folder.
-// FIXME ISSUE-13: Move the BoxApp application to a separate module?
-tasks.test {
-    failOnNoDiscoveredTests = false
 }
 
 // There is currently a bug with the shading portion of 'jvmdowngrader' which

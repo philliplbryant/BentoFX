@@ -27,6 +27,8 @@ dependencies {
     compileOnly(libs.jetbrains.annotations)
 
     implementation(libs.javafx.base)
+    // TODO BENTO-13: Fix the DAGP to pass when including
+    //  libs.javafx.controls; it is a required implementation dependency.
     implementation(libs.javafx.controls)
     implementation(libs.slf4j.api)
 

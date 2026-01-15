@@ -42,3 +42,5 @@ include(":persistence:codec:json")
 include(":persistence:codec:xml")
 include(":persistence:storage:file")
 include(":persistence:storage:database")
+
+include("demo-application")
