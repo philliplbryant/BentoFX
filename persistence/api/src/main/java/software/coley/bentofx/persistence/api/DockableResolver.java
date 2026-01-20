@@ -17,18 +17,18 @@ import java.util.Optional;
 public interface DockableResolver {
 
     /**
-     * Returns the {@code Dockable} with the given identifier.
+     * Returns the {@link Dockable} with the given identifier.
      *
-     * @param id the identifier of the {@code Dockable} to be returned.
-     * @return the {@code Dockable} with the given identifier.
+     * @param id the identifier of the {@link Dockable} to be returned.
+     * @return the {@link Dockable} with the given identifier.
      */
     Optional<Dockable> resolveDockable(String id);
 
     /**
-     * Returns the default {@code Image} to be used for {@code DragDropStage}
+     * Returns the default {@link Image} to be used for {@code DragDropStage}
      * instances.
      *
-     * @return the default {@code Image} to be used for {@code DragDropStage}
+     * @return the default {@link Image} to be used for {@code DragDropStage}
      * instances.
      */
     Optional<Image> getDefaultDragDropStageIcon();

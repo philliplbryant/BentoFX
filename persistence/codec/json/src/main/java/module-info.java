@@ -1,3 +1,6 @@
+import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.impl.provider.JsonLayoutCodecProvider;
+
 module bento.fx.persistence.codec.json {
 
 	requires javafx.base;
@@ -10,4 +13,6 @@ module bento.fx.persistence.codec.json {
     requires bento.fx.persistence.codec.common;
 
 	exports software.coley.bentofx.persistence.impl.codec.json;
+
+    provides LayoutCodecProvider with JsonLayoutCodecProvider;
 }

@@ -25,7 +25,15 @@ public interface LayoutCodec {
     @NotNull BentoState newBentoState() throws BentoStateException;
 
     /**
-     * Encode the {@code BentoState} and write it to the {@code OutputStream}.
+     * Returns an identifier used to differentiate this {@link LayoutCodec}
+     * implementation from other {@link LayoutCodec} implementations. Should be
+     * usable as a file extension.
+     * @return an identifier used to differentiate this {@link LayoutCodec}.
+     */
+    String getExtension();
+
+    /**
+     * Encode the {@link BentoState} and write it to the {@link OutputStream}.
      *
      * @param bentoState the {@link BentoState} to be encoded.
      * @param outputStream the {@link OutputStream} where the encoded

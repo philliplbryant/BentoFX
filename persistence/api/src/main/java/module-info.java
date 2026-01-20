@@ -8,5 +8,5 @@ module bento.fx.persistence.api {
 
 	exports software.coley.bentofx.persistence.api;
 	exports software.coley.bentofx.persistence.api.codec;
-	exports software.coley.bentofx.persistence.api.storage;
+    exports software.coley.bentofx.persistence.api.storage;
 }

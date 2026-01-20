@@ -25,10 +25,31 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
+
+import java.util.ServiceLoader;
 
 public class BoxApp extends Application {
+
+    private LayoutCodec layoutCodec;
+    private LayoutStorage layoutStorage;
+
 	@Override
 	public void start(Stage stage) {
+
+        Iterable<LayoutCodecProvider> codecProviders =
+                ServiceLoader.load(LayoutCodecProvider.class);
+        LayoutCodecProvider codecProvider = codecProviders.iterator().next();
+        layoutCodec = codecProvider.createLayoutCodec();
+
+        Iterable<LayoutStorageProvider> storageProviders =
+                ServiceLoader.load(LayoutStorageProvider.class);
+        LayoutStorageProvider storageProvider = storageProviders.iterator().next();
+        layoutStorage = storageProvider.createLayoutStorage(layoutCodec.getExtension());
+
 		stage.setWidth(1000);
 		stage.setHeight(700);
 

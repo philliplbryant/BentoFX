@@ -28,7 +28,8 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Maps between the immutable {@code *State} domain objects and JAXB/Jackson-friendly DTOs.
+ * Maps between the immutable {@code *State} domain objects and
+ * JAXB/Jackson-friendly DTOs.
  *
  * <p>DTOs are intentionally acyclic and preserve child order via {@link List}.</p>
  */

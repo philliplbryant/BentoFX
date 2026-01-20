@@ -40,8 +40,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Restores JavaFX stage layouts from a persisted {@link BentoState}.
- *
- * <p>This replaces the legacy {@code MementoTreeLayoutRestorer}.</p>
  */
 public final class BentoLayoutRestorer implements LayoutRestorer {
 

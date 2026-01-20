@@ -3,18 +3,21 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package com.jregw.demo.provider.layout.storage;
+package software.coley.bentofx.persistence.impl.storage.provider;
 
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
 
-import static com.jregw.demo.ApplicationConstants.DEFAULT_BENTO_DIRECTORY;
-import static com.jregw.demo.ApplicationConstants.DEFAULT_BENTO_FILE_NAME;
-
 public class FileLayoutStorageProvider implements LayoutStorageProvider {
+
+    private static final String DEFAULT_BENTO_DIRECTORY =
+            System.getProperty("user.home") + "/.bentofx";
+
+    private static final String DEFAULT_BENTO_FILE_NAME = "recent-bento";
 
     @Override
     public LayoutStorage createLayoutStorage(final @NotNull String fileExtension) {

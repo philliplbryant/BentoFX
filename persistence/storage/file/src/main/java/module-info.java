@@ -1,3 +1,6 @@
+import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+
 module bento.fx.persistence.storage.file {
 
 	requires javafx.base;
@@ -5,6 +8,10 @@ module bento.fx.persistence.storage.file {
 	requires javafx.controls;
 	requires java.desktop;
     requires bento.fx.persistence.api;
+    requires org.jetbrains.annotations;
 
     exports software.coley.bentofx.persistence.impl.storage.file;
+    exports software.coley.bentofx.persistence.impl.storage.provider;
+
+    provides LayoutStorageProvider with FileLayoutStorageProvider;
 }

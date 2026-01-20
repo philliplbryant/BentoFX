@@ -3,16 +3,16 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package com.jregw.demo.provider.layout.codec;
+package software.coley.bentofx.persistence.impl.codec.provider;
 
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
 
 public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
     public LayoutCodec createLayoutCodec() {
-        throw new UnsupportedOperationException(
-                "The createLayoutCodec() method in the XmlLayoutCodecProvider" +
-                        " class has not been implemented.");
+        return new XmlLayoutCodec();
     }
 }

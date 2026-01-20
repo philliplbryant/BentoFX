@@ -21,9 +21,9 @@ public class FxStageUtils {
     }
 
     /**
-     * Returns an immutable {@code List} containing all {@code Stage} instances.
+     * Returns an immutable {@link List} containing all {@link Stage} instances.
      *
-     * @return an immutable {@code List} containing all {@code Stage} instances.
+     * @return an immutable {@link List} containing all {@link Stage} instances.
      */
     public static List<Stage> getAllStages() {
         return Window.getWindows()

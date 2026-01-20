@@ -47,6 +47,11 @@ public final class XmlLayoutCodec implements LayoutCodec {
     }
 
     @Override
+    public String getExtension() {
+        return "xml";
+    }
+
+    @Override
     public void encode(
             final @NotNull BentoState state,
             final @NotNull OutputStream outputStream

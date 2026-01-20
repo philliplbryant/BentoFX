@@ -3,10 +3,11 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package com.jregw.demo.provider.layout.codec;
+package software.coley.bentofx.persistence.api.codec;
 
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-
+/**
+ * Service Provider Interface for creating {@link LayoutCodec} implementations.
+ */
 public interface LayoutCodecProvider {
 
     LayoutCodec createLayoutCodec();

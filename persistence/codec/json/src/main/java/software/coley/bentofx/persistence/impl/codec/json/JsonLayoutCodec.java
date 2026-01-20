@@ -38,6 +38,11 @@ public final class JsonLayoutCodec implements LayoutCodec {
     }
 
     @Override
+    public String getExtension() {
+        return "json";
+    }
+
+    @Override
     public void encode(
             final @NotNull BentoState state,
             final @NotNull OutputStream outputStream

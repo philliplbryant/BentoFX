@@ -16,4 +16,7 @@ module bento.fx.persistence.codec.common {
 	exports software.coley.bentofx.persistence.impl.codec.common;
 	exports software.coley.bentofx.persistence.impl.codec.common.mapper;
     exports software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
+
+    opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto
+            to jakarta.xml.bind;
 }

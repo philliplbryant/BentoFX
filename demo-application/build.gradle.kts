@@ -7,13 +7,10 @@ import software.coley.gradle.project.ProjectConstants.JAVA_FX_VERSION
 
 plugins {
 
-    kotlin("jvm")
     id("bento.project.project-convention")
     id("application")
 
     alias(libs.plugins.javafx.gradlePlugin)
-
-    kotlin("plugin.spring")
 }
 
 /**
@@ -23,8 +20,6 @@ description = "BentoFX Demo"
 
 application {
     applicationName = description ?: name
-//    mainClass = "com.jregw.demo.BentoFxDemoApplication"
-// TODO BENTO-13: Use the Runner application as the main class.
     mainClass = "software.coley.boxfx.demo.Runner"
     applicationDefaultJvmArgs += listOf(
         "-Xms256m",
@@ -43,40 +38,25 @@ javafx {
 
 dependencies {
 
+    compileOnly(projects.persistence.codec.common)
+
     // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
     //  of libs.jakarta.annotation.
     compileOnly(libs.jakarta.annotation)
-    compileOnly(libs.jetbrains.annotations)
-
+    compileOnly(libs.jakarta.inject)
+    compileOnly(libs.jakarta.persistence)
 
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)
-    implementation(projects.persistence.codec.common)
-    implementation(projects.persistence.codec.json)
     implementation(projects.persistence.codec.xml)
-    implementation(projects.persistence.storage.database)
     implementation(projects.persistence.storage.file)
 
-    implementation(libs.jakarta.inject)
-    implementation(libs.jakarta.persistence)
     implementation(libs.javafx.base)
     implementation(libs.javafx.controls)
     implementation(libs.javafx.graphics)
-    implementation(libs.slf4j.api)
-    implementation(libs.spring.beans)
-    implementation(libs.spring.core)
-    implementation(libs.spring.context)
-    implementation(libs.springboot)
-    implementation(libs.springboot.autoconfigure)
+    implementation(libs.jetbrains.annotations)
 
     runtimeOnly(libs.slf4j.jdk14)
-    runtimeOnly(libs.springboot.starter) {
-        // Exclude SpringBoot Starter Logging to hide Spring log statements
-        exclude(
-            group = libs.springboot.starter.logging.get().group,
-            module = libs.springboot.starter.logging.get().module.name
-        )
-    }
 }
 
 tasks {
