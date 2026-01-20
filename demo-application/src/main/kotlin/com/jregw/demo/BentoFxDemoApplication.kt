@@ -6,7 +6,6 @@ package com.jregw.demo
 
 import com.jregw.demo.ApplicationConstants.APPLICATION_PANE_ID
 import com.jregw.demo.ApplicationConstants.APPLICATION_TITLE
-import com.jregw.demo.ApplicationConstants.CSS_FILE_NAME
 import com.jregw.demo.ApplicationConstants.DEFAULT_STAGE_HEIGHT
 import com.jregw.demo.ApplicationConstants.DEFAULT_STAGE_WIDTH
 import com.jregw.demo.ApplicationConstants.HOOKED_TRACKS_DOCKABLE_ID
@@ -28,7 +27,6 @@ import com.jregw.demo.configuration.FileLayoutStorageConfiguration
 import com.jregw.demo.configuration.XmlLayoutCodecConfiguration
 import com.jregw.demo.ui.FakeToolBar
 import com.jregw.demo.ui.Menu
-import com.sun.javafx.css.StyleManager
 import javafx.application.Application
 import javafx.event.EventHandler
 import javafx.geometry.Orientation.HORIZONTAL
@@ -47,7 +45,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Import
-import org.springframework.core.io.ClassPathResource
 import software.coley.bentofx.building.DockBuilding
 import software.coley.bentofx.layout.container.DockContainerRootBranch
 import software.coley.bentofx.persistence.api.DockableResolver
@@ -55,10 +52,7 @@ import software.coley.bentofx.persistence.api.LayoutRestorer
 import software.coley.bentofx.persistence.api.LayoutSaver
 import software.coley.bentofx.persistence.api.codec.BentoStateException
 import software.coley.bentofx.persistence.api.storage.LayoutStorage
-import software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.IS_PRIMARY_STAGE_PROPERTY_KEY_NAME
-import software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.PRIMARY_STAGE_ID
-import software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.STAGE_ID_PROPERTY_KEY_NAME
-import java.io.IOException
+import software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.*
 import java.util.logging.LogManager
 import kotlin.jvm.optionals.getOrNull
 import kotlin.system.exitProcess
@@ -156,9 +150,6 @@ class BentoFxDemoApplication : Application() {
         layoutSaver = applicationContext.getBean<LayoutSaver>()
         layoutRestorer = applicationContext.getBean<LayoutRestorer>()
 
-        // It is better to look good than to feel good. And you look marvelous!
-        setLookAndFeel()
-
         // The primary pane will hold the application pane (subdivided into
         // split panes, tabbed panes, and tabs), menu, and toolbar.
         val primaryPane = BorderPane()
@@ -217,25 +208,6 @@ class BentoFxDemoApplication : Application() {
      */
     override fun stop() {
         applicationContext.close()
-    }
-
-    /**
-     * Attempts to set the look and feel.
-     */
-    private fun setLookAndFeel() {
-
-        try {
-            setUserAgentStylesheet(STYLESHEET_MODENA)
-            val cssResource = ClassPathResource(CSS_FILE_NAME)
-            StyleManager.getInstance().addUserAgentStylesheet(
-                cssResource.url.toExternalForm()
-            )
-        } catch (e: IOException) {
-            LOGGER.warn(
-                "Could not initialize the look and feel using $CSS_FILE_NAME",
-                e
-            )
-        }
     }
 
     /**

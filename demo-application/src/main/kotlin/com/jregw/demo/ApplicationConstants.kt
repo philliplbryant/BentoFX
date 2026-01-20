@@ -13,8 +13,6 @@ object ApplicationConstants {
 
     internal const val APPLICATION_TITLE = "Joint Range Extension Gateway (BentoFX)"
 
-    internal const val CSS_FILE_NAME = "dark-theme.css"
-
     const val ICON_FILE_DIRECTORY = "$IMAGES_DIRECTORY/icons"
     const val MOCK_CONTENT_DIRECTORY = "$IMAGES_DIRECTORY/mock-tab-content"
 
