@@ -88,7 +88,6 @@ testing {
                     all {
                         testTask.configure {
                             // Set system properties for the test JVM(s)
-                            systemProperty("jregw.home", rootDir.path)
                             systemProperty("project.name", rootProject.name)
                             // Turns out we really DO need a graphics environment
                             // to initialize the JavaFx platform used by some
@@ -160,36 +159,6 @@ tasks {
                 .replace(':', '.')
 
         archiveFileName.set(projectJarName)
-    }
-
-    // Create custom MANIFEST.MF entries for all JARs.
-    withType<Jar>().configureEach {
-
-        val buildJdk = provider {
-            val javaVendor = System.getProperty("java.vendor")
-            val javaVersion = System.getProperty("java.version")
-            "$javaVendor $javaVersion"
-        }
-        val buildOs = provider {
-            val osName = System.getProperty("os.name")
-            val osArch = System.getProperty("os.arch")
-            "$osName $osArch"
-        }
-        val buildTool = "Gradle ${gradle.gradleVersion}"
-        val implementationTitle = project.description ?: project.name
-
-        manifest {
-            attributes(
-                "Build-JDK" to buildJdk,
-                "Build-OS" to buildOs,
-                "Build-Tool" to buildTool,
-                "Implementation-Title" to implementationTitle,
-                "Implementation-Vendor" to "SAIC",
-                "Manifest-Version" to 1.0,
-                "Specification-Title" to "JREGW",
-                "Specification-Vendor" to "SAIC",
-            )
-        }
     }
 
     withType<JavaCompile>().configureEach {
