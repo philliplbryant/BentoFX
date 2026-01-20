@@ -15,15 +15,10 @@ plugins {
  */
 description = "BentoFX Persistence API"
 
-javafx {
-    modules(
-        "javafx.graphics",
-    )
-}
-
 dependencies {
 
     api(projects.coreFramework)
+    api(libs.javafx.graphics)
 
     compileOnly(libs.jakarta.annotation)
     compileOnlyApi(libs.jetbrains.annotations)

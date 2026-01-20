@@ -16,12 +16,6 @@ plugins {
  */
 description = "BentoFX Persistence for JSON"
 
-javafx {
-    modules(
-        "javafx.controls",
-    )
-}
-
 dependencies {
 
     api(projects.persistence.api)
@@ -31,4 +25,5 @@ dependencies {
     implementation(projects.persistence.codec.common)
 
     implementation(libs.jackson.databind)
+    implementation(libs.javafx.controls)
 }
