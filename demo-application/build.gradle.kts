@@ -3,6 +3,8 @@ This is an unpublished work of SAIC.
 Copyright (c) 2025 SAIC. All Rights Reserved.
  ******************************************************************************/
 
+import software.coley.gradle.project.ProjectConstants.JAVA_FX_VERSION
+
 plugins {
 
     kotlin("jvm")
@@ -21,7 +23,9 @@ description = "BentoFX Demo"
 
 application {
     applicationName = description ?: name
-    mainClass.set("com.jregw.demo.BentoFxDemoApplication")
+//    mainClass = "com.jregw.demo.BentoFxDemoApplication"
+// TODO BENTO-13: Use the Runner application as the main class.
+    mainClass = "software.coley.boxfx.demo.Runner"
     applicationDefaultJvmArgs += listOf(
         "-Xms256m",
         "-Xmx1024m",
@@ -29,9 +33,7 @@ application {
 }
 
 javafx {
-    version = "19"
-// TODO BENTO-13: Create and use a common declaration for the JavaFX version
-//    version = libs.versions.javafx.get()
+    version = JAVA_FX_VERSION.majorVersion
     modules = listOf(
         "javafx.base",
         "javafx.controls",
@@ -73,6 +75,15 @@ dependencies {
         exclude(
             group = libs.springboot.starter.logging.get().group,
             module = libs.springboot.starter.logging.get().module.name
+        )
+    }
+}
+
+tasks {
+    named<JavaExec>("run").configure {
+        notCompatibleWithConfigurationCache(
+            "This task relies on Task.extensions, which is only " +
+                    "available during the configuration phase."
         )
     }
 }

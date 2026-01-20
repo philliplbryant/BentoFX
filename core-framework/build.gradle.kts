@@ -1,4 +1,5 @@
 import org.gradle.api.JavaVersion.VERSION_17
+import software.coley.gradle.project.ProjectConstants.JAVA_FX_VERSION
 import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
@@ -13,14 +14,13 @@ plugins {
 
 dependencies {
     compileOnly(libs.javafx.controls)
+    // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
+    //  of libs.jakarta.annotation.
     compileOnly(libs.jakarta.annotation)
 }
 
 javafx {
-    // TODO BENTO-13: Create and use a common declaration for the JavaFX
-    //  version and DRY up common JavaFX configuration into a precompiled script
-    //  plugin.
-    version = "19"
+    version = JAVA_FX_VERSION.majorVersion
     modules = listOf("javafx.controls")
 }
 
