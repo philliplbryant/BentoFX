@@ -17,7 +17,7 @@ import software.coley.gradle.lifecycle.TestReportMode.ALL
 import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
-    id("java-library")
+    `java-library`
     id("com.autonomousapps.dependency-analysis")
     id("jacoco")
     id("bento.project.build-lifecycle")
@@ -62,11 +62,6 @@ dependencies {
     components.all<TestFxAlignmentRule>()
 
     api(platform(project(":platform")))
-}
-
-java {
-    // Should be removed if project becomes modularized
-    modularity.inferModulePath.set(false)
 }
 
 jacoco {

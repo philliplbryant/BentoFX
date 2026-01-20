@@ -16,6 +16,14 @@ plugins {
  */
 description = "BentoFX Persistence for Files"
 
+javafx {
+    modules(
+        "javafx.base",
+        "javafx.graphics",
+        "javafx.controls",
+    )
+}
+
 dependencies {
 
     api(projects.persistence.api)

@@ -1,4 +1,4 @@
-module bento.fx {
+open module bento.fx {
 	requires static jakarta.annotation;
 
 	requires javafx.base;
@@ -18,15 +18,4 @@ module bento.fx {
 	exports software.coley.bentofx.path;
 	exports software.coley.bentofx.search;
 	exports software.coley.bentofx.util;
-	opens software.coley.bentofx;
-	opens software.coley.bentofx.building;
-	opens software.coley.bentofx.control;
-	opens software.coley.bentofx.control.canvas;
-	opens software.coley.bentofx.dockable;
-	opens software.coley.bentofx.event;
-	opens software.coley.bentofx.layout;
-	opens software.coley.bentofx.layout.container;
-	opens software.coley.bentofx.path;
-	opens software.coley.bentofx.search;
-	opens software.coley.bentofx.util;
 }

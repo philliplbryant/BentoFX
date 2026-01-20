@@ -16,6 +16,12 @@ plugins {
  */
 description = "BentoFX Persistence for JSON"
 
+javafx {
+    modules(
+        "javafx.controls",
+    )
+}
+
 dependencies {
 
     api(projects.persistence.api)

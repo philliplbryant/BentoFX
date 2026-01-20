@@ -16,6 +16,14 @@ plugins {
  */
 description = "BentoFX Persistence for H2 Database"
 
+javafx {
+    modules(
+        "javafx.base",
+        "javafx.graphics",
+        "javafx.controls",
+    )
+}
+
 dependencies {
 
     api(projects.persistence.api)

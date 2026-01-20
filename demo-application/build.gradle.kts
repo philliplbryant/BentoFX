@@ -36,7 +36,7 @@ javafx {
         "javafx.base",
         "javafx.controls",
         "javafx.graphics",
-        )
+    )
 }
 
 dependencies {
@@ -44,6 +44,8 @@ dependencies {
     // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
     //  of libs.jakarta.annotation.
     compileOnly(libs.jakarta.annotation)
+    compileOnly(libs.jetbrains.annotations)
+
 
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)
