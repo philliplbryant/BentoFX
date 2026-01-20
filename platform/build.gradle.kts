@@ -48,8 +48,6 @@ dependencies {
         }
     }
 
-    api(platform(libs.xmlunit2.bom))
-
     constraints {
 
         /*
@@ -68,6 +66,5 @@ dependencies {
 
         api(libs.controlsfx)
         api(libs.jetbrains.annotations)
-        api(libs.xmlunit1)
     }
 }

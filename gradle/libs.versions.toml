@@ -21,26 +21,19 @@ jakartaInject = "2.0.1.MR"
 jakartaPersistence = "3.2.0"
 javafx = "19.0.2.1"
 javafx-gradlePlugin = "0.1.0"
-jdom = "1.1.3"
 jetbrains-annotations = "26.0.2-1"
 jreleaser-gradlePlugin = "1.22.0"
 kotlin = "2.2.21"
 junit = "5.14.1"
-junitPlatform = "1.3.2"
 jvmDependencyConflict-gradlePlugin = "2.5"
 jvmDownGrader-gradlePlugin = "1.3.4"
-licenseReport-gradlePlugin = "2.9"
-mockito = "5.20.0"
 slf4j = "2.0.17"
 spring = "6.2.15"
 springboot = "3.5.9"
 springboot-constraint = "(,4)"
-springdocOpenApi = "2.8.15"
 testfx = "4.0.18"
 testfx-monocle = "jdk-12.0.1+2"
 versionsCheck-gradlePlugin = "0.53.0"
-xmlunit1 = "1.6"
-xmlunit2 = "2.11.0"
 
 [libraries]
 
@@ -75,33 +68,12 @@ module = "com.fasterxml.jackson.core:jackson-annotations"
 module = "com.fasterxml.jackson:jackson-bom"
 version.ref = "jackson"
 
-[libraries.jackson-core]
-module = "com.fasterxml.jackson.core:jackson-core"
-
 [libraries.jackson-databind]
 module = "com.fasterxml.jackson.core:jackson-databind"
-
-[libraries.jackson-dataformat-xml]
-module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-
-[libraries.jackson-datatype-jdk8]
-module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
-
-[libraries.jackson-datatype-jsr310]
-module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-
-[libraries.jackson-module-jsonschema]
-module = "com.fasterxml.jackson.module:jackson-module-jsonSchema"
-
-[libraries.jackson-module-kotlin]
-module = "com.fasterxml.jackson.module:jackson-module-kotlin"
 
 [libraries.jakarta-annotation]
 module = "jakarta.annotation:jakarta.annotation-api"
 version.ref = "jakartaAnnotation"
-
-[libraries.jakarta-validation]
-module = "jakarta.validation:jakarta.validation-api"
 
 [libraries.jakarta-inject]
 module = "jakarta.inject:jakarta.inject-api"
@@ -125,29 +97,9 @@ version.ref = "javafx"
 module = "org.openjfx:javafx-controls"
 version.ref = "javafx"
 
-[libraries.javafx-fxml]
-module = "org.openjfx:javafx-fxml"
-version.ref = "javafx"
-
 [libraries.javafx-graphics]
 module = "org.openjfx:javafx-graphics"
 version.ref = "javafx"
-
-[libraries.javafx-media]
-module = "org.openjfx:javafx-media"
-version.ref = "javafx"
-
-[libraries.javafx-swing]
-module = "org.openjfx:javafx-swing"
-version.ref = "javafx"
-
-[libraries.javafx-web]
-module = "org.openjfx:javafx-web"
-version.ref = "javafx"
-
-[libraries.jdom]
-module = "org.jdom:jdom"
-version.ref = "jdom"
 
 [libraries.jetbrains-annotations]
 module = "org.jetbrains:annotations"
@@ -159,18 +111,6 @@ version.ref = "junit"
 
 [libraries.junit-jupiter-api]
 module = "org.junit.jupiter:junit-jupiter-api"
-
-[libraries.junit-jupiter-engine]
-module = "org.junit.jupiter:junit-jupiter-engine"
-version.ref = "junit"
-
-[libraries.junit-jupiter-params]
-module = "org.junit.jupiter:junit-jupiter-params"
-version.ref = "junit"
-
-[libraries.junit-platform-surefire-provider]
-module = "org.junit.platform:junit-platform-surefire-provider"
-version.ref = "junitPlatform"
 
 [libraries.jvmDependencyConflict-gradlePlugin-dependency]
 module = "org.gradlex:jvm-dependency-conflict-resolution"
@@ -188,28 +128,12 @@ version.ref = "kotlin"
 module = "org.jetbrains.kotlin:kotlin-allopen"
 version.ref = "kotlin"
 
-[libraries.licenseReport-gradlePlugin-dependency]
-module = "com.github.jk1:gradle-license-report"
-version.ref = "licenseReport-gradlePlugin"
-
-[libraries.mockito-bom]
-module = "org.mockito:mockito-bom"
-version.ref = "mockito"
-
-[libraries.mockito-core]
-module = "org.mockito:mockito-core"
-version.ref = "mockito"
-
 [libraries.slf4j-api]
 module = "org.slf4j:slf4j-api"
 version.ref = "slf4j"
 
 [libraries.slf4j-jdk14]
 module = "org.slf4j:slf4j-jdk14"
-version.ref = "slf4j"
-
-[libraries.slf4j-simple]
-module = "org.slf4j:slf4j-simple"
 version.ref = "slf4j"
 
 [libraries.spring-bom]
@@ -225,18 +149,6 @@ module = "org.springframework:spring-context"
 [libraries.spring-core]
 module = "org.springframework:spring-core"
 
-[libraries.spring-messaging]
-module = "org.springframework:spring-messaging"
-
-[libraries.spring-test]
-module = "org.springframework:spring-test"
-
-[libraries.spring-web]
-module = "org.springframework:spring-web"
-
-[libraries.spring-webflux]
-module = "org.springframework:spring-webflux"
-
 [libraries.springboot]
 module = "org.springframework.boot:spring-boot"
 
@@ -250,69 +162,8 @@ version.ref = "springboot"
 [libraries.springboot-starter]
 module = "org.springframework.boot:spring-boot-starter"
 
-[libraries.springboot-starter-actuator]
-module = "org.springframework.boot:spring-boot-starter-actuator"
-
 [libraries.springboot-starter-logging]
 module = "org.springframework.boot:spring-boot-starter-logging"
-
-[libraries.springboot-starter-rsocket]
-module = "org.springframework.boot:spring-boot-starter-rsocket"
-
-[libraries.springboot-starter-security]
-module = "org.springframework.boot:spring-boot-starter-security"
-
-[libraries.springboot-starter-test]
-module = "org.springframework.boot:spring-boot-starter-test"
-
-[libraries.springboot-starter-validation]
-module = "org.springframework.boot:spring-boot-starter-validation"
-
-[libraries.springboot-starter-web]
-module = "org.springframework.boot:spring-boot-starter-web"
-
-[libraries.springboot-starter-webflux]
-module = "org.springframework.boot:spring-boot-starter-webflux"
-
-[libraries.springboot-test]
-module = "org.springframework.boot:spring-boot-test"
-
-[libraries.springboot-test-autoconfigure]
-module = "org.springframework.boot:spring-boot-test-autoconfigure"
-
-[libraries.springdocOpenApi-bom]
-module = "org.springdoc:springdoc-openapi-bom"
-version.ref = "springdocOpenApi"
-
-[libraries.springdocOpenApi-starter-common]
-module = "org.springdoc:springdoc-openapi-starter-common"
-
-[libraries.springdocOpenApi-starter-webflux-ui]
-module = "org.springdoc:springdoc-openapi-starter-webflux-ui"
-
-[libraries.springretry]
-module = "org.springframework.retry:spring-retry"
-
-[libraries.springsecurity-config]
-module = "org.springframework.security:spring-security-config"
-
-[libraries.springsecurity-core]
-module = "org.springframework.security:spring-security-core"
-
-[libraries.springsecurity-crypto]
-module = "org.springframework.security:spring-security-crypto"
-
-[libraries.springsecurity-messaging]
-module = "org.springframework.security:spring-security-messaging"
-
-[libraries.springsecurity-rsocket]
-module = "org.springframework.security:spring-security-rsocket"
-
-[libraries.springsecurity-test]
-module = "org.springframework.security:spring-security-test"
-
-[libraries.springsecurity-web]
-module = "org.springframework.security:spring-security-web"
 
 [libraries.testfx-core]
 module = "org.testfx:testfx-core"
@@ -326,27 +177,13 @@ version.ref = "testfx"
 module = "org.testfx:openjfx-monocle"
 version.ref = "testfx-monocle"
 
-[libraries.xmlunit1]
-module = "xmlunit:xmlunit"
-version.ref = "xmlunit1"
-
-[libraries.xmlunit2-bom]
-module = "org.xmlunit:xmlunit-bom"
-version.ref = "xmlunit2"
-
-[libraries.xmlunit2-core]
-module = "org.xmlunit:xmlunit-core"
-
+# TODO BENTO-13: Delete these unused bundles?
 [bundles]
 
 javafx = [
     "javafx-base",
     "javafx-controls",
-    "javafx-fxml",
     "javafx-graphics",
-    "javafx-media",
-    "javafx-swing",
-    "javafx-web"
 ]
 
 testfx = ["testfx-core", "testfx-junit5", "testfx-monocle"]
