@@ -3,11 +3,14 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.api.storage;
+package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
+import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 public interface LayoutStorageProvider {
 
-    LayoutStorage createLayoutStorage(@NotNull final String fileExtension);
+    LayoutStorage createLayoutStorage(
+            @NotNull final String fileExtension
+    );
 }

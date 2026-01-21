@@ -1,4 +1,4 @@
-import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
 
 module bento.fx.persistence.storage.file {

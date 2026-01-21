@@ -1,4 +1,4 @@
-import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.provider.JsonLayoutCodecProvider;
 
 module bento.fx.persistence.codec.json {
@@ -13,6 +13,7 @@ module bento.fx.persistence.codec.json {
     requires bento.fx.persistence.codec.common;
 
 	exports software.coley.bentofx.persistence.impl.codec.json;
+    exports software.coley.bentofx.persistence.impl.provider;
 
     provides LayoutCodecProvider with JsonLayoutCodecProvider;
 }

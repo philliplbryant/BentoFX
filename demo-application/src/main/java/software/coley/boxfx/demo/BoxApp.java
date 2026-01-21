@@ -25,44 +25,92 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.persistence.api.DockableProvider;
+import software.coley.bentofx.persistence.api.LayoutRestorer;
+import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 
 import java.util.ServiceLoader;
 
 public class BoxApp extends Application {
 
-    private LayoutCodec layoutCodec;
-    private LayoutStorage layoutStorage;
+    private DockBuilding builder;
+    private DockableProvider dockableProvider;
+    private LayoutSaver layoutSaver;
+    private LayoutRestorer layoutRestorer;
+
+    /**
+     * Acquires injected application dependencies before starting the JavaFX
+     * application.
+     */
+    @Override
+    public void init() {
+
+        Bento bento = new Bento();
+        bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
+                new Label("Empty Dockable")
+        );
+        bento.placeholderBuilding().setContainerPlaceholderFactory(container ->
+                new Label("Empty Container")
+        );
+        bento.events().addEventListener((DockEvent event) -> {
+            if (event instanceof DockEvent.DockableClosing closingEvent)
+                handleDockableClosing(closingEvent);
+        });
+
+        builder = bento.dockBuilding();
+
+        // Use the ServiceLoader to inject Service Provider implementations for
+        // encoding/decoding and storing Bento layout/s.
+        final Iterable<LayoutCodecProvider> codecProviders =
+                ServiceLoader.load(LayoutCodecProvider.class);
+        final LayoutCodecProvider codecProvider =
+                codecProviders.iterator().next();
+        final LayoutCodec layoutCodec = codecProvider.createLayoutCodec();
+
+        final Iterable<LayoutStorageProvider> storageProviders =
+                ServiceLoader.load(LayoutStorageProvider.class);
+        final LayoutStorageProvider storageProvider =
+                storageProviders.iterator().next();
+        final LayoutStorage layoutStorage =
+                storageProvider.createLayoutStorage(
+                        layoutCodec.getExtension()
+                );
+
+        final Iterable<DockableProvider> dockableProviders =
+                ServiceLoader.load(DockableProvider.class);
+
+        dockableProvider = dockableProviders.iterator().next();
+
+        final Iterable<LayoutPersistenceProvider> persistenceProviders =
+                ServiceLoader.load(LayoutPersistenceProvider.class);
+        final LayoutPersistenceProvider persistenceProvider =
+                persistenceProviders.iterator().next();
+
+        layoutSaver = persistenceProvider.createLayoutSaver(
+                layoutStorage,
+                layoutCodec
+        );
+
+        layoutRestorer = persistenceProvider.createLayoutRestorer(
+                layoutStorage,
+                layoutCodec,
+                builder,
+                dockableProvider
+        );
+    }
 
 	@Override
 	public void start(Stage stage) {
 
-        Iterable<LayoutCodecProvider> codecProviders =
-                ServiceLoader.load(LayoutCodecProvider.class);
-        LayoutCodecProvider codecProvider = codecProviders.iterator().next();
-        layoutCodec = codecProvider.createLayoutCodec();
+        stage.setWidth(1000);
+        stage.setHeight(700);
 
-        Iterable<LayoutStorageProvider> storageProviders =
-                ServiceLoader.load(LayoutStorageProvider.class);
-        LayoutStorageProvider storageProvider = storageProviders.iterator().next();
-        layoutStorage = storageProvider.createLayoutStorage(layoutCodec.getExtension());
-
-		stage.setWidth(1000);
-		stage.setHeight(700);
-
-		Bento bento = new Bento();
-		bento.placeholderBuilding().setDockablePlaceholderFactory(dockable -> new Label("Empty Dockable"));
-		bento.placeholderBuilding().setContainerPlaceholderFactory(container -> new Label("Empty Container"));
-		bento.events().addEventListener((DockEvent event) -> {
-			if (event instanceof DockEvent.DockableClosing closingEvent)
-				handleDockableClosing(closingEvent);
-		});
-
-		DockBuilding builder = bento.dockBuilding();
-		DockContainerBranch branchRoot = builder.root("root");
+    	DockContainerBranch branchRoot = builder.root("root");
 		DockContainerBranch branchWorkspace = builder.branch("workspace");
 		DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
 		DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
@@ -106,6 +154,9 @@ public class BoxApp extends Application {
 
 		// Make the bottom collapsed by default
 		branchRoot.setContainerCollapsed(leafTools, true);
+
+        // TODO BENTO-13: Move Dockable creation to BoxAppDockableProvider
+        //  and acquire them using dockableProvider
 
 		// Adding dockables to the leafs
 		leafWorkspaceTools.addDockables(

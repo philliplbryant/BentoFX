@@ -13,7 +13,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
-import software.coley.bentofx.persistence.api.DockableResolver;
+import software.coley.bentofx.persistence.api.DockableProvider;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
@@ -50,18 +50,18 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final @NotNull LayoutStorage layoutStorage;
     private final @NotNull LayoutCodec codec;
     private final @NotNull DockBuilding dockBuilding;
-    private final @NotNull DockableResolver dockableResolver;
+    private final @NotNull DockableProvider dockableProvider;
 
     public BentoLayoutRestorer(
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec codec,
             final @NotNull DockBuilding dockBuilding,
-            final @NotNull DockableResolver dockableResolver
+            final @NotNull DockableProvider dockableProvider
     ) {
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(codec);
         this.dockBuilding = Objects.requireNonNull(dockBuilding);
-        this.dockableResolver = Objects.requireNonNull(dockableResolver);
+        this.dockableProvider = Objects.requireNonNull(dockableProvider);
     }
 
     @Override
@@ -163,7 +163,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        dockableResolver.getDefaultDragDropStageIcon().ifPresent(icon ->
+        dockableProvider.getDefaultDragDropStageIcon().ifPresent(icon ->
                 stage.getIcons().add(icon)
         );
 
@@ -300,7 +300,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             final String dockableId = dockableState.getIdentifier();
 
             final Dockable dockable =
-                    dockableResolver.resolveDockable(dockableId).orElse(null);
+                    dockableProvider.resolveDockable(dockableId).orElse(null);
             if (dockable != null) {
 
                 leaf.addDockable(dockable);

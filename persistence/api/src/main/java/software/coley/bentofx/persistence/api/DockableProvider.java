@@ -14,7 +14,7 @@ import java.util.Optional;
  * Factory for getting or creating [Dockable] instances and other user interface
  * components.
  */
-public interface DockableResolver {
+public interface DockableProvider {
 
     /**
      * Returns the {@link Dockable} with the given identifier.

@@ -1,3 +1,7 @@
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
+
 module bento.fx.persistence.codec.common {
 
 	requires static jakarta.annotation;
@@ -19,4 +23,7 @@ module bento.fx.persistence.codec.common {
 
     opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto
             to jakarta.xml.bind;
+    exports software.coley.bentofx.persistence.impl.codec.common.provider;
+
+    provides LayoutPersistenceProvider with BentoLayoutPersistenceProvider;
 }

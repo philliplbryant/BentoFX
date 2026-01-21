@@ -5,14 +5,15 @@
 
 package software.coley.bentofx.persistence.impl.codec.provider;
 
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
 
 public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
-    public LayoutCodec createLayoutCodec() {
+    public @NotNull LayoutCodec createLayoutCodec() {
         return new XmlLayoutCodec();
     }
 }

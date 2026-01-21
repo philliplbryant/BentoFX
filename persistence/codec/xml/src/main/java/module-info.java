@@ -1,4 +1,4 @@
-import software.coley.bentofx.persistence.api.codec.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
 
 module bento.fx.persistence.codec.xml {

@@ -7,7 +7,7 @@ package software.coley.bentofx.persistence.impl.storage.provider;
 
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.api.storage.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
