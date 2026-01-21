@@ -4,7 +4,6 @@
  ******************************************************************************/
 
 /**
- * Contains classes for implementing the {@code LayoutStorage} for database
- * persistence.
+ * {@code ServiceLoader} compatible Service Provider Interface definitions.
  */
-package software.coley.bentofx.persistence.impl.storage.db;
+package software.coley.bentofx.persistence.api.provider;

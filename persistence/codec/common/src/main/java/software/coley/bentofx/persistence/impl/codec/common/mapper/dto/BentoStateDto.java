@@ -18,6 +18,9 @@ import java.util.List;
 
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
+/**
+ * Mappable Data Transfer Object representing the state of a BentoFX layout.
+ */
 @XmlRootElement(name = BENTO_ELEMENT_NAME)
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * The Application Programming Interface for interacting with a persisted
+ * BentoFX layout.
+ */
 public interface LayoutStorage {
 
     // TODO BENTO-13: Add a method to return a list of saved layouts?
@@ -24,16 +28,16 @@ public interface LayoutStorage {
      * Returns an opened {@link OutputStream} that is expected to be
      * owned/managed by the caller.
      * @return an opened {@link OutputStream} that is expected to be
-     *      * owned/managed by the caller.
+     * owned/managed by the caller.
      * @throws IOException if an I/O error occurs.
      */
     OutputStream openOutputStream() throws IOException;
 
     /**
      * Returns an opened {@link InputStream} that is expected to be
-     *      * owned/managed by the caller.
+     * owned/managed by the caller.
      * @return an opened {@link InputStream} that is expected to be
-     *      * owned/managed by the caller.
+     * owned/managed by the caller.
      * @throws IOException if an I/O error occurs.
      */
     InputStream openInputStream() throws IOException;

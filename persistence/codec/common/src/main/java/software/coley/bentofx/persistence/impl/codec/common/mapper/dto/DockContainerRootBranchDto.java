@@ -17,6 +17,10 @@ import java.util.List;
 
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
+/**
+ * Mappable Data Transfer Object representing the layout state of a
+ * {@code DockContainerRootBranch}.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DockContainerRootBranchDto {

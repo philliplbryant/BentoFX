@@ -8,6 +8,10 @@ package software.coley.bentofx.persistence.api.provider;
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
+/**
+ * {@code ServiceLoader} compatible Service Provider Interface for creating
+ * {@link LayoutStorage} implementations.
+ */
 public interface LayoutStorageProvider {
 
     LayoutStorage createLayoutStorage(

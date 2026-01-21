@@ -1,3 +1,8 @@
+/*******************************************************************************
+ This is an unpublished work of SAIC.
+ Copyright (c) 2026 SAIC. All Rights Reserved.
+ ******************************************************************************/
+
 package software.coley.bentofx.persistence.impl.codec.common;
 
 import javafx.scene.Parent;
@@ -13,7 +18,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
-import software.coley.bentofx.persistence.api.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;

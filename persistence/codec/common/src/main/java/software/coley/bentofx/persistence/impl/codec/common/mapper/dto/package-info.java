@@ -4,8 +4,7 @@
  ******************************************************************************/
 
 /**
- * This package contains Data Transfer Objects (DTO) used when mapping the
- * docking layout.
+ * This package contains JAXB/Jackson friendly Data Transfer Objects (DTOs) used
+ * when mapping the docking layout.
  */
-
 package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;

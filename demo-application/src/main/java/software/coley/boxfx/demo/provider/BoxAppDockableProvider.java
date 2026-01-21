@@ -1,3 +1,8 @@
+/*******************************************************************************
+ This is an unpublished work of SAIC.
+ Copyright (c) 2025 SAIC. All Rights Reserved.
+ ******************************************************************************/
+
 package software.coley.boxfx.demo.provider;
 
 import javafx.application.Platform;
@@ -18,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.persistence.api.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,29 +32,33 @@ import java.util.*;
 import static javafx.scene.effect.BlurType.ONE_PASS_BOX;
 import static javafx.scene.paint.Color.BLACK;
 
+/**
+ * {@code ServiceLoader} compatible Service Provider implementation of
+ * {@link DockableProvider}.
+ */
 public class BoxAppDockableProvider implements DockableProvider {
 
     private static final Logger logger =
             LoggerFactory.getLogger(BoxAppDockableProvider.class);
 
-    private static final List<String> ICON_RESOURCES = List.of(
+    private static final @NotNull List<@NotNull String> ICON_RESOURCES = List.of(
             "/images/logo-16.png",
             "/images/logo-32.png",
             "/images/logo-48.png",
             "/images/logo-256.png"
     );
 
-    public static final String WORKSPACE_DOCKABLE_ID = "Workspace";
-    public static final String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
-    public static final String MODIFICATIONS_DOCKABLE_ID = "Modifications";
-    public static final String LOGGING_DOCKABLE_ID = "Logging";
-    public static final String TERMINAL_DOCKABLE_ID = "Terminal";
-    public static final String PROBLEMS_DOCKABLE_ID = "Problems";
-    public static final String CLASS_1_DOCKABLE_ID = "Class 1";
-    public static final String CLASS_2_DOCKABLE_ID = "Class 2";
-    public static final String CLASS_3_DOCKABLE_ID = "Class 3";
-    public static final String CLASS_4_DOCKABLE_ID = "Class 4";
-    public static final String CLASS_5_DOCKABLE_ID = "Class 5";
+    public static final @NotNull String WORKSPACE_DOCKABLE_ID = "Workspace";
+    public static final @NotNull String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
+    public static final @NotNull String MODIFICATIONS_DOCKABLE_ID = "Modifications";
+    public static final @NotNull String LOGGING_DOCKABLE_ID = "Logging";
+    public static final @NotNull String TERMINAL_DOCKABLE_ID = "Terminal";
+    public static final @NotNull String PROBLEMS_DOCKABLE_ID = "Problems";
+    public static final @NotNull String CLASS_1_DOCKABLE_ID = "Class 1";
+    public static final @NotNull String CLASS_2_DOCKABLE_ID = "Class 2";
+    public static final @NotNull String CLASS_3_DOCKABLE_ID = "Class 3";
+    public static final @NotNull String CLASS_4_DOCKABLE_ID = "Class 4";
+    public static final @NotNull String CLASS_5_DOCKABLE_ID = "Class 5";
 
     private final @NotNull Map<@NotNull String, @NotNull Dockable> dockablesMap =
             new HashMap<>();

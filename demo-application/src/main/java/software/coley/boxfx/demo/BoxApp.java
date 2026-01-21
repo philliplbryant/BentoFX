@@ -20,7 +20,7 @@ import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
-import software.coley.bentofx.persistence.api.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
@@ -34,6 +34,9 @@ import java.util.ServiceLoader;
 
 import static software.coley.boxfx.demo.provider.BoxAppDockableProvider.*;
 
+/**
+ * JavaFX application that demonstrates using the BentoFX framework.
+ */
 public class BoxApp extends Application {
 
     private static final Logger logger =
@@ -45,8 +48,8 @@ public class BoxApp extends Application {
     private LayoutRestorer layoutRestorer;
 
     /**
-     * Acquires injected application dependencies before starting the JavaFX
-     * application.
+     * Uses {@link ServiceLoader} and Service Provider Interfaces to acquire
+     * injected dependencies before starting the JavaFX application.
      */
     @Override
     public void init() {

@@ -10,6 +10,10 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
 
+/**
+ * Mappable Data Transfer Object representing the divider positions in a
+ * BentoFX layout.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DividerPositionDto {

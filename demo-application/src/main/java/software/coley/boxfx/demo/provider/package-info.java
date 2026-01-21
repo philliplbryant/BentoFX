@@ -1,10 +1,9 @@
 /*******************************************************************************
  This is an unpublished work of SAIC.
- Copyright (c) 2026 SAIC. All Rights Reserved.
+ Copyright (c) 2025 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 /**
- * Contains classes for implementing the {@code LayoutStorage} for database
- * persistence.
+ * {@code ServiceLoader} compatible Service Provider implementations.
  */
-package software.coley.bentofx.persistence.impl.storage.db;
+package software.coley.boxfx.demo.provider;

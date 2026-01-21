@@ -1,3 +1,8 @@
+/*******************************************************************************
+This is an unpublished work of SAIC.
+Copyright (c) 2026 SAIC. All Rights Reserved.
+ ******************************************************************************/
+
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel.CURRENT
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL

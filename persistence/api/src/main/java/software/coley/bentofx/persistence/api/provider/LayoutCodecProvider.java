@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 
 /**
- * Service Provider Interface for creating {@link LayoutCodec} implementations.
+ * {@code ServiceLoader} compatible Service Provider Interface for creating
+ * {@link LayoutCodec} implementations.
  */
 public interface LayoutCodecProvider {
 

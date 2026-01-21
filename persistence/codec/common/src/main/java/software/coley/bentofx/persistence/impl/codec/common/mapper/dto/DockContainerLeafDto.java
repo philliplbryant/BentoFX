@@ -19,6 +19,10 @@ import java.util.List;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLES_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
 
+/**
+ * Mappable Data Transfer Object representing the layout state of a
+ * {@code DockContainerLeaf}.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DockContainerLeafDto extends DockContainerDto {

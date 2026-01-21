@@ -1,4 +1,4 @@
-import software.coley.bentofx.persistence.api.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;

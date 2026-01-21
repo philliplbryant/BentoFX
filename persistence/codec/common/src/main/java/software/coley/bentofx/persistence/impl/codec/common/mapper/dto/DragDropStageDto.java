@@ -10,6 +10,10 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
 
+/**
+ * Mappable Data Transfer Object representing the layout state of a
+ * {@code DragDropStage}.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DragDropStageDto {
