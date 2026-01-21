@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.javafx.controls)
     implementation(libs.javafx.graphics)
     implementation(libs.jetbrains.annotations)
+    implementation(libs.slf4j.api)
 
     runtimeOnly(libs.slf4j.jdk14)
 }

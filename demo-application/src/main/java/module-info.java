@@ -28,6 +28,7 @@ module bento.fx.demo.application {
     requires bento.fx.persistence.storage.file;
     requires bento.fx.persistence.api;
     requires jakarta.persistence;
+    requires org.slf4j;
 
     // These packages must be exported for the JavaFX launcher to access the
     // application classes in them.

@@ -19,6 +19,8 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
@@ -28,6 +30,7 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.persistence.api.DockableProvider;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
+import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
@@ -37,6 +40,9 @@ import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import java.util.ServiceLoader;
 
 public class BoxApp extends Application {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(BoxApp.class);
 
     private DockBuilding builder;
     private DockableProvider dockableProvider;
@@ -204,6 +210,7 @@ public class BoxApp extends Application {
 		return dockable;
 	}
 
+    // FIXME BENTO-13: This isn't called when the application exits; what is the intent?
 	private void handleDockableClosing(@Nonnull DockEvent.DockableClosing closingEvent) {
 		final Dockable dockable = closingEvent.dockable();
 		if (!dockable.getTitle().startsWith("Class "))
@@ -223,11 +230,15 @@ public class BoxApp extends Application {
 				.orElse(ButtonType.CANCEL);
 
 		if (result.equals(ButtonType.YES)) {
+
 			// simulate saving
-			System.out.println("Saving " + dockable.getTitle() + "...");
+            logger.debug("Saving {}...", dockable.getTitle());
 		} else if (result.equals(ButtonType.NO)) {
+
 			// nothing to do - just close
+            logger.debug("Closing {} without saving...", dockable.getTitle());
 		} else if (result.equals(ButtonType.CANCEL)) {
+
 			// prevent closing
 			closingEvent.cancel();
 		}
