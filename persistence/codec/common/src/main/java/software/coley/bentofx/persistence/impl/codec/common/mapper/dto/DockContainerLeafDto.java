@@ -16,6 +16,9 @@ import javafx.geometry.Side;
 import java.util.ArrayList;
 import java.util.List;
 
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLES_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
+
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DockContainerLeafDto extends DockContainerDto {
@@ -26,7 +29,7 @@ public class DockContainerLeafDto extends DockContainerDto {
     @XmlAttribute
     public Side side;
 
-    @XmlElementWrapper(name = "dockables")
-    @XmlElement(name = "dockable")
+    @XmlElementWrapper(name = DOCKABLES_ELEMENT_NAME)
+    @XmlElement(name = DOCKABLE_ELEMENT_NAME)
     public List<DockableDto> dockables = new ArrayList<>();
 }

@@ -16,6 +16,8 @@ import jakarta.xml.bind.annotation.XmlElements;
 import java.util.ArrayList;
 import java.util.List;
 
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DockContainerBranchDto extends DockContainerDto {
@@ -23,14 +25,14 @@ public class DockContainerBranchDto extends DockContainerDto {
     @XmlAttribute
     public String orientation; // "HORIZONTAL" or "VERTICAL"
 
-    @XmlElementWrapper(name = "dividerPositions")
-    @XmlElement(name = "divider")
+    @XmlElementWrapper(name = DIVIDER_POSITIONS_ELEMENT_NAME)
+    @XmlElement(name = DIVIDER_ELEMENT_NAME)
     public List<DividerPositionDto> dividerPositions = new ArrayList<>();
 
     @XmlElements(
             {
-                    @XmlElement(name = "branch", type = DockContainerBranchDto.class),
-                    @XmlElement(name = "leaf", type = DockContainerLeafDto.class)
+                    @XmlElement(name = BRANCH_ELEMENT_NAME, type = DockContainerBranchDto.class),
+                    @XmlElement(name = LEAF_ELEMENT_NAME, type = DockContainerLeafDto.class)
             }
     )
     public List<DockContainerDto> children = new ArrayList<>();

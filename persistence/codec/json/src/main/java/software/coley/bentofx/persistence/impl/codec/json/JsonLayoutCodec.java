@@ -5,11 +5,10 @@
 
 package software.coley.bentofx.persistence.impl.codec.json;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.codec.BentoState;
+import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
@@ -19,27 +18,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
+
 /**
  * JSON implementation of {@link LayoutCodec}.
  */
 public final class JsonLayoutCodec implements LayoutCodec {
 
+    public static final String EXTENSION = "json";
     private final ObjectMapper mapper;
 
     public JsonLayoutCodec() {
         this.mapper = new ObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                .enable(INDENT_OUTPUT)
+                .disable(FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     @Override
     public @NotNull BentoState newBentoState() {
-        return new BentoState.BentoStateBuilder("bento").build();
+        return new BentoStateBuilder(BENTO_ELEMENT_NAME).build();
     }
 
     @Override
     public String getExtension() {
-        return "json";
+        return EXTENSION;
     }
 
     @Override
@@ -47,11 +51,17 @@ public final class JsonLayoutCodec implements LayoutCodec {
             final @NotNull BentoState state,
             final @NotNull OutputStream outputStream
     ) throws BentoStateException {
+
         try {
-            final BentoStateDto dto = BentoStateMapper.toDto(state);
-            mapper.writeValue(outputStream, dto);
+
+            final BentoStateDto bentoStateDto = BentoStateMapper.toDto(state);
+            mapper.writeValue(outputStream, bentoStateDto);
         } catch (final Exception e) {
-            throw new BentoStateException("Failed to encode BentoState as JSON", e);
+
+            throw new BentoStateException(
+                    "Failed to encode BentoState as JSON",
+                    e
+            );
         }
     }
 
@@ -61,10 +71,19 @@ public final class JsonLayoutCodec implements LayoutCodec {
             final InputStream inputStream
     ) throws BentoStateException {
         try {
-            final BentoStateDto dto = mapper.readValue(inputStream, BentoStateDto.class);
-            return BentoStateMapper.fromDto(dto);
+            final BentoStateDto bentoStateDto =
+                    mapper.readValue(
+                            inputStream,
+                            BentoStateDto.class
+                    );
+
+            return BentoStateMapper.fromDto(bentoStateDto);
         } catch (final IOException e) {
-            throw new BentoStateException("Failed to decode BentoState from JSON", e);
+
+            throw new BentoStateException(
+                    "Failed to decode BentoState from JSON",
+                    e
+            );
         }
     }
 }

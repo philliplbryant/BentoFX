@@ -1,6 +1,5 @@
 package software.coley.boxfx.demo;
 
-import jakarta.annotation.Nonnull;
 import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
@@ -10,21 +9,15 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.effect.BlurType;
-import javafx.scene.effect.InnerShadow;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
+import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.persistence.api.DockableProvider;
@@ -34,10 +27,12 @@ import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.util.ServiceLoader;
+
+import static software.coley.boxfx.demo.provider.BoxAppDockableProvider.*;
 
 public class BoxApp extends Application {
 
@@ -91,6 +86,7 @@ public class BoxApp extends Application {
                 ServiceLoader.load(DockableProvider.class);
 
         dockableProvider = dockableProviders.iterator().next();
+        dockableProvider.init(builder);
 
         final Iterable<LayoutPersistenceProvider> persistenceProviders =
                 ServiceLoader.load(LayoutPersistenceProvider.class);
@@ -110,85 +106,80 @@ public class BoxApp extends Application {
         );
     }
 
-	@Override
-	public void start(Stage stage) {
+    @Override
+    public void start(Stage stage) {
 
         stage.setWidth(1000);
         stage.setHeight(700);
         stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
         stage.setTitle("BentoFX Demo");
 
-    	DockContainerBranch branchRoot = builder.root("root");
-		DockContainerBranch branchWorkspace = builder.branch("workspace");
-		DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
-		DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
-		DockContainerLeaf leafTools = builder.leaf("misc-tools");
+        DockContainerBranch branchRoot = builder.root("root");
+        DockContainerBranch branchWorkspace = builder.branch("workspace");
+        DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
+        DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
+        DockContainerLeaf leafTools = builder.leaf("misc-tools");
 
-		branchWorkspace.setPruneWhenEmpty(false);
-		leafWorkspaceTools.setPruneWhenEmpty(false);
-		leafTools.setPruneWhenEmpty(false);
-		leafTools.setPruneWhenEmpty(false);
+        branchWorkspace.setPruneWhenEmpty(false);
+        leafWorkspaceTools.setPruneWhenEmpty(false);
+        leafTools.setPruneWhenEmpty(false);
+        leafTools.setPruneWhenEmpty(false);
 
-		// Add dummy menus to each.
-		leafTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafTools));
-		leafWorkspaceHeaders.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceHeaders));
-		leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
+        // Add dummy menus to each.
+        leafTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafTools));
+        leafWorkspaceHeaders.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceHeaders));
+        leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
 
-		// These leaves shouldn't auto-expand. They are intended to be a set size.
-		DockContainerBranch.setResizableWithParent(leafTools, false);
-		DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+        // These leaves shouldn't auto-expand. They are intended to be a set size.
+        DockContainerBranch.setResizableWithParent(leafTools, false);
+        DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
 
-		// Root: Workspace on top, tools on bottom
-		// Workspace: Explorer on left, primary editor tabs on right
-		branchRoot.setOrientation(Orientation.VERTICAL);
-		branchWorkspace.setOrientation(Orientation.HORIZONTAL);
-		branchRoot.addContainers(branchWorkspace, leafTools);
-		branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
+        // Root: Workspace on top, tools on bottom
+        // Workspace: Explorer on left, primary editor tabs on right
+        branchRoot.setOrientation(Orientation.VERTICAL);
+        branchWorkspace.setOrientation(Orientation.HORIZONTAL);
+        branchRoot.addContainers(branchWorkspace, leafTools);
+        branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
 
-		// Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
-		leafWorkspaceTools.setSide(Side.LEFT);
-		leafTools.setSide(Side.BOTTOM);
+        // Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
+        leafWorkspaceTools.setSide(Side.LEFT);
+        leafTools.setSide(Side.BOTTOM);
 
-		// Tools shouldn't allow splitting (mirroring intellij behavior)
-		leafWorkspaceTools.setCanSplit(false);
-		leafTools.setCanSplit(false);
+        // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
+        leafWorkspaceTools.setCanSplit(false);
+        leafTools.setCanSplit(false);
 
-		// Primary editor space should not prune when empty
-		leafWorkspaceHeaders.setPruneWhenEmpty(false);
+        // Primary editor space should not prune when empty
+        leafWorkspaceHeaders.setPruneWhenEmpty(false);
 
-		// Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
-		branchRoot.setContainerSizePx(leafTools, 200);
-		branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
+        // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
+        branchRoot.setContainerSizePx(leafTools, 200);
+        branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
-		// Make the bottom collapsed by default
-		branchRoot.setContainerCollapsed(leafTools, true);
+        // Make the bottom collapsed by default
+        branchRoot.setContainerCollapsed(leafTools, true);
 
-        // TODO BENTO-13: Move Dockable creation to BoxAppDockableProvider
-        //  and acquire them using dockableProvider
+        // Add dockables to leafWorkspaceTools
+        addDockable(WORKSPACE_DOCKABLE_ID, leafWorkspaceTools);
+        addDockable(BOOKMARKS_DOCKABLE_ID, leafWorkspaceTools);
+        addDockable(MODIFICATIONS_DOCKABLE_ID, leafWorkspaceTools);
 
-		// Adding dockables to the leafs
-		leafWorkspaceTools.addDockables(
-				buildDockable(builder, 1, 0, "Workspace"),
-				buildDockable(builder, 1, 1, "Bookmarks"),
-				buildDockable(builder, 1, 2, "Modifications")
-		);
-		leafTools.addDockables(
-				buildDockable(builder, 2, 0, "Logging"),
-				buildDockable(builder, 2, 1, "Terminal"),
-				buildDockable(builder, 2, 2, "Problems")
-		);
-		leafWorkspaceHeaders.addDockables(
-				buildDockable(builder, 0, 0, "Class 1"),
-				buildDockable(builder, 0, 1, "Class 2"),
-				buildDockable(builder, 0, 2, "Class 3"),
-				buildDockable(builder, 0, 3, "Class 4"),
-				buildDockable(builder, 0, 4, "Class 5")
-		);
+        // Add dockables to leafTools
+        addDockable(LOGGING_DOCKABLE_ID, leafTools);
+        addDockable(TERMINAL_DOCKABLE_ID, leafTools);
+        addDockable(PROBLEMS_DOCKABLE_ID, leafTools);
 
-		Scene scene = new Scene(branchRoot);
-		scene.getStylesheets().add("/bento.css");
-		stage.setScene(scene);
-		stage.setOnHidden(e -> System.exit(0));
+        // Add dockables to leafWorkspaceHeaders
+        addDockable(CLASS_1_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_2_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_3_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_4_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_5_DOCKABLE_ID, leafWorkspaceHeaders);
+
+        Scene scene = new Scene(branchRoot);
+        scene.getStylesheets().add("/bento.css");
+        stage.setScene(scene);
+        stage.setOnHidden(e -> System.exit(0));
         stage.setOnCloseRequest(event -> {
 
             try {
@@ -199,48 +190,28 @@ public class BoxApp extends Application {
                 logger.error("Could not save the Bento layout.", e);
             }
         });
-		stage.show();
-	}
+        stage.show();
+    }
 
-	@Nonnull
-	private Dockable buildDockable(@Nonnull DockBuilding builder, int s, int i, @Nonnull String title) {
-		Dockable dockable = builder.dockable();
-		dockable.setTitle(title);
-		dockable.setIconFactory(d -> makeIcon(s, i));
-		dockable.setNode(new Label("<" + title + ":" + i + ">"));
-		dockable.setContextMenuFactory(d -> {
-			return new ContextMenu(
-					new MenuItem("Menu for : " + dockable.getTitle()),
-					new SeparatorMenuItem(),
-					new MenuItem("Stuff")
-			);
-		});
-		if (s > 0) {
-			dockable.setDragGroupMask(1);
-			dockable.setClosable(false);
-		}
-		return dockable;
-	}
+    private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {
+        final Dockable dockable = closingEvent.dockable();
+        if (!dockable.getTitle().startsWith("Class "))
+            return;
 
-	private void handleDockableClosing(@Nonnull DockEvent.DockableClosing closingEvent) {
-		final Dockable dockable = closingEvent.dockable();
-		if (!dockable.getTitle().startsWith("Class "))
-			return;
+        final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText(null);
+        alert.setContentText("Save changes to [" + dockable.getTitle() + "] before closing?");
+        alert.getButtonTypes().setAll(
+                ButtonType.YES,
+                ButtonType.NO,
+                ButtonType.CANCEL
+        );
 
-		final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-		alert.setTitle("Confirmation");
-		alert.setHeaderText(null);
-		alert.setContentText("Save changes to [" + dockable.getTitle() + "] before closing?");
-		alert.getButtonTypes().setAll(
-				ButtonType.YES,
-				ButtonType.NO,
-				ButtonType.CANCEL
-		);
+        final ButtonType result = alert.showAndWait()
+                .orElse(ButtonType.CANCEL);
 
-		final ButtonType result = alert.showAndWait()
-				.orElse(ButtonType.CANCEL);
-
-		if (result.equals(ButtonType.YES)) {
+        if (result.equals(ButtonType.YES)) {
 
             try {
 
@@ -249,46 +220,45 @@ public class BoxApp extends Application {
 
                 logger.error("Could not save the Bento layout.", e);
             }
-		} else if (result.equals(ButtonType.NO)) {
+        } else if (result.equals(ButtonType.NO)) {
 
-			// nothing to do - just close
+            // nothing to do - just close
             logger.debug("Closing {} without saving...", dockable.getTitle());
-		} else if (result.equals(ButtonType.CANCEL)) {
+        } else if (result.equals(ButtonType.CANCEL)) {
 
-			// prevent closing
-			closingEvent.cancel();
-		}
-	}
+            // prevent closing
+            closingEvent.cancel();
+        }
+    }
 
-	@Nonnull
-	private static Shape makeIcon(int shapeMode, int i) {
-		final int radius = 6;
-		Shape icon = switch (shapeMode) {
-			case 1 -> new Polygon(radius, 0, 0, radius * 2, radius * 2, radius * 2);
-			case 2 -> new Rectangle(radius * 2, radius * 2);
-			default -> new Circle(radius);
-		};
-		switch (i) {
-			case 0 -> icon.setFill(Color.RED);
-			case 1 -> icon.setFill(Color.ORANGE);
-			case 2 -> icon.setFill(Color.LIME);
-			case 3 -> icon.setFill(Color.CYAN);
-			case 4 -> icon.setFill(Color.BLUE);
-			case 5 -> icon.setFill(Color.PURPLE);
-			default -> icon.setFill(Color.GREY);
-		}
-		icon.setEffect(new InnerShadow(BlurType.ONE_PASS_BOX, Color.BLACK, 2F, 10F, 0, 0));
-		return icon;
-	}
+    @NotNull
+    private static ContextMenu addSideOptions(@NotNull ContextMenu menu, @NotNull DockContainerLeaf space) {
+        for (Side side : Side.values()) {
+            MenuItem item = new MenuItem(side.name());
+            item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
+            item.setOnAction(e -> space.setSide(side));
+            menu.getItems().add(item);
+        }
+        return menu;
+    }
 
-	@Nonnull
-	private static ContextMenu addSideOptions(@Nonnull ContextMenu menu, @Nonnull DockContainerLeaf space) {
-		for (Side side : Side.values()) {
-			MenuItem item = new MenuItem(side.name());
-			item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
-			item.setOnAction(e -> space.setSide(side));
-			menu.getItems().add(item);
-		}
-		return menu;
-	}
+    /**
+     * Optionally adds the {@code Dockable} with the provided {@code dockableId}
+     * to the {@code DockContainer}. Logs a warning message when the
+     * {@code Dockable} cannot be resolved using the {@code dockableId}.
+     * @param dockableId the identifier for the {@code Dockable} to add.
+     * @param container the {@code DockContainer} to which the {@code Dockable}
+     *                  should be added.
+     */
+    private void addDockable(
+            @NotNull final String dockableId,
+            @NotNull final DockContainer container
+    ) {
+        dockableProvider.resolveDockable(dockableId)
+                .ifPresentOrElse(
+                        container::addDockable,
+                        () -> logger.warn("Could not add dockable {}.", dockableId)
+                );
+
+    }
 }

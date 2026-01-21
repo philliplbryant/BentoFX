@@ -7,9 +7,12 @@ import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
-import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
+//import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
+import software.coley.bentofx.persistence.impl.provider.JsonLayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
+
+// TODO BENTO-13: Specify the codec provider
 
 module bento.fx.demo.application {
 
@@ -24,7 +27,8 @@ module bento.fx.demo.application {
 
     requires bento.fx;
     requires bento.fx.persistence.codec.common;
-    requires bento.fx.persistence.codec.xml;
+//    requires bento.fx.persistence.codec.xml;
+    requires bento.fx.persistence.codec.json;
     requires bento.fx.persistence.storage.file;
     requires bento.fx.persistence.api;
     requires jakarta.persistence;
@@ -46,7 +50,8 @@ module bento.fx.demo.application {
 
     // Service provider implementations
     uses BoxAppDockableProvider;            // DockableProvider
-    uses XmlLayoutCodecProvider;            // LayoutCodecProvider
+//    uses XmlLayoutCodecProvider;            // LayoutCodecProvider
+    uses JsonLayoutCodecProvider;           // LayoutCodecProvider
     uses BentoLayoutPersistenceProvider;    // LayoutPersistenceProvider
     uses BentoLayoutRestorer;               // LayoutRestorer
     uses BentoLayoutSaver;                  // LayoutSaver

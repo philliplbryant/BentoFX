@@ -10,32 +10,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.codec.BentoState;
-import software.coley.bentofx.persistence.api.codec.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.codec.*;
+import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.api.codec.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.codec.DockContainerState;
-import software.coley.bentofx.persistence.api.codec.DockableState;
-import software.coley.bentofx.persistence.api.codec.DragDropStageState;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.codec.DragDropStageState.DragDropStageStateBuilder;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 /**
  * Maps between the immutable {@code *State} domain objects and
  * JAXB/Jackson-friendly DTOs.
  *
- * <p>DTOs are intentionally acyclic and preserve child order via {@link List}.</p>
+ * <p>
+ * DTOs are intentionally acyclic and preserve child order via {@link List}.
+ * </p>
  */
 public final class BentoStateMapper {
 
@@ -46,170 +40,290 @@ public final class BentoStateMapper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static @NotNull BentoStateDto toDto(final @NotNull BentoState state) {
+    /**
+     * Maps a {@link BentoState} to a {@link BentoStateDto}.
+     *
+     * @param state the {@link BentoState} to map.
+     * @return the {@link BentoState} mapped from the {@link BentoStateDto}.
+     */
+    public static @NotNull BentoStateDto toDto(
+            final @NotNull BentoState state
+    ) {
         requireNonNull(state);
-        final BentoStateDto dto = new BentoStateDto();
-        dto.identifier = state.getIdentifier();
+        final BentoStateDto bentoStateDto = new BentoStateDto();
+        bentoStateDto.identifier = state.getIdentifier();
 
         for (final DockContainerRootBranchState root : state.getRootBranchStates()) {
-            dto.rootBranches.add(toDto(root));
+            bentoStateDto.rootBranches.add(toDto(root));
         }
-        return dto;
+        return bentoStateDto;
     }
 
-    public static @NotNull DockContainerRootBranchDto toDto(final @NotNull DockContainerRootBranchState root) {
+    /**
+     * Maps a {@link DockContainerRootBranchState} to a
+     * {@link DockContainerRootBranchDto}.
+     *
+     * @param root the {@link DockContainerRootBranchState} to map.
+     * @return the {@link DockContainerRootBranchDto} mapped from the
+     * {@link DockContainerRootBranchState}.
+     */
+    public static @NotNull DockContainerRootBranchDto toDto(
+            final @NotNull DockContainerRootBranchState root
+    ) {
         requireNonNull(root);
-        final DockContainerRootBranchDto dto = new DockContainerRootBranchDto();
-        dto.identifier = root.getIdentifier();
+        final DockContainerRootBranchDto rootBranchDto =
+                new DockContainerRootBranchDto();
+        rootBranchDto.identifier = root.getIdentifier();
 
-        root.getParent().ifPresent(parent -> dto.parentStage = toDto(parent));
+        root.getParent().ifPresent(parent ->
+                rootBranchDto.parentStage = toDto(parent)
+        );
 
-        for (final DockContainerBranchState b : root.getDockContainerBranchStates()) {
-            dto.branches.add(toDto(b));
+        for (final DockContainerBranchState branchState : root.getDockContainerBranchStates()) {
+            rootBranchDto.branches.add(toDto(branchState));
         }
-        for (final DockContainerLeafState l : root.getDockContainerLeafStates()) {
-            dto.leaves.add(toDto(l));
+
+        for (final DockContainerLeafState leafState : root.getDockContainerLeafStates()) {
+            rootBranchDto.leaves.add(toDto(leafState));
         }
 
-        return dto;
+        return rootBranchDto;
     }
 
-    public static @NotNull DragDropStageDto toDto(final @NotNull DragDropStageState s) {
-        final DragDropStageDto dto = new DragDropStageDto();
-        dto.autoCloseWhenEmpty = s.isAutoClosedWhenEmpty();
-        dto.x = s.getX().orElse(null);
-        dto.y = s.getY().orElse(null);
-        dto.width = s.getWidth().orElse(null);
-        dto.height = s.getHeight().orElse(null);
-        dto.iconified = s.isIconified().orElse(null);
-        dto.fullScreen = s.isFullScreen().orElse(null);
-        dto.maximized = s.isMaximized().orElse(null);
-        return dto;
+    /**
+     * Maps a {@link DragDropStageState} to a {@link DragDropStageDto}.
+     *
+     * @param stageState the {@link DragDropStageState} to map.
+     * @return the {@link DragDropStageDto} mapped from the
+     * {@link DragDropStageState}.
+     */
+    public static @NotNull DragDropStageDto toDto(
+            final @NotNull DragDropStageState stageState
+    ) {
+        final DragDropStageDto stageDto = new DragDropStageDto();
+        stageDto.autoCloseWhenEmpty = stageState.isAutoClosedWhenEmpty();
+        stageDto.x = stageState.getX().orElse(null);
+        stageDto.y = stageState.getY().orElse(null);
+        stageDto.width = stageState.getWidth().orElse(null);
+        stageDto.height = stageState.getHeight().orElse(null);
+        stageDto.iconified = stageState.isIconified().orElse(null);
+        stageDto.fullScreen = stageState.isFullScreen().orElse(null);
+        stageDto.maximized = stageState.isMaximized().orElse(null);
+        return stageDto;
     }
 
-    public static @NotNull DockContainerBranchDto toDto(final @NotNull DockContainerBranchState state) {
-        final DockContainerBranchDto dto = new DockContainerBranchDto();
-        dto.identifier = state.getIdentifier();
-        dto.orientation = state.getOrientation().map(Enum::name).orElse(null);
+    /**
+     * Maps a {@link DockContainerBranchState} to a {@link DockContainerBranchDto}.
+     *
+     * @param branchState the {@link DockContainerBranchState} to map.
+     * @return the {@link DockContainerBranchDto} mapped from the
+     * {@link DockContainerBranchState}.
+     */
+    public static @NotNull DockContainerBranchDto toDto(
+            final @NotNull DockContainerBranchState branchState
+    ) {
+        final DockContainerBranchDto branchDto = new DockContainerBranchDto();
+        branchDto.identifier = branchState.getIdentifier();
+        branchDto.orientation =
+                branchState.getOrientation().map(Enum::name)
+                        .orElse(null);
 
-        state.getDividerPositions().forEach((idx, pos) -> {
-            final DividerPositionDto d = new DividerPositionDto();
-            d.index = idx;
-            d.position = pos;
-            dto.dividerPositions.add(d);
+        branchState.getDividerPositions().forEach((index, position) -> {
+            final DividerPositionDto dividerPositionDto = new DividerPositionDto();
+            dividerPositionDto.index = index;
+            dividerPositionDto.position = position;
+            branchDto.dividerPositions.add(dividerPositionDto);
         });
 
-        for (final DockContainerState child : state.getDockContainerStates()) {
-            if (child instanceof final DockContainerBranchState b) {
-                dto.children.add(toDto(b));
-            } else if (child instanceof final DockContainerLeafState l) {
-                dto.children.add(toDto(l));
+        for (final DockContainerState child : branchState.getDockContainerStates()) {
+            if (child instanceof final DockContainerBranchState childBranchState) {
+                branchDto.children.add(toDto(childBranchState));
+            } else if (child instanceof final DockContainerLeafState childLeafState) {
+                branchDto.children.add(toDto(childLeafState));
             }
         }
 
-        return dto;
+        return branchDto;
     }
 
-    public static @NotNull DockContainerLeafDto toDto(final @NotNull DockContainerLeafState state) {
-        final DockContainerLeafDto dto = new DockContainerLeafDto();
-        dto.identifier = state.getIdentifier();
-        dto.side = state.getSide().orElse(null);
-        dto.selectedDockableId = state.getSelectedDockableStateIdentifier().orElse(null);
+    /**
+     * Maps a {@link DockContainerLeafState} to a {@link DockContainerLeafDto}.
+     *
+     * @param leafState the {@link DockContainerLeafState} to map.
+     * @return the {@link DockContainerLeafDto} mapped from the
+     * {@link DockContainerLeafState}.
+     */
+    public static @NotNull DockContainerLeafDto toDto(
+            final @NotNull DockContainerLeafState leafState
+    ) {
+        final DockContainerLeafDto leafDto = new DockContainerLeafDto();
+        leafDto.identifier = leafState.getIdentifier();
+        leafDto.side = leafState.getSide().orElse(null);
+        leafDto.selectedDockableId =
+                leafState.getSelectedDockableStateIdentifier()
+                        .orElse(null);
 
-        for (final DockableState d : state.getDockableStates()) {
-            final DockableDto dd = new DockableDto();
-            dd.identifier = d.getIdentifier();
-            dto.dockables.add(dd);
+        for (final DockableState d : leafState.getDockableStates()) {
+            final DockableDto dockableDto = new DockableDto();
+            dockableDto.identifier = d.getIdentifier();
+            leafDto.dockables.add(dockableDto);
         }
-        return dto;
+        return leafDto;
     }
 
-    public static @NotNull BentoState fromDto(final @NotNull BentoStateDto dto) {
-        requireNonNull(dto);
-        final String id = dto.identifier != null ? dto.identifier : "bento";
-        final BentoState.BentoStateBuilder builder = new BentoState.BentoStateBuilder(id);
+    /**
+     * Maps a {@link BentoStateDto} to a {@link BentoState}.
+     *
+     * @param bentoStateDto the {@link BentoStateDto} to map.
+     * @return the {@link BentoState} mapped from the {@link BentoStateDto}.
+     */
+    public static @NotNull BentoState fromDto(
+            final @NotNull BentoStateDto bentoStateDto
+    ) {
+        requireNonNull(bentoStateDto);
+        final String id = bentoStateDto.identifier != null ?
+                bentoStateDto.identifier :
+                BENTO_ELEMENT_NAME;
+        final BentoStateBuilder builder = new BentoStateBuilder(id);
 
-        if (dto.rootBranches != null) {
-            for (final DockContainerRootBranchDto rootDto : dto.rootBranches) {
+        if (bentoStateDto.rootBranches != null) {
+            for (final DockContainerRootBranchDto rootDto : bentoStateDto.rootBranches) {
                 builder.addRootBranchState(fromDto(rootDto));
             }
         }
         return builder.build();
     }
 
-    public static @NotNull DockContainerRootBranchState fromDto(final @NotNull DockContainerRootBranchDto dto) {
-        final String id = dto.identifier != null ? dto.identifier : "root-branch";
-        final DockContainerRootBranchState.DockContainerRootBranchStateBuilder builder =
-                new DockContainerRootBranchState.DockContainerRootBranchStateBuilder(id);
+    /**
+     * Maps a {@link DockContainerRootBranchDto} to a
+     * {@link DockContainerRootBranchState}.
+     *
+     * @param rootBranchDto the {@link DockContainerRootBranchDto} to map.
+     * @return the {@link DockContainerRootBranchState} mapped from the
+     * {@link DockContainerRootBranchDto}.
+     */
+    public static @NotNull DockContainerRootBranchState fromDto(
+            final @NotNull DockContainerRootBranchDto rootBranchDto
+    ) {
+        final String id = rootBranchDto.identifier != null ?
+                rootBranchDto.identifier :
+                ROOT_BRANCH_ELEMENT_NAME;
 
-        if (dto.parentStage != null) {
-            builder.setParent(fromDto(dto.parentStage));
+        final DockContainerRootBranchStateBuilder builder =
+                new DockContainerRootBranchStateBuilder(id);
+
+        if (rootBranchDto.parentStage != null) {
+            builder.setParent(fromDto(rootBranchDto.parentStage));
         }
 
-        if (dto.branches != null) {
-            for (final DockContainerBranchDto b : dto.branches) {
-                builder.addDockContainerBranchState(fromDto(b));
+        if (rootBranchDto.branches != null) {
+
+            for (final DockContainerBranchDto branchDto : rootBranchDto.branches) {
+                builder.addDockContainerBranchState(fromDto(branchDto));
             }
         }
-        if (dto.leaves != null) {
-            for (final DockContainerLeafDto l : dto.leaves) {
-                builder.addDockContainerLeafState(fromDto(l));
+
+        if (rootBranchDto.leaves != null) {
+
+            for (final DockContainerLeafDto leafDto : rootBranchDto.leaves) {
+                builder.addDockContainerLeafState(fromDto(leafDto));
             }
         }
 
         return builder.build();
     }
 
-    public static @NotNull DragDropStageState fromDto(final @NotNull DragDropStageDto dto) {
-        final DragDropStageState.DragDropStageStateBuilder b =
-                new DragDropStageState.DragDropStageStateBuilder(Boolean.TRUE.equals(dto.autoCloseWhenEmpty))
-                        .setTitle(dto.title)
-                        .setX(dto.x)
-                        .setY(dto.y)
-                        .setWidth(dto.width)
-                        .setHeight(dto.height)
-                        .setIsIconified(dto.iconified)
-                        .setIsFullScreen(dto.fullScreen)
-                        .setIsMaximized(dto.maximized)
-                        // Avoid cycles
-                        .setDockContainerRootBranchState(null);
-
-        return b.build();
+    /**
+     * Maps a {@link DragDropStageDto} to a {@link DragDropStageState}.
+     *
+     * @param stageDto the {@link DragDropStageDto} to map.
+     * @return the {@link DragDropStageState} mapped from the
+     * {@link DragDropStageDto}.
+     */
+    public static @NotNull DragDropStageState fromDto(
+            final @NotNull DragDropStageDto stageDto
+    ) {
+        return new DragDropStageStateBuilder(
+                Boolean.TRUE.equals(stageDto.autoCloseWhenEmpty)
+        )
+                .setTitle(stageDto.title)
+                .setX(stageDto.x)
+                .setY(stageDto.y)
+                .setWidth(stageDto.width)
+                .setHeight(stageDto.height)
+                .setIsIconified(stageDto.iconified)
+                .setIsFullScreen(stageDto.fullScreen)
+                .setIsMaximized(stageDto.maximized)
+                // Avoid cycles
+                .setDockContainerRootBranchState(null)
+                .build();
     }
 
-    public static @NotNull DockContainerBranchState fromDto(final @NotNull DockContainerBranchDto dto) {
+    /**
+     * Maps a {@link DockContainerBranchDto} to a
+     * {@link DockContainerBranchState}.
+     *
+     * @param branchDto the {@link DockContainerBranchDto} to map.
+     * @return the {@link DockContainerBranchState} mapped from the
+     * {@link DockContainerBranchDto}.
+     */
+    public static @NotNull DockContainerBranchState fromDto(
+            final @NotNull DockContainerBranchDto branchDto
+    ) {
 
-        final String id = dto.identifier != null ? dto.identifier : "branch";
+        final String id = branchDto.identifier != null ?
+                branchDto.identifier :
+                BRANCH_ELEMENT_NAME;
+
         final DockContainerBranchStateBuilder builder =
                 new DockContainerBranchStateBuilder(id);
-        setOrientation(builder, dto.orientation);
-        setDividerPositions(builder, dto.dividerPositions);
-        addDockContainers(builder, dto.children);
+        setOrientation(builder, branchDto.orientation);
+        setDividerPositions(builder, branchDto.dividerPositions);
+        addDockContainers(builder, branchDto.children);
         return builder.build();
     }
 
+    /**
+     * Sets the orientation of the {@link DockContainerBranchStateBuilder}. Logs
+     * a warning if the {@code orientation} is not a valid {@link Orientation}
+     * value.
+     *
+     * @param builder     the {@link DockContainerBranchStateBuilder} whose
+     *                    orientation is to be set.
+     * @param orientation the {@link String} value of the {@link Orientation}
+     *                    being set.
+     */
     private static void setOrientation(
             final @NotNull DockContainerBranchStateBuilder builder,
             final @Nullable String orientation
     ) {
-        if (orientation != null) {
-            try {
-                builder.setOrientation(
-                        Orientation.valueOf(orientation)
-                );
-            } catch (final Exception e) {
-                logger.warn(
-                        "Could not determine the orientation for {}.", orientation,
-                        e
-                );
-            }
+        try {
+
+            builder.setOrientation(
+                    orientation != null ?
+                            Orientation.valueOf(orientation) :
+                            null
+            );
+        } catch (final Exception e) {
+
+            logger.warn(
+                    "Could not determine the orientation for {}.", orientation,
+                    e
+            );
         }
     }
 
+    /**
+     * Sets the divider positions of the {@link DockContainerBranchStateBuilder}.
+     *
+     * @param builder     the {@link DockContainerBranchStateBuilder} whose
+     *                    divider positions are to be set.
+     * @param dividerPositions the positions of the dividers.
+     */
     private static void setDividerPositions(
             final @NotNull DockContainerBranchStateBuilder builder,
             final @Nullable List<@Nullable DividerPositionDto> dividerPositions
-            ) {
+    ) {
         if (dividerPositions != null) {
             for (final DividerPositionDto d : dividerPositions) {
                 if (d != null && d.index != null && d.position != null) {
@@ -219,6 +333,14 @@ public final class BentoStateMapper {
         }
     }
 
+    /**
+     * Adds the {@link DockContainerDto}s to the
+     * {@link DockContainerBranchStateBuilder}.
+     *
+     * @param builder     the {@link DockContainerBranchStateBuilder} to which
+     *                    the {@link DockContainerDto} are to be added.
+     * @param dockContainers the {@link DockContainerDto}s to be added.
+     */
     private static void addDockContainers(
             final @NotNull DockContainerBranchStateBuilder builder,
             final @Nullable List<@Nullable DockContainerDto> dockContainers
@@ -234,23 +356,35 @@ public final class BentoStateMapper {
         }
     }
 
-    public static @NotNull DockContainerLeafState fromDto(final @NotNull DockContainerLeafDto dto) {
-        final String id = dto.identifier != null ? dto.identifier : "leaf";
+    /**
+     * Maps a {@link DockContainerLeafDto} to a
+     * {@link DockContainerLeafState}.
+     *
+     * @param leafDto the {@link DockContainerLeafDto} to map.
+     * @return the {@link DockContainerLeafState} mapped from the
+     * {@link DockContainerLeafDto}.
+     */
+    public static @NotNull DockContainerLeafState fromDto(
+            final @NotNull DockContainerLeafDto leafDto
+    ) {
+        final String id = leafDto.identifier != null ?
+                leafDto.identifier :
+                LEAF_ELEMENT_NAME;
+
         final DockContainerLeafState.DockContainerLeafStateBuilder builder =
-                new DockContainerLeafState.DockContainerLeafStateBuilder(id);
+                new DockContainerLeafState.DockContainerLeafStateBuilder(id)
+                        .setSelectedDockableStateIdentifier(leafDto.selectedDockableId)
+                        .setSide(leafDto.side);
 
-        if (dto.selectedDockableId != null) {
-            builder.setSelectedDockableStateIdentifier(dto.selectedDockableId);
-        }
+        if (leafDto.dockables != null) {
 
-        if (dto.side != null) {
-            builder.setSide(dto.side);
-        }
+            for (final DockableDto d : leafDto.dockables) {
 
-        if (dto.dockables != null) {
-            for (final DockableDto d : dto.dockables) {
                 if (d != null && d.identifier != null) {
-                    builder.addDockableState(new DockableState.DockableStateBuilder(d.identifier).build());
+
+                    builder.addDockableState(
+                            new DockableStateBuilder(d.identifier).build()
+                    );
                 }
             }
         }

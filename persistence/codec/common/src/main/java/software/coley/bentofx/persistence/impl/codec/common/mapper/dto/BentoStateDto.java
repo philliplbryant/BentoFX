@@ -16,7 +16,9 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
-@XmlRootElement(name = "bento")
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+
+@XmlRootElement(name = BENTO_ELEMENT_NAME)
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BentoStateDto {
@@ -24,7 +26,7 @@ public class BentoStateDto {
     @XmlAttribute
     public String identifier;
 
-    @XmlElementWrapper(name = "rootBranches")
-    @XmlElement(name = "rootBranch")
+    @XmlElementWrapper(name = ROOT_BRANCHES_ELEMENT_NAME)
+    @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
     public List<DockContainerRootBranchDto> rootBranches = new ArrayList<>();
 }

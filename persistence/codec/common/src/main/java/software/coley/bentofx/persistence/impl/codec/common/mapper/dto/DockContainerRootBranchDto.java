@@ -15,6 +15,8 @@ import jakarta.xml.bind.annotation.XmlElementWrapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DockContainerRootBranchDto {
@@ -22,14 +24,14 @@ public class DockContainerRootBranchDto {
     @XmlAttribute
     public String identifier;
 
-    @XmlElement(name = "parentStage")
+    @XmlElement(name = PARENT_STAGE_ELEMENT_NAME)
     public DragDropStageDto parentStage;
 
-    @XmlElementWrapper(name = "branches")
-    @XmlElement(name = "branch")
+    @XmlElementWrapper(name = BRANCHES_ELEMENT_NAME)
+    @XmlElement(name = BRANCH_ELEMENT_NAME)
     public List<DockContainerBranchDto> branches = new ArrayList<>();
 
-    @XmlElementWrapper(name = "leaves")
-    @XmlElement(name = "leaf")
+    @XmlElementWrapper(name = LEAVES_ELEMENT_NAME)
+    @XmlElement(name = LEAF_ELEMENT_NAME)
     public List<DockContainerLeafDto> leaves = new ArrayList<>();
 }

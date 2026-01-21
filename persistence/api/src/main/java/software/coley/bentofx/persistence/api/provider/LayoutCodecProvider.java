@@ -13,5 +13,9 @@ import software.coley.bentofx.persistence.api.codec.LayoutCodec;
  */
 public interface LayoutCodecProvider {
 
+    /**
+     * Creates a {@link LayoutCodec}.
+     * @return a {@link LayoutCodec}
+     */
     @NotNull LayoutCodec createLayoutCodec();
 }
