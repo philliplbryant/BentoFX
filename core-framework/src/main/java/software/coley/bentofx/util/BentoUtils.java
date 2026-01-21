@@ -26,6 +26,13 @@ import java.util.function.Consumer;
  * @author Matt Coley
  */
 public class BentoUtils {
+
+    private BentoUtils() {
+        throw new IllegalStateException(
+                "BentoUtils is a utility class and should not be instantiated."
+        );
+    }
+
 	/**
 	 * @param side
 	 * 		Some side.

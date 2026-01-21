@@ -127,11 +127,18 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
 
             return primaryRootNode;
-        } catch (final ExecutionException | InterruptedException ex) {
+        } catch (final ExecutionException e) {
 
             throw new BentoStateException(
-                    "Interrupted while attempting to read layout",
-                    ex
+                    "An error occurred while attempting to read the layout",
+                    e
+            );
+        } catch (final InterruptedException e) {
+
+            Thread.currentThread().interrupt();
+            throw new BentoStateException(
+                    "Interrupted while attempting to read the layout",
+                    e
             );
         }
     }
@@ -163,10 +170,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        dockableProvider.getDefaultDragDropStageIcon().ifPresent(icon ->
-                stage.getIcons().add(icon)
-        );
-
+        stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
         stageState.getTitle().ifPresent(stage::setTitle);
         stageState.getX().ifPresent(stage::setX);
         stageState.getY().ifPresent(stage::setY);
@@ -212,16 +216,20 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private DockContainer restoreDockContainer(
             final DockContainerState state
     ) {
-        if (state instanceof final DockContainerBranchState branchState) {
+        switch (state) {
+            case final DockContainerBranchState branchState -> {
 
-            return restoreBranch(false, branchState);
-        } else if (state instanceof final DockContainerLeafState leafState) {
+                return restoreBranch(false, branchState);
+            }
+            case final DockContainerLeafState leafState -> {
 
-            return restoreLeaf(leafState);
-        } else {
+                return restoreLeaf(leafState);
+            }
+            default -> {
 
-            LOGGER.warn("Unknown DockContainerState type: {}", state.getClass());
-            return null;
+                LOGGER.warn("Unknown DockContainerState type: {}", state.getClass());
+                return null;
+            }
         }
     }
 
@@ -322,7 +330,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         RANDOM.nextBytes(bytes);
         final StringBuilder sb = new StringBuilder(prefix).append("-");
         for (final byte b : bytes) {
-            sb.append(Integer.toHexString(b & 0xff));
+            sb.append(String.format("%02X", b));
         }
         return sb.toString();
     }

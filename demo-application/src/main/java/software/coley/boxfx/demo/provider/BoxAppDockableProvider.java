@@ -1,20 +1,62 @@
 package software.coley.boxfx.demo.provider;
 
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.persistence.api.DockableProvider;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 public class BoxAppDockableProvider implements DockableProvider {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(BoxAppDockableProvider.class);
+
+    private static final List<String> ICON_RESOURCES = List.of(
+            "/images/logo-16.png",
+            "/images/logo-32.png",
+            "/images/logo-48.png",
+            "/images/logo-256.png"
+    );
 
     @Override
     public Optional<Dockable> resolveDockable(String id) {
         return Optional.empty();
     }
 
+    // TODO BENTO-13: Move this to a different interface/implementation
     @Override
-    public Optional<Image> getDefaultDragDropStageIcon() {
-        return Optional.empty();
+    public @NotNull Collection<@NotNull Image> getDefaultStageIcons() {
+
+        final List<@NotNull Image> images = new ArrayList<>();
+
+        for (final String iconResource : ICON_RESOURCES) {
+            try (
+                    final InputStream inputStream =
+                            getClass().getResourceAsStream(iconResource)
+            ) {
+                if (inputStream == null) {
+
+                    logger.warn(
+                            "Could not find the resource {}.", iconResource
+                    );
+                } else {
+
+                    images.add(new Image(inputStream));
+                }
+            } catch (IOException e) {
+
+                logger.warn(
+                        "Could not read the resource {}.", iconResource,
+                        e
+                );
+            }
+        }
+
+        return images;
     }
 }

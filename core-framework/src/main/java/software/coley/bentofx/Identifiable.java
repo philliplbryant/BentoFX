@@ -1,7 +1,6 @@
 package software.coley.bentofx;
 
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 
 /**
  * Outline of an <i>(ideally uniquely)</i> identifiable object.

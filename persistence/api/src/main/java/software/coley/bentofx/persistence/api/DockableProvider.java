@@ -6,8 +6,10 @@
 package software.coley.bentofx.persistence.api;
 
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.dockable.Dockable;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -25,11 +27,11 @@ public interface DockableProvider {
     Optional<Dockable> resolveDockable(String id);
 
     /**
-     * Returns the default {@link Image} to be used for {@code DragDropStage}
-     * instances.
+     * Returns a collection of varying sizes for the default {@link Image} to be
+     * used for {@code Stage} and {@code DragDropStage} instances.
      *
-     * @return the default {@link Image} to be used for {@code DragDropStage}
-     * instances.
+     * @return a collection of varying sizes for the default {@link Image} to be
+     * used for {@code Stage} and {@code DragDropStage} instances.
      */
-    Optional<Image> getDefaultDragDropStageIcon();
+    @NotNull Collection< @NotNull Image> getDefaultStageIcons();
 }

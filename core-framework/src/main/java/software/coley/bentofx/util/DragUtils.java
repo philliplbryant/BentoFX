@@ -20,7 +20,14 @@ import java.util.Map;
  * @author Matt Coley
  */
 public class DragUtils {
+
 	public static final String PREFIX = "dnd-bento;";
+
+    private DragUtils() {
+        throw new IllegalStateException(
+                "DragUtils is a utility class and should not be instantiated."
+        );
+    }
 
 	/**
 	 * Creates a map containing details about the given {@link Dockable} that can be retrieved later.

@@ -8,6 +8,13 @@ import javafx.css.PseudoClass;
  * @author Matt Coley
  */
 public class BentoStates {
+
+    private BentoStates() {
+        throw new IllegalStateException(
+                "BentoStates is a utility class and should not be instantiated."
+        );
+    }
+
 	public static final PseudoClass PSEUDO_ROOT = PseudoClass.getPseudoClass("root");
 	public static final PseudoClass PSEUDO_ACTIVE = PseudoClass.getPseudoClass("active");
 	public static final PseudoClass PSEUDO_COLLAPSED = PseudoClass.getPseudoClass("collapsed");

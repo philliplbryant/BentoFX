@@ -120,15 +120,10 @@ public final class BentoLayoutSaver implements LayoutSaver {
         final DockContainerState dockContainerState =
                 saveDockContainer(primaryNode);
 
-        if (dockContainerState instanceof final DockContainerBranchState branchState) {
-
-            rootBuilder.addDockContainerBranchState(branchState);
-        } else if (dockContainerState instanceof final DockContainerLeafState leafState) {
-
-            rootBuilder.addDockContainerLeafState(leafState);
-        } else {
-
-            LOGGER.warn("Unsupported root container state type: {}", dockContainerState);
+        switch (dockContainerState) {
+            case final DockContainerBranchState branchState -> rootBuilder.addDockContainerBranchState(branchState);
+            case final DockContainerLeafState leafState -> rootBuilder.addDockContainerLeafState(leafState);
+            case null, default -> LOGGER.warn("Unsupported root container state type: {}", dockContainerState);
         }
 
         return rootBuilder.build();

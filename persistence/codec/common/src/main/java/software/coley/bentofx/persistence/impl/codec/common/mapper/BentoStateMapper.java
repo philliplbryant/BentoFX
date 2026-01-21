@@ -7,8 +7,12 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import javafx.geometry.Orientation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.codec.DockContainerState;
@@ -34,6 +38,9 @@ import static java.util.Objects.requireNonNull;
  * <p>DTOs are intentionally acyclic and preserve child order via {@link List}.</p>
  */
 public final class BentoStateMapper {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(BentoStateMapper.class);
 
     private BentoStateMapper() {
         throw new IllegalStateException("Utility class");
@@ -171,36 +178,60 @@ public final class BentoStateMapper {
     }
 
     public static @NotNull DockContainerBranchState fromDto(final @NotNull DockContainerBranchDto dto) {
-        final String id = dto.identifier != null ? dto.identifier : "branch";
-        final DockContainerBranchState.DockContainerBranchStateBuilder builder =
-                new DockContainerBranchState.DockContainerBranchStateBuilder(id);
 
-        if (dto.orientation != null) {
+        final String id = dto.identifier != null ? dto.identifier : "branch";
+        final DockContainerBranchStateBuilder builder =
+                new DockContainerBranchStateBuilder(id);
+        setOrientation(builder, dto.orientation);
+        setDividerPositions(builder, dto.dividerPositions);
+        addDockContainers(builder, dto.children);
+        return builder.build();
+    }
+
+    private static void setOrientation(
+            final @NotNull DockContainerBranchStateBuilder builder,
+            final @Nullable String orientation
+    ) {
+        if (orientation != null) {
             try {
-                builder.setOrientation(Orientation.valueOf(dto.orientation));
-            } catch (final Exception ignored) {
+                builder.setOrientation(
+                        Orientation.valueOf(orientation)
+                );
+            } catch (final Exception e) {
+                logger.warn(
+                        "Could not determine the orientation for {}.", orientation,
+                        e
+                );
             }
         }
+    }
 
-        if (dto.dividerPositions != null) {
-            for (final DividerPositionDto d : dto.dividerPositions) {
+    private static void setDividerPositions(
+            final @NotNull DockContainerBranchStateBuilder builder,
+            final @Nullable List<@Nullable DividerPositionDto> dividerPositions
+            ) {
+        if (dividerPositions != null) {
+            for (final DividerPositionDto d : dividerPositions) {
                 if (d != null && d.index != null && d.position != null) {
                     builder.addDividerPosition(d.index, d.position);
                 }
             }
         }
+    }
 
-        if (dto.children != null) {
-            for (final DockContainerDto child : dto.children) {
-                if (child instanceof final DockContainerBranchDto b) {
+    private static void addDockContainers(
+            final @NotNull DockContainerBranchStateBuilder builder,
+            final @Nullable List<@Nullable DockContainerDto> dockContainers
+    ) {
+        if (dockContainers != null) {
+            for (final DockContainerDto container : dockContainers) {
+                if (container instanceof final DockContainerBranchDto b) {
                     builder.addDockContainerState(fromDto(b));
-                } else if (child instanceof final DockContainerLeafDto l) {
+                } else if (container instanceof final DockContainerLeafDto l) {
                     builder.addDockContainerState(fromDto(l));
                 }
             }
         }
-
-        return builder.build();
     }
 
     public static @NotNull DockContainerLeafState fromDto(final @NotNull DockContainerLeafDto dto) {

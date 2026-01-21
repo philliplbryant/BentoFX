@@ -115,6 +115,8 @@ public class BoxApp extends Application {
 
         stage.setWidth(1000);
         stage.setHeight(700);
+        stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
+        stage.setTitle("BentoFX Demo");
 
     	DockContainerBranch branchRoot = builder.root("root");
 		DockContainerBranch branchWorkspace = builder.branch("workspace");
@@ -187,6 +189,16 @@ public class BoxApp extends Application {
 		scene.getStylesheets().add("/bento.css");
 		stage.setScene(scene);
 		stage.setOnHidden(e -> System.exit(0));
+        stage.setOnCloseRequest(event -> {
+
+            try {
+
+                layoutSaver.saveLayout();
+            } catch (BentoStateException e) {
+
+                logger.error("Could not save the Bento layout.", e);
+            }
+        });
 		stage.show();
 	}
 
@@ -210,7 +222,6 @@ public class BoxApp extends Application {
 		return dockable;
 	}
 
-    // FIXME BENTO-13: This isn't called when the application exits; what is the intent?
 	private void handleDockableClosing(@Nonnull DockEvent.DockableClosing closingEvent) {
 		final Dockable dockable = closingEvent.dockable();
 		if (!dockable.getTitle().startsWith("Class "))
@@ -231,8 +242,13 @@ public class BoxApp extends Application {
 
 		if (result.equals(ButtonType.YES)) {
 
-			// simulate saving
-            logger.debug("Saving {}...", dockable.getTitle());
+            try {
+
+                layoutSaver.saveLayout();
+            } catch (BentoStateException e) {
+
+                logger.error("Could not save the Bento layout.", e);
+            }
 		} else if (result.equals(ButtonType.NO)) {
 
 			// nothing to do - just close

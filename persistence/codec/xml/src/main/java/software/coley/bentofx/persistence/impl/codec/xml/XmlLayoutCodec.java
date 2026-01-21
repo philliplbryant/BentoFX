@@ -26,6 +26,9 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
+import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
+
 /**
  * XML codec for {@link BentoState} using Jakarta JAXB.
  */
@@ -56,6 +59,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
             final @NotNull BentoState state,
             final @NotNull OutputStream outputStream
     ) throws BentoStateException {
+
         try {
             final Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -70,18 +74,20 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
             // Pretty print DOM to output stream
             final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute(ACCESS_EXTERNAL_DTD, "");
+            transformerFactory.setAttribute(ACCESS_EXTERNAL_STYLESHEET, "");
+
             final Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            // Best-effort: configure indent amount for common Transformer implementations.
-            try {
-                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            } catch (final Exception ignored) {
-                // Some transformer implementations may not recognize this property.
-            }
-
-            transformer.transform(new DOMSource(document), new StreamResult(outputStream));
+            transformer.setOutputProperty(
+                    "{http://xml.apache.org/xslt}indent-amount",
+                    "2"
+            );
+            transformer.transform(
+                    new DOMSource(document),
+                    new StreamResult(outputStream)
+            );
         } catch (final Exception e) {
 
             throw new BentoStateException("Failed to encode BentoState as XML", e);
