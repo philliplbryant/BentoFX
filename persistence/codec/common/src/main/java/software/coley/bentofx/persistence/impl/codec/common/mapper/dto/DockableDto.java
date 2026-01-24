@@ -13,6 +13,8 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 /**
  * Mappable Data Transfer Object representing the layout state of a
  * {@code Dockable}.
+ *
+ * @author Phil Bryant
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)

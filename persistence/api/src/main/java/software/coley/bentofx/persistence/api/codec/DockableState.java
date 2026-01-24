@@ -9,11 +9,15 @@ import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Represents the layout state of a {@code Dockable}.
+ *
+ * @author Phil Bryant
+ */
 public class DockableState extends IdentifiableState {
 
     private DockableState(
-            @NotNull
-            final String identifier
+            final @NotNull String identifier
     ) {
         super(identifier);
     }
@@ -23,8 +27,7 @@ public class DockableState extends IdentifiableState {
         private final @NotNull String identifier;
 
         public DockableStateBuilder(
-                @NotNull
-                final String identifier
+                final @NotNull String identifier
         ) {
             this.identifier = requireNonNull(identifier);
         }

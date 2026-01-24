@@ -20,10 +20,11 @@ import java.io.OutputStream;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
 
 /**
  * JSON implementation of {@link LayoutCodec}.
+ *
+ * @author Phil Bryant
  */
 public final class JsonLayoutCodec implements LayoutCodec {
 
@@ -38,11 +39,11 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
     @Override
     public @NotNull BentoState newBentoState() {
-        return new BentoStateBuilder(BENTO_ELEMENT_NAME).build();
+        return new BentoStateBuilder().build();
     }
 
     @Override
-    public String getExtension() {
+    public String getIdentifier() {
         return EXTENSION;
     }
 

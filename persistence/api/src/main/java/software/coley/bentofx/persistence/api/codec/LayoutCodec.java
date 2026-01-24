@@ -12,6 +12,8 @@ import java.io.OutputStream;
 
 /**
  * Codec for encoding/decoding {@link BentoState} to/from some persistence format (XML/JSON/etc).
+ *
+ * @author Phil Bryant
  */
 public interface LayoutCodec {
 
@@ -26,11 +28,11 @@ public interface LayoutCodec {
 
     /**
      * Returns an identifier used to differentiate this {@link LayoutCodec}
-     * implementation from other {@link LayoutCodec} implementations. Should be
+     * implementation from other {@link LayoutCodec} implementations. Could be
      * usable as a file extension.
      * @return an identifier used to differentiate this {@link LayoutCodec}.
      */
-    String getExtension();
+    String getIdentifier();
 
     /**
      * Encode the {@link BentoState} and write it to the {@link OutputStream}.

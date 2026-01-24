@@ -30,6 +30,8 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * <p>
  * DTOs are intentionally acyclic and preserve child order via {@link List}.
  * </p>
+ *
+ * @author Phil Bryant
  */
 public final class BentoStateMapper {
 
@@ -50,12 +52,13 @@ public final class BentoStateMapper {
             final @NotNull BentoState state
     ) {
         requireNonNull(state);
+
         final BentoStateDto bentoStateDto = new BentoStateDto();
-        bentoStateDto.identifier = state.getIdentifier();
 
         for (final DockContainerRootBranchState root : state.getRootBranchStates()) {
             bentoStateDto.rootBranches.add(toDto(root));
         }
+
         return bentoStateDto;
     }
 
@@ -79,12 +82,27 @@ public final class BentoStateMapper {
                 rootBranchDto.parentStage = toDto(parent)
         );
 
-        for (final DockContainerBranchState branchState : root.getDockContainerBranchStates()) {
-            rootBranchDto.branches.add(toDto(branchState));
+        for (final DockContainerState dockContainerState : root.getChildDockContainerStates()) {
+
+            switch (dockContainerState) {
+
+                case final DockContainerBranchState dockContainerBranchState ->
+                        rootBranchDto.branches.add(toDto(dockContainerBranchState));
+
+                case final DockContainerLeafState dockContainerLeafState ->
+                    rootBranchDto.leaf = toDto(dockContainerLeafState);
+
+                default ->
+                    logger.warn(
+                            "Unsupported DockContainerBranchState type: {}",
+                            dockContainerState
+                    );
+            }
         }
 
-        for (final DockContainerLeafState leafState : root.getDockContainerLeafStates()) {
-            rootBranchDto.leaves.add(toDto(leafState));
+
+        for (final DockableState dockableState : root.getChildDockableStates()) {
+            rootBranchDto.dockables.add(toDto(dockableState));
         }
 
         return rootBranchDto;
@@ -112,6 +130,13 @@ public final class BentoStateMapper {
         return stageDto;
     }
 
+    public static @NotNull DockableDto toDto(DockableState dockableState) {
+
+        final DockableDto dockableDto = new DockableDto();
+        dockableDto.identifier = dockableState.getIdentifier();
+        return dockableDto;
+    }
+
     /**
      * Maps a {@link DockContainerBranchState} to a {@link DockContainerBranchDto}.
      *
@@ -123,10 +148,11 @@ public final class BentoStateMapper {
             final @NotNull DockContainerBranchState branchState
     ) {
         final DockContainerBranchDto branchDto = new DockContainerBranchDto();
+
         branchDto.identifier = branchState.getIdentifier();
+
         branchDto.orientation =
-                branchState.getOrientation().map(Enum::name)
-                        .orElse(null);
+                branchState.getOrientation().orElse(null);
 
         branchState.getDividerPositions().forEach((index, position) -> {
             final DividerPositionDto dividerPositionDto = new DividerPositionDto();
@@ -135,7 +161,7 @@ public final class BentoStateMapper {
             branchDto.dividerPositions.add(dividerPositionDto);
         });
 
-        for (final DockContainerState child : branchState.getDockContainerStates()) {
+        for (final DockContainerState child : branchState.getChildDockContainerStates()) {
             if (child instanceof final DockContainerBranchState childBranchState) {
                 branchDto.children.add(toDto(childBranchState));
             } else if (child instanceof final DockContainerLeafState childLeafState) {
@@ -159,13 +185,12 @@ public final class BentoStateMapper {
         final DockContainerLeafDto leafDto = new DockContainerLeafDto();
         leafDto.identifier = leafState.getIdentifier();
         leafDto.side = leafState.getSide().orElse(null);
-        leafDto.selectedDockableId =
-                leafState.getSelectedDockableStateIdentifier()
+        leafDto.selectedDockableIdentifier =
+                leafState.getSelectedDockableIdentifier()
                         .orElse(null);
 
-        for (final DockableState d : leafState.getDockableStates()) {
-            final DockableDto dockableDto = new DockableDto();
-            dockableDto.identifier = d.getIdentifier();
+        for (final DockableState d : leafState.getChildDockableStates()) {
+            DockableDto dockableDto = toDto(d);
             leafDto.dockables.add(dockableDto);
         }
         return leafDto;
@@ -181,10 +206,8 @@ public final class BentoStateMapper {
             final @NotNull BentoStateDto bentoStateDto
     ) {
         requireNonNull(bentoStateDto);
-        final String id = bentoStateDto.identifier != null ?
-                bentoStateDto.identifier :
-                BENTO_ELEMENT_NAME;
-        final BentoStateBuilder builder = new BentoStateBuilder(id);
+
+        final BentoStateBuilder builder = new BentoStateBuilder();
 
         if (bentoStateDto.rootBranches != null) {
             for (final DockContainerRootBranchDto rootDto : bentoStateDto.rootBranches) {
@@ -217,17 +240,13 @@ public final class BentoStateMapper {
         }
 
         if (rootBranchDto.branches != null) {
-
             for (final DockContainerBranchDto branchDto : rootBranchDto.branches) {
-                builder.addDockContainerBranchState(fromDto(branchDto));
+                builder.addDockContainerState(fromDto(branchDto));
             }
         }
 
-        if (rootBranchDto.leaves != null) {
-
-            for (final DockContainerLeafDto leafDto : rootBranchDto.leaves) {
-                builder.addDockContainerLeafState(fromDto(leafDto));
-            }
+        if (rootBranchDto.leaf != null) {
+            builder.addDockContainerState(fromDto(rootBranchDto.leaf));
         }
 
         return builder.build();
@@ -295,15 +314,11 @@ public final class BentoStateMapper {
      */
     private static void setOrientation(
             final @NotNull DockContainerBranchStateBuilder builder,
-            final @Nullable String orientation
+            final @Nullable Orientation orientation
     ) {
         try {
 
-            builder.setOrientation(
-                    orientation != null ?
-                            Orientation.valueOf(orientation) :
-                            null
-            );
+            builder.setOrientation(orientation);
         } catch (final Exception e) {
 
             logger.warn(
@@ -316,8 +331,8 @@ public final class BentoStateMapper {
     /**
      * Sets the divider positions of the {@link DockContainerBranchStateBuilder}.
      *
-     * @param builder     the {@link DockContainerBranchStateBuilder} whose
-     *                    divider positions are to be set.
+     * @param builder          the {@link DockContainerBranchStateBuilder} whose
+     *                         divider positions are to be set.
      * @param dividerPositions the positions of the dividers.
      */
     private static void setDividerPositions(
@@ -337,8 +352,8 @@ public final class BentoStateMapper {
      * Adds the {@link DockContainerDto}s to the
      * {@link DockContainerBranchStateBuilder}.
      *
-     * @param builder     the {@link DockContainerBranchStateBuilder} to which
-     *                    the {@link DockContainerDto} are to be added.
+     * @param builder        the {@link DockContainerBranchStateBuilder} to which
+     *                       the {@link DockContainerDto} are to be added.
      * @param dockContainers the {@link DockContainerDto}s to be added.
      */
     private static void addDockContainers(
@@ -373,7 +388,7 @@ public final class BentoStateMapper {
 
         final DockContainerLeafState.DockContainerLeafStateBuilder builder =
                 new DockContainerLeafState.DockContainerLeafStateBuilder(id)
-                        .setSelectedDockableStateIdentifier(leafDto.selectedDockableId)
+                        .setSelectedDockableStateIdentifier(leafDto.selectedDockableIdentifier)
                         .setSide(leafDto.side);
 
         if (leafDto.dockables != null) {
@@ -382,7 +397,7 @@ public final class BentoStateMapper {
 
                 if (d != null && d.identifier != null) {
 
-                    builder.addDockableState(
+                    builder.addChildDockableState(
                             new DockableStateBuilder(d.identifier).build()
                     );
                 }

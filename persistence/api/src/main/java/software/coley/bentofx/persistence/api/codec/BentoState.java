@@ -7,21 +7,28 @@ package software.coley.bentofx.persistence.api.codec;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
-public class BentoState extends IdentifiableState {
+/**
+ * Represents the layout state of a {@code Bento}.
+ *
+ * @author Phil Bryant
+ */
+public class BentoState {
 
-    private final @NotNull Set<@NotNull DockContainerRootBranchState> rootBranchStates;
+    private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
 
     private BentoState(
-            final @NotNull String identifier,
-            final @NotNull Set<@NotNull DockContainerRootBranchState> rootBranchStates
+            final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates
     ) {
-        super(identifier);
-        this.rootBranchStates = rootBranchStates;
+        this.rootBranchStates =
+                List.of(rootBranchStates.toArray(
+                        new DockContainerRootBranchState[0])
+                );
     }
 
     public @NotNull Set<@NotNull DockContainerRootBranchState> getRootBranchStates() {
@@ -30,25 +37,20 @@ public class BentoState extends IdentifiableState {
 
     public static class BentoStateBuilder {
 
-        private final @NotNull String identifier;
-        private final @NotNull Set<@NotNull DockContainerRootBranchState> rootBranchStates =
-                new LinkedHashSet<>();
-
-        public BentoStateBuilder(final @NotNull String identifier) {
-            this.identifier = identifier;
-        }
+        private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates =
+                new ArrayList<>();
 
         public @NotNull BentoStateBuilder addRootBranchState(
                 final @NotNull DockContainerRootBranchState... rootBranchState
         ) {
             this.rootBranchStates.addAll(
-                    Set.of(requireNonNull(rootBranchState))
+                    List.of(requireNonNull(rootBranchState))
             );
             return this;
         }
 
         public @NotNull BentoState build() {
-            return new BentoState(identifier, rootBranchStates);
+            return new BentoState(rootBranchStates);
         }
     }
 }

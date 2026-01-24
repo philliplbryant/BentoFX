@@ -35,6 +35,8 @@ import static javafx.scene.paint.Color.BLACK;
 /**
  * {@code ServiceLoader} compatible Service Provider implementation of
  * {@link DockableProvider}.
+ *
+ * @author Phil Bryant
  */
 public class BoxAppDockableProvider implements DockableProvider {
 
@@ -60,7 +62,7 @@ public class BoxAppDockableProvider implements DockableProvider {
     public static final @NotNull String CLASS_4_DOCKABLE_ID = "Class 4";
     public static final @NotNull String CLASS_5_DOCKABLE_ID = "Class 5";
 
-    private final @NotNull Map<@NotNull String, @NotNull Dockable> dockablesMap =
+    @NotNull private final Map<@NotNull String, @NotNull Dockable> dockablesMap =
             new HashMap<>();
 
     public void init(final @NotNull DockBuilding builder) {
@@ -110,7 +112,7 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_5_DOCKABLE_ID,
-                            buildDockable(builder, 0, 3, CLASS_5_DOCKABLE_ID)
+                            buildDockable(builder, 0, 4, CLASS_5_DOCKABLE_ID)
                     );
                 }
         );
@@ -159,13 +161,11 @@ public class BoxAppDockableProvider implements DockableProvider {
         dockable.setTitle(title);
         dockable.setIconFactory(d -> makeIcon(s, i));
         dockable.setNode(new Label("<" + title + ":" + i + ">"));
-        dockable.setContextMenuFactory(d -> {
-            return new ContextMenu(
-                    new MenuItem("Menu for : " + dockable.getTitle()),
-                    new SeparatorMenuItem(),
-                    new MenuItem("Stuff")
-            );
-        });
+        dockable.setContextMenuFactory(d -> new ContextMenu(
+                new MenuItem("Menu for : " + dockable.getTitle()),
+                new SeparatorMenuItem(),
+                new MenuItem("Stuff")
+        ));
         if (s > 0) {
             dockable.setDragGroupMask(1);
             dockable.setClosable(false);

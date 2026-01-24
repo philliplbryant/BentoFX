@@ -7,28 +7,22 @@ package software.coley.bentofx.persistence.impl.codec.common;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
-import software.coley.bentofx.persistence.api.codec.BentoState;
-import software.coley.bentofx.persistence.api.codec.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.codec.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.codec.DockContainerState;
-import software.coley.bentofx.persistence.api.codec.DockableState;
-import software.coley.bentofx.persistence.api.codec.DragDropStageState;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.*;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
@@ -45,32 +39,43 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Restores JavaFX stage layouts from a persisted {@link BentoState}.
+ *
+ * @author Phil Bryant
  */
 public final class BentoLayoutRestorer implements LayoutRestorer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BentoLayoutRestorer.class);
+    private static final Logger logger = LoggerFactory.getLogger(BentoLayoutRestorer.class);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int UID_CAPACITY = 8;
 
-    private final @NotNull LayoutStorage layoutStorage;
-    private final @NotNull LayoutCodec codec;
-    private final @NotNull DockBuilding dockBuilding;
-    private final @NotNull DockableProvider dockableProvider;
+    // TODO BENTO-13: Use the Bento to create objects?
+
+    @NotNull
+    private final Bento bento;
+    @NotNull
+    private final LayoutStorage layoutStorage;
+    @NotNull
+    private final LayoutCodec codec;
+    @NotNull
+    private final DockBuilding dockBuilding;
+    @NotNull
+    private final DockableProvider dockableProvider;
 
     public BentoLayoutRestorer(
+            final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec codec,
-            final @NotNull DockBuilding dockBuilding,
             final @NotNull DockableProvider dockableProvider
     ) {
+        this.bento = Objects.requireNonNull(bento);
+        this.dockBuilding = bento.dockBuilding();
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(codec);
-        this.dockBuilding = Objects.requireNonNull(dockBuilding);
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
     }
 
     @Override
-    public Parent restoreLayout(
+    public DockContainerRootBranch restoreLayout(
             final Stage primaryStage
     ) throws BentoStateException {
         try {
@@ -104,26 +109,26 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
 
             // Wait for the future to complete
-            final BentoState state = futureState.get();
+            final BentoState bentoState = futureState.get();
 
-            if (state.getRootBranchStates().isEmpty()) {
-                return new Pane();
+            if (bentoState.getRootBranchStates().isEmpty()) {
+                return dockBuilding.root("root-branch");
             }
 
             // Primary stage root branch is the one with no parent stage state.
-            final DockContainerRootBranchState primaryRoot =
-                    state.getRootBranchStates().stream()
-                         .filter(rb -> rb.getParent().isEmpty())
-                         .findFirst()
-                         .orElse(state.getRootBranchStates().iterator().next());
+            final DockContainerRootBranchState primaryRootBranchState =
+                    bentoState.getRootBranchStates().stream()
+                            .filter(rb -> rb.getParent().isEmpty())
+                            .findFirst()
+                            .orElse(bentoState.getRootBranchStates().iterator().next());
 
-            final Parent primaryRootNode =
-                    restorePrimaryStageRoot(primaryRoot, primaryStage);
+            final DockContainerRootBranch primaryRootBranch =
+                    restorePrimaryStageRoot(primaryRootBranchState, primaryStage);
 
             // Restore secondary stages (root branches that have parent stage state)
-            for (final DockContainerRootBranchState rootBranchState : state.getRootBranchStates()) {
+            for (final DockContainerRootBranchState rootBranchState : bentoState.getRootBranchStates()) {
 
-                if (rootBranchState != primaryRoot) {
+                if (rootBranchState != primaryRootBranchState) {
 
                     rootBranchState.getParent().ifPresent(parentStage ->
                             restoreDragDropStage(parentStage, rootBranchState)
@@ -131,7 +136,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 }
             }
 
-            return primaryRootNode;
+            return primaryRootBranch;
         } catch (final ExecutionException e) {
 
             throw new BentoStateException(
@@ -159,7 +164,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private Parent restorePrimaryStageRoot(
+    private DockContainerRootBranch restorePrimaryStageRoot(
             final @NotNull DockContainerRootBranchState rootBranchState,
             final @NotNull Stage primaryStage
     ) {
@@ -193,29 +198,39 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         stage.show();
     }
 
-    private Parent restoreRootBranchContainer(
+    private DockContainerRootBranch restoreRootBranchContainer(
             final @NotNull DockContainerRootBranchState rootBranchState
     ) {
+        final DockContainerRootBranch rootBranch =
+                dockBuilding.root(rootBranchState.getIdentifier());
+
         // The root wrapper may contain either one branch or one leaf.
-        if (!rootBranchState.getDockContainerBranchStates().isEmpty()) {
+        if (!rootBranchState.getChildDockContainerStates().isEmpty()) {
 
-            final DockContainerBranchState branchState =
-                    rootBranchState.getDockContainerBranchStates()
-                                   .iterator()
-                                   .next();
-            return restoreBranch(true, branchState);
-        } else if (!rootBranchState.getDockContainerLeafStates().isEmpty()) {
+            final @NotNull DockContainerState childState =
+                    rootBranchState.getChildDockContainerStates()
+                            .getFirst();
 
-            final DockContainerLeafState leafState =
-                    rootBranchState.getDockContainerLeafStates()
-                                   .iterator()
-                                   .next();
+            final DockContainer dockContainer = restoreDockContainer(childState);
+            if (dockContainer != null) {
+                rootBranch.addContainer(dockContainer);
+            }
 
-            return restoreLeaf(leafState);
-        } else {
+        } else if (!rootBranchState.getChildDockableStates().isEmpty()) {
 
-            return new Pane();
+            final @NotNull DockableState dockableState =
+                    rootBranchState.getChildDockableStates()
+                            .getFirst();
+
+            final Dockable dockable =
+                    restoreDockable(dockableState.getIdentifier());
+
+            if (dockable != null) {
+                rootBranch.addDockable(dockable);
+            }
         }
+
+        return rootBranch;
     }
 
     private DockContainer restoreDockContainer(
@@ -224,7 +239,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         switch (state) {
             case final DockContainerBranchState branchState -> {
 
-                return restoreBranch(false, branchState);
+                return restoreBranch(branchState);
             }
             case final DockContainerLeafState leafState -> {
 
@@ -232,29 +247,22 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
             default -> {
 
-                LOGGER.warn("Unknown DockContainerState type: {}", state.getClass());
+                logger.warn("Unknown DockContainerState type: {}", state.getClass());
                 return null;
             }
         }
     }
 
     private DockContainerBranch restoreBranch(
-            final boolean isRoot,
             final @NotNull DockContainerBranchState branchState
     ) {
         final String id =
                 nonEmptyOr(
                         branchState.getIdentifier(),
-                        createUniqueIdentifier(isRoot ?
-                                "root-branch" :
-                                "branch"
-                        )
+                        createUniqueIdentifier("branch")
                 );
 
-        final DockContainerBranch branch =
-                isRoot ?
-                        dockBuilding.root(id) :
-                        dockBuilding.branch(id);
+        final DockContainerBranch branch = dockBuilding.branch(id);
 
         // Orientation
         branchState.getOrientation().ifPresent(orientation ->
@@ -264,7 +272,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         // Children
         for (
                 final DockContainerState dockContainerState :
-                branchState.getDockContainerStates()
+                branchState.getChildDockContainerStates()
         ) {
             final DockContainer container =
                     restoreDockContainer(dockContainerState);
@@ -274,7 +282,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 branch.addContainer(container);
             } else {
 
-                LOGGER.warn(
+                logger.warn(
                         "Attempting to restore null DockContainer from " +
                                 "DockContainerState: {}",
                         dockContainerState.getClass()
@@ -307,13 +315,14 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         state.getSide().ifPresent(leaf::setSide);
 
         final String selectedId =
-                state.getSelectedDockableStateIdentifier().orElse(null);
+                state.getSelectedDockableIdentifier().orElse(null);
 
-        for (final DockableState dockableState : state.getDockableStates()) {
+        for (final DockableState dockableState : state.getChildDockableStates()) {
+
             final String dockableId = dockableState.getIdentifier();
 
-            final Dockable dockable =
-                    dockableProvider.resolveDockable(dockableId).orElse(null);
+            final Dockable dockable = restoreDockable(dockableId);
+
             if (dockable != null) {
 
                 leaf.addDockable(dockable);
@@ -322,11 +331,18 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 }
             } else {
 
-                LOGGER.warn("Dockable with ID '{}' could not be acquired.", dockableId);
+                logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
             }
         }
 
         return leaf;
+    }
+
+    private @Nullable Dockable restoreDockable(@NotNull String dockableIdentifier) {
+
+        return dockableProvider
+                .resolveDockable(dockableIdentifier)
+                .orElse(null);
     }
 
     private static String createUniqueIdentifier(final String prefix) {

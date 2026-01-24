@@ -11,10 +11,20 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 /**
  * {@code ServiceLoader} compatible Service Provider Interface for creating
  * {@link LayoutStorage} implementations.
+ *
+ * @author Phil Bryant
  */
 public interface LayoutStorageProvider {
 
+    /**
+     * Creates a {@link LayoutStorage} that can be used to persist a Bento
+     * layout.
+     * @param codecIdentifier a short descriptive, identifier for distinguishing
+     *                        the codec type used to create the layout.
+     * @return a {@link LayoutStorage} that can be used to persist a Bento
+     * layout.
+     */
     LayoutStorage createLayoutStorage(
-            @NotNull final String fileExtension
+            final @NotNull String codecIdentifier
     );
 }

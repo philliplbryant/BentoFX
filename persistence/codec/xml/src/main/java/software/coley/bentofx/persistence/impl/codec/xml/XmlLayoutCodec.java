@@ -31,6 +31,8 @@ import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
 
 /**
  * XML codec for {@link BentoState} using Jakarta JAXB.
+ *
+ * @author Phil Bryant
  */
 public final class XmlLayoutCodec implements LayoutCodec {
 
@@ -46,11 +48,11 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
     @Override
     public @NotNull BentoState newBentoState() {
-        return new BentoState.BentoStateBuilder("bento").build();
+        return new BentoState.BentoStateBuilder().build();
     }
 
     @Override
-    public String getExtension() {
+    public String getIdentifier() {
         return "xml";
     }
 

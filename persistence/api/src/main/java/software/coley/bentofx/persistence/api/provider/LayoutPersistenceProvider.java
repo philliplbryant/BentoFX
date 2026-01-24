@@ -6,7 +6,7 @@
 package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
-import software.coley.bentofx.building.DockBuilding;
+import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
@@ -15,18 +15,21 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 /**
  * {@code ServiceLoader} compatible Service Provider Interface for creating
  * {@link LayoutSaver} and {@link LayoutRestorer} implementations.
+ *
+ * @author Phil Bryant
  */
 public interface LayoutPersistenceProvider {
 
     @NotNull LayoutSaver createLayoutSaver(
-            @NotNull final LayoutStorage layoutStorage,
-            @NotNull final LayoutCodec layoutCodec
+            final @NotNull Bento bento,
+            final @NotNull LayoutStorage layoutStorage,
+            final @NotNull LayoutCodec layoutCodec
     );
 
     @NotNull LayoutRestorer createLayoutRestorer(
-            @NotNull final LayoutStorage layoutStorage,
-            @NotNull final LayoutCodec layoutCodec,
-            @NotNull final DockBuilding dockBuilding,
-            @NotNull final DockableProvider dockableProvider
+            final @NotNull Bento bento,
+            final @NotNull LayoutStorage layoutStorage,
+            final @NotNull LayoutCodec layoutCodec,
+            final @NotNull DockableProvider dockableProvider
     );
 }

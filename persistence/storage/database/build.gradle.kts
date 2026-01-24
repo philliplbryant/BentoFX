@@ -9,12 +9,7 @@ plugins {
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
-/**
- * This module implements the Application Programming Interface (API) for
- * encoding and decoding the layout of BentoFX docking framework components
- * using an H2 database.
- */
-description = "BentoFX Persistence for H2 Database"
+description = "BentoFX Persistence Databases"
 
 dependencies {
 

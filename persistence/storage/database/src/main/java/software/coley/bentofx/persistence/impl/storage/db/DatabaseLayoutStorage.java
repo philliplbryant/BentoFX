@@ -10,13 +10,15 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.time.Instant;
 
+/**
+ * Implementation of the {@link LayoutStorage} interface for persisting Bento
+ * layouts to a database using a Jakarta {@link EntityManagerFactory}.
+ *
+ * @author Phil Bryant
+ */
 public class DatabaseLayoutStorage implements LayoutStorage {
 
     private final EntityManagerFactory emf;

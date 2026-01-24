@@ -13,6 +13,8 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 /**
  * Mappable Data Transfer Object representing the layout state of a
  * {@code DragDropStage}.
+ *
+ * @author Phil Bryant
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -20,7 +22,6 @@ public class DragDropStageDto {
 
     @XmlAttribute
     public Boolean autoCloseWhenEmpty;
-
     @XmlAttribute
     public String title;
     @XmlAttribute

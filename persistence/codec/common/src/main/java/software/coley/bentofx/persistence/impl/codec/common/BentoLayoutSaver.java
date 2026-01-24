@@ -6,55 +6,51 @@
 package software.coley.bentofx.persistence.impl.codec.common;
 
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutSaver;
-import software.coley.bentofx.persistence.api.codec.BentoState;
-import software.coley.bentofx.persistence.api.codec.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.codec.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.codec.*;
+import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.api.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.api.codec.DockContainerState;
 import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.api.codec.DragDropStageState;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.OutputStream;
 import java.util.Objects;
 
-import static software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.IS_PRIMARY_STAGE_PROPERTY_KEY_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.PRIMARY_STAGE_ID;
-import static software.coley.bentofx.persistence.impl.codec.common.FxStageUtils.STAGE_ID_PROPERTY_KEY_NAME;
-
 /**
  * Saves the layout of all JavaFX {@link Stage}s into a {@link BentoState} and
  * persists it via a {@link LayoutCodec}.
+ *
+ * @author Phil Bryant
  */
 public final class BentoLayoutSaver implements LayoutSaver {
 
-    private static final Logger LOGGER =
+    private static final Logger logger =
             LoggerFactory.getLogger(BentoLayoutSaver.class);
 
-    private final @NotNull LayoutStorage layoutStorage;
-    private final @NotNull LayoutCodec codec;
+    @NotNull private final Bento bento;
+    @NotNull private final LayoutStorage layoutStorage;
+    @NotNull private final LayoutCodec codec;
 
     public BentoLayoutSaver(
+            final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec layoutCodec
     ) {
+        this.bento = Objects.requireNonNull(bento);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(layoutCodec);
     }
@@ -62,17 +58,20 @@ public final class BentoLayoutSaver implements LayoutSaver {
     @Override
     public void saveLayout() throws BentoStateException {
 
-        final BentoState.BentoStateBuilder bentoBuilder =
-                new BentoState.BentoStateBuilder("bento");
+        final BentoStateBuilder bentoBuilder = new BentoStateBuilder();
 
         for (final Stage stage : FxStageUtils.getAllStages()) {
 
-            try {
 
-                bentoBuilder.addRootBranchState(saveStage(stage));
+            try {
+                DockContainerRootBranchState dockContainerRootBranchState =
+                        createDockContainerRootBranchState(stage);
+                if(dockContainerRootBranchState != null) {
+                    bentoBuilder.addRootBranchState(dockContainerRootBranchState);
+                }
             } catch (final Exception ex) {
 
-                LOGGER.error("Failed to save stage layout: {}", stage, ex);
+                logger.error("Failed to save stage layout: {}", stage, ex);
             }
         }
 
@@ -87,56 +86,76 @@ public final class BentoLayoutSaver implements LayoutSaver {
         }
     }
 
-    private DockContainerRootBranchState saveStage(
+    private @Nullable DockContainerRootBranchState createDockContainerRootBranchState(
             final @NotNull Stage stage
     ) {
-        final String stageId = getStageId(stage);
-        final boolean isPrimary = isPrimaryStage(stage);
+        final DockContainerRootBranch rootBranch = getDockContainerRootBranch(stage);
 
-        // Build drag-drop stage state for non-primary stages.
-        final DragDropStageState dragDropStageState;
-        if (!isPrimary && stage instanceof final DragDropStage ddStage) {
-            dragDropStageState =
-                    new DragDropStageState.DragDropStageStateBuilder(
-                            ddStage.isAutoCloseWhenEmpty()
-                    )
-                            .setTitle(stage.getTitle())
-                            .setX(stage.getX())
-                            .setY(stage.getY())
-                            .setWidth(stage.getWidth())
-                            .setHeight(stage.getHeight())
-                            .setIsIconified(stage.isIconified())
-                            .setIsFullScreen(stage.isFullScreen())
-                            .setIsMaximized(stage.isMaximized())
-                            // Important: Do NOT set dockContainerRootBranchState to avoid cyclic graphs
-                            .setDockContainerRootBranchState(null)
-                            .build();
+        if(rootBranch == null) {
+
+            return null;
         } else {
-            dragDropStageState = null;
+
+            final String stageId = getStageId(stage);
+
+            // Build drag-drop stage state - null for primary stages.
+            final DragDropStageState dragDropStageState;
+            if (stage instanceof final DragDropStage ddStage) {
+                dragDropStageState =
+                        new DragDropStageState.DragDropStageStateBuilder(
+                                ddStage.isAutoCloseWhenEmpty()
+                        )
+                                .setTitle(stage.getTitle())
+                                .setX(stage.getX())
+                                .setY(stage.getY())
+                                .setWidth(stage.getWidth())
+                                .setHeight(stage.getHeight())
+                                .setIsIconified(stage.isIconified())
+                                .setIsFullScreen(stage.isFullScreen())
+                                .setIsMaximized(stage.isMaximized())
+                                // Important: Do NOT set dockContainerRootBranchState to avoid cyclic graphs
+                                .setDockContainerRootBranchState(null)
+                                .build();
+            } else {
+                dragDropStageState = null;
+            }
+
+            final DockContainerRootBranchStateBuilder rootBuilder =
+                    new DockContainerRootBranchStateBuilder(stageId);
+            rootBuilder.setParent(dragDropStageState);
+
+            final DockContainerState branchState = saveDockContainer(rootBranch);
+            rootBuilder.addDockContainerState(branchState);
+
+            return rootBuilder.build();
         }
-
-        final Node primaryNode = getPrimaryNode(stage);
-
-        final DockContainerRootBranchStateBuilder rootBuilder =
-                new DockContainerRootBranchStateBuilder(
-                        isPrimary ? PRIMARY_STAGE_ID : stageId
-                ).setParent(dragDropStageState);
-
-        final DockContainerState dockContainerState =
-                saveDockContainer(primaryNode);
-
-        switch (dockContainerState) {
-            case final DockContainerBranchState branchState -> rootBuilder.addDockContainerBranchState(branchState);
-            case final DockContainerLeafState leafState -> rootBuilder.addDockContainerLeafState(leafState);
-            case null, default -> LOGGER.warn("Unsupported root container state type: {}", dockContainerState);
-        }
-
-        return rootBuilder.build();
     }
 
-    private DockContainerState saveDockContainer(final @NotNull Node node) {
+    private @Nullable DockContainerRootBranch getDockContainerRootBranch(final @NotNull Stage stage) {
 
-        switch (node) {
+        for(final DockContainerRootBranch dockContainerRootBranch : bento.getRootContainers()) {
+
+            if(isNodeInStage(stage, dockContainerRootBranch)) {
+                return dockContainerRootBranch;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isNodeInStage(
+            final @NotNull Stage stage,
+            final @NotNull Node node
+    ) {
+        return stage.getScene() == node.getScene();
+    }
+
+
+    private @NotNull DockContainerState saveDockContainer(
+            final @NotNull DockContainer dockContainer
+    ) {
+
+        switch (dockContainer) {
 
             case final DockContainerRootBranch rootBranch -> {
                 return saveBranch(rootBranch);
@@ -151,14 +170,14 @@ public final class BentoLayoutSaver implements LayoutSaver {
             }
 
             default -> {
-                LOGGER.warn("Unsupported node type: {}", node);
+                logger.warn("Unsupported node type: {}", dockContainer);
                 // Fallback: empty leaf to keep the state valid.
                 return new DockContainerLeafStateBuilder("leaf-empty").build();
             }
         }
     }
 
-    private DockContainerBranchState saveBranch(
+    private @NotNull DockContainerBranchState saveBranch(
             final @NotNull DockContainerBranch branch
     ) {
         final String id = nonEmptyOr(
@@ -166,8 +185,8 @@ public final class BentoLayoutSaver implements LayoutSaver {
                 "branch-" + System.identityHashCode(branch)
         );
 
-        final DockContainerBranchState.DockContainerBranchStateBuilder builder =
-                new DockContainerBranchState.DockContainerBranchStateBuilder(
+        final DockContainerBranchStateBuilder builder =
+                new DockContainerBranchStateBuilder(
                         id
                 );
 
@@ -181,14 +200,18 @@ public final class BentoLayoutSaver implements LayoutSaver {
             builder.addDividerPosition(i, positions[i]);
         }
 
-        for (final Node item : branch.getItems()) {
-            builder.addDockContainerState(saveDockContainer(item));
+        for (final DockContainer dockContainer : branch.getChildContainers()) {
+            builder.addDockContainerState(saveDockContainer(dockContainer));
+        }
+
+        for (final Dockable dockable : branch.getDockables()) {
+            builder.addChildDockableState(saveDockable(dockable));
         }
 
         return builder.build();
     }
 
-    private DockContainerLeafState saveLeaf(final @NotNull DockContainerLeaf leaf) {
+    private @NotNull DockContainerLeafState saveLeaf(final @NotNull DockContainerLeaf leaf) {
 
         final String id = nonEmptyOr(
                 leaf.getIdentifier(),
@@ -215,57 +238,27 @@ public final class BentoLayoutSaver implements LayoutSaver {
             try {
 
                 if (dockable != null) {
-                    leafStateBuilder.addDockableState(
-                            new DockableStateBuilder(dockable.getIdentifier())
-                                    .build()
+                    leafStateBuilder.addChildDockableState(
+                            saveDockable(dockable)
                     );
                 }
             } catch (final Exception ex) {
 
-                LOGGER.error("Failed to persist dockable in leaf {}", id, ex);
+                logger.error("Failed to persist dockable in leaf {}", id, ex);
             }
         }
 
         return leafStateBuilder.build();
     }
 
-    private static boolean isPrimaryStage(final @NotNull Stage stage) {
-
-        final Object isPrimaryStagePropertyValue =
-                stage.getProperties().get(IS_PRIMARY_STAGE_PROPERTY_KEY_NAME);
-
-        return Boolean.TRUE.equals(isPrimaryStagePropertyValue);
+    private DockableState saveDockable(final @NotNull Dockable dockable) {
+        return new DockableStateBuilder(dockable.getIdentifier())
+                .build();
     }
 
     private static String getStageId(final @NotNull Stage stage) {
 
-        final Object stageIdPropertyValue =
-                stage.getProperties().get(STAGE_ID_PROPERTY_KEY_NAME);
-
-        return stageIdPropertyValue instanceof final String id &&
-                !id.isBlank() ?
-                id :
-                "stage-" + System.identityHashCode(stage);
-    }
-
-    // FIXME BENTO-13: Save the DockContainerRootBranch instead of the Node in
-    //  the center of the layout
-    private static Node getPrimaryNode(
-            final @NotNull Stage stage
-    ) {
-        final Scene scene = stage.getScene();
-        final Parent root = scene.getRoot();
-
-        if (root instanceof final BorderPane border) {
-
-            final Node center = border.getCenter();
-            if (center != null) {
-
-                return center;
-            }
-        }
-
-        return root;
+        return "cstage:" + System.identityHashCode(stage);
     }
 
     private static String nonEmptyOr(

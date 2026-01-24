@@ -5,88 +5,59 @@
 
 package software.coley.bentofx.persistence.api.codec;
 
+import javafx.geometry.Orientation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-import static java.util.Objects.requireNonNull;
-
-public class DockContainerRootBranchState extends IdentifiableState {
-
-    private final DragDropStageState parent;
-    private final @NotNull Set<@NotNull DockContainerBranchState> dockContainerBranchStates;
-    private final @NotNull Set<@NotNull DockContainerLeafState> dockContainerLeafStates;
+/**
+ * Represents the layout state of a {@code DockContainerRootBranch}.
+ *
+ * @author Phil Bryant
+ */
+public class DockContainerRootBranchState extends DockContainerBranchState {
 
     private DockContainerRootBranchState(
             final @NotNull String identifier,
-            final DragDropStageState parent,
-            final @NotNull Set<@NotNull DockContainerBranchState> dockContainerBranchStates,
-            final @NotNull Set<@NotNull DockContainerLeafState> dockContainerLeafStates
-    ) {
-        super(identifier);
-        this.parent = parent;
-        this.dockContainerBranchStates = dockContainerBranchStates;
-        this.dockContainerLeafStates = dockContainerLeafStates;
+            final @Nullable Boolean pruneWhenEmpty,
+            final @NotNull List<DockableState> childDockableStates,
+            final @Nullable Orientation orientation,
+            final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions,
+            final @NotNull List<DockContainerState> childDockContainerStates
+            ) {
+        super(
+                identifier,
+                null,
+                pruneWhenEmpty,
+                childDockableStates,
+                orientation,
+                dividerPositions,
+                childDockContainerStates
+        );
     }
 
+    @Override
     public Optional<DragDropStageState> getParent() {
-        return Optional.ofNullable(parent);
+        return Optional.empty();
     }
 
-    public @NotNull Set<@NotNull DockContainerBranchState> getDockContainerBranchStates() {
-        return dockContainerBranchStates;
-    }
-
-    public @NotNull Set<@NotNull DockContainerLeafState> getDockContainerLeafStates() {
-        return dockContainerLeafStates;
-    }
-
-    public static class DockContainerRootBranchStateBuilder {
-
-        private final @NotNull String identifier;
-        private final @NotNull Set<@NotNull DockContainerBranchState> dockContainerBranchStates =
-                new LinkedHashSet<>();
-        private final @NotNull Set<@NotNull DockContainerLeafState> dockContainerLeafStates =
-                new LinkedHashSet<>();
-        private DragDropStageState parent;
+    public static class DockContainerRootBranchStateBuilder extends DockContainerBranchStateBuilder {
 
         public DockContainerRootBranchStateBuilder(final @NotNull String identifier) {
-            this.identifier = requireNonNull(identifier);
-        }
-
-        public @NotNull DockContainerRootBranchStateBuilder setParent(
-                final DragDropStageState parent
-        ) {
-            this.parent = parent;
-            return this;
-        }
-
-        public @NotNull DockContainerRootBranchStateBuilder addDockContainerBranchState(
-                final @NotNull DockContainerBranchState... dockContainerBranchState
-        ) {
-            this.dockContainerBranchStates.addAll(
-                    Set.of(requireNonNull(dockContainerBranchState))
-            );
-            return this;
-        }
-
-        public @NotNull DockContainerRootBranchStateBuilder addDockContainerLeafState(
-                final @NotNull DockContainerLeafState... dockContainerLeafState
-        ) {
-            this.dockContainerLeafStates.addAll(
-                    Set.of(requireNonNull(dockContainerLeafState))
-            );
-            return this;
+            super(identifier);
         }
 
         public @NotNull DockContainerRootBranchState build() {
             return new DockContainerRootBranchState(
                     identifier,
-                    parent,
-                    dockContainerBranchStates,
-                    dockContainerLeafStates
+                    pruneWhenEmpty,
+                    childDockableStates,
+                    orientation,
+                    dividerPositions,
+                    childDockContainerStates
             );
         }
     }

@@ -6,6 +6,13 @@
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
 
+/**
+ * This module implements the Application Programming Interface (API) for
+ * encoding and decoding the layout of BentoFX docking framework components
+ * using a database.
+ *
+ * @author Phil Bryant
+ */
 module bento.fx.persistence.storage.db {
 
 	requires javafx.base;

@@ -3,4 +3,10 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
+/**
+ * Contains classes for implementing the {@code LayoutStorage} for persistence
+ * to a file.
+ *
+ * @author Phil Bryant
+ */
 package software.coley.bentofx.persistence.impl.storage.file;

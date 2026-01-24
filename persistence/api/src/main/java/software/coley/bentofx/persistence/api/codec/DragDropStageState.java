@@ -6,38 +6,43 @@
 package software.coley.bentofx.persistence.api.codec;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Represents the layout state of a {@code DragDropStage}.
+ *
+ * @author Phil Bryant
+ */
 public class DragDropStageState {
 
     private final @NotNull Boolean isAutoClosedWhenEmpty;
-    private final DockContainerRootBranchState dockContainerRootBranchState;
-    private final String title;
-    private final Double x;
-    private final Double y;
-    private final Double width;
-    private final Double height;
-    private final Boolean isIconified;
-    private final Boolean isFullScreen;
-    private final Boolean isMaximized;
+    private final @Nullable String title;
+    private final @Nullable Double x;
+    private final @Nullable Double y;
+    private final @Nullable Double width;
+    private final @Nullable Double height;
+    private final @Nullable Boolean isIconified;
+    private final @Nullable Boolean isFullScreen;
+    private final @Nullable Boolean isMaximized;
+    private final @NotNull DockContainerRootBranchState dockContainerRootBranchState;
 
     private DragDropStageState(
             final @NotNull Boolean isAutoClosedWhenEmpty,
-            final DockContainerRootBranchState dockContainerRootBranchState,
-            final String title,
-            final Double x,
-            final Double y,
-            final Double width,
-            final Double height,
-            final Boolean isIconified,
-            final Boolean isFullScreen,
-            final Boolean isMaximized
+            final @Nullable String title,
+            final @Nullable Double x,
+            final @Nullable Double y,
+            final @Nullable Double width,
+            final @Nullable Double height,
+            final @Nullable Boolean isIconified,
+            final @Nullable Boolean isFullScreen,
+            final @Nullable Boolean isMaximized,
+            final @NotNull DockContainerRootBranchState dockContainerRootBranchState
     ) {
         this.isAutoClosedWhenEmpty = requireNonNull(isAutoClosedWhenEmpty);
-        this.dockContainerRootBranchState = dockContainerRootBranchState;
         this.title = title;
         this.x = x;
         this.y = y;
@@ -46,14 +51,11 @@ public class DragDropStageState {
         this.isIconified = isIconified;
         this.isFullScreen = isFullScreen;
         this.isMaximized = isMaximized;
+        this.dockContainerRootBranchState = dockContainerRootBranchState;
     }
 
     public @NotNull Boolean isAutoClosedWhenEmpty() {
         return isAutoClosedWhenEmpty;
-    }
-
-    public @NotNull Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
-        return Optional.of(dockContainerRootBranchState);
     }
 
     public @NotNull Optional<String> getTitle() {
@@ -88,31 +90,28 @@ public class DragDropStageState {
         return Optional.ofNullable(isMaximized);
     }
 
+    public @NotNull Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
+        return Optional.of(dockContainerRootBranchState);
+    }
+
     public static class DragDropStageStateBuilder {
 
         private final @NotNull Boolean isAutoClosedWhenEmpty;
-        private DockContainerRootBranchState dockContainerRootBranchState;
-        private String title;
-        private Double x;
-        private Double y;
-        private Double width;
-        private Double height;
-        private Boolean isIconified;
-        private Boolean isFullScreen;
-        private Boolean isMaximized;
+        private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
+        private @Nullable String title;
+        private @Nullable Double x;
+        private @Nullable Double y;
+        private @Nullable Double width;
+        private @Nullable Double height;
+        private @Nullable Boolean isIconified;
+        private @Nullable Boolean isFullScreen;
+        private @Nullable Boolean isMaximized;
 
         public DragDropStageStateBuilder(
                 final @NotNull Boolean isAutoClosedWhenEmpty
         ) {
             this.isAutoClosedWhenEmpty =
                     requireNonNull(isAutoClosedWhenEmpty);
-        }
-
-        public @NotNull DragDropStageStateBuilder setDockContainerRootBranchState(
-                final DockContainerRootBranchState dockContainerRootBranchState
-        ) {
-            this.dockContainerRootBranchState = dockContainerRootBranchState;
-            return this;
         }
 
         public @NotNull DragDropStageStateBuilder setTitle(
@@ -171,10 +170,16 @@ public class DragDropStageState {
             return this;
         }
 
+        public @NotNull DragDropStageStateBuilder setDockContainerRootBranchState(
+                final @Nullable DockContainerRootBranchState dockContainerRootBranchState
+        ) {
+            this.dockContainerRootBranchState = dockContainerRootBranchState;
+            return this;
+        }
+
         public @NotNull DragDropStageState build() {
             return new DragDropStageState(
                     isAutoClosedWhenEmpty,
-                    dockContainerRootBranchState,
                     title,
                     x,
                     y,
@@ -182,7 +187,8 @@ public class DragDropStageState {
                     height,
                     isIconified,
                     isFullScreen,
-                    isMaximized
+                    isMaximized,
+                    dockContainerRootBranchState
             );
         }
     }

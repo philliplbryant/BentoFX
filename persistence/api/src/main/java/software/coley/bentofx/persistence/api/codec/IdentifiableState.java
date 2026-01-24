@@ -9,13 +9,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * Represents the layout state of an {@code Identifiable}.
+ *
+ * @author Phil Bryant
+ */
 public abstract class IdentifiableState {
 
-    private final @NotNull String identifier;
+    @NotNull private final String identifier;
 
     protected IdentifiableState(
-            @NotNull
-            final String identifier
+            final @NotNull String identifier
     ) {
         this.identifier = Objects.requireNonNull(identifier);
     }

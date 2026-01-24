@@ -6,11 +6,9 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlElementWrapper;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.*;
+import javafx.geometry.Orientation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +18,8 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 /**
  * Mappable Data Transfer Object representing the layout state of a
  * {@code DockContainerRootBranch}.
+ *
+ * @author Phil Bryant
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -28,14 +28,29 @@ public class DockContainerRootBranchDto {
     @XmlAttribute
     public String identifier;
 
-    @XmlElement(name = PARENT_STAGE_ELEMENT_NAME)
+    // TODO BENTO-13: include pruneWhenEmpty and Orientation in persisted layouts.
+
+    @XmlAttribute
+    public Boolean pruneWhenEmpty;
+
+    @XmlAttribute
+    public Orientation orientation;
+
+    @XmlElement(name =  PARENT_STAGE_ELEMENT_NAME)
+    @JsonProperty(PARENT_STAGE_ELEMENT_NAME)
     public DragDropStageDto parentStage;
 
-    @XmlElementWrapper(name = BRANCHES_ELEMENT_NAME)
+    @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
+    @XmlElement(name = DOCKABLE_ELEMENT_NAME)
+    @JsonProperty(DOCKABLE_ELEMENT_NAME)
+    public List<DockableDto> dockables = new ArrayList<>();
+
+    @XmlElementWrapper(name = BRANCH_LIST_ELEMENT_NAME)
     @XmlElement(name = BRANCH_ELEMENT_NAME)
+    @JsonProperty(BRANCH_ELEMENT_NAME)
     public List<DockContainerBranchDto> branches = new ArrayList<>();
 
-    @XmlElementWrapper(name = LEAVES_ELEMENT_NAME)
     @XmlElement(name = LEAF_ELEMENT_NAME)
-    public List<DockContainerLeafDto> leaves = new ArrayList<>();
+    @JsonProperty(LEAF_ELEMENT_NAME)
+    public DockContainerLeafDto leaf;
 }

@@ -7,65 +7,73 @@ package software.coley.bentofx.persistence.api.codec;
 
 import javafx.geometry.Side;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import static java.util.Objects.requireNonNull;
-import static javafx.geometry.Side.TOP;
-
+/**
+ * Represents the layout state of a {@code DockContainerLeaf}.
+ *
+ * @author Phil Bryant
+ */
 public class DockContainerLeafState extends DockContainerState {
 
-    private final String selectedDockableStateIdentifier;
-    private final Set<@NotNull DockableState> dockableStates;
-    private final @NotNull Side side;
+    @Nullable private final Side side;
+    @Nullable private final String selectedDockableIdentifier;
+    @Nullable private final Boolean isResizableWithParent;
 
     private DockContainerLeafState(
             final @NotNull String identifier,
-            final @NotNull Side side,
-            final Set<@NotNull DockableState> dockableStates,
-            final String selectedDockableStateIdentifier
+            final @Nullable DragDropStageState parent,
+            final @Nullable Boolean doPruneWhenEmpty,
+            final @NotNull List<DockableState> childDockableStates,
+            final @Nullable Side side,
+            final @Nullable String selectedDockableIdentifier,
+            final @Nullable Boolean isResizableWithParent
     ) {
-        super(identifier);
+        super(
+                identifier,
+                parent,
+                doPruneWhenEmpty,
+                childDockableStates
+        );
         this.side = side;
-        this.dockableStates = dockableStates;
-        this.selectedDockableStateIdentifier = selectedDockableStateIdentifier;
+        this.selectedDockableIdentifier = selectedDockableIdentifier;
+        this.isResizableWithParent = isResizableWithParent;
     }
 
     public Optional<Side> getSide() {
-        return Optional.of(side);
+        return Optional.ofNullable(side);
     }
 
-    public Set<@NotNull DockableState> getDockableStates() {
-        return Set.copyOf(dockableStates);
+    public Optional<String> getSelectedDockableIdentifier() {
+        return Optional.ofNullable(selectedDockableIdentifier);
     }
 
-    public Optional<String> getSelectedDockableStateIdentifier() {
-        return Optional.ofNullable(selectedDockableStateIdentifier);
+    // TODO BENTO-13: Use isResizableWithParent when persisting layouts.
+    public Optional<Boolean> isResizableWithParent() {
+        return Optional.ofNullable(isResizableWithParent);
     }
 
-    public static class DockContainerLeafStateBuilder {
+    public static class DockContainerLeafStateBuilder extends DockContainerStateBuilder {
 
-        private final @NotNull String identifier;
-        private Side side;
-        private String selectedDockableStateIdentifier;
-        private final Set<@NotNull DockableState> dockableStates =
-                new LinkedHashSet<>();
+        @Nullable private Side side;
+        @Nullable private String selectedDockableStateIdentifier;
+        @Nullable private Boolean isResizableWithParent;
 
         public DockContainerLeafStateBuilder(
                 final @NotNull String identifier
         ) {
-            this.identifier = requireNonNull(identifier);
-            this.side = TOP;
+            super(identifier);
         }
 
-        public DockContainerLeafStateBuilder setSide(final Side side) {
+        public @NotNull DockContainerLeafStateBuilder setSide(final Side side) {
             this.side = side;
             return this;
         }
 
-        public DockContainerLeafStateBuilder setSelectedDockableStateIdentifier(
+        public @NotNull DockContainerLeafStateBuilder setSelectedDockableStateIdentifier(
                 final String selectedDockableStateIdentifier
         ) {
             this.selectedDockableStateIdentifier =
@@ -73,17 +81,21 @@ public class DockContainerLeafState extends DockContainerState {
             return this;
         }
 
-        public DockContainerLeafStateBuilder addDockableState(final @NotNull DockableState dockableState) {
-            dockableStates.add(dockableState);
+        public @NotNull DockContainerLeafStateBuilder setResizableWithParent(final Boolean isResizableWithParent) {
+            this.isResizableWithParent = isResizableWithParent;
             return this;
         }
 
-        public DockContainerLeafState build() {
+        public @NotNull DockContainerLeafState build() {
+
             return new DockContainerLeafState(
                     identifier,
+                    parent,
+                    pruneWhenEmpty,
+                    childDockableStates,
                     side,
-                    dockableStates,
-                    selectedDockableStateIdentifier
+                    selectedDockableStateIdentifier,
+                    isResizableWithParent
             );
         }
     }

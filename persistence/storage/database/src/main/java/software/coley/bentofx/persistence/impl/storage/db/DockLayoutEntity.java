@@ -5,19 +5,21 @@
 
 package software.coley.bentofx.persistence.impl.storage.db;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
+/**
+ * Represents a row in a table in a relational database for storing Bento
+ * layouts.
+ *
+ * @author Phil Bryant
+ */
 @Entity
 @Table(name = "dock_layout")
 public class DockLayoutEntity {
+
+    // TODO BENTO-13: Add fields for the layout name and codec used to create it.
 
     @Id
     @Column(name = "layout_key", nullable = false, length = 128)

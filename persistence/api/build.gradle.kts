@@ -9,10 +9,6 @@ plugins {
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
-/**
- * This module provides the persistence Application Programming Interface (API)
- * for the BentoFX docking framework.
- */
 description = "BentoFX Persistence API"
 
 dependencies {

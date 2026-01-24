@@ -6,5 +6,7 @@
 /**
  * JavaFX application for demonstrating the use of BentoFX docking project
  * modules.
+ *
+ * @author Phil Bryant
  */
 package software.coley.boxfx.demo;

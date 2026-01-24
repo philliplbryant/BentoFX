@@ -6,6 +6,13 @@
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.provider.JsonLayoutCodecProvider;
 
+/**
+ * This module implements the Application Programming Interface (API) for
+ * encoding and decoding the layout of BentoFX docking framework components
+ * using JavaScript Object Notation (JSON).
+ *
+ * @author Phil Bryant
+ */
 module bento.fx.persistence.codec.json {
 
 	requires javafx.base;

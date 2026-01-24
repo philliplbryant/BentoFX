@@ -13,13 +13,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
+/**
+ * Implementation of the {@link LayoutStorage} interface for persisting Bento
+ * layouts to a file.
+ *
+ * @author Phil Bryant
+ */
+public class FileLayoutStorage implements LayoutStorage {
+
 // TODO BENTO-13: Modify this to use a directory and create and return
 //  Optional<LayoutInfo> with a list of layout files.
 
-public class FileLayoutStorage implements LayoutStorage {
-
     private final File file;
 
+    /**
+     * Creates a {@code FileLayoutStorage} that can be used to persist Bento
+     * layout to a file.
+     * @param file the {@link File} to which the Bento is to be persisted.
+     */
     public FileLayoutStorage(final File file) {
         this.file = file;
     }

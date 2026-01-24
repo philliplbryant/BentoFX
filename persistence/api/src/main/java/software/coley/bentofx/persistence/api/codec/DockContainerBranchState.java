@@ -7,69 +7,76 @@ package software.coley.bentofx.persistence.api.codec;
 
 import javafx.geometry.Orientation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Represents the layout state of a {@code DockContainerBranch}.
+ *
+ * @author Phil Bryant
+ */
 public class DockContainerBranchState extends DockContainerState {
 
-    private final Orientation orientation;
-    private final @NotNull Set<@NotNull DockContainerState> dockContainerStates;
+    private final @Nullable Orientation orientation;
     private final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions;
+    private final @NotNull List<DockContainerState> childDockContainerStates;
 
-    private DockContainerBranchState(
+    DockContainerBranchState(
             final @NotNull String identifier,
-            final Orientation orientation,
-            final @NotNull Set<@NotNull DockContainerState> dockContainerStates,
-            final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions
+            final @Nullable DragDropStageState parent,
+            final @Nullable Boolean pruneWhenEmpty,
+            final @NotNull List<DockableState> childDockableStates,
+            final @Nullable Orientation orientation,
+            final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions,
+            final @NotNull List<DockContainerState> childDockContainerStates
     ) {
-        super(identifier);
+        super(
+                identifier,
+                parent,
+                pruneWhenEmpty,
+                childDockableStates
+        );
         this.orientation = orientation;
-        this.dockContainerStates = dockContainerStates;
         this.dividerPositions = dividerPositions;
+        this.childDockContainerStates =
+                List.of(
+                        childDockContainerStates.toArray(
+                                new DockContainerState[0]
+                        )
+                );
     }
 
     public Optional<Orientation> getOrientation() {
         return Optional.ofNullable(orientation);
     }
 
-    public @NotNull Set<DockContainerState> getDockContainerStates() {
-        return Set.copyOf(dockContainerStates);
-    }
-
     public @NotNull Map<@NotNull Integer, @NotNull Double> getDividerPositions() {
         return Map.copyOf(dividerPositions);
     }
 
-    public static class DockContainerBranchStateBuilder {
+    public @NotNull List<@NotNull DockContainerState> getChildDockContainerStates() {
+        return childDockContainerStates;
+    }
 
-        private final @NotNull String identifier;
-        private final @NotNull Set<@NotNull DockContainerState> dockContainerStates =
-                new LinkedHashSet<>();
-        private final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions =
+    public static class DockContainerBranchStateBuilder extends DockContainerStateBuilder {
+
+        protected @Nullable Orientation orientation;
+        protected final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions =
                 new LinkedHashMap<>();
-        private Orientation orientation;
+        protected @NotNull List<DockContainerState> childDockContainerStates = new ArrayList<>();
 
         public DockContainerBranchStateBuilder(final @NotNull String identifier) {
-            this.identifier = identifier;
+
+            super(identifier);
         }
 
         public @NotNull DockContainerBranchStateBuilder setOrientation(
-                final Orientation orientation
+                final @Nullable Orientation orientation
         ) {
             this.orientation = orientation;
-            return this;
-        }
-
-        public @NotNull DockContainerBranchStateBuilder addDockContainerState(
-                final @NotNull DockContainerState dockContainerState
-        ) {
-            this.dockContainerStates.add(requireNonNull(dockContainerState));
             return this;
         }
 
@@ -84,12 +91,23 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        public @NotNull DockContainerBranchStateBuilder addDockContainerState(
+                final @NotNull DockContainerState dockContainerState
+        ) {
+            this.childDockContainerStates.add(requireNonNull(dockContainerState));
+            return this;
+        }
+
+        @Override
         public @NotNull DockContainerBranchState build() {
             return new DockContainerBranchState(
                     identifier,
+                    parent,
+                    pruneWhenEmpty,
+                    childDockableStates,
                     orientation,
-                    dockContainerStates,
-                    dividerPositions
+                    dividerPositions,
+                    childDockContainerStates
             );
         }
     }

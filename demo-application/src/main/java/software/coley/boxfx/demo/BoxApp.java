@@ -4,11 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,11 +16,12 @@ import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
@@ -43,6 +40,7 @@ public class BoxApp extends Application {
             LoggerFactory.getLogger(BoxApp.class);
 
     private DockBuilding builder;
+    private LayoutStorage layoutStorage;
     private DockableProvider dockableProvider;
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
@@ -54,7 +52,7 @@ public class BoxApp extends Application {
     @Override
     public void init() {
 
-        Bento bento = new Bento();
+        final Bento bento = new Bento();
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
         );
@@ -69,7 +67,7 @@ public class BoxApp extends Application {
         builder = bento.dockBuilding();
 
         // Use the ServiceLoader to inject Service Provider implementations for
-        // encoding/decoding and storing Bento layout/s.
+        // storing, encoding, and decoding Bento layouts.
         final Iterable<LayoutCodecProvider> codecProviders =
                 ServiceLoader.load(LayoutCodecProvider.class);
         final LayoutCodecProvider codecProvider =
@@ -80,9 +78,9 @@ public class BoxApp extends Application {
                 ServiceLoader.load(LayoutStorageProvider.class);
         final LayoutStorageProvider storageProvider =
                 storageProviders.iterator().next();
-        final LayoutStorage layoutStorage =
+        layoutStorage =
                 storageProvider.createLayoutStorage(
-                        layoutCodec.getExtension()
+                        layoutCodec.getIdentifier()
                 );
 
         final Iterable<DockableProvider> dockableProviders =
@@ -97,14 +95,15 @@ public class BoxApp extends Application {
                 persistenceProviders.iterator().next();
 
         layoutSaver = persistenceProvider.createLayoutSaver(
+                bento,
                 layoutStorage,
                 layoutCodec
         );
 
         layoutRestorer = persistenceProvider.createLayoutRestorer(
+                bento,
                 layoutStorage,
                 layoutCodec,
-                builder,
                 dockableProvider
         );
     }
@@ -117,67 +116,30 @@ public class BoxApp extends Application {
         stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
         stage.setTitle("BentoFX Demo");
 
-        DockContainerBranch branchRoot = builder.root("root");
-        DockContainerBranch branchWorkspace = builder.branch("workspace");
-        DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
-        DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
-        DockContainerLeaf leafTools = builder.leaf("misc-tools");
+        DockContainerRootBranch branchRoot;
 
-        branchWorkspace.setPruneWhenEmpty(false);
-        leafWorkspaceTools.setPruneWhenEmpty(false);
-        leafTools.setPruneWhenEmpty(false);
-        leafTools.setPruneWhenEmpty(false);
+        // If a prior layout has been saved, restore the BentoFX layout from the
+        // persisted state. Otherwise, use the default layout.
+        if (layoutStorage.exists()) {
+            try {
+                branchRoot = layoutRestorer.restoreLayout(stage);
 
-        // Add dummy menus to each.
-        leafTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafTools));
-        leafWorkspaceHeaders.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceHeaders));
-        leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
+            } catch (final BentoStateException e) {
 
-        // These leaves shouldn't auto-expand. They are intended to be a set size.
-        DockContainerBranch.setResizableWithParent(leafTools, false);
-        DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+                logger.warn(
+                        "Could not restore the saved layout; using the " +
+                                "default layout instead.",
+                        e
+                );
 
-        // Root: Workspace on top, tools on bottom
-        // Workspace: Explorer on left, primary editor tabs on right
-        branchRoot.setOrientation(Orientation.VERTICAL);
-        branchWorkspace.setOrientation(Orientation.HORIZONTAL);
-        branchRoot.addContainers(branchWorkspace, leafTools);
-        branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
+                branchRoot =
+                        constructDefaultDockContainerRootBranch();
+            }
+        } else {
 
-        // Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
-        leafWorkspaceTools.setSide(Side.LEFT);
-        leafTools.setSide(Side.BOTTOM);
-
-        // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
-        leafWorkspaceTools.setCanSplit(false);
-        leafTools.setCanSplit(false);
-
-        // Primary editor space should not prune when empty
-        leafWorkspaceHeaders.setPruneWhenEmpty(false);
-
-        // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
-        branchRoot.setContainerSizePx(leafTools, 200);
-        branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
-
-        // Make the bottom collapsed by default
-        branchRoot.setContainerCollapsed(leafTools, true);
-
-        // Add dockables to leafWorkspaceTools
-        addDockable(WORKSPACE_DOCKABLE_ID, leafWorkspaceTools);
-        addDockable(BOOKMARKS_DOCKABLE_ID, leafWorkspaceTools);
-        addDockable(MODIFICATIONS_DOCKABLE_ID, leafWorkspaceTools);
-
-        // Add dockables to leafTools
-        addDockable(LOGGING_DOCKABLE_ID, leafTools);
-        addDockable(TERMINAL_DOCKABLE_ID, leafTools);
-        addDockable(PROBLEMS_DOCKABLE_ID, leafTools);
-
-        // Add dockables to leafWorkspaceHeaders
-        addDockable(CLASS_1_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_2_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_3_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_4_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_5_DOCKABLE_ID, leafWorkspaceHeaders);
+            branchRoot =
+                    constructDefaultDockContainerRootBranch();
+        }
 
         Scene scene = new Scene(branchRoot);
         scene.getStylesheets().add("/bento.css");
@@ -245,6 +207,73 @@ public class BoxApp extends Application {
         return menu;
     }
 
+    private DockContainerRootBranch constructDefaultDockContainerRootBranch() {
+
+        DockContainerRootBranch branchRoot = builder.root("root");
+        DockContainerBranch branchWorkspace = builder.branch("workspace");
+        DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
+        DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
+        DockContainerLeaf leafTools = builder.leaf("misc-tools");
+
+        branchWorkspace.setPruneWhenEmpty(false);
+        leafWorkspaceTools.setPruneWhenEmpty(false);
+        leafTools.setPruneWhenEmpty(false);
+        leafTools.setPruneWhenEmpty(false);
+
+        // Add dummy menus to each.
+        leafTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafTools));
+        leafWorkspaceHeaders.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceHeaders));
+        leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
+
+        // These leaves shouldn't auto-expand. They are intended to be a set size.
+        DockContainerBranch.setResizableWithParent(leafTools, false);
+        DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+
+        // Root: Workspace on top, tools on bottom
+        // Workspace: Explorer on left, primary editor tabs on right
+        branchRoot.setOrientation(Orientation.VERTICAL);
+        branchWorkspace.setOrientation(Orientation.HORIZONTAL);
+        branchRoot.addContainers(branchWorkspace, leafTools);
+        branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
+
+        // Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
+        leafWorkspaceTools.setSide(Side.LEFT);
+        leafTools.setSide(Side.BOTTOM);
+
+        // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
+        leafWorkspaceTools.setCanSplit(false);
+        leafTools.setCanSplit(false);
+
+        // Primary editor space should not prune when empty
+        leafWorkspaceHeaders.setPruneWhenEmpty(false);
+
+        // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
+        branchRoot.setContainerSizePx(leafTools, 200);
+        branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
+
+        // Make the bottom collapsed by default
+        branchRoot.setContainerCollapsed(leafTools, true);
+
+        // Add dockables to leafWorkspaceTools
+        addDockable(WORKSPACE_DOCKABLE_ID, leafWorkspaceTools);
+        addDockable(BOOKMARKS_DOCKABLE_ID, leafWorkspaceTools);
+        addDockable(MODIFICATIONS_DOCKABLE_ID, leafWorkspaceTools);
+
+        // Add dockables to leafTools
+        addDockable(LOGGING_DOCKABLE_ID, leafTools);
+        addDockable(TERMINAL_DOCKABLE_ID, leafTools);
+        addDockable(PROBLEMS_DOCKABLE_ID, leafTools);
+
+        // Add dockables to leafWorkspaceHeaders
+        addDockable(CLASS_1_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_2_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_3_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_4_DOCKABLE_ID, leafWorkspaceHeaders);
+        addDockable(CLASS_5_DOCKABLE_ID, leafWorkspaceHeaders);
+
+        return branchRoot;
+    }
+
     /**
      * Optionally adds the {@code Dockable} with the provided {@code dockableId}
      * to the {@code DockContainer}. Logs a warning message when the
@@ -254,8 +283,8 @@ public class BoxApp extends Application {
      *                  should be added.
      */
     private void addDockable(
-            @NotNull final String dockableId,
-            @NotNull final DockContainer container
+            final @NotNull String dockableId,
+            final @NotNull DockContainer container
     ) {
         dockableProvider.resolveDockable(dockableId)
                 .ifPresentOrElse(

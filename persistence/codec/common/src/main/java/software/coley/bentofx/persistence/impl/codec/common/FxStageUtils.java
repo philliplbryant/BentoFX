@@ -10,11 +10,12 @@ import javafx.stage.Window;
 
 import java.util.List;
 
+/**
+ * Utility class containing methods relating to JavaFX {@link Stage}.
+ *
+ * @author Phil Bryant
+ */
 public class FxStageUtils {
-
-    public static final String IS_PRIMARY_STAGE_PROPERTY_KEY_NAME = "isPrimaryStage";
-    public static final String PRIMARY_STAGE_ID = "primaryStage";
-    public static final String STAGE_ID_PROPERTY_KEY_NAME = "stageId";
 
     private FxStageUtils() {
         throw new IllegalStateException("Utility class");

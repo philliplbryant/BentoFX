@@ -3,6 +3,12 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
+/**
+ * This module provides the persistence Application Programming Interface (API)
+ * for the BentoFX docking framework.
+ *
+ * @author Phil Bryant
+ */
 module bento.fx.persistence.api {
 
     requires static org.jetbrains.annotations;

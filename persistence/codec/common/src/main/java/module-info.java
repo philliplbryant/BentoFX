@@ -6,6 +6,12 @@
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 
+/**
+ * This module provides classes used by multiple implementations persisting
+ * BentoFX layouts.
+ *
+ * @author Phil Bryant
+ */
 module bento.fx.persistence.codec.common {
 
 	requires static jakarta.annotation;

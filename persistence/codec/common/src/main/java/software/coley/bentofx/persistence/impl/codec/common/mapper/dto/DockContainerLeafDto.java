@@ -6,34 +6,35 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlElementWrapper;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import jakarta.xml.bind.annotation.*;
 import javafx.geometry.Side;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLES_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 /**
  * Mappable Data Transfer Object representing the layout state of a
  * {@code DockContainerLeaf}.
+ *
+ * @author Phil Bryant
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonTypeName(LEAF_ELEMENT_NAME)
 public class DockContainerLeafDto extends DockContainerDto {
 
     @XmlAttribute
-    public String selectedDockableId;
+    public String selectedDockableIdentifier;
 
     @XmlAttribute
     public Side side;
 
-    @XmlElementWrapper(name = DOCKABLES_ELEMENT_NAME)
+    @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)
+    @JsonProperty(DOCKABLE_ELEMENT_NAME)
     public List<DockableDto> dockables = new ArrayList<>();
 }
