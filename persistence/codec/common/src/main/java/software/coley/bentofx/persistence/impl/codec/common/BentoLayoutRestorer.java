@@ -361,7 +361,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 )
         );
 
-        state.canSplit().ifPresent(leaf::setCanSplit);
+        state.isCanSplit().ifPresent(leaf::setCanSplit);
 
         final String selectedId =
                 state.getSelectedDockableIdentifier().orElse(null);

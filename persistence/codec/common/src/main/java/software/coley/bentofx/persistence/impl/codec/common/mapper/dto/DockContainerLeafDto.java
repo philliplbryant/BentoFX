@@ -37,7 +37,7 @@ public class DockContainerLeafDto extends DockContainerDto {
     public Boolean isResizableWithParent;
 
     @XmlAttribute
-    public Boolean canSplit;
+    public Boolean isCanSplit;
 
     @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)

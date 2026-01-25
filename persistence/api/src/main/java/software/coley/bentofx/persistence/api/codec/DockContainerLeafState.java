@@ -26,7 +26,7 @@ public class DockContainerLeafState extends DockContainerState {
     @Nullable
     private final Boolean isResizableWithParent;
     @Nullable
-    private final Boolean canSplit;
+    private final Boolean isCanSplit;
 
     private DockContainerLeafState(
             final @NotNull String identifier,
@@ -36,7 +36,7 @@ public class DockContainerLeafState extends DockContainerState {
             final @Nullable Side side,
             final @Nullable String selectedDockableIdentifier,
             final @Nullable Boolean isResizableWithParent,
-            final @Nullable Boolean canSplit
+            final @Nullable Boolean isCanSplit
     ) {
         super(
                 identifier,
@@ -47,7 +47,7 @@ public class DockContainerLeafState extends DockContainerState {
         this.side = side;
         this.selectedDockableIdentifier = selectedDockableIdentifier;
         this.isResizableWithParent = isResizableWithParent;
-        this.canSplit = canSplit;
+        this.isCanSplit = isCanSplit;
     }
 
     public Optional<Side> getSide() {
@@ -62,8 +62,8 @@ public class DockContainerLeafState extends DockContainerState {
         return Optional.ofNullable(isResizableWithParent);
     }
 
-    public Optional<Boolean> canSplit() {
-        return Optional.ofNullable(canSplit);
+    public Optional<Boolean> isCanSplit() {
+        return Optional.ofNullable(isCanSplit);
     }
 
     public static class DockContainerLeafStateBuilder extends DockContainerStateBuilder {
