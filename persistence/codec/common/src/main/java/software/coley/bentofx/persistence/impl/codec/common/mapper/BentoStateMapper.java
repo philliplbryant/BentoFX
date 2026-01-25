@@ -202,6 +202,8 @@ public final class BentoStateMapper {
                 leafDto.pruneWhenEmpty = pruneWhenEmpty
         );
         leafDto.side = leafState.getSide().orElse(null);
+        leafDto.isResizableWithParent = leafState.isResizableWithParent().orElse(null);
+        leafDto.canSplit = leafState.canSplit().orElse(null);
         leafDto.selectedDockableIdentifier =
                 leafState.getSelectedDockableIdentifier()
                         .orElse(null);
@@ -407,7 +409,9 @@ public final class BentoStateMapper {
         final DockContainerLeafStateBuilder builder =
                 new DockContainerLeafStateBuilder(id)
                         .setSelectedDockableStateIdentifier(leafDto.selectedDockableIdentifier)
-                        .setSide(leafDto.side);
+                        .setSide(leafDto.side)
+                        .setCanSplit(leafDto.canSplit)
+                        .setResizableWithParent(leafDto.isResizableWithParent);
 
         builder.setPruneWhenEmpty(leafDto.pruneWhenEmpty);
 

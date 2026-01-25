@@ -188,7 +188,6 @@ public class BoxAppDockableProvider implements DockableProvider {
     ) {
         Dockable dockable = builder.dockable(title);
         dockable.setTitle(title);
-        // TODO BENTO-13: Use the ImageProvider to create these images
         dockable.setIconFactory(d -> makeIcon(s, i));
         dockable.setNode(new Label("<" + title + ":" + i + ">"));
         if (dockableMenuFactoryProvider != null) {

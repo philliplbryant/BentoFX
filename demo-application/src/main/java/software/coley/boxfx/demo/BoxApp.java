@@ -275,7 +275,6 @@ public class BoxApp extends Application {
         leafWorkspaceTools.setSide(Side.LEFT);
         leafTools.setSide(Side.BOTTOM);
 
-        // TODO BENTO-13 Persist/restore canSplit
         // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
         leafWorkspaceTools.setCanSplit(false);
         leafTools.setCanSplit(false);

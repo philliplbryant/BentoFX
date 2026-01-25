@@ -225,10 +225,12 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         leafStateBuilder.setPruneWhenEmpty(leaf.doPruneWhenEmpty());
 
-        // Header side
         leafStateBuilder.setSide(leaf.getSide());
 
-        // Selected dockable
+        leafStateBuilder.setResizableWithParent(leaf.isResizable());
+
+        leafStateBuilder.setCanSplit(leaf.isCanSplit());
+
         final Dockable selected = leaf.getSelectedDockable();
 
         if (selected != null) {

@@ -33,6 +33,12 @@ public class DockContainerLeafDto extends DockContainerDto {
     @XmlAttribute
     public Side side;
 
+    @XmlAttribute
+    public Boolean isResizableWithParent;
+
+    @XmlAttribute
+    public Boolean canSplit;
+
     @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)
     @JsonProperty(DOCKABLE_ELEMENT_NAME)
