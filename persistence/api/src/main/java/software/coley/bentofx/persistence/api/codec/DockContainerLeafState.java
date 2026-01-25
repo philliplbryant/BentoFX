@@ -51,7 +51,6 @@ public class DockContainerLeafState extends DockContainerState {
         return Optional.ofNullable(selectedDockableIdentifier);
     }
 
-    // TODO BENTO-13: Use isResizableWithParent when persisting layouts.
     public Optional<Boolean> isResizableWithParent() {
         return Optional.ofNullable(isResizableWithParent);
     }

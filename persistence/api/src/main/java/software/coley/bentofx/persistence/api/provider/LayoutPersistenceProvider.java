@@ -30,6 +30,7 @@ public interface LayoutPersistenceProvider {
             final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec layoutCodec,
-            final @NotNull DockableProvider dockableProvider
+            final @NotNull DockableProvider dockableProvider,
+            final @NotNull ImageProvider imageProvider
     );
 }

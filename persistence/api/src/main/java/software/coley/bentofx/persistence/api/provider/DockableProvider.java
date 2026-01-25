@@ -5,14 +5,12 @@
 
 package software.coley.bentofx.persistence.api.provider;
 
-import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 
-import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -45,15 +43,4 @@ public interface DockableProvider {
      * @return the {@link Dockable} with the given identifier.
      */
     Optional<@Nullable Dockable> resolveDockable(String id);
-
-    /**
-     * Returns a collection of varying sizes for the default {@link Image} to be
-     * used for {@code Stage} and {@code DragDropStage} instances.
-     *
-     * @return a collection of varying sizes for the default {@link Image} to be
-     * used for {@code Stage} and {@code DragDropStage} instances.
-     *
-     * TODO BENTO-13: Move this to a different interface/implementation?
-     */
-    @NotNull Collection<@NotNull Image> getDefaultStageIcons();
 }

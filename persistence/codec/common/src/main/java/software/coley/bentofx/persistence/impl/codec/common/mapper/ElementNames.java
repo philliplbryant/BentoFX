@@ -11,6 +11,11 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
  * @author Phil Bryant
  */
 public class ElementNames {
+
+    private ElementNames() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static final String BENTO_ELEMENT_NAME = "bento";
     public static final String ROOT_BRANCH_LIST_ELEMENT_NAME = "rootBranches";
     public static final String ROOT_BRANCH_ELEMENT_NAME = "rootBranch";

@@ -28,8 +28,6 @@ public class DockContainerRootBranchDto {
     @XmlAttribute
     public String identifier;
 
-    // TODO BENTO-13: include pruneWhenEmpty and Orientation in persisted layouts.
-
     @XmlAttribute
     public Boolean pruneWhenEmpty;
 

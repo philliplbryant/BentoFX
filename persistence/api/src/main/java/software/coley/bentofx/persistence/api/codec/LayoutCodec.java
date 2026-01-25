@@ -18,15 +18,6 @@ import java.io.OutputStream;
 public interface LayoutCodec {
 
     /**
-     * Returns a new, empty {@link BentoState}
-     *
-     * @return a new, empty {@link BentoState}
-     * @throws BentoStateException on error
-     * TODO BENTO-13: Restore the BentoState
-     */
-    @NotNull BentoState newBentoState() throws BentoStateException;
-
-    /**
      * Returns an identifier used to differentiate this {@link LayoutCodec}
      * implementation from other {@link LayoutCodec} implementations. Could be
      * usable as a file extension.

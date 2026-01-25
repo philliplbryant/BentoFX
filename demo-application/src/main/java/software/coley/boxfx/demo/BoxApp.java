@@ -21,10 +21,7 @@ import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.util.ServiceLoader;
@@ -42,6 +39,7 @@ public class BoxApp extends Application {
     private DockBuilding builder;
     private LayoutStorage layoutStorage;
     private DockableProvider dockableProvider;
+    private ImageProvider imageProvider;
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
 
@@ -89,6 +87,11 @@ public class BoxApp extends Application {
         dockableProvider = dockableProviders.iterator().next();
         dockableProvider.init(builder);
 
+        final Iterable<ImageProvider> imageProviders =
+                ServiceLoader.load(ImageProvider.class);
+
+        imageProvider = imageProviders.iterator().next();
+
         final Iterable<LayoutPersistenceProvider> persistenceProviders =
                 ServiceLoader.load(LayoutPersistenceProvider.class);
         final LayoutPersistenceProvider persistenceProvider =
@@ -104,7 +107,8 @@ public class BoxApp extends Application {
                 bento,
                 layoutStorage,
                 layoutCodec,
-                dockableProvider
+                dockableProvider,
+                imageProvider
         );
     }
 
@@ -113,7 +117,7 @@ public class BoxApp extends Application {
 
         stage.setWidth(1000);
         stage.setHeight(700);
-        stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
+        stage.getIcons().addAll(imageProvider.getDefaultStageIcons());
         stage.setTitle("BentoFX Demo");
 
         DockContainerRootBranch branchRoot;

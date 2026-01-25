@@ -8,7 +8,6 @@ package software.coley.bentofx.persistence.impl.codec.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.codec.BentoState;
-import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
@@ -35,11 +34,6 @@ public final class JsonLayoutCodec implements LayoutCodec {
         this.mapper = new ObjectMapper()
                 .enable(INDENT_OUTPUT)
                 .disable(FAIL_ON_UNKNOWN_PROPERTIES);
-    }
-
-    @Override
-    public @NotNull BentoState newBentoState() {
-        return new BentoStateBuilder().build();
     }
 
     @Override

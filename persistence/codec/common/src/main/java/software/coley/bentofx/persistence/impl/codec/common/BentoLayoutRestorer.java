@@ -23,6 +23,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
@@ -48,10 +49,6 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int UID_CAPACITY = 8;
 
-    // TODO BENTO-13: Use the Bento to create objects?
-
-    @NotNull
-    private final Bento bento;
     @NotNull
     private final LayoutStorage layoutStorage;
     @NotNull
@@ -60,18 +57,22 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final DockBuilding dockBuilding;
     @NotNull
     private final DockableProvider dockableProvider;
+    @NotNull
+    private final ImageProvider imageProvider;
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec codec,
-            final @NotNull DockableProvider dockableProvider
+            final @NotNull DockableProvider dockableProvider,
+            final @NotNull ImageProvider imageProvider
     ) {
-        this.bento = Objects.requireNonNull(bento);
+        Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(codec);
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
+        this.imageProvider = Objects.requireNonNull(imageProvider);
     }
 
     @Override
@@ -172,6 +173,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         return restoreRootBranchContainer(rootBranchState);
     }
 
+    // TODO BENTO-13: Should this use a StageBuilding and, if so, how?
     private void restoreDragDropStage(
             final @NotNull DragDropStageState stageState,
             final @NotNull DockContainerRootBranchState rootBranchState
@@ -180,7 +182,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        stage.getIcons().addAll(dockableProvider.getDefaultStageIcons());
+        stage.getIcons().addAll(imageProvider.getDefaultStageIcons());
         stageState.getTitle().ifPresent(stage::setTitle);
         stageState.getX().ifPresent(stage::setX);
         stageState.getY().ifPresent(stage::setY);
@@ -203,6 +205,14 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     ) {
         final DockContainerRootBranch rootBranch =
                 dockBuilding.root(rootBranchState.getIdentifier());
+
+        rootBranchState.doPruneWhenEmpty().ifPresent(
+                rootBranch::setPruneWhenEmpty
+        );
+
+        rootBranchState.getOrientation().ifPresent(
+                rootBranch::setOrientation
+        );
 
         // The root wrapper may contain either one branch or one leaf.
         if (!rootBranchState.getChildDockContainerStates().isEmpty()) {
@@ -313,6 +323,13 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
 
         state.getSide().ifPresent(leaf::setSide);
+
+        state.isResizableWithParent().ifPresent(isResizableWithParent ->
+                DockContainerBranch.setResizableWithParent(
+                        leaf,
+                        isResizableWithParent
+                )
+        );
 
         final String selectedId =
                 state.getSelectedDockableIdentifier().orElse(null);

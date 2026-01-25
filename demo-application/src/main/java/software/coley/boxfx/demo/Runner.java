@@ -12,6 +12,8 @@ public class Runner {
 
     private static final String LOGGING_PROPERTIES = "logging.properties";
 
+    // Using standard outputs when errors occur during logging initializing.
+    @SuppressWarnings("java:S106")
 	public static void main(String[] args) {
 
         // Initialize java.util.logging

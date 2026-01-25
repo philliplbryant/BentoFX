@@ -49,8 +49,8 @@ dependencies {
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)
 // TODO BENTO-13: Specify the codec
-//    implementation(projects.persistence.codec.xml)
-    implementation(projects.persistence.codec.json)
+    implementation(projects.persistence.codec.xml)
+//    implementation(projects.persistence.codec.json)
     implementation(projects.persistence.storage.file)
 
     implementation(libs.javafx.base)

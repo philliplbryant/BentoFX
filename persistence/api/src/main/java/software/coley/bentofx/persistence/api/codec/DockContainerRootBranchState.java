@@ -50,6 +50,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             super(identifier);
         }
 
+        @Override
         public @NotNull DockContainerRootBranchState build() {
             return new DockContainerRootBranchState(
                     identifier,

@@ -76,7 +76,17 @@ public final class BentoStateMapper {
         requireNonNull(root);
         final DockContainerRootBranchDto rootBranchDto =
                 new DockContainerRootBranchDto();
+
         rootBranchDto.identifier = root.getIdentifier();
+
+        root.doPruneWhenEmpty().ifPresent(prune ->
+                rootBranchDto.pruneWhenEmpty = prune
+        );
+
+        root.getOrientation().ifPresent(orientation ->
+                rootBranchDto.orientation = orientation
+        );
+
 
         root.getParent().ifPresent(parent ->
                 rootBranchDto.parentStage = toDto(parent)
@@ -90,13 +100,12 @@ public final class BentoStateMapper {
                         rootBranchDto.branches.add(toDto(dockContainerBranchState));
 
                 case final DockContainerLeafState dockContainerLeafState ->
-                    rootBranchDto.leaf = toDto(dockContainerLeafState);
+                        rootBranchDto.leaf = toDto(dockContainerLeafState);
 
-                default ->
-                    logger.warn(
-                            "Unsupported DockContainerBranchState type: {}",
-                            dockContainerState
-                    );
+                default -> logger.warn(
+                        "Unsupported DockContainerBranchState type: {}",
+                        dockContainerState
+                );
             }
         }
 

@@ -45,7 +45,7 @@ public class DockContainerState extends IdentifiableState {
         return childDockableStates;
     }
 
-    @NotNull private Optional<Boolean> doPruneWhenEmpty() {
+    public @NotNull Optional<Boolean> doPruneWhenEmpty() {
         return Optional.ofNullable(pruneWhenEmpty);
     }
 

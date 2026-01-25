@@ -47,11 +47,6 @@ public final class XmlLayoutCodec implements LayoutCodec {
     }
 
     @Override
-    public @NotNull BentoState newBentoState() {
-        return new BentoState.BentoStateBuilder().build();
-    }
-
-    @Override
     public String getIdentifier() {
         return "xml";
     }

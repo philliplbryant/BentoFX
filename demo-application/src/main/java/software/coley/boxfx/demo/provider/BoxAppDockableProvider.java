@@ -11,7 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.effect.InnerShadow;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
@@ -25,9 +24,9 @@ import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static javafx.scene.effect.BlurType.ONE_PASS_BOX;
 import static javafx.scene.paint.Color.BLACK;
@@ -42,13 +41,6 @@ public class BoxAppDockableProvider implements DockableProvider {
 
     private static final Logger logger =
             LoggerFactory.getLogger(BoxAppDockableProvider.class);
-
-    private static final @NotNull List<@NotNull String> ICON_RESOURCES = List.of(
-            "/images/logo-16.png",
-            "/images/logo-32.png",
-            "/images/logo-48.png",
-            "/images/logo-256.png"
-    );
 
     public static final @NotNull String WORKSPACE_DOCKABLE_ID = "Workspace";
     public static final @NotNull String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
@@ -123,38 +115,6 @@ public class BoxAppDockableProvider implements DockableProvider {
         return Optional.ofNullable(dockablesMap.get(id));
     }
 
-    // TODO BENTO-13: Move this to a different interface/implementation?
-    @Override
-    public @NotNull Collection<@NotNull Image> getDefaultStageIcons() {
-
-        final List<@NotNull Image> images = new ArrayList<>();
-
-        for (final String iconResource : ICON_RESOURCES) {
-            try (
-                    final InputStream inputStream =
-                            getClass().getResourceAsStream(iconResource)
-            ) {
-                if (inputStream == null) {
-
-                    logger.warn(
-                            "Could not find the resource {}.", iconResource
-                    );
-                } else {
-
-                    images.add(new Image(inputStream));
-                }
-            } catch (IOException e) {
-
-                logger.warn(
-                        "Could not read the resource {}.", iconResource,
-                        e
-                );
-            }
-        }
-
-        return images;
-    }
-
     @NotNull
     private Dockable buildDockable(@NotNull DockBuilding builder, int s, int i, @NotNull String title) {
         Dockable dockable = builder.dockable(title);
@@ -185,7 +145,7 @@ public class BoxAppDockableProvider implements DockableProvider {
                     radius * 2,
                     radius * 2
             );
-            case 2 -> new Rectangle(radius * 2, radius * 2);
+            case 2 -> new Rectangle(radius * 2d, radius * 2d);
             default -> new Circle(radius);
         };
         switch (i) {
