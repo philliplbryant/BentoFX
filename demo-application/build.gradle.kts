@@ -13,9 +13,6 @@ plugins {
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
-/**
- * This module is a very basic JavaFX application.
- */
 description = "BentoFX Demo"
 
 application {

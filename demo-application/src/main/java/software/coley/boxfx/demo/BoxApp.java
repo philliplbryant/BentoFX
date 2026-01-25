@@ -32,6 +32,9 @@ import static software.coley.boxfx.demo.provider.BoxAppDockableProvider.*;
 
 /**
  * JavaFX application that demonstrates using the BentoFX framework.
+ *
+ * @author Matt Coley
+ * @author Phil Bryant
  */
 public class BoxApp extends Application {
 
@@ -133,7 +136,8 @@ public class BoxApp extends Application {
                 layoutCodec,
                 dockableProvider,
                 imageProvider,
-                dockContainerLeafMenuFactoryProvider
+                dockContainerLeafMenuFactoryProvider,
+                dockableMenuFactoryProvider
         );
     }
 

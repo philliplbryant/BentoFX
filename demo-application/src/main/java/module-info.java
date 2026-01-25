@@ -11,6 +11,13 @@ import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
 import software.coley.boxfx.demo.provider.BoxAppImageProvider;
 
+/**
+ * This module is a very basic JavaFX application demonstrating the BentoFX
+ * docking framework and persistence API.
+ *
+ * @author Matt Coley
+ * @author Phil Bryant
+ */
 module bento.fx.demo.application {
 
     requires static jakarta.annotation;
@@ -25,8 +32,12 @@ module bento.fx.demo.application {
     requires bento.fx;
     requires bento.fx.persistence.codec.common;
     requires bento.fx.persistence.codec.xml;
+
+// TODO BENTO-13: Specify the storage and codec provider modules that are required.
+
 //    requires bento.fx.persistence.codec.json;
     requires bento.fx.persistence.storage.file;
+//    requires bento.fx.persistence.storage.db;
     requires bento.fx.persistence.api;
     requires jakarta.persistence;
     requires org.slf4j;
@@ -59,7 +70,9 @@ module bento.fx.demo.application {
     uses BentoLayoutPersistenceProvider;                // LayoutPersistenceProvider
     uses BentoLayoutRestorer;                           // LayoutRestorer
     uses BentoLayoutSaver;                              // LayoutSaver
-// TODO BENTO-13: Specify the storage and codec providers
+
+// TODO BENTO-13: Specify the storage and codec modules that are to be used.
+
     uses FileLayoutStorageProvider;                     // LayoutStorageProvider
 //    uses DatabaseLayoutStorageProvider;                  // LayoutStorageProvider
     uses XmlLayoutCodecProvider;                        // LayoutCodecProvider

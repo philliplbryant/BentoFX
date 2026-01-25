@@ -9,11 +9,6 @@ plugins {
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
-/**
- * This module implements the Application Programming Interface (API) for
- * encoding and decoding the layout of BentoFX docking framework components
- * files.
- */
 description = "BentoFX Persistence for Files"
 
 dependencies {

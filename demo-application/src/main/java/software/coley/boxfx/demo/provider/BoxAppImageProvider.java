@@ -12,6 +12,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * {@code ServiceLoader} compatible Service Provider implementation of
+ * {@link ImageProvider}.
+ *
+ * @author Phil Bryant
+ */
 public class BoxAppImageProvider implements ImageProvider {
 
     private static final Logger logger =

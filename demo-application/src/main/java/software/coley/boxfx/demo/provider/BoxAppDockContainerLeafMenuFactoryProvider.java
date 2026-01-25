@@ -10,6 +10,12 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 
+/**
+ * {@code ServiceLoader} compatible Service Provider implementation of
+ * {@link DockContainerLeafMenuFactoryProvider}.
+ *
+ * @author Phil Bryant
+ */
 public class BoxAppDockContainerLeafMenuFactoryProvider
         implements DockContainerLeafMenuFactoryProvider {
 

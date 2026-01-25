@@ -12,6 +12,8 @@ import java.io.OutputStream;
 /**
  * The Application Programming Interface for interacting with a persisted
  * BentoFX layout.
+ *
+ * @author Phil Bryant
  */
 public interface LayoutStorage {
 

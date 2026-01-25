@@ -7,6 +7,9 @@ import java.util.logging.LogManager;
 
 /**
  * Starts the {@link BoxApp} application.
+ *
+ * @author Matt Coley
+ * @author Phil Bryant
  */
 public class Runner {
 
