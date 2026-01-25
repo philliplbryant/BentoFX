@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DragDropStageState.DragDropStageStateBuilder;
@@ -79,8 +80,8 @@ public final class BentoStateMapper {
 
         rootBranchDto.identifier = root.getIdentifier();
 
-        root.doPruneWhenEmpty().ifPresent(prune ->
-                rootBranchDto.pruneWhenEmpty = prune
+        root.doPruneWhenEmpty().ifPresent(pruneWhenEmpty ->
+                rootBranchDto.pruneWhenEmpty = pruneWhenEmpty
         );
 
         root.getOrientation().ifPresent(orientation ->
@@ -160,6 +161,10 @@ public final class BentoStateMapper {
 
         branchDto.identifier = branchState.getIdentifier();
 
+        branchState.doPruneWhenEmpty().ifPresent(pruneWhenEmpty ->
+                branchDto.pruneWhenEmpty = pruneWhenEmpty
+        );
+
         branchDto.orientation =
                 branchState.getOrientation().orElse(null);
 
@@ -193,6 +198,9 @@ public final class BentoStateMapper {
     ) {
         final DockContainerLeafDto leafDto = new DockContainerLeafDto();
         leafDto.identifier = leafState.getIdentifier();
+        leafState.doPruneWhenEmpty().ifPresent(pruneWhenEmpty ->
+                leafDto.pruneWhenEmpty = pruneWhenEmpty
+        );
         leafDto.side = leafState.getSide().orElse(null);
         leafDto.selectedDockableIdentifier =
                 leafState.getSelectedDockableIdentifier()
@@ -305,6 +313,7 @@ public final class BentoStateMapper {
 
         final DockContainerBranchStateBuilder builder =
                 new DockContainerBranchStateBuilder(id);
+        builder.setPruneWhenEmpty(branchDto.pruneWhenEmpty);
         setOrientation(builder, branchDto.orientation);
         setDividerPositions(builder, branchDto.dividerPositions);
         addDockContainers(builder, branchDto.children);
@@ -395,10 +404,12 @@ public final class BentoStateMapper {
                 leafDto.identifier :
                 LEAF_ELEMENT_NAME;
 
-        final DockContainerLeafState.DockContainerLeafStateBuilder builder =
-                new DockContainerLeafState.DockContainerLeafStateBuilder(id)
+        final DockContainerLeafStateBuilder builder =
+                new DockContainerLeafStateBuilder(id)
                         .setSelectedDockableStateIdentifier(leafDto.selectedDockableIdentifier)
                         .setSide(leafDto.side);
+
+        builder.setPruneWhenEmpty(leafDto.pruneWhenEmpty);
 
         if (leafDto.dockables != null) {
 

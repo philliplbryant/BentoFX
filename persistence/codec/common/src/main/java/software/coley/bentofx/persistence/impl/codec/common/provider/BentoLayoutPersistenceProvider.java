@@ -10,6 +10,7 @@ import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
@@ -41,14 +42,16 @@ public class BentoLayoutPersistenceProvider
             @NotNull LayoutStorage layoutStorage,
             @NotNull LayoutCodec layoutCodec,
             @NotNull DockableProvider dockableProvider,
-            @NotNull ImageProvider imageProvider
+            @NotNull ImageProvider imageProvider,
+            @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         return new BentoLayoutRestorer(
                 bento,
                 layoutStorage,
                 layoutCodec,
                 dockableProvider,
-                imageProvider
+                imageProvider,
+                dockContainerLeafMenuFactoryProvider
         );
     }
 }

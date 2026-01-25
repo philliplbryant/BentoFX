@@ -36,4 +36,7 @@ public abstract class DockContainerDto {
 
     @XmlAttribute
     public String identifier;
+
+    @XmlAttribute
+    public Boolean pruneWhenEmpty;
 }

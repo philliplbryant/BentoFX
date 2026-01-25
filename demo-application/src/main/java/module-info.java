@@ -6,10 +6,10 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
+import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
 import software.coley.boxfx.demo.provider.BoxAppImageProvider;
-
-// TODO BENTO-13: Specify the codec provider
 
 module bento.fx.demo.application {
 
@@ -37,23 +37,31 @@ module bento.fx.demo.application {
 
     provides DockableProvider with BoxAppDockableProvider;
     provides ImageProvider with BoxAppImageProvider;
+    provides DockContainerLeafMenuFactoryProvider with BoxAppDockContainerLeafMenuFactoryProvider;
+    provides DockableMenuFactoryProvider with BoxAppDockableMenuFactoryProvider;
 
     // Service provider interfaces
     uses DockableProvider;
     uses ImageProvider;
-    uses LayoutCodecProvider;
+    uses DockContainerLeafMenuFactoryProvider;
+    uses DockableMenuFactoryProvider;
     uses LayoutPersistenceProvider;
     uses LayoutRestorer;
     uses LayoutSaver;
     uses LayoutStorageProvider;
+    uses LayoutCodecProvider;
 
     // Service provider implementations
-    uses BoxAppDockableProvider;            // DockableProvider
-    uses BoxAppImageProvider;               // ImageProvider
-    uses XmlLayoutCodecProvider;            // LayoutCodecProvider
-//    uses JsonLayoutCodecProvider;           // LayoutCodecProvider
-    uses BentoLayoutPersistenceProvider;    // LayoutPersistenceProvider
-    uses BentoLayoutRestorer;               // LayoutRestorer
-    uses BentoLayoutSaver;                  // LayoutSaver
-    uses FileLayoutStorageProvider;         // LayoutStorageProvider
+    uses BoxAppDockableProvider;                        // DockableProvider
+    uses BoxAppImageProvider;                           // ImageProvider
+    uses BoxAppDockContainerLeafMenuFactoryProvider;    // DockContainerLeafMenuFactoryProvider
+    uses BoxAppDockableMenuFactoryProvider;             // DockableMenuFactoryProvider
+    uses BentoLayoutPersistenceProvider;                // LayoutPersistenceProvider
+    uses BentoLayoutRestorer;                           // LayoutRestorer
+    uses BentoLayoutSaver;                              // LayoutSaver
+// TODO BENTO-13: Specify the storage and codec providers
+    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
+//    uses DatabaseLayoutStorageProvider;                  // LayoutStorageProvider
+    uses XmlLayoutCodecProvider;                        // LayoutCodecProvider
+//    uses JsonLayoutCodecProvider;                     // LayoutCodecProvider
 }

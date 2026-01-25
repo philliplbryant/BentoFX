@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.layout.DockContainer;
 
 import java.util.Optional;
@@ -16,6 +17,12 @@ import java.util.Optional;
 /**
  * {@code ServiceLoader} compatible Service Provider Interface for getting or
  * creating {@link Dockable} instances and other user interface components.
+ * <p>
+ * <em>
+ * Must be initialized using {@link #init(DockBuilding, DockableMenuFactory)}
+ * prior to calling {@link #resolveDockable(String)}.
+ * </em>
+ * </p>
  *
  * @author Phil Bryant
  */
@@ -33,8 +40,13 @@ public interface DockableProvider {
      *
      * @param builder {@link DockBuilding} to use to create
      *                {@link DockContainer} and {@link Dockable} instances.
+     * @param dockableMenuFactory {@link DockableMenuFactory} to use to create
+     * {@code ContextMenu} instances.
      */
-    void init(final @NotNull DockBuilding builder);
+    void init(
+            final @NotNull DockBuilding builder,
+            final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider
+            );
 
     /**
      * Returns the {@link Dockable} with the given identifier.

@@ -6,10 +6,7 @@
 package software.coley.boxfx.demo.provider;
 
 import javafx.application.Platform;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -18,10 +15,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.dockable.DockableMenuFactory;
+import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 
 import java.util.HashMap;
@@ -39,9 +36,6 @@ import static javafx.scene.paint.Color.BLACK;
  */
 public class BoxAppDockableProvider implements DockableProvider {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(BoxAppDockableProvider.class);
-
     public static final @NotNull String WORKSPACE_DOCKABLE_ID = "Workspace";
     public static final @NotNull String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
     public static final @NotNull String MODIFICATIONS_DOCKABLE_ID = "Modifications";
@@ -54,57 +48,126 @@ public class BoxAppDockableProvider implements DockableProvider {
     public static final @NotNull String CLASS_4_DOCKABLE_ID = "Class 4";
     public static final @NotNull String CLASS_5_DOCKABLE_ID = "Class 5";
 
-    @NotNull private final Map<@NotNull String, @NotNull Dockable> dockablesMap =
+    @NotNull
+    private final Map<@NotNull String, @NotNull Dockable> dockablesMap =
             new HashMap<>();
 
-    public void init(final @NotNull DockBuilding builder) {
+    public void init(
+            final @NotNull DockBuilding builder,
+            final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider
+    ) {
 
         // Initialization of these values must be performed on the JavaFX
         // Application Thread because they create JavaFX components.
-        Platform.runLater(  () -> {
+        Platform.runLater(() -> {
                     dockablesMap.put(
                             WORKSPACE_DOCKABLE_ID,
-                            buildDockable(builder, 1, 0, WORKSPACE_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    1,
+                                    0,
+                                    WORKSPACE_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             BOOKMARKS_DOCKABLE_ID,
-                            buildDockable(builder, 1, 1, BOOKMARKS_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    1,
+                                    1,
+                                    BOOKMARKS_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             MODIFICATIONS_DOCKABLE_ID,
-                            buildDockable(builder, 1, 2, MODIFICATIONS_DOCKABLE_ID)
+                            buildDockable(
+                                    builder, dockableMenuFactoryProvider,
+                                    1,
+                                    2,
+                                    MODIFICATIONS_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             LOGGING_DOCKABLE_ID,
-                            buildDockable(builder, 2, 0, LOGGING_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    2,
+                                    0,
+                                    LOGGING_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             TERMINAL_DOCKABLE_ID,
-                            buildDockable(builder, 2, 1, TERMINAL_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    2,
+                                    1,
+                                    TERMINAL_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             PROBLEMS_DOCKABLE_ID,
-                            buildDockable(builder, 2, 2, PROBLEMS_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    2,
+                                    2,
+                                    PROBLEMS_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             CLASS_1_DOCKABLE_ID,
-                            buildDockable(builder, 0, 0, CLASS_1_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    0,
+                                    0,
+                                    CLASS_1_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             CLASS_2_DOCKABLE_ID,
-                            buildDockable(builder, 0, 1, CLASS_2_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    0,
+                                    1,
+                                    CLASS_2_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             CLASS_3_DOCKABLE_ID,
-                            buildDockable(builder, 0, 2, CLASS_3_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    0,
+                                    2,
+                                    CLASS_3_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             CLASS_4_DOCKABLE_ID,
-                            buildDockable(builder, 0, 3, CLASS_4_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    0,
+                                    3,
+                                    CLASS_4_DOCKABLE_ID
+                            )
                     );
                     dockablesMap.put(
                             CLASS_5_DOCKABLE_ID,
-                            buildDockable(builder, 0, 4, CLASS_5_DOCKABLE_ID)
+                            buildDockable(
+                                    builder,
+                                    dockableMenuFactoryProvider,
+                                    0,
+                                    4,
+                                    CLASS_5_DOCKABLE_ID
+                            )
                     );
                 }
         );
@@ -116,16 +179,25 @@ public class BoxAppDockableProvider implements DockableProvider {
     }
 
     @NotNull
-    private Dockable buildDockable(@NotNull DockBuilding builder, int s, int i, @NotNull String title) {
+    private Dockable buildDockable(
+            @NotNull DockBuilding builder,
+            @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider,
+            int s,
+            int i,
+            @NotNull String title
+    ) {
         Dockable dockable = builder.dockable(title);
         dockable.setTitle(title);
+        // TODO BENTO-13: Use the ImageProvider to create these images
         dockable.setIconFactory(d -> makeIcon(s, i));
         dockable.setNode(new Label("<" + title + ":" + i + ">"));
-        dockable.setContextMenuFactory(d -> new ContextMenu(
-                new MenuItem("Menu for : " + dockable.getTitle()),
-                new SeparatorMenuItem(),
-                new MenuItem("Stuff")
-        ));
+        if (dockableMenuFactoryProvider != null) {
+            final DockableMenuFactory dockableMenuFactory =
+                    dockableMenuFactoryProvider.createDockableMenuFactory(dockable);
+            if (dockableMenuFactory != null) {
+                dockable.setContextMenuFactory(dockableMenuFactory);
+            }
+        }
         if (s > 0) {
             dockable.setDragGroupMask(1);
             dockable.setClosable(false);

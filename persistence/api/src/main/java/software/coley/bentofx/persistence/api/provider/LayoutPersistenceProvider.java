@@ -31,6 +31,7 @@ public interface LayoutPersistenceProvider {
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec layoutCodec,
             final @NotNull DockableProvider dockableProvider,
-            final @NotNull ImageProvider imageProvider
+            final @NotNull ImageProvider imageProvider,
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     );
 }

@@ -22,6 +22,8 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
+import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -37,6 +39,13 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+// TODO BENTO-13: Persist and restore using DockContainerLeafMenuFactory (see BoxApp)
+
+// TODO BENTO-13: Persist and restore using DockableMenuFactory
+
+// FIXME BENTO-13: Persistence is wrapping "root" in an unnecessary/extra branch
+//  with no divider positions set.
 
 /**
  * Restores JavaFX stage layouts from a persisted {@link BentoState}.
@@ -59,13 +68,19 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final DockableProvider dockableProvider;
     @NotNull
     private final ImageProvider imageProvider;
+    @Nullable
+    private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
+    @Nullable
+    private final DockableMenuFactoryProvider dockableMenuFactoryProvider;
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec codec,
             final @NotNull DockableProvider dockableProvider,
-            final @NotNull ImageProvider imageProvider
+            final @NotNull ImageProvider imageProvider,
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
+            final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider
     ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
@@ -73,6 +88,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         this.codec = Objects.requireNonNull(codec);
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
         this.imageProvider = Objects.requireNonNull(imageProvider);
+        this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
+        this.dockableMenuFactoryProvider = dockableMenuFactoryProvider;
     }
 
     @Override
@@ -282,6 +299,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
         final DockContainerBranch branch = dockBuilding.branch(id);
 
+        branchState.doPruneWhenEmpty().ifPresent(branch::setPruneWhenEmpty);
+
         // Orientation
         branchState.getOrientation().ifPresent(orientation ->
                 branch.orientationProperty().set(orientation)
@@ -329,6 +348,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         );
 
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
+
+        state.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
 
         state.getSide().ifPresent(leaf::setSide);
 

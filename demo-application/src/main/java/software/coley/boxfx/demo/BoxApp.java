@@ -4,7 +4,9 @@ import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -40,6 +42,8 @@ public class BoxApp extends Application {
     private LayoutStorage layoutStorage;
     private DockableProvider dockableProvider;
     private ImageProvider imageProvider;
+    private DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
+    private DockableMenuFactoryProvider dockableMenuFactoryProvider;
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
 
@@ -66,12 +70,15 @@ public class BoxApp extends Application {
 
         // Use the ServiceLoader to inject Service Provider implementations for
         // storing, encoding, and decoding Bento layouts.
+
+        // LayoutCodecProvider
         final Iterable<LayoutCodecProvider> codecProviders =
                 ServiceLoader.load(LayoutCodecProvider.class);
         final LayoutCodecProvider codecProvider =
                 codecProviders.iterator().next();
         final LayoutCodec layoutCodec = codecProvider.createLayoutCodec();
 
+        // LayoutStorageProvider
         final Iterable<LayoutStorageProvider> storageProviders =
                 ServiceLoader.load(LayoutStorageProvider.class);
         final LayoutStorageProvider storageProvider =
@@ -81,17 +88,34 @@ public class BoxApp extends Application {
                         layoutCodec.getIdentifier()
                 );
 
+        // DockableProvider
         final Iterable<DockableProvider> dockableProviders =
                 ServiceLoader.load(DockableProvider.class);
 
         dockableProvider = dockableProviders.iterator().next();
-        dockableProvider.init(builder);
+        dockableProvider.init(builder, dockableMenuFactoryProvider);
 
+        // ImageProvider
         final Iterable<ImageProvider> imageProviders =
                 ServiceLoader.load(ImageProvider.class);
 
         imageProvider = imageProviders.iterator().next();
 
+        // DockContainerLeafMenuFactoryProvider
+        final Iterable<DockContainerLeafMenuFactoryProvider> dockContainerLeafMenuFactoryProviders =
+                ServiceLoader.load(DockContainerLeafMenuFactoryProvider.class);
+
+        dockContainerLeafMenuFactoryProvider =
+                dockContainerLeafMenuFactoryProviders.iterator().next();
+
+        // DockableMenuFactoryProvider
+        final Iterable<DockableMenuFactoryProvider> dockableMenuFactoryProviders =
+                ServiceLoader.load(DockableMenuFactoryProvider.class);
+
+        dockableMenuFactoryProvider =
+                dockableMenuFactoryProviders.iterator().next();
+
+        // LayoutPersistenceProvider
         final Iterable<LayoutPersistenceProvider> persistenceProviders =
                 ServiceLoader.load(LayoutPersistenceProvider.class);
         final LayoutPersistenceProvider persistenceProvider =
@@ -108,7 +132,8 @@ public class BoxApp extends Application {
                 layoutStorage,
                 layoutCodec,
                 dockableProvider,
-                imageProvider
+                imageProvider,
+                dockContainerLeafMenuFactoryProvider
         );
     }
 
@@ -200,17 +225,6 @@ public class BoxApp extends Application {
         }
     }
 
-    @NotNull
-    private static ContextMenu addSideOptions(@NotNull ContextMenu menu, @NotNull DockContainerLeaf space) {
-        for (Side side : Side.values()) {
-            MenuItem item = new MenuItem(side.name());
-            item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
-            item.setOnAction(e -> space.setSide(side));
-            menu.getItems().add(item);
-        }
-        return menu;
-    }
-
     private DockContainerRootBranch constructDefaultDockContainerRootBranch() {
 
         DockContainerRootBranch branchRoot = builder.root("root");
@@ -225,9 +239,21 @@ public class BoxApp extends Application {
         leafTools.setPruneWhenEmpty(false);
 
         // Add dummy menus to each.
-        leafTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafTools));
-        leafWorkspaceHeaders.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceHeaders));
-        leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
+        leafTools.setMenuFactory(
+                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                        leafTools
+                )
+        );
+        leafWorkspaceHeaders.setMenuFactory(
+                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                        leafWorkspaceHeaders
+                )
+        );
+        leafWorkspaceTools.setMenuFactory(
+                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                        leafWorkspaceTools
+                )
+        );
 
         // These leaves shouldn't auto-expand. They are intended to be a set size.
         DockContainerBranch.setResizableWithParent(leafTools, false);
@@ -244,6 +270,7 @@ public class BoxApp extends Application {
         leafWorkspaceTools.setSide(Side.LEFT);
         leafTools.setSide(Side.BOTTOM);
 
+        // TODO BENTO-13 Persist/restore canSplit
         // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
         leafWorkspaceTools.setCanSplit(false);
         leafTools.setCanSplit(false);
@@ -251,10 +278,12 @@ public class BoxApp extends Application {
         // Primary editor space should not prune when empty
         leafWorkspaceHeaders.setPruneWhenEmpty(false);
 
+        // TODO BENTO-13: Persist/Restore containerSizePx
         // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
         branchRoot.setContainerSizePx(leafTools, 200);
         branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
+        // TODO BENTO-13: Persist/Restore containerCollapsed
         // Make the bottom collapsed by default
         branchRoot.setContainerCollapsed(leafTools, true);
 

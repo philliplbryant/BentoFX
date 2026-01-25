@@ -190,6 +190,8 @@ public final class BentoLayoutSaver implements LayoutSaver {
                         id
                 );
 
+        builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
+
         builder.setOrientation(branch.orientationProperty().get());
 
         // Divider positions (supports multiple)
@@ -220,6 +222,8 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         final DockContainerLeafStateBuilder leafStateBuilder =
                 new DockContainerLeafStateBuilder(id);
+
+        leafStateBuilder.setPruneWhenEmpty(leaf.doPruneWhenEmpty());
 
         // Header side
         leafStateBuilder.setSide(leaf.getSide());

@@ -5,6 +5,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+/**
+ * {@code ServiceLoader} compatible Service Provider Interface for creating
+ * {@code Stage} icon {@link Image}s.
+ *
+ * @author Phil Bryant
+ */
 public interface ImageProvider {
 
     /**
