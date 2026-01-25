@@ -29,7 +29,7 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -214,6 +214,14 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
+        for (Map.Entry<@NotNull Integer, @NotNull Double> positionEntry :
+                rootBranchState.getDividerPositions().entrySet()) {
+            rootBranch.setDividerPosition(
+                    positionEntry.getKey(),
+                    positionEntry.getValue()
+            );
+        }
+
         // The root wrapper may contain either one branch or one leaf.
         if (!rootBranchState.getChildDockContainerStates().isEmpty()) {
 
@@ -300,13 +308,13 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
         }
 
-        // Divider positions (deferred, like legacy impl)
-        for (
-                final Entry<Integer, Double> positions :
-                branchState.getDividerPositions().entrySet()
-        ) {
-            branch.getDividerPositions()[positions.getKey()] =
-                    positions.getValue();
+        // Divider positions
+        for (Map.Entry<@NotNull Integer, @NotNull Double> positionEntry :
+                branchState.getDividerPositions().entrySet()) {
+            branch.setDividerPosition(
+                    positionEntry.getKey(),
+                    positionEntry.getValue()
+            );
         }
 
         return branch;
