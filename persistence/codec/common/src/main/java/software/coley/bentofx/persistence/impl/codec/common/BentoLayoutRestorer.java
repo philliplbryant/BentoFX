@@ -7,6 +7,7 @@ package software.coley.bentofx.persistence.impl.codec.common;
 
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,9 +41,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-// TODO BENTO-13: Persist and restore using DockContainerLeafMenuFactory (see BoxApp)
+// TODO BENTO-13: Restore using DockContainerLeafMenuFactory (see BoxApp)
 
-// TODO BENTO-13: Persist and restore using DockableMenuFactory
+// TODO BENTO-13: Restore using DockableMenuFactory
 
 // FIXME BENTO-13: Persistence is wrapping "root" in an unnecessary/extra branch
 //  with no divider positions set.
@@ -354,7 +355,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         state.getSide().ifPresent(leaf::setSide);
 
         state.isResizableWithParent().ifPresent(isResizableWithParent ->
-                DockContainerBranch.setResizableWithParent(
+                SplitPane.setResizableWithParent(
                         leaf,
                         isResizableWithParent
                 )

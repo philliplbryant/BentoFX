@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -260,8 +261,8 @@ public class BoxApp extends Application {
         );
 
         // These leaves shouldn't auto-expand. They are intended to be a set size.
-        DockContainerBranch.setResizableWithParent(leafTools, false);
-        DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+        SplitPane.setResizableWithParent(leafTools, false);
+        SplitPane.setResizableWithParent(leafWorkspaceTools, false);
 
         // Root: Workspace on top, tools on bottom
         // Workspace: Explorer on left, primary editor tabs on right
