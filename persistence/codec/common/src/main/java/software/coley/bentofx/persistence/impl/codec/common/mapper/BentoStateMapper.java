@@ -197,13 +197,24 @@ public final class BentoStateMapper {
             final @NotNull DockContainerLeafState leafState
     ) {
         final DockContainerLeafDto leafDto = new DockContainerLeafDto();
+
         leafDto.identifier = leafState.getIdentifier();
+
         leafState.doPruneWhenEmpty().ifPresent(pruneWhenEmpty ->
                 leafDto.pruneWhenEmpty = pruneWhenEmpty
         );
+
+        leafState.getUncollapsedSizePx().ifPresent(uncollapsedSizePx ->
+                leafDto.uncollapsedSizePx = uncollapsedSizePx
+        );
+
         leafDto.side = leafState.getSide().orElse(null);
-        leafDto.isResizableWithParent = leafState.isResizableWithParent().orElse(null);
+
+        leafDto.isResizableWithParent =
+                leafState.isResizableWithParent().orElse(null);
+
         leafDto.isCanSplit = leafState.isCanSplit().orElse(null);
+
         leafDto.selectedDockableIdentifier =
                 leafState.getSelectedDockableIdentifier()
                         .orElse(null);
@@ -212,6 +223,7 @@ public final class BentoStateMapper {
             DockableDto dockableDto = toDto(d);
             leafDto.dockables.add(dockableDto);
         }
+
         return leafDto;
     }
 
@@ -414,6 +426,8 @@ public final class BentoStateMapper {
                         .setResizableWithParent(leafDto.isResizableWithParent);
 
         builder.setPruneWhenEmpty(leafDto.pruneWhenEmpty);
+
+        builder.setUncollapsedSizePx(leafDto.uncollapsedSizePx);
 
         if (leafDto.dockables != null) {
 

@@ -2,12 +2,7 @@ package software.coley.bentofx.layout.container;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -403,7 +398,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Uncollapsed size of this container.
 	 */
-	protected double getUncollapsedSize() {
+	public double getUncollapsedSize() {
 		return switch (getSide()) {
 			case TOP, BOTTOM -> uncollapsedHeight.get();
 			case LEFT, RIGHT -> uncollapsedWidth.get();

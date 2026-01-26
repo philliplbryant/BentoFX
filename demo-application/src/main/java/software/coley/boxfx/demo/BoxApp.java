@@ -282,12 +282,11 @@ public class BoxApp extends Application {
         // Primary editor space should not prune when empty
         leafWorkspaceHeaders.setPruneWhenEmpty(false);
 
-        // TODO BENTO-13: Persist/Restore containerSizePx
         // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
         branchRoot.setContainerSizePx(leafTools, 200);
         branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
-        // TODO BENTO-13: Persist/Restore containerCollapsed
+        // TODO BENTO-13: Persist/Restore containerCollapsed for all DockContainer
         // Make the bottom collapsed by default
         branchRoot.setContainerCollapsed(leafTools, true);
 

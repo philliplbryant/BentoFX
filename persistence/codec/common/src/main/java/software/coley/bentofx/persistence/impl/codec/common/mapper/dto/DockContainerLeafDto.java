@@ -39,6 +39,9 @@ public class DockContainerLeafDto extends DockContainerDto {
     @XmlAttribute
     public Boolean isCanSplit;
 
+    @XmlAttribute
+    public Double uncollapsedSizePx;
+
     @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)
     @JsonProperty(DOCKABLE_ELEMENT_NAME)

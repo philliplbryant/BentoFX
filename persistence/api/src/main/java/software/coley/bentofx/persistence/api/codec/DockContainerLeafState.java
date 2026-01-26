@@ -27,6 +27,8 @@ public class DockContainerLeafState extends DockContainerState {
     private final Boolean isResizableWithParent;
     @Nullable
     private final Boolean isCanSplit;
+    @Nullable
+    private final Double uncollapsedSizePx;
 
     private DockContainerLeafState(
             final @NotNull String identifier,
@@ -36,8 +38,9 @@ public class DockContainerLeafState extends DockContainerState {
             final @Nullable Side side,
             final @Nullable String selectedDockableIdentifier,
             final @Nullable Boolean isResizableWithParent,
-            final @Nullable Boolean isCanSplit
-    ) {
+            final @Nullable Boolean isCanSplit,
+            final @Nullable Double uncollapsedSizePx
+            ) {
         super(
                 identifier,
                 parent,
@@ -48,6 +51,7 @@ public class DockContainerLeafState extends DockContainerState {
         this.selectedDockableIdentifier = selectedDockableIdentifier;
         this.isResizableWithParent = isResizableWithParent;
         this.isCanSplit = isCanSplit;
+        this.uncollapsedSizePx = uncollapsedSizePx;
     }
 
     public Optional<Side> getSide() {
@@ -66,6 +70,10 @@ public class DockContainerLeafState extends DockContainerState {
         return Optional.ofNullable(isCanSplit);
     }
 
+    public Optional<Double> getUncollapsedSizePx() {
+        return Optional.ofNullable(uncollapsedSizePx);
+    }
+
     public static class DockContainerLeafStateBuilder extends DockContainerStateBuilder {
 
         @Nullable
@@ -76,6 +84,8 @@ public class DockContainerLeafState extends DockContainerState {
         private Boolean isResizableWithParent;
         @Nullable
         private Boolean isCanSplit;
+        @Nullable
+        private Double uncollapsedSizePx;
 
         public DockContainerLeafStateBuilder(
                 final @NotNull String identifier
@@ -110,6 +120,13 @@ public class DockContainerLeafState extends DockContainerState {
             return this;
         }
 
+        public @NotNull DockContainerLeafStateBuilder setUncollapsedSizePx(
+                final Double uncollapsedSizePx
+        ) {
+            this.uncollapsedSizePx = uncollapsedSizePx;
+            return this;
+        }
+
         public @NotNull DockContainerLeafState build() {
 
             return new DockContainerLeafState(
@@ -120,7 +137,8 @@ public class DockContainerLeafState extends DockContainerState {
                     side,
                     selectedDockableStateIdentifier,
                     isResizableWithParent,
-                    isCanSplit
+                    isCanSplit,
+                    uncollapsedSizePx
             );
         }
     }

@@ -231,6 +231,8 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         leafStateBuilder.setCanSplit(leaf.isCanSplit());
 
+        leafStateBuilder.setUncollapsedSizePx(leaf.getUncollapsedSize());
+
         final Dockable selected = leaf.getSelectedDockable();
 
         if (selected != null) {

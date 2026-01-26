@@ -95,7 +95,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
     @Override
     public DockContainerRootBranch restoreLayout(
-            final Stage primaryStage
+            final @NotNull Stage primaryStage
     ) throws BentoStateException {
         try {
             primaryStage.hide();
@@ -183,7 +183,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private DockContainerRootBranch restorePrimaryStageRoot(
+    private @NotNull DockContainerRootBranch restorePrimaryStageRoot(
             final @NotNull DockContainerRootBranchState rootBranchState,
             final @NotNull Stage primaryStage
     ) {
@@ -218,7 +218,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         stage.show();
     }
 
-    private DockContainerRootBranch restoreRootBranchContainer(
+    private @NotNull DockContainerRootBranch restoreRootBranchContainer(
             final @NotNull DockContainerRootBranchState rootBranchState
     ) {
         final DockContainerRootBranch rootBranch =
@@ -248,7 +248,17 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                             .getFirst();
 
             final DockContainer dockContainer = restoreDockContainer(childState);
+
             if (dockContainer != null) {
+
+                if(childState instanceof final DockContainerLeafState leafState &&
+                        dockContainer instanceof DockContainerLeaf) {
+
+                    leafState.getUncollapsedSizePx().ifPresent(size ->
+                            rootBranch.setContainerSizePx(dockContainer, size)
+                    );
+                }
+
                 rootBranch.addContainer(dockContainer);
             }
 
@@ -269,9 +279,10 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         return rootBranch;
     }
 
-    private DockContainer restoreDockContainer(
-            final DockContainerState state
+    private @Nullable DockContainer restoreDockContainer(
+            final @NotNull DockContainerState state
     ) {
+
         switch (state) {
             case final DockContainerBranchState branchState -> {
 
@@ -289,7 +300,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private DockContainerBranch restoreBranch(
+    private @NotNull DockContainerBranch restoreBranch(
             final @NotNull DockContainerBranchState branchState
     ) {
         final String id =
@@ -340,7 +351,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         return branch;
     }
 
-    private DockContainerLeaf restoreLeaf(
+    private @NotNull DockContainerLeaf restoreLeaf(
             final @NotNull DockContainerLeafState state
     ) {
         final String id = nonEmptyOr(
@@ -394,7 +405,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 .orElse(null);
     }
 
-    private static String createUniqueIdentifier(final String prefix) {
+    private static @NotNull String createUniqueIdentifier(final String prefix) {
 
         final byte[] bytes = new byte[UID_CAPACITY];
         RANDOM.nextBytes(bytes);
