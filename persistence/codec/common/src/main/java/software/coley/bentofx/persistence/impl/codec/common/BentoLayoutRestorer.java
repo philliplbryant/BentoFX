@@ -41,10 +41,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-// TODO BENTO-13: Restore using DockContainerLeafMenuFactory (see BoxApp)
-
-// TODO BENTO-13: Restore using DockableMenuFactory
-
 // FIXME BENTO-13: Persistence is wrapping "root" in an unnecessary/extra branch
 //  with no divider positions set.
 
@@ -247,17 +243,9 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                     rootBranchState.getChildDockContainerStates()
                             .getFirst();
 
-            final DockContainer dockContainer = restoreDockContainer(childState);
+            final DockContainer dockContainer = restoreDockContainer(rootBranch, childState);
 
             if (dockContainer != null) {
-
-                if(childState instanceof final DockContainerLeafState leafState &&
-                        dockContainer instanceof DockContainerLeaf) {
-
-                    leafState.getUncollapsedSizePx().ifPresent(size ->
-                            rootBranch.setContainerSizePx(dockContainer, size)
-                    );
-                }
 
                 rootBranch.addContainer(dockContainer);
             }
@@ -280,17 +268,18 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @Nullable DockContainer restoreDockContainer(
+            final @NotNull DockContainerRootBranch rootBranch,
             final @NotNull DockContainerState state
     ) {
 
         switch (state) {
             case final DockContainerBranchState branchState -> {
 
-                return restoreBranch(branchState);
+                return restoreBranch(rootBranch, branchState);
             }
             case final DockContainerLeafState leafState -> {
 
-                return restoreLeaf(leafState);
+                return restoreLeaf(rootBranch, leafState);
             }
             default -> {
 
@@ -301,6 +290,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @NotNull DockContainerBranch restoreBranch(
+            final @NotNull DockContainerRootBranch rootBranch,
             final @NotNull DockContainerBranchState branchState
     ) {
         final String id =
@@ -324,7 +314,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 branchState.getChildDockContainerStates()
         ) {
             final DockContainer container =
-                    restoreDockContainer(dockContainerState);
+                    restoreDockContainer(rootBranch, dockContainerState);
 
             if (container != null) {
 
@@ -352,6 +342,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @NotNull DockContainerLeaf restoreLeaf(
+            final @NotNull DockContainerRootBranch rootBranch,
             final @NotNull DockContainerLeafState state
     ) {
         final String id = nonEmptyOr(
@@ -360,6 +351,9 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         );
 
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
+
+        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(leaf)
+                .ifPresent(leaf::setMenuFactory);
 
         state.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
 
@@ -376,6 +370,22 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
         final String selectedId =
                 state.getSelectedDockableIdentifier().orElse(null);
+
+        state.getUncollapsedSizePx().ifPresent(size ->
+                rootBranch.setContainerSizePx(leaf, size)
+        );
+
+        // FIXME BENTO-13: isCollapsed getting set but the leaf isn't collapsing
+        //  Do I need to change when setContainerCollapsed is called?
+        state.isCollapsed().ifPresent(isCollapsed -> {
+                    logger.trace(
+                            "Setting leaf {} collapsed to {}",
+                            leaf.getIdentifier(),
+                            isCollapsed
+                    );
+                    rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                }
+        );
 
         for (final DockableState dockableState : state.getChildDockableStates()) {
 

@@ -10,6 +10,8 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 
+import java.util.Optional;
+
 /**
  * {@code ServiceLoader} compatible Service Provider implementation of
  * {@link DockContainerLeafMenuFactoryProvider}.
@@ -20,24 +22,36 @@ public class BoxAppDockContainerLeafMenuFactoryProvider
         implements DockContainerLeafMenuFactoryProvider {
 
     @Override
-    public @Nullable DockContainerLeafMenuFactory createDockContainerLeafMenuFactory(
-            final @NotNull DockContainerLeaf dockContainerLeaf
+    public @NotNull Optional<@Nullable DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
+            final @Nullable DockContainerLeaf dockContainerLeaf
     ) {
-        return d ->
-                addSideOptions(new ContextMenu(), dockContainerLeaf);
+        return Optional.of(factory);
     }
 
-    @NotNull
-    private static ContextMenu addSideOptions(
-            @NotNull ContextMenu menu,
-            @NotNull DockContainerLeaf space
-    ) {
-        for (final Side side : Side.values()) {
-            final MenuItem item = new MenuItem(side.name());
-            item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
-            item.setOnAction(e -> space.setSide(side));
-            menu.getItems().add(item);
+    private static final DockContainerLeafMenuFactory factory =
+            new DockContainerLeafMenuFactory() {
+
+        @Override
+        public @NotNull ContextMenu build(
+                @NotNull DockContainerLeaf dockContainerLeaf
+        ) {
+
+            ContextMenu menu = new ContextMenu();
+
+            for (final Side side : Side.values()) {
+                final MenuItem item = new MenuItem(side.name());
+                item.setGraphic(
+                        new Label(
+                                side == dockContainerLeaf.getSide() ?
+                                        "✓" :
+                                        " "
+                        )
+                );
+                item.setOnAction(e -> dockContainerLeaf.setSide(side));
+                menu.getItems().add(item);
+            }
+
+            return menu;
         }
-        return menu;
-    }
+    };
 }

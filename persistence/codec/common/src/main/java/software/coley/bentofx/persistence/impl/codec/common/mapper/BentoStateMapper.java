@@ -208,6 +208,10 @@ public final class BentoStateMapper {
                 leafDto.uncollapsedSizePx = uncollapsedSizePx
         );
 
+        leafState.isCollapsed().ifPresent(isCollapsed ->
+                leafDto.isCollapsed = isCollapsed
+        );
+
         leafDto.side = leafState.getSide().orElse(null);
 
         leafDto.isResizableWithParent =
@@ -428,6 +432,8 @@ public final class BentoStateMapper {
         builder.setPruneWhenEmpty(leafDto.pruneWhenEmpty);
 
         builder.setUncollapsedSizePx(leafDto.uncollapsedSizePx);
+
+        builder.setCollapsed(leafDto.isCollapsed);
 
         if (leafDto.dockables != null) {
 

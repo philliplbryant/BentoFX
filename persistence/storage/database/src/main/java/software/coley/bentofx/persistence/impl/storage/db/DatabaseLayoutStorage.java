@@ -8,6 +8,7 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.*;
@@ -21,22 +22,23 @@ import java.time.Instant;
  */
 public class DatabaseLayoutStorage implements LayoutStorage {
 
-    private final EntityManagerFactory emf;
-    private final String layoutKey;
+    private final @NotNull EntityManagerFactory emf;
+    private final @NotNull String codecIdentifier;
 
     public DatabaseLayoutStorage(
-            final EntityManagerFactory emf,
-            final String layoutKey
+            final @NotNull  EntityManagerFactory emf,
+            final @NotNull String codecIdentifier
     ) {
         this.emf = emf;
-        this.layoutKey = layoutKey != null ? layoutKey : "default";
+        this.codecIdentifier = codecIdentifier;
     }
 
     @Override
     public boolean exists() {
 
         try (final EntityManager em = emf.createEntityManager()) {
-            final DockLayoutEntity entity = em.find(DockLayoutEntity.class, layoutKey);
+            final DockLayoutEntity entity =
+                    em.find(DockLayoutEntity.class, codecIdentifier);
             return entity != null && entity.payload != null && entity.payload.length > 0;
         }
     }
@@ -44,8 +46,12 @@ public class DatabaseLayoutStorage implements LayoutStorage {
     @Override
     public InputStream openInputStream() {
         try (final EntityManager em = emf.createEntityManager()) {
-            final DockLayoutEntity entity = em.find(DockLayoutEntity.class, layoutKey);
-            final byte[] bytes = (entity != null && entity.payload != null) ? entity.payload : new byte[0];
+            final DockLayoutEntity entity =
+                    em.find(DockLayoutEntity.class, codecIdentifier);
+            final byte[] bytes =
+                    (entity != null && entity.payload != null) ?
+                            entity.payload :
+                            new byte[0];
             return new ByteArrayInputStream(bytes);
         }
     }
@@ -71,10 +77,15 @@ public class DatabaseLayoutStorage implements LayoutStorage {
                     try (em) {
                         tx.begin();
 
-                        final DockLayoutEntity existing = em.find(DockLayoutEntity.class, layoutKey);
+                        final DockLayoutEntity existing =
+                                em.find(
+                                        DockLayoutEntity.class,
+                                        codecIdentifier
+                                );
                         if (existing == null) {
-                            final DockLayoutEntity newEntity = new DockLayoutEntity();
-                            newEntity.key = layoutKey;
+                            final DockLayoutEntity newEntity =
+                                    new DockLayoutEntity();
+                            newEntity.codecIdentifier = codecIdentifier;
                             newEntity.payload = bytesToSave;
                             newEntity.updatedAt = Instant.now();
                             em.persist(newEntity);

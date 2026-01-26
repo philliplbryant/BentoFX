@@ -28,7 +28,7 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
         return new DatabaseLayoutStorage(
                 entityManagerFactory,
-                "default"
+                codecIdentifier
         );
     }
 }

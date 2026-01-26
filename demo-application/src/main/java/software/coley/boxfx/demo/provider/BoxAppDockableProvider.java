@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 
@@ -190,13 +189,15 @@ public class BoxAppDockableProvider implements DockableProvider {
         dockable.setTitle(title);
         dockable.setIconFactory(d -> makeIcon(s, i));
         dockable.setNode(new Label("<" + title + ":" + i + ">"));
+
         if (dockableMenuFactoryProvider != null) {
-            final DockableMenuFactory dockableMenuFactory =
-                    dockableMenuFactoryProvider.createDockableMenuFactory(dockable);
-            if (dockableMenuFactory != null) {
-                dockable.setContextMenuFactory(dockableMenuFactory);
-            }
+
+            dockableMenuFactoryProvider.createDockableMenuFactory(dockable)
+                    .ifPresent(
+                            dockable::setContextMenuFactory
+                    );
         }
+
         if (s > 0) {
             dockable.setDragGroupMask(1);
             dockable.setClosable(false);

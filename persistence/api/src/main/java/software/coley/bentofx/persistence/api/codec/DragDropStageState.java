@@ -30,6 +30,9 @@ public class DragDropStageState {
     private final @Nullable Boolean isMaximized;
     private final @NotNull DockContainerRootBranchState dockContainerRootBranchState;
 
+    // Ignore the number or constructor parameters; this is a read-only class
+    // whose member attributes must be set using the constructor.
+    @SuppressWarnings("java:S107")
     private DragDropStageState(
             final @NotNull Boolean isAutoClosedWhenEmpty,
             final @Nullable String title,

@@ -29,6 +29,8 @@ public class DockContainerLeafState extends DockContainerState {
     private final Boolean isCanSplit;
     @Nullable
     private final Double uncollapsedSizePx;
+    @Nullable
+    private final Boolean isCollapsed;
 
     private DockContainerLeafState(
             final @NotNull String identifier,
@@ -39,7 +41,8 @@ public class DockContainerLeafState extends DockContainerState {
             final @Nullable String selectedDockableIdentifier,
             final @Nullable Boolean isResizableWithParent,
             final @Nullable Boolean isCanSplit,
-            final @Nullable Double uncollapsedSizePx
+            final @Nullable Double uncollapsedSizePx,
+            final @Nullable Boolean isCollapsed
             ) {
         super(
                 identifier,
@@ -52,6 +55,7 @@ public class DockContainerLeafState extends DockContainerState {
         this.isResizableWithParent = isResizableWithParent;
         this.isCanSplit = isCanSplit;
         this.uncollapsedSizePx = uncollapsedSizePx;
+        this.isCollapsed = isCollapsed;
     }
 
     public Optional<Side> getSide() {
@@ -74,6 +78,10 @@ public class DockContainerLeafState extends DockContainerState {
         return Optional.ofNullable(uncollapsedSizePx);
     }
 
+    public Optional<Boolean> isCollapsed() {
+        return Optional.ofNullable(isCollapsed);
+    }
+
     public static class DockContainerLeafStateBuilder extends DockContainerStateBuilder {
 
         @Nullable
@@ -86,6 +94,8 @@ public class DockContainerLeafState extends DockContainerState {
         private Boolean isCanSplit;
         @Nullable
         private Double uncollapsedSizePx;
+        @Nullable
+        private Boolean isCollapsed;
 
         public DockContainerLeafStateBuilder(
                 final @NotNull String identifier
@@ -127,6 +137,14 @@ public class DockContainerLeafState extends DockContainerState {
             return this;
         }
 
+        public @NotNull DockContainerLeafStateBuilder setCollapsed(
+                final Boolean isCollapsed
+        ) {
+            this.isCollapsed = isCollapsed;
+            return this;
+        }
+
+        @Override
         public @NotNull DockContainerLeafState build() {
 
             return new DockContainerLeafState(
@@ -138,7 +156,8 @@ public class DockContainerLeafState extends DockContainerState {
                     selectedDockableStateIdentifier,
                     isResizableWithParent,
                     isCanSplit,
-                    uncollapsedSizePx
+                    uncollapsedSizePx,
+                    isCollapsed
             );
         }
     }

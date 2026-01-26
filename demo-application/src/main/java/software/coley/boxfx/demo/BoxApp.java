@@ -244,21 +244,17 @@ public class BoxApp extends Application {
         leafTools.setPruneWhenEmpty(false);
 
         // Add dummy menus to each.
-        leafTools.setMenuFactory(
-                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                        leafTools
-                )
-        );
-        leafWorkspaceHeaders.setMenuFactory(
-                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                        leafWorkspaceHeaders
-                )
-        );
-        leafWorkspaceTools.setMenuFactory(
-                dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                        leafWorkspaceTools
-                )
-        );
+        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                leafTools
+        ).ifPresent(leafTools::setMenuFactory);
+
+        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                leafWorkspaceHeaders
+        ).ifPresent(leafWorkspaceHeaders::setMenuFactory);
+
+        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                leafWorkspaceTools
+        ).ifPresent(leafWorkspaceTools::setMenuFactory);
 
         // These leaves shouldn't auto-expand. They are intended to be a set size.
         SplitPane.setResizableWithParent(leafTools, false);
@@ -286,7 +282,6 @@ public class BoxApp extends Application {
         branchRoot.setContainerSizePx(leafTools, 200);
         branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
-        // TODO BENTO-13: Persist/Restore containerCollapsed for all DockContainer
         // Make the bottom collapsed by default
         branchRoot.setContainerCollapsed(leafTools, true);
 
@@ -314,9 +309,10 @@ public class BoxApp extends Application {
      * Optionally adds the {@code Dockable} with the provided {@code dockableId}
      * to the {@code DockContainer}. Logs a warning message when the
      * {@code Dockable} cannot be resolved using the {@code dockableId}.
+     *
      * @param dockableId the identifier for the {@code Dockable} to add.
-     * @param container the {@code DockContainer} to which the {@code Dockable}
-     *                  should be added.
+     * @param container  the {@code DockContainer} to which the {@code Dockable}
+     *                   should be added.
      */
     private void addDockable(
             final @NotNull String dockableId,

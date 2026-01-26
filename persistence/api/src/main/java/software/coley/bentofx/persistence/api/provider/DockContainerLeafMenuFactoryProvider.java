@@ -6,6 +6,7 @@ import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 
+import java.util.Optional;
 
 
 /**
@@ -21,7 +22,7 @@ public interface DockContainerLeafMenuFactoryProvider {
      *
      * @return a {@link DockableMenuFactory}
      */
-    @Nullable DockContainerLeafMenuFactory createDockContainerLeafMenuFactory(
-            final @NotNull DockContainerLeaf dockContainerLeaf
+    @NotNull Optional<@Nullable DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
+            final @Nullable DockContainerLeaf dockContainerLeaf
     );
 }

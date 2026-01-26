@@ -42,6 +42,9 @@ public class DockContainerLeafDto extends DockContainerDto {
     @XmlAttribute
     public Double uncollapsedSizePx;
 
+    @XmlAttribute
+    public Boolean isCollapsed;
+
     @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)
     @JsonProperty(DOCKABLE_ELEMENT_NAME)
