@@ -13,7 +13,7 @@ import software.coley.boxfx.demo.provider.BoxAppImageProvider;
 
 /**
  * This module is a very basic JavaFX application demonstrating the BentoFX
- * docking framework and persistence API.
+ * docking framework and the persistence API with provided implementations.
  *
  * @author Matt Coley
  * @author Phil Bryant
@@ -34,6 +34,10 @@ module bento.fx.demo.application {
     requires bento.fx.persistence.codec.common;
     requires org.slf4j;
 
+    /////////////////////////////////////////////
+    // Storage service provider implementation //
+    /////////////////////////////////////////////
+
     // Database Storage Service Provider Implementation
     requires bento.fx.persistence.storage.db;
     requires com.zaxxer.hikari;
@@ -41,13 +45,17 @@ module bento.fx.demo.application {
     requires jakarta.el;
     requires jakarta.persistence;
     requires jakarta.transaction;
+    requires net.bytebuddy;
     requires org.hibernate.orm.hikaricp;
     requires org.hibernate.validator;
     requires org.jboss.logging;
-    requires net.bytebuddy;
 
 //    // File Storage Service Provider Implementation
 //    requires bento.fx.persistence.storage.file;
+
+    ///////////////////////////////////////////
+    // Codec service provider implementation //
+    ///////////////////////////////////////////
 
 //    // JSON Codec Service Provider Implementation
 //    requires bento.fx.persistence.codec.json;
@@ -55,23 +63,23 @@ module bento.fx.demo.application {
     // XML Codec Service Provider Implementation
     requires bento.fx.persistence.codec.xml;
 
-    // These packages must be exported for the JavaFX launcher to access the
+    /////////////////
+    // Public APIs //
+    /////////////////
+
+    // This must be exported for the JavaFX launcher to access the
     // application classes in them.
     exports software.coley.boxfx.demo;
 
+    ///////////////////////
+    // Reflective access //
+    ///////////////////////
     opens software.coley.boxfx.demo to
             jakarta.persistence;
 
-    provides DockableProvider with
-            BoxAppDockableProvider;
-    provides ImageProvider with
-            BoxAppImageProvider;
-    provides DockContainerLeafMenuFactoryProvider with
-            BoxAppDockContainerLeafMenuFactoryProvider;
-    provides DockableMenuFactoryProvider with
-            BoxAppDockableMenuFactoryProvider;
-
-    // Service provider interfaces
+    //////////////////////////////////////
+    // Service provider interfaces used //
+    //////////////////////////////////////
 
     uses DockableProvider;
     uses ImageProvider;
@@ -83,34 +91,58 @@ module bento.fx.demo.application {
     uses LayoutStorageProvider;
     uses LayoutCodecProvider;
 
-    // Service provider implementations
+    ///////////////////////////////////////////
+    // Service provider implementations used //
+    ///////////////////////////////////////////
 
     // DockableProvider
     uses BoxAppDockableProvider;
-
     // ImageProvider
     uses BoxAppImageProvider;
-
     // DockContainerLeafMenuFactoryProvider
     uses BoxAppDockContainerLeafMenuFactoryProvider;
-
     // DockableMenuFactoryProvider
     uses BoxAppDockableMenuFactoryProvider;
-
     // LayoutPersistenceProvider
     uses BentoLayoutPersistenceProvider;
-
     // LayoutRestorer
     uses BentoLayoutRestorer;
-
     // LayoutSaver
     uses BentoLayoutSaver;
 
-    // Specify the storage and codec modules to be used.
+    //////////////////////////////////////////////////////
+    // Codec service provider implementation to be used //
+    //////////////////////////////////////////////////////
 
-//    uses JsonLayoutCodecProvider;                       // LayoutCodecProvider
-    uses XmlLayoutCodecProvider;                        // LayoutCodecProvider
+//    // LayoutCodecProvider
+//    uses JsonLayoutCodecProvider;
 
-    uses DatabaseLayoutStorageProvider;                 // LayoutStorageProvider
-//    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
+    // LayoutCodecProvider
+    uses XmlLayoutCodecProvider;
+
+    ////////////////////////////////////////////////////////
+    // Storage service provider implementation to be used //
+    ////////////////////////////////////////////////////////
+
+    // LayoutStorageProvider
+    uses DatabaseLayoutStorageProvider;
+
+//    // LayoutStorageProvider
+//    uses FileLayoutStorageProvider;
+
+    ///////////////////////////////////////////////
+    // Service provider implementations provided //
+    ///////////////////////////////////////////////
+
+    provides DockableProvider with
+            BoxAppDockableProvider;
+
+    provides ImageProvider with
+            BoxAppImageProvider;
+
+    provides DockContainerLeafMenuFactoryProvider with
+            BoxAppDockContainerLeafMenuFactoryProvider;
+
+    provides DockableMenuFactoryProvider with
+            BoxAppDockableMenuFactoryProvider;
 }

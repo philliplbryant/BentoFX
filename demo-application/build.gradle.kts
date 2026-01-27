@@ -45,11 +45,27 @@ dependencies {
 
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)
-// TODO BENTO-13: Specify the codec
-    // implementation(projects.persistence.codec.json)
+
+    implementation(libs.javafx.base)
+    implementation(libs.javafx.controls)
+    implementation(libs.javafx.graphics)
+    implementation(libs.jetbrains.annotations)
+    implementation(libs.slf4j.api)
+
+// Specify the codec
+
+//    // JSON
+//    implementation(projects.persistence.codec.json)
+
+    // XML
     implementation(projects.persistence.codec.xml)
-// TODO BENTO-13: Specify the storage
-    // implementation(projects.persistence.storage.file)
+
+// Specify the storage
+
+//    // File
+//    implementation(projects.persistence.storage.file)
+
+    // Database (H2 / Hibernate / Hikari)
     implementation(projects.persistence.storage.database)
     implementation(libs.byte.buddy)
     implementation(libs.hibernate.hikari.cp)
@@ -59,12 +75,6 @@ dependencies {
     implementation(libs.jakarta.transaction)
     implementation(libs.jboss.logging)
     implementation(libs.zaxxer.hikari.cp)
-
-    implementation(libs.javafx.base)
-    implementation(libs.javafx.controls)
-    implementation(libs.javafx.graphics)
-    implementation(libs.jetbrains.annotations)
-    implementation(libs.slf4j.api)
 
     runtimeOnly(libs.slf4j.jdk14)
 }
