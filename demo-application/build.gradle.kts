@@ -46,9 +46,17 @@ dependencies {
     implementation(projects.coreFramework)
     implementation(projects.persistence.api)
 // TODO BENTO-13: Specify the codec
+    // implementation(projects.persistence.codec.json)
     implementation(projects.persistence.codec.xml)
-//    implementation(projects.persistence.codec.json)
-    implementation(projects.persistence.storage.file)
+// TODO BENTO-13: Specify the storage
+    // implementation(projects.persistence.storage.file)
+    implementation(projects.persistence.storage.database)
+    implementation(libs.byte.buddy)
+    implementation(libs.hibernate.validator)
+    implementation(libs.jakarta.cdi.api)
+    implementation(libs.jakarta.el)
+    implementation(libs.jakarta.transaction)
+    implementation(libs.jboss.logging)
 
     implementation(libs.javafx.base)
     implementation(libs.javafx.controls)

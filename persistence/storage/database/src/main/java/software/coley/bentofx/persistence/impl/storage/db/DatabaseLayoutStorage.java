@@ -23,13 +23,16 @@ import java.time.Instant;
 public class DatabaseLayoutStorage implements LayoutStorage {
 
     private final @NotNull EntityManagerFactory emf;
+    private final @NotNull String layoutIdentifier;
     private final @NotNull String codecIdentifier;
 
     public DatabaseLayoutStorage(
-            final @NotNull  EntityManagerFactory emf,
+            final @NotNull EntityManagerFactory emf,
+            final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     ) {
         this.emf = emf;
+        this.layoutIdentifier = layoutIdentifier;
         this.codecIdentifier = codecIdentifier;
     }
 
@@ -37,8 +40,8 @@ public class DatabaseLayoutStorage implements LayoutStorage {
     public boolean exists() {
 
         try (final EntityManager em = emf.createEntityManager()) {
-            final DockLayoutEntity entity =
-                    em.find(DockLayoutEntity.class, codecIdentifier);
+            final DockingLayoutEntity entity =
+                    em.find(DockingLayoutEntity.class, layoutIdentifier);
             return entity != null && entity.payload != null && entity.payload.length > 0;
         }
     }
@@ -46,8 +49,8 @@ public class DatabaseLayoutStorage implements LayoutStorage {
     @Override
     public InputStream openInputStream() {
         try (final EntityManager em = emf.createEntityManager()) {
-            final DockLayoutEntity entity =
-                    em.find(DockLayoutEntity.class, codecIdentifier);
+            final DockingLayoutEntity entity =
+                    em.find(DockingLayoutEntity.class, layoutIdentifier);
             final byte[] bytes =
                     (entity != null && entity.payload != null) ?
                             entity.payload :
@@ -77,14 +80,15 @@ public class DatabaseLayoutStorage implements LayoutStorage {
                     try (em) {
                         tx.begin();
 
-                        final DockLayoutEntity existing =
+                        final DockingLayoutEntity existing =
                                 em.find(
-                                        DockLayoutEntity.class,
-                                        codecIdentifier
+                                        DockingLayoutEntity.class,
+                                        layoutIdentifier
                                 );
                         if (existing == null) {
-                            final DockLayoutEntity newEntity =
-                                    new DockLayoutEntity();
+                            final DockingLayoutEntity newEntity =
+                                    new DockingLayoutEntity();
+                            newEntity.layoutIdentifier = layoutIdentifier;
                             newEntity.codecIdentifier = codecIdentifier;
                             newEntity.payload = bytesToSave;
                             newEntity.updatedAt = Instant.now();

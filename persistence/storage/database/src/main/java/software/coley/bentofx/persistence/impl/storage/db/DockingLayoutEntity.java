@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
+import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvider.DEFAULT_LAYOUT_NAME;
+
 /**
  * Represents a row in a table in a relational database for storing Bento
  * layouts.
@@ -16,14 +18,14 @@ import java.time.Instant;
  * @author Phil Bryant
  */
 @Entity
-@Table(name = "dock_layout")
-public class DockLayoutEntity {
-
-    // TODO BENTO-13: Add fields for the saved layout name (currently only one,
-    //  see FileLayoutStorageProvider#DEFAULT_BENTO_FILE_NAME)
+@Table(name = "docking_layout")
+public class DockingLayoutEntity {
 
     @Id
-    @Column(name = "codec_id", nullable = false, length = 128)
+    @Column(name = "layout_id", nullable = false, length = 24)
+    public String layoutIdentifier = DEFAULT_LAYOUT_NAME;
+
+    @Column(name = "codec_id", nullable = false, length = 4)
     public String codecIdentifier = "default";
 
     @Lob

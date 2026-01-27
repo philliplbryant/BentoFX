@@ -9,23 +9,21 @@
                                  https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
 
-   <persistence-unit name="layoutPU" transaction-type="RESOURCE_LOCAL">
-      <class>software.coley.bentofx.persistence.impl.storage.db.DockLayoutEntity</class>
+   <persistence-unit name="bentoLayout" transaction-type="RESOURCE_LOCAL">
+      <class>software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntity</class>
 
       <properties>
-         <!-- H2 database stored in ~/.bentofx/memento.mv.db  -->
+         <!-- H2 database stored in ~/.bentofx/bento-layouts.mv.db  -->
          <property name="jakarta.persistence.jdbc.driver"
                    value="org.h2.Driver"/>
          <property name="jakarta.persistence.jdbc.url"
-                   value="jdbc:h2:file:${user.home}/.bentofx/memento;AUTO_SERVER=TRUE"/>
+                   value="jdbc:h2:file:${user.home}/.bentofx/bento-layouts;AUTO_SERVER=TRUE"/>
          <property name="jakarta.persistence.jdbc.user"
                    value="sa"/>
          <property name="jakarta.persistence.jdbc.password"
-                   value=""/>
+                   value="password"/>
 
         <!-- Hibernate-->
-         <property name="hibernate.dialect"
-                   value="org.hibernate.dialect.H2Dialect"/>
          <property name="hibernate.hbm2ddl.auto"
                    value="update"/>
          <property name="hibernate.show_sql"

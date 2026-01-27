@@ -21,13 +21,17 @@ import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
     @Override
-    public LayoutStorage createLayoutStorage(final @NotNull String codecIdentifier) {
+    public LayoutStorage createLayoutStorage(
+            final @NotNull String layoutIdentifier,
+            final @NotNull String codecIdentifier
+    ) {
 
         final EntityManagerFactory entityManagerFactory =
                 Persistence.createEntityManagerFactory("bentoLayout");
 
         return new DatabaseLayoutStorage(
                 entityManagerFactory,
+                layoutIdentifier,
                 codecIdentifier
         );
     }

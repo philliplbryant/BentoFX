@@ -29,6 +29,7 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.util.ServiceLoader;
 
+import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvider.DEFAULT_LAYOUT_NAME;
 import static software.coley.boxfx.demo.provider.BoxAppDockableProvider.*;
 
 /**
@@ -82,13 +83,14 @@ public class BoxApp extends Application {
                 codecProviders.iterator().next();
         final LayoutCodec layoutCodec = codecProvider.createLayoutCodec();
 
-        // LayoutStorageProvider
+        // LayoutStorageProvider - use the default layout name
         final Iterable<LayoutStorageProvider> storageProviders =
                 ServiceLoader.load(LayoutStorageProvider.class);
         final LayoutStorageProvider storageProvider =
                 storageProviders.iterator().next();
         layoutStorage =
                 storageProvider.createLayoutStorage(
+                                     DEFAULT_LAYOUT_NAME,
                         layoutCodec.getIdentifier()
                 );
 

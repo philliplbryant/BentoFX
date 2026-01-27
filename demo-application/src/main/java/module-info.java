@@ -5,7 +5,7 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
@@ -31,13 +31,17 @@ module bento.fx.demo.application {
 
     requires bento.fx;
     requires bento.fx.persistence.codec.common;
-    requires bento.fx.persistence.codec.xml;
-
 // TODO BENTO-13: Specify the storage and codec provider modules that are required.
-
+    requires bento.fx.persistence.codec.xml;
+    requires bento.fx.persistence.storage.db;   // database
+    requires jakarta.el;                        // database
+    requires jakarta.cdi.lang.model;            // database
+    requires jakarta.transaction;               // database
+    requires org.hibernate.validator;           // database
+    requires org.jboss.logging;                 // database
+    requires net.bytebuddy;                     // database
 //    requires bento.fx.persistence.codec.json;
-    requires bento.fx.persistence.storage.file;
-//    requires bento.fx.persistence.storage.db;
+//    requires bento.fx.persistence.storage.file;
     requires bento.fx.persistence.api;
     requires jakarta.persistence;
     requires org.slf4j;
@@ -73,8 +77,8 @@ module bento.fx.demo.application {
 
 // TODO BENTO-13: Specify the storage and codec modules that are to be used.
 
-    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
-//    uses DatabaseLayoutStorageProvider;                  // LayoutStorageProvider
+//    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
+    uses DatabaseLayoutStorageProvider;                  // LayoutStorageProvider
     uses XmlLayoutCodecProvider;                        // LayoutCodecProvider
 //    uses JsonLayoutCodecProvider;                     // LayoutCodecProvider
 }

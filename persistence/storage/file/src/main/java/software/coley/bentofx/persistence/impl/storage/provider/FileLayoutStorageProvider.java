@@ -23,10 +23,11 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
     private static final String DEFAULT_BENTO_DIRECTORY =
             System.getProperty("user.home") + "/.bentofx";
 
-    private static final String DEFAULT_BENTO_FILE_NAME = "recent-bento";
-
     @Override
-    public LayoutStorage createLayoutStorage(final @NotNull String codecIdentifier) {
+    public LayoutStorage createLayoutStorage(
+            final @NotNull String layoutIdentifier,
+            final @NotNull String codecIdentifier
+    ) {
 
         final String normalizedFileExtension = codecIdentifier.startsWith(".") ?
                 codecIdentifier.substring(1) :
@@ -34,7 +35,7 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
         final File layoutFile = new File(
                 DEFAULT_BENTO_DIRECTORY,
-                DEFAULT_BENTO_FILE_NAME + "." + normalizedFileExtension
+                layoutIdentifier + "." + normalizedFileExtension
         );
 
         return new FileLayoutStorage(layoutFile);

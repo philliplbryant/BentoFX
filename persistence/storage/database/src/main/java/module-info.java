@@ -22,9 +22,12 @@ module bento.fx.persistence.storage.db {
     requires jakarta.persistence;
     requires bento.fx.persistence.api;
     requires org.jetbrains.annotations;
+    requires org.hibernate.orm.core;
 
     exports software.coley.bentofx.persistence.impl.storage.db;
     exports software.coley.bentofx.persistence.impl.storage.provider;
+
+    opens software.coley.bentofx.persistence.impl.storage.db to org.hibernate.orm.core;
 
     provides LayoutStorageProvider with DatabaseLayoutStorageProvider;
 }
