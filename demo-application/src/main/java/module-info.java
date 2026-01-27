@@ -30,32 +30,49 @@ module bento.fx.demo.application {
     requires javafx.graphics;
 
     requires bento.fx;
-    requires bento.fx.persistence.codec.common;
-// TODO BENTO-13: Specify the storage and codec provider modules that are required.
-    requires bento.fx.persistence.codec.xml;
-    requires bento.fx.persistence.storage.db;   // database
-    requires jakarta.el;                        // database
-    requires jakarta.cdi.lang.model;            // database
-    requires jakarta.transaction;               // database
-    requires org.hibernate.validator;           // database
-    requires org.jboss.logging;                 // database
-    requires net.bytebuddy;                     // database
-//    requires bento.fx.persistence.codec.json;
-//    requires bento.fx.persistence.storage.file;
     requires bento.fx.persistence.api;
-    requires jakarta.persistence;
+    requires bento.fx.persistence.codec.common;
     requires org.slf4j;
+
+    // Database Storage Service Provider Implementation
+    requires bento.fx.persistence.storage.db;
+    requires com.zaxxer.hikari;
+    requires jakarta.cdi.lang.model;
+    requires jakarta.el;
+    requires jakarta.persistence;
+    requires jakarta.transaction;
+    requires org.hibernate.orm.hikaricp;
+    requires org.hibernate.validator;
+    requires org.jboss.logging;
+    requires net.bytebuddy;
+
+//    // File Storage Service Provider Implementation
+//    requires bento.fx.persistence.storage.file;
+
+//    // JSON Codec Service Provider Implementation
+//    requires bento.fx.persistence.codec.json;
+
+    // XML Codec Service Provider Implementation
+    requires bento.fx.persistence.codec.xml;
 
     // These packages must be exported for the JavaFX launcher to access the
     // application classes in them.
     exports software.coley.boxfx.demo;
 
-    provides DockableProvider with BoxAppDockableProvider;
-    provides ImageProvider with BoxAppImageProvider;
-    provides DockContainerLeafMenuFactoryProvider with BoxAppDockContainerLeafMenuFactoryProvider;
-    provides DockableMenuFactoryProvider with BoxAppDockableMenuFactoryProvider;
+    opens software.coley.boxfx.demo to
+            jakarta.persistence;
+
+    provides DockableProvider with
+            BoxAppDockableProvider;
+    provides ImageProvider with
+            BoxAppImageProvider;
+    provides DockContainerLeafMenuFactoryProvider with
+            BoxAppDockContainerLeafMenuFactoryProvider;
+    provides DockableMenuFactoryProvider with
+            BoxAppDockableMenuFactoryProvider;
 
     // Service provider interfaces
+
     uses DockableProvider;
     uses ImageProvider;
     uses DockContainerLeafMenuFactoryProvider;
@@ -67,18 +84,33 @@ module bento.fx.demo.application {
     uses LayoutCodecProvider;
 
     // Service provider implementations
-    uses BoxAppDockableProvider;                        // DockableProvider
-    uses BoxAppImageProvider;                           // ImageProvider
-    uses BoxAppDockContainerLeafMenuFactoryProvider;    // DockContainerLeafMenuFactoryProvider
-    uses BoxAppDockableMenuFactoryProvider;             // DockableMenuFactoryProvider
-    uses BentoLayoutPersistenceProvider;                // LayoutPersistenceProvider
-    uses BentoLayoutRestorer;                           // LayoutRestorer
-    uses BentoLayoutSaver;                              // LayoutSaver
 
-// TODO BENTO-13: Specify the storage and codec modules that are to be used.
+    // DockableProvider
+    uses BoxAppDockableProvider;
 
-//    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
-    uses DatabaseLayoutStorageProvider;                  // LayoutStorageProvider
+    // ImageProvider
+    uses BoxAppImageProvider;
+
+    // DockContainerLeafMenuFactoryProvider
+    uses BoxAppDockContainerLeafMenuFactoryProvider;
+
+    // DockableMenuFactoryProvider
+    uses BoxAppDockableMenuFactoryProvider;
+
+    // LayoutPersistenceProvider
+    uses BentoLayoutPersistenceProvider;
+
+    // LayoutRestorer
+    uses BentoLayoutRestorer;
+
+    // LayoutSaver
+    uses BentoLayoutSaver;
+
+    // Specify the storage and codec modules to be used.
+
+//    uses JsonLayoutCodecProvider;                       // LayoutCodecProvider
     uses XmlLayoutCodecProvider;                        // LayoutCodecProvider
-//    uses JsonLayoutCodecProvider;                     // LayoutCodecProvider
+
+    uses DatabaseLayoutStorageProvider;                 // LayoutStorageProvider
+//    uses FileLayoutStorageProvider;                     // LayoutStorageProvider
 }

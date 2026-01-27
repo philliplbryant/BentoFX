@@ -14,6 +14,7 @@ controlsfx = "11.0.3"
 dependency-analysis-gradle-plugin = "3.5.1"
 h2 = "2.4.240"
 hibernate = "7.2.0.Final"
+hibernate-hikari-cp = "7.3.0.CR1"
 hibernate-validator = "9.1.0.Final"
 jackson = "2.20.1"
 # `jacoco` is used in project-convention.gradle.kts
@@ -40,6 +41,7 @@ springboot-constraint = "(,4)"
 testfx = "4.0.18"
 testfx-monocle = "jdk-12.0.1+2"
 versionsCheck-gradlePlugin = "0.53.0"
+zaxxer-hikari-cp = "5.1.0"
 
 [libraries]
 
@@ -70,6 +72,10 @@ version.ref = "h2"
 [libraries.hibernate-core]
 module = "org.hibernate.orm:hibernate-core"
 version.ref = "hibernate"
+
+[libraries.hibernate-hikari-cp]
+module = "org.hibernate:hibernate-hikaricp"
+version.ref = "hibernate-hikari-cp"
 
 [libraries.hibernate-validator]
 module = "org.hibernate.validator:hibernate-validator"
@@ -206,6 +212,10 @@ version.ref = "testfx"
 [libraries.testfx-monocle]
 module = "org.testfx:openjfx-monocle"
 version.ref = "testfx-monocle"
+
+[libraries.zaxxer-hikari-cp]
+module = "com.zaxxer:HikariCP"
+version.ref = "zaxxer-hikari-cp"
 
 # TODO BENTO-13: Delete these unused bundles?
 [bundles]

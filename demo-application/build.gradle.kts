@@ -52,11 +52,13 @@ dependencies {
     // implementation(projects.persistence.storage.file)
     implementation(projects.persistence.storage.database)
     implementation(libs.byte.buddy)
+    implementation(libs.hibernate.hikari.cp)
     implementation(libs.hibernate.validator)
     implementation(libs.jakarta.cdi.api)
     implementation(libs.jakarta.el)
     implementation(libs.jakarta.transaction)
     implementation(libs.jboss.logging)
+    implementation(libs.zaxxer.hikari.cp)
 
     implementation(libs.javafx.base)
     implementation(libs.javafx.controls)

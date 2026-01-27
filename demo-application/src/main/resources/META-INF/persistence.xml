@@ -13,7 +13,8 @@
       <class>software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntity</class>
 
       <properties>
-         <!-- H2 database stored in ~/.bentofx/bento-layouts.mv.db  -->
+
+          <!-- H2 database -->
          <property name="jakarta.persistence.jdbc.driver"
                    value="org.h2.Driver"/>
          <property name="jakarta.persistence.jdbc.url"
@@ -23,7 +24,23 @@
          <property name="jakarta.persistence.jdbc.password"
                    value="password"/>
 
-        <!-- Hibernate-->
+          <!-- Tell Hibernate to use Hikari -->
+          <property name="hibernate.connection.provider_class"
+                    value="org.hibernate.hikaricp.internal.HikariCPConnectionProvider"/>
+
+          <!-- Hikari settings -->
+          <property name="hibernate.hikari.minimumIdle"
+                    value="2"/>
+          <property name="hibernate.hikari.maximumPoolSize"
+                    value="10"/>
+          <property name="hibernate.hikari.connectionTimeout"
+                    value="20000"/>
+          <property name="hibernate.hikari.idleTimeout"
+                    value="300000"/>
+          <property name="hibernate.hikari.maxLifetime"
+                    value="1800000"/>
+
+          <!-- Hibernate-->
          <property name="hibernate.hbm2ddl.auto"
                    value="update"/>
          <property name="hibernate.show_sql"
