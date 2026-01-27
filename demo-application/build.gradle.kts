@@ -62,19 +62,19 @@ dependencies {
 
 // Specify the storage
 
-//    // File
-//    implementation(projects.persistence.storage.file)
+    // File
+    implementation(projects.persistence.storage.file)
 
-    // Database (H2 / Hibernate / Hikari)
-    implementation(projects.persistence.storage.database)
-    implementation(libs.byte.buddy)
-    implementation(libs.hibernate.hikari.cp)
-    implementation(libs.hibernate.validator)
-    implementation(libs.jakarta.cdi.api)
-    implementation(libs.jakarta.el)
-    implementation(libs.jakarta.transaction)
-    implementation(libs.jboss.logging)
-    implementation(libs.zaxxer.hikari.cp)
+//    // Database (H2 / Hibernate / Hikari)
+//    implementation(projects.persistence.storage.database)
+//    implementation(libs.byte.buddy)
+//    implementation(libs.hibernate.hikari.cp)
+//    implementation(libs.hibernate.validator)
+//    implementation(libs.jakarta.cdi.api)
+//    implementation(libs.jakarta.el)
+//    implementation(libs.jakarta.transaction)
+//    implementation(libs.jboss.logging)
+//    implementation(libs.zaxxer.hikari.cp)
 
     runtimeOnly(libs.slf4j.jdk14)
 }

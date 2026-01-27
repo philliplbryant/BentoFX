@@ -21,6 +21,9 @@ import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvi
 @Table(name = "docking_layout")
 public class DockingLayoutEntity {
 
+    // TODO BENTO-13: Create a compound key using both the layout_id and
+    //  codec_id columns
+
     @Id
     @Column(name = "layout_id", nullable = false, length = 24)
     public String layoutIdentifier = DEFAULT_LAYOUT_NAME;
