@@ -11,11 +11,10 @@
  */
 module bento.fx.persistence.api {
 
-    requires static org.jetbrains.annotations;
+    requires transitive bento.fx;
+    requires transitive javafx.graphics;
 
-    requires java.desktop;
-    requires javafx.graphics;
-    requires bento.fx;
+    requires static org.jetbrains.annotations;
 
 	exports software.coley.bentofx.persistence.api;
 	exports software.coley.bentofx.persistence.api.codec;

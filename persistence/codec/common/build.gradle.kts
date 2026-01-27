@@ -5,7 +5,6 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
 
 plugins {
     id("bento.project.project-convention")
-
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
@@ -20,15 +19,10 @@ dependencies {
     api(libs.jakarta.xmlbinding.api)
     api(libs.javafx.graphics)
 
+    implementation(libs.slf4j.api)
+    implementation(libs.javafx.base)
+    implementation(libs.javafx.controls)
+
     compileOnly(libs.jakarta.annotation)
     compileOnly(libs.jetbrains.annotations)
-
-    implementation(libs.javafx.base)
-    // TODO BENTO-13: Fix the DAGP to pass when including
-    //  libs.javafx.controls; it is a required implementation dependency.
-    implementation(libs.javafx.controls)
-    implementation(libs.slf4j.api)
-
-    runtimeOnly(libs.h2)
-    runtimeOnly(libs.hibernate.core)
 }

@@ -1,11 +1,10 @@
 // Just open/export everything. Do whatever you want.
 open module bento.fx {
-	requires static jakarta.annotation;
 
-	requires javafx.base;
-	requires javafx.graphics;
-	requires javafx.controls;
-	requires java.desktop;
+    requires java.desktop;
+    requires javafx.controls;
+
+    requires static jakarta.annotation;
 
 	exports software.coley.bentofx;
 	exports software.coley.bentofx.building;

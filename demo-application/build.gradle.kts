@@ -3,13 +3,10 @@ This is an unpublished work of SAIC.
 Copyright (c) 2025 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-import software.coley.gradle.project.ProjectConstants.JAVA_FX_VERSION
-
 plugins {
 
     id("bento.project.project-convention")
     id("application")
-
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
@@ -24,35 +21,29 @@ application {
     )
 }
 
-javafx {
-    version = JAVA_FX_VERSION.majorVersion
-    modules = listOf(
-        "javafx.base",
-        "javafx.controls",
-        "javafx.graphics",
-    )
-}
-
 dependencies {
+
+    implementation(projects.coreFramework)
+    implementation(projects.persistence.api)
+
+    implementation(libs.slf4j.api)
+    implementation(libs.javafx.base)
+    implementation(libs.javafx.controls)
+    implementation(libs.javafx.graphics)
 
     compileOnly(projects.persistence.codec.common)
 
     // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
     //  of libs.jakarta.annotation.
     compileOnly(libs.jakarta.annotation)
-    compileOnly(libs.jakarta.inject)
     compileOnly(libs.jakarta.persistence)
+    compileOnly(libs.jetbrains.annotations)
 
-    implementation(projects.coreFramework)
-    implementation(projects.persistence.api)
+    runtimeOnly(libs.slf4j.jdk14)
 
-    implementation(libs.javafx.base)
-    implementation(libs.javafx.controls)
-    implementation(libs.javafx.graphics)
-    implementation(libs.jetbrains.annotations)
-    implementation(libs.slf4j.api)
-
-// Specify the codec
+///////////////////////
+// Specify the codec //
+///////////////////////
 
 //    // JSON
 //    implementation(projects.persistence.codec.json)
@@ -60,23 +51,23 @@ dependencies {
     // XML
     implementation(projects.persistence.codec.xml)
 
-// Specify the storage
+/////////////////////////
+// Specify the storage //
+/////////////////////////
 
-    // File
-    implementation(projects.persistence.storage.file)
+//    // File
+//    implementation(projects.persistence.storage.file)
 
-//    // Database (H2 / Hibernate / Hikari)
-//    implementation(projects.persistence.storage.database)
-//    implementation(libs.byte.buddy)
-//    implementation(libs.hibernate.hikari.cp)
-//    implementation(libs.hibernate.validator)
-//    implementation(libs.jakarta.cdi.api)
-//    implementation(libs.jakarta.el)
-//    implementation(libs.jakarta.transaction)
-//    implementation(libs.jboss.logging)
-//    implementation(libs.zaxxer.hikari.cp)
-
-    runtimeOnly(libs.slf4j.jdk14)
+    // Database (H2 / Hibernate / Hikari)
+    implementation(projects.persistence.storage.database)
+    implementation(libs.byte.buddy)
+    implementation(libs.hibernate.hikari.cp)
+    implementation(libs.hibernate.validator)
+    implementation(libs.jakarta.cdi.api)
+    implementation(libs.jakarta.el)
+    implementation(libs.jakarta.transaction)
+    implementation(libs.zaxxer.hikari.cp)
+    runtimeOnly(libs.h2)
 }
 
 tasks {

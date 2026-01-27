@@ -5,7 +5,6 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
 
 plugins {
     id("bento.project.project-convention")
-
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
@@ -15,10 +14,10 @@ dependencies {
 
     api(projects.persistence.api)
 
-    compileOnly(libs.jetbrains.annotations)
-
     implementation(projects.persistence.codec.common)
 
     implementation(libs.jackson.databind)
     implementation(libs.javafx.controls)
+
+    compileOnly(libs.jetbrains.annotations)
 }

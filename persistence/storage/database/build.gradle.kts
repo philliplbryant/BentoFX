@@ -17,10 +17,7 @@ dependencies {
 
     api(libs.jakarta.persistence)
 
-    implementation(libs.javafx.controls)
-    implementation(libs.jakarta.el)     // TODO BENTO-13 is this needed?
-    implementation(libs.jakarta.persistence)
-    implementation(libs.hibernate.core)
+    compileOnly(libs.hibernate.core)
 
-    runtimeOnly(libs.jboss.logging)
+    compileOnly(libs.jetbrains.annotations)
 }

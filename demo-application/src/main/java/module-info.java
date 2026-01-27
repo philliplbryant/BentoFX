@@ -5,7 +5,7 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
@@ -20,38 +20,32 @@ import software.coley.boxfx.demo.provider.BoxAppImageProvider;
  */
 module bento.fx.demo.application {
 
-    requires static jakarta.annotation;
-    requires static jakarta.inject;
-    requires static org.jetbrains.annotations;
-
-    requires java.logging;
-    requires javafx.base;
-    requires javafx.controls;
-    requires javafx.graphics;
-
     requires bento.fx;
-    requires bento.fx.persistence.api;
-    requires bento.fx.persistence.codec.common;
+
     requires org.slf4j;
+
+    requires static bento.fx.persistence.codec.common;
+
+    requires static jakarta.annotation;
+    requires static org.jetbrains.annotations;
 
     /////////////////////////////////////////////
     // Storage service provider implementation //
     /////////////////////////////////////////////
 
-//    // Database Storage Service Provider Implementation
-//    requires bento.fx.persistence.storage.db;
-//    requires com.zaxxer.hikari;
-//    requires jakarta.cdi.lang.model;
-//    requires jakarta.el;
-//    requires jakarta.persistence;
-//    requires jakarta.transaction;
-//    requires net.bytebuddy;
-//    requires org.hibernate.orm.hikaricp;
-//    requires org.hibernate.validator;
-//    requires org.jboss.logging;
+    // Database Storage Service Provider Implementation
+    requires bento.fx.persistence.storage.db;
+    requires com.zaxxer.hikari;
+    requires jakarta.cdi.lang.model;
+    requires jakarta.el;
+    requires jakarta.transaction;
+    requires net.bytebuddy;
+    requires org.hibernate.orm.hikaricp;
+    requires org.hibernate.validator;
 
-    // File Storage Service Provider Implementation
-    requires bento.fx.persistence.storage.file;
+//    // File Storage Service Provider Implementation
+//    requires bento.fx.persistence.storage.file;
+//    requires java.logging;
 
     ///////////////////////////////////////////
     // Codec service provider implementation //
@@ -124,11 +118,11 @@ module bento.fx.demo.application {
     // Storage service provider implementation to be used //
     ////////////////////////////////////////////////////////
 
-//    // LayoutStorageProvider
-//    uses DatabaseLayoutStorageProvider;
-
     // LayoutStorageProvider
-    uses FileLayoutStorageProvider;
+    uses DatabaseLayoutStorageProvider;
+
+//    // LayoutStorageProvider
+//    uses FileLayoutStorageProvider;
 
     ///////////////////////////////////////////////
     // Service provider implementations provided //

@@ -15,14 +15,13 @@ import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProv
  */
 module bento.fx.persistence.codec.xml {
 
-	requires javafx.base;
-	requires javafx.graphics;
-	requires javafx.controls;
-	requires java.desktop;
-    requires jakarta.xml.bind;
-    requires org.jetbrains.annotations;
-    requires bento.fx.persistence.api;
+    requires transitive bento.fx.persistence.api;
+
     requires bento.fx.persistence.codec.common;
+
+    requires jakarta.xml.bind;
+
+    requires static org.jetbrains.annotations;
 
 	exports software.coley.bentofx.persistence.impl.codec.xml;
     exports software.coley.bentofx.persistence.impl.codec.provider;

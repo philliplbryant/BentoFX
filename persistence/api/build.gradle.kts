@@ -5,7 +5,6 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
 
 plugins {
     id("bento.project.project-convention")
-
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
@@ -14,12 +13,8 @@ description = "BentoFX Persistence API"
 dependencies {
 
     api(projects.coreFramework)
+
     api(libs.javafx.graphics)
 
-    compileOnly(libs.jakarta.annotation)
-    compileOnlyApi(libs.jetbrains.annotations)
-
-    runtimeOnly(libs.h2)
-    runtimeOnly(libs.hibernate.core)
-    runtimeOnly(libs.javafx.controls)
+    compileOnly(libs.jetbrains.annotations)
 }

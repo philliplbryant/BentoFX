@@ -14,26 +14,25 @@ import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayout
  */
 module bento.fx.persistence.codec.common {
 
-	requires static jakarta.annotation;
+    requires transitive com.fasterxml.jackson.annotation;
+    requires transitive jakarta.xml.bind;
+    requires transitive javafx.controls;
 
-	requires javafx.base;
-	requires javafx.graphics;
-	requires javafx.controls;
-	requires java.desktop;
-    requires org.jetbrains.annotations;
     requires bento.fx.persistence.api;
-    requires com.fasterxml.jackson.annotation;
-    requires jakarta.xml.bind;
+
     requires org.slf4j;
-    requires bento.fx;
+
+    requires static jakarta.annotation;
+    requires static org.jetbrains.annotations;
 
 	exports software.coley.bentofx.persistence.impl.codec.common;
 	exports software.coley.bentofx.persistence.impl.codec.common.mapper;
     exports software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
+    exports software.coley.bentofx.persistence.impl.codec.common.provider;
 
     opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto
             to jakarta.xml.bind;
-    exports software.coley.bentofx.persistence.impl.codec.common.provider;
+
 
     provides LayoutPersistenceProvider with BentoLayoutPersistenceProvider;
 }

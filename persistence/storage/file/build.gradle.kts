@@ -15,5 +15,5 @@ dependencies {
 
     api(projects.persistence.api)
 
-    implementation(libs.javafx.controls)
+    compileOnly(libs.jetbrains.annotations)
 }

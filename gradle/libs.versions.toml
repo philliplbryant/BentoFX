@@ -74,7 +74,7 @@ module = "org.hibernate.orm:hibernate-core"
 version.ref = "hibernate"
 
 [libraries.hibernate-hikari-cp]
-module = "org.hibernate:hibernate-hikaricp"
+module = "org.hibernate.orm:hibernate-hikaricp"
 version.ref = "hibernate-hikari-cp"
 
 [libraries.hibernate-validator]

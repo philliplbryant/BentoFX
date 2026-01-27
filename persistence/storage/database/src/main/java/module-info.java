@@ -15,19 +15,20 @@ import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutSt
  */
 module bento.fx.persistence.storage.db {
 
-	requires javafx.base;
-	requires javafx.graphics;
-	requires javafx.controls;
-	requires java.desktop;
-    requires jakarta.persistence;
-    requires bento.fx.persistence.api;
-    requires org.jetbrains.annotations;
-    requires org.hibernate.orm.core;
+    requires transitive bento.fx.persistence.api;
+
+    requires transitive jakarta.persistence;
+
+    requires static org.hibernate.orm.core;
+
+    requires static org.jetbrains.annotations;
 
     exports software.coley.bentofx.persistence.impl.storage.db;
     exports software.coley.bentofx.persistence.impl.storage.provider;
 
-    opens software.coley.bentofx.persistence.impl.storage.db to org.hibernate.orm.core;
+    opens software.coley.bentofx.persistence.impl.storage.db to
+            org.hibernate.orm.core;
 
-    provides LayoutStorageProvider with DatabaseLayoutStorageProvider;
+    provides LayoutStorageProvider with
+            DatabaseLayoutStorageProvider;
 }
