@@ -3,7 +3,7 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.impl.provider;
+package software.coley.bentofx.persistence.impl.codec.provider;
 
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;

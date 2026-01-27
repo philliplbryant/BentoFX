@@ -4,7 +4,7 @@
  ******************************************************************************/
 
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.provider.JsonLayoutCodecProvider;
+import software.coley.bentofx.persistence.impl.codec.provider.JsonLayoutCodecProvider;
 
 /**
  * This module implements the Application Programming Interface (API) for
@@ -24,7 +24,7 @@ module bento.fx.persistence.codec.json {
     requires static org.jetbrains.annotations;
 
 	exports software.coley.bentofx.persistence.impl.codec.json;
-    exports software.coley.bentofx.persistence.impl.provider;
+    exports software.coley.bentofx.persistence.impl.codec.provider;
 
     provides LayoutCodecProvider with JsonLayoutCodecProvider;
 }
