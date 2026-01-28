@@ -2,7 +2,8 @@
 open module bento.fx {
 
     requires java.desktop;
-    requires javafx.controls;
+
+    requires static transitive javafx.controls;
 
     requires static jakarta.annotation;
 

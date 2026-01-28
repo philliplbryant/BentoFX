@@ -62,10 +62,10 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         for (final Stage stage : FxStageUtils.getAllStages()) {
 
-
             try {
                 DockContainerRootBranchState dockContainerRootBranchState =
                         createDockContainerRootBranchState(stage);
+
                 if(dockContainerRootBranchState != null) {
                     bentoBuilder.addRootBranchState(dockContainerRootBranchState);
                 }

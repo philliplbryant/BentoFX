@@ -3,7 +3,7 @@ import software.coley.gradle.project.ProjectConstants.JAVA_FX_VERSION
 import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
-    java
+    `java-library`
     `maven-publish`
     signing
 
@@ -13,10 +13,12 @@ plugins {
 }
 
 dependencies {
+
+    compileOnlyApi(libs.javafx.controls)
+
     // TODO BENTO-13: Put in a request to use libs.jetbrains.annotations instead
     //  of libs.jakarta.annotation.
     compileOnly(libs.jakarta.annotation)
-    compileOnly(libs.javafx.controls)
 }
 
 javafx {

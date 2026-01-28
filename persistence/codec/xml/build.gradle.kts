@@ -17,8 +17,8 @@ dependencies {
     implementation(projects.persistence.codec.common)
 
     implementation(libs.jakarta.xmlbinding.api)
-    implementation(libs.javafx.controls)
 
+    compileOnly(libs.javafx.controls)
     compileOnly(libs.jetbrains.annotations)
 
     runtimeOnly(libs.jakarta.xmlbinding.impl)

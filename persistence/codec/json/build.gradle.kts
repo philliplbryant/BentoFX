@@ -17,7 +17,7 @@ dependencies {
     implementation(projects.persistence.codec.common)
 
     implementation(libs.jackson.databind)
-    implementation(libs.javafx.controls)
 
+    compileOnly(libs.javafx.controls)
     compileOnly(libs.jetbrains.annotations)
 }
