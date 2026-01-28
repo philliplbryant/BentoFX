@@ -59,7 +59,7 @@ dependencies {
     implementation(projects.persistence.storage.file)
 
 //    // Database (H2 / Hibernate / Hikari)
-//    implementation(projects.persistence.storage.db)
+//    implementation(projects.persistence.storage.db.common)
 //    implementation(libs.byte.buddy)
 //    implementation(libs.hibernate.hikari.cp)
 //    implementation(libs.hibernate.validator)
