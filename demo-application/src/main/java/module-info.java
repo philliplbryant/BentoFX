@@ -33,6 +33,8 @@ module bento.fx.demo.application {
     // Storage service provider implementation //
     /////////////////////////////////////////////
 
+// TODO BENTO-13: Move this H2 database implementation into a separate project
+
 //    // Database Storage Service Provider Implementation
 //    requires bento.fx.persistence.storage.db;
 //    requires com.zaxxer.hikari;

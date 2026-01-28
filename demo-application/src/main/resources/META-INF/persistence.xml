@@ -10,6 +10,7 @@
              version="3.0">
 
    <persistence-unit name="bentoLayout" transaction-type="RESOURCE_LOCAL">
+
       <class>software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntity</class>
 
       <properties>
