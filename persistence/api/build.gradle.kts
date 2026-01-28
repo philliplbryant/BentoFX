@@ -12,7 +12,7 @@ description = "BentoFX Persistence API"
 
 dependencies {
 
-    api(projects.coreFramework)
+    api(projects.core)
 
     api(libs.javafx.graphics)
 

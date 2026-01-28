@@ -12,7 +12,7 @@ description = "BentoFX Persistence"
 
 dependencies {
 
-    api(projects.coreFramework)
+    api(projects.core)
     api(projects.persistence.api)
 
     api(libs.jackson.annotations)

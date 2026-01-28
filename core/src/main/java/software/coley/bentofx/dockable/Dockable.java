@@ -2,14 +2,7 @@ package software.coley.bentofx.dockable;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import software.coley.bentofx.Bento;

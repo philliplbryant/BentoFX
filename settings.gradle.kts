@@ -34,13 +34,13 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include("platform")
 
-include(":core-framework")
+include(":core")
 
 include(":persistence:api")
 include(":persistence:codec:common")
 include(":persistence:codec:json")
 include(":persistence:codec:xml")
 include(":persistence:storage:file")
-include(":persistence:storage:database")
+include(":persistence:storage:db")
 
-include("demo-application")
+include("demo")

@@ -2,7 +2,6 @@ package software.coley.bentofx.control.canvas;
 
 import jakarta.annotation.Nonnull;
 import javafx.scene.image.PixelFormat;
-import javafx.scene.image.PixelWriter;
 
 import java.nio.IntBuffer;
 

@@ -23,7 +23,7 @@ application {
 
 dependencies {
 
-    implementation(projects.coreFramework)
+    implementation(projects.core)
     implementation(projects.persistence.api)
 
     implementation(libs.slf4j.api)
@@ -59,7 +59,7 @@ dependencies {
     implementation(projects.persistence.storage.file)
 
 //    // Database (H2 / Hibernate / Hikari)
-//    implementation(projects.persistence.storage.database)
+//    implementation(projects.persistence.storage.db)
 //    implementation(libs.byte.buddy)
 //    implementation(libs.hibernate.hikari.cp)
 //    implementation(libs.hibernate.validator)

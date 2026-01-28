@@ -22,5 +22,3 @@ dependencyResolutionManagement {
         }
     }
 }
-
-rootProject.name = "bento-fx"
