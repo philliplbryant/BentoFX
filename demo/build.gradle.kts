@@ -25,6 +25,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.persistence.api)
+    implementation(projects.persistence.storage.db.common)
 
     implementation(libs.slf4j.api)
     implementation(libs.javafx.base)
@@ -55,19 +56,11 @@ dependencies {
 // Specify the storage //
 /////////////////////////
 
-    // File
-    implementation(projects.persistence.storage.file)
+//    // File
+//    implementation(projects.persistence.storage.file)
 
-//    // Database (H2 / Hibernate / Hikari)
-//    implementation(projects.persistence.storage.db.common)
-//    implementation(libs.byte.buddy)
-//    implementation(libs.hibernate.hikari.cp)
-//    implementation(libs.hibernate.validator)
-//    implementation(libs.jakarta.cdi.api)
-//    implementation(libs.jakarta.el)
-//    implementation(libs.jakarta.transaction)
-//    implementation(libs.zaxxer.hikari.cp)
-//    runtimeOnly(libs.h2)
+    // Database
+    implementation(projects.persistence.storage.db.h2)
 }
 
 tasks {

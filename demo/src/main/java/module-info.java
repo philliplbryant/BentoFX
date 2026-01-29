@@ -5,7 +5,7 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
@@ -33,21 +33,12 @@ module bento.fx.demo.application {
     // Storage service provider implementation //
     /////////////////////////////////////////////
 
-// TODO BENTO-13: Move this H2 database implementation into a separate project
+    // Database Storage Service Provider Implementation
+    requires bento.fx.persistence.storage.db.h2;
 
-//    // Database Storage Service Provider Implementation
-//    requires bento.fx.persistence.storage.db;
-//    requires com.zaxxer.hikari;
-//    requires jakarta.cdi.lang.model;
-//    requires jakarta.el;
-//    requires jakarta.transaction;
-//    requires net.bytebuddy;
-//    requires org.hibernate.orm.hikaricp;
-//    requires org.hibernate.validator;
-
-    // File Storage Service Provider Implementation
-    requires bento.fx.persistence.storage.file;
-    requires java.logging;
+//    // File Storage Service Provider Implementation
+//    requires bento.fx.persistence.storage.file;
+//    requires java.logging;
 
     ///////////////////////////////////////////
     // Codec service provider implementation //
@@ -120,11 +111,11 @@ module bento.fx.demo.application {
     // Storage service provider implementation to be used //
     ////////////////////////////////////////////////////////
 
-//    // LayoutStorageProvider
-//    uses DatabaseLayoutStorageProvider;
-
     // LayoutStorageProvider
-    uses FileLayoutStorageProvider;
+    uses DatabaseLayoutStorageProvider;
+
+//    // LayoutStorageProvider
+//    uses FileLayoutStorageProvider;
 
     ///////////////////////////////////////////////
     // Service provider implementations provided //

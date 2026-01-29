@@ -11,6 +11,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -42,5 +43,6 @@ include(":persistence:codec:json")
 include(":persistence:codec:xml")
 include(":persistence:storage:file")
 include(":persistence:storage:db:common")
+include(":persistence:storage:db:h2")
 
 include("demo")

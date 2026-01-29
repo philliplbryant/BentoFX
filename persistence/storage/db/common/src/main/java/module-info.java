@@ -13,7 +13,7 @@ import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutSt
  *
  * @author Phil Bryant
  */
-module bento.fx.persistence.storage.db {
+module bento.fx.persistence.storage.db.common {
 
     requires transitive bento.fx.persistence.api;
 
