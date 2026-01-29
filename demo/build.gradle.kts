@@ -25,7 +25,6 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.persistence.api)
-    implementation(projects.persistence.storage.db.common)
 
     implementation(libs.slf4j.api)
     implementation(libs.javafx.base)
@@ -42,25 +41,15 @@ dependencies {
 
     runtimeOnly(libs.slf4j.jdk14)
 
-///////////////////////
-// Specify the codec //
-///////////////////////
-
-//    // JSON
+    // <editor-fold desc="Codec implementation">
 //    implementation(projects.persistence.codec.json)
-
-    // XML
     implementation(projects.persistence.codec.xml)
+    // </editor-fold>
 
-/////////////////////////
-// Specify the storage //
-/////////////////////////
-
-//    // File
-//    implementation(projects.persistence.storage.file)
-
-    // Database
-    implementation(projects.persistence.storage.db.h2)
+    // <editor-fold desc="Storage implementation">
+    implementation(projects.persistence.storage.file)
+//    implementation(projects.persistence.storage.db.h2)
+    // </editor-fold>
 }
 
 tasks {

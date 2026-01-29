@@ -26,3 +26,28 @@ dependencies {
     runtimeOnly(libs.h2)
     runtimeOnly(libs.javafx.controls)
 }
+
+/**
+ * There appears to be a bug in the Dependency Analysis Gradle Plugin (DAGP),
+ * which erroneously reports these dependencies to be unused and/or runtime only.
+ * Generally speaking, they are runtime only dependencies **except** they are
+ * required to compile module-info.java. Exclude them here until the DAGP fixes
+ * the bug.
+ */
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+            exclude(projects.persistence.storage.db.common)
+            exclude(libs.byte.buddy)
+            exclude(libs.jakarta.cdi.api)
+            exclude(libs.jakarta.el)
+            exclude(libs.jakarta.transaction)
+            exclude(libs.zaxxer.hikari.cp)
+        }
+
+        onRuntimeOnly {
+            exclude(libs.hibernate.hikari.cp)
+            exclude(libs.hibernate.validator)
+        }
+    }
+}

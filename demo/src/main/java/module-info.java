@@ -5,7 +5,7 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
@@ -18,8 +18,9 @@ import software.coley.boxfx.demo.provider.BoxAppImageProvider;
  * @author Matt Coley
  * @author Phil Bryant
  */
-module bento.fx.demo.application {
+module bento.fx.demo {
 
+    // <editor-fold desc="Module dependencies">
     requires bento.fx;
 
     requires org.slf4j;
@@ -28,45 +29,52 @@ module bento.fx.demo.application {
 
     requires static jakarta.annotation;
     requires static org.jetbrains.annotations;
+    // </editor-fold>
 
-    /////////////////////////////////////////////
-    // Storage service provider implementation //
-    /////////////////////////////////////////////
+    // <editor-fold desc="Storage service provider implementation">
 
-    // Database Storage Service Provider Implementation
-    requires bento.fx.persistence.storage.db.h2;
+    // <editor-fold desc="Database">
+//    requires bento.fx.persistence.storage.db.h2;
+//    uses DatabaseLayoutStorageProvider;
+    // </editor-fold>
 
-//    // File Storage Service Provider Implementation
-//    requires bento.fx.persistence.storage.file;
-//    requires java.logging;
+    // <editor-fold desc="File">
+    requires bento.fx.persistence.storage.file;
+    uses FileLayoutStorageProvider;
+    // </editor-fold>
 
-    ///////////////////////////////////////////
-    // Codec service provider implementation //
-    ///////////////////////////////////////////
+    // </editor-fold>
 
-//    // JSON Codec Service Provider Implementation
+    // <editor-fold desc="Codec service provider implementation">
+
+    // <editor-fold desc="JSON">
 //    requires bento.fx.persistence.codec.json;
+//    uses JsonLayoutCodecProvider;
+    // </editor-fold>
 
-    // XML Codec Service Provider Implementation
+    // <editor-fold desc="XML">
     requires bento.fx.persistence.codec.xml;
+    uses XmlLayoutCodecProvider;
+    // </editor-fold>
 
-    /////////////////
-    // Public APIs //
-    /////////////////
+    // </editor-fold>
+
+    // <editor-fold desc="Public APIs">
 
     // This must be exported for the JavaFX launcher to access the
     // application classes in them.
     exports software.coley.boxfx.demo;
 
-    ///////////////////////
-    // Reflective access //
-    ///////////////////////
+    // </editor-fold>
+
+    // <editor-fold desc="Reflective access">
+
     opens software.coley.boxfx.demo to
             jakarta.persistence;
 
-    //////////////////////////////////////
-    // Service provider interfaces used //
-    //////////////////////////////////////
+    // </editor-fold>
+
+    // <editor-fold desc="Service provider interfaces used">
 
     uses DockableProvider;
     uses ImageProvider;
@@ -78,9 +86,9 @@ module bento.fx.demo.application {
     uses LayoutStorageProvider;
     uses LayoutCodecProvider;
 
-    ///////////////////////////////////////////
-    // Service provider implementations used //
-    ///////////////////////////////////////////
+    // </editor-fold>
+
+    // <editor-fold desc="Service provider implementations used">
 
     // DockableProvider
     uses BoxAppDockableProvider;
@@ -97,29 +105,9 @@ module bento.fx.demo.application {
     // LayoutSaver
     uses BentoLayoutSaver;
 
-    //////////////////////////////////////////////////////
-    // Codec service provider implementation to be used //
-    //////////////////////////////////////////////////////
+    // </editor-fold>
 
-//    // LayoutCodecProvider
-//    uses JsonLayoutCodecProvider;
-
-    // LayoutCodecProvider
-    uses XmlLayoutCodecProvider;
-
-    ////////////////////////////////////////////////////////
-    // Storage service provider implementation to be used //
-    ////////////////////////////////////////////////////////
-
-    // LayoutStorageProvider
-    uses DatabaseLayoutStorageProvider;
-
-//    // LayoutStorageProvider
-//    uses FileLayoutStorageProvider;
-
-    ///////////////////////////////////////////////
-    // Service provider implementations provided //
-    ///////////////////////////////////////////////
+    // <editor-fold desc="Service provider implementations provided">
 
     provides DockableProvider with
             BoxAppDockableProvider;
@@ -132,4 +120,6 @@ module bento.fx.demo.application {
 
     provides DockableMenuFactoryProvider with
             BoxAppDockableMenuFactoryProvider;
+
+    // </editor-fold>
 }
