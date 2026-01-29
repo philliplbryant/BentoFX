@@ -42,14 +42,44 @@ dependencies {
     runtimeOnly(libs.slf4j.jdk14)
 
     // <editor-fold desc="Codec implementation">
+
+    // <editor-fold desc="JSON">
 //    implementation(projects.persistence.codec.json)
+    // </editor-fold>
+
+    // <editor-fold desc="XML">
     implementation(projects.persistence.codec.xml)
     // </editor-fold>
 
-    // <editor-fold desc="Storage implementation">
-    implementation(projects.persistence.storage.file)
-//    implementation(projects.persistence.storage.db.h2)
     // </editor-fold>
+
+    // <editor-fold desc="Storage implementation">
+
+    // <editor-fold desc="Database">
+    implementation(projects.persistence.storage.db.common)
+    implementation(projects.persistence.storage.db.h2)
+    // </editor-fold>
+
+    // <editor-fold desc="File">
+//    implementation(projects.persistence.storage.file)
+    // </editor-fold>
+
+    // </editor-fold>
+}
+
+/**
+ * There appears to be a bug in the Dependency Analysis Gradle Plugin (DAGP),
+ * which erroneously reports these dependencies to be unused and/or runtime only.
+ * Generally speaking, they are runtime only dependencies **except** they are
+ * required to compile module-info.java. Exclude them here until the DAGP fixes
+ * the bug.
+ */
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+            exclude(projects.persistence.storage.db.h2)
+        }
+    }
 }
 
 tasks {

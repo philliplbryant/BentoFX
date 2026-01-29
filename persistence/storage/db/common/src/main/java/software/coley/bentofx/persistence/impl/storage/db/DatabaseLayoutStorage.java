@@ -9,6 +9,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.*;
@@ -21,6 +23,10 @@ import java.time.Instant;
  * @author Phil Bryant
  */
 public class DatabaseLayoutStorage implements LayoutStorage {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(DatabaseLayoutStorage.class);
+
 
     private final @NotNull EntityManagerFactory emf;
     private final @NotNull String layoutIdentifier;
@@ -40,21 +46,53 @@ public class DatabaseLayoutStorage implements LayoutStorage {
     public boolean exists() {
 
         try (final EntityManager em = emf.createEntityManager()) {
+
+            final DockingLayoutEntityCompositeKey key = new DockingLayoutEntityCompositeKey(layoutIdentifier, codecIdentifier);
+                    new DockingLayoutEntityCompositeKey(
+                            layoutIdentifier,
+                            codecIdentifier
+                    );
+
             final DockingLayoutEntity entity =
-                    em.find(DockingLayoutEntity.class, layoutIdentifier);
-            return entity != null && entity.payload != null && entity.payload.length > 0;
+                    em.find(
+                            DockingLayoutEntity.class,
+                            key
+                    );
+
+            return entity != null &&
+                    entity.payload != null &&
+                    entity.payload.length > 0;
         }
     }
 
     @Override
     public InputStream openInputStream() {
+
         try (final EntityManager em = emf.createEntityManager()) {
+
+            logger.debug(
+                    "Creating input stream for {} layout using {} codec.",
+                    layoutIdentifier,
+                    codecIdentifier
+                    );
+
+            final DockingLayoutEntityCompositeKey key =
+                    new DockingLayoutEntityCompositeKey(
+                            layoutIdentifier,
+                            codecIdentifier
+                    );
+
             final DockingLayoutEntity entity =
-                    em.find(DockingLayoutEntity.class, layoutIdentifier);
+                    em.find(
+                            DockingLayoutEntity.class,
+                            key
+                    );
+
             final byte[] bytes =
                     (entity != null && entity.payload != null) ?
                             entity.payload :
                             new byte[0];
+
             return new ByteArrayInputStream(bytes);
         }
     }
@@ -80,20 +118,27 @@ public class DatabaseLayoutStorage implements LayoutStorage {
                     try (em) {
                         tx.begin();
 
+                        final DockingLayoutEntityCompositeKey key =
+                                new DockingLayoutEntityCompositeKey(
+                                        layoutIdentifier,
+                                        codecIdentifier
+                                );
+
                         final DockingLayoutEntity existing =
                                 em.find(
                                         DockingLayoutEntity.class,
-                                        layoutIdentifier
+                                        key
                                 );
+
                         if (existing == null) {
                             final DockingLayoutEntity newEntity =
                                     new DockingLayoutEntity();
-                            newEntity.layoutIdentifier = layoutIdentifier;
-                            newEntity.codecIdentifier = codecIdentifier;
+                            newEntity.key = key;
                             newEntity.payload = bytesToSave;
                             newEntity.updatedAt = Instant.now();
                             em.persist(newEntity);
                         } else {
+                            existing.key = key;
                             existing.payload = bytesToSave;
                             existing.updatedAt = Instant.now();
                             em.merge(existing);

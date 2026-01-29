@@ -5,7 +5,7 @@ import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.common.provider.BentoLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.provider.DatabaseLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
@@ -34,13 +34,13 @@ module bento.fx.demo {
     // <editor-fold desc="Storage service provider implementation">
 
     // <editor-fold desc="Database">
-//    requires bento.fx.persistence.storage.db.h2;
-//    uses DatabaseLayoutStorageProvider;
+    requires bento.fx.persistence.storage.db.h2;
+    uses DatabaseLayoutStorageProvider;
     // </editor-fold>
 
     // <editor-fold desc="File">
-    requires bento.fx.persistence.storage.file;
-    uses FileLayoutStorageProvider;
+//    requires bento.fx.persistence.storage.file;
+//    uses FileLayoutStorageProvider;
     // </editor-fold>
 
     // </editor-fold>

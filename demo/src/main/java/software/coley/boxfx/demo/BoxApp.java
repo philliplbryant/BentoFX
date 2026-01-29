@@ -188,7 +188,7 @@ public class BoxApp extends Application {
                 layoutSaver.saveLayout();
             } catch (BentoStateException e) {
 
-                logger.error("Could not save the Bento layout.", e);
+                logger.warn("Could not save the Bento layout.", e);
             }
         });
         stage.show();

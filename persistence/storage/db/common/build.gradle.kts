@@ -17,6 +17,8 @@ dependencies {
 
     api(libs.jakarta.persistence)
 
+    implementation(libs.slf4j.api)
+
     compileOnly(libs.hibernate.core)
 
     compileOnly(libs.jetbrains.annotations)

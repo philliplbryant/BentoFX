@@ -23,7 +23,10 @@ module bento.fx.persistence.storage.db.common {
 
     requires static org.jetbrains.annotations;
 
+    requires org.slf4j;
+
     exports software.coley.bentofx.persistence.impl.storage.db;
+    exports software.coley.bentofx.persistence.impl.storage.provider;
 
     opens software.coley.bentofx.persistence.impl.storage.db to
             org.hibernate.orm.core;
