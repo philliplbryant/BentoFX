@@ -75,6 +75,7 @@ public final class BentoStateMapper {
             final @NotNull DockContainerRootBranchState root
     ) {
         requireNonNull(root);
+
         final DockContainerRootBranchDto rootBranchDto =
                 new DockContainerRootBranchDto();
 
@@ -88,12 +89,19 @@ public final class BentoStateMapper {
                 rootBranchDto.orientation = orientation
         );
 
-
         root.getParent().ifPresent(parent ->
                 rootBranchDto.parentStage = toDto(parent)
         );
 
-        for (final DockContainerState dockContainerState : root.getChildDockContainerStates()) {
+        root.getDividerPositions().forEach((index, position) -> {
+            final DividerPositionDto dividerPositionDto = new DividerPositionDto();
+            dividerPositionDto.index = index;
+            dividerPositionDto.position = position;
+            rootBranchDto.dividerPositions.add(dividerPositionDto);
+        });
+
+        for (final DockContainerState dockContainerState :
+                root.getChildDockContainerStates()) {
 
             switch (dockContainerState) {
 
@@ -111,9 +119,9 @@ public final class BentoStateMapper {
         }
 
 
-        for (final DockableState dockableState : root.getChildDockableStates()) {
-            rootBranchDto.dockables.add(toDto(dockableState));
-        }
+//        for (final DockableState dockableState : root.getChildDockableStates()) {
+//            rootBranchDto.dockables.add(toDto(dockableState));
+//        }
 
         return rootBranchDto;
     }
@@ -130,6 +138,7 @@ public final class BentoStateMapper {
     ) {
         final DragDropStageDto stageDto = new DragDropStageDto();
         stageDto.autoCloseWhenEmpty = stageState.isAutoClosedWhenEmpty();
+        stageDto.title = stageState.getTitle().orElse("");
         stageDto.x = stageState.getX().orElse(null);
         stageDto.y = stageState.getY().orElse(null);
         stageDto.width = stageState.getWidth().orElse(null);
@@ -204,13 +213,9 @@ public final class BentoStateMapper {
                 leafDto.pruneWhenEmpty = pruneWhenEmpty
         );
 
-        leafState.getUncollapsedSizePx().ifPresent(uncollapsedSizePx ->
-                leafDto.uncollapsedSizePx = uncollapsedSizePx
-        );
-
-        leafState.isCollapsed().ifPresent(isCollapsed ->
-                leafDto.isCollapsed = isCollapsed
-        );
+        leafDto.selectedDockableIdentifier =
+                leafState.getSelectedDockableIdentifier()
+                        .orElse(null);
 
         leafDto.side = leafState.getSide().orElse(null);
 
@@ -219,9 +224,13 @@ public final class BentoStateMapper {
 
         leafDto.isCanSplit = leafState.isCanSplit().orElse(null);
 
-        leafDto.selectedDockableIdentifier =
-                leafState.getSelectedDockableIdentifier()
-                        .orElse(null);
+        leafState.getUncollapsedSizePx().ifPresent(uncollapsedSizePx ->
+                leafDto.uncollapsedSizePx = uncollapsedSizePx
+        );
+
+        leafState.isCollapsed().ifPresent(isCollapsed ->
+                leafDto.isCollapsed = isCollapsed
+        );
 
         for (final DockableState d : leafState.getChildDockableStates()) {
             DockableDto dockableDto = toDto(d);
@@ -270,9 +279,14 @@ public final class BentoStateMapper {
         final DockContainerRootBranchStateBuilder builder =
                 new DockContainerRootBranchStateBuilder(id);
 
+        builder.setOrientation(rootBranchDto.orientation)
+                .setPruneWhenEmpty(rootBranchDto.pruneWhenEmpty);
+
         if (rootBranchDto.parentStage != null) {
             builder.setParent(fromDto(rootBranchDto.parentStage));
         }
+
+        setDividerPositions(builder, rootBranchDto.dividerPositions);
 
         if (rootBranchDto.branches != null) {
             for (final DockContainerBranchDto branchDto : rootBranchDto.branches) {
@@ -308,6 +322,7 @@ public final class BentoStateMapper {
                 .setIsIconified(stageDto.iconified)
                 .setIsFullScreen(stageDto.fullScreen)
                 .setIsMaximized(stageDto.maximized)
+                // TODO BENTO-13: Why setDockContainerRootBranchState(null) here?
                 // Avoid cycles
                 .setDockContainerRootBranchState(null)
                 .build();
@@ -426,14 +441,12 @@ public final class BentoStateMapper {
                 new DockContainerLeafStateBuilder(id)
                         .setSelectedDockableStateIdentifier(leafDto.selectedDockableIdentifier)
                         .setSide(leafDto.side)
+                        .setResizableWithParent(leafDto.isResizableWithParent)
                         .setCanSplit(leafDto.isCanSplit)
-                        .setResizableWithParent(leafDto.isResizableWithParent);
+                        .setUncollapsedSizePx(leafDto.uncollapsedSizePx)
+                        .setCollapsed(leafDto.isCollapsed);
 
         builder.setPruneWhenEmpty(leafDto.pruneWhenEmpty);
-
-        builder.setUncollapsedSizePx(leafDto.uncollapsedSizePx);
-
-        builder.setCollapsed(leafDto.isCollapsed);
 
         if (leafDto.dockables != null) {
 

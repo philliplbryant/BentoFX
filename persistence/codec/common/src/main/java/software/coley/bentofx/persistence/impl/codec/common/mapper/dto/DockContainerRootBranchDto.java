@@ -38,10 +38,10 @@ public class DockContainerRootBranchDto {
     @JsonProperty(PARENT_STAGE_ELEMENT_NAME)
     public DragDropStageDto parentStage;
 
-    @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
-    @XmlElement(name = DOCKABLE_ELEMENT_NAME)
-    @JsonProperty(DOCKABLE_ELEMENT_NAME)
-    public List<DockableDto> dockables = new ArrayList<>();
+    @XmlElementWrapper(name = DIVIDER_POSITION_LIST_ELEMENT_NAME)
+    @XmlElement(name = DIVIDER_ELEMENT_NAME)
+    @JsonProperty(DIVIDER_ELEMENT_NAME)
+    public List<DividerPositionDto> dividerPositions = new ArrayList<>();
 
     @XmlElementWrapper(name = BRANCH_LIST_ELEMENT_NAME)
     @XmlElement(name = BRANCH_ELEMENT_NAME)

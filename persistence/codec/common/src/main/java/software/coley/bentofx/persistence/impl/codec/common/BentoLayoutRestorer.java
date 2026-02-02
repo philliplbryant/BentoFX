@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
+import software.coley.bentofx.building.StageBuilding;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
@@ -58,6 +59,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final @NotNull LayoutStorage layoutStorage;
     private final @NotNull LayoutCodec codec;
     private final @NotNull DockBuilding dockBuilding;
+    private final @NotNull StageBuilding stageBuilding;
     private final @NotNull DockableProvider dockableProvider;
     private final @NotNull ImageProvider imageProvider;
     private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
@@ -72,6 +74,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
+        this.stageBuilding = bento.stageBuilding();
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(codec);
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
@@ -174,11 +177,14 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    // TODO BENTO-13: Should this use a StageBuilding and, if so, how?
     private void restoreDragDropStage(
             final @NotNull DragDropStageState stageState,
             final @NotNull DockContainerRootBranchState rootBranchState
     ) {
+
+        // TODO BENTO-13: Should this use a StageBuilding and, if so, how?
+//        stageBuilding.newStageForDockable()
+
         final DragDropStage stage = new DragDropStage(
                 stageState.isAutoClosedWhenEmpty()
         );
@@ -223,12 +229,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             );
         }
 
-        // The root wrapper may contain either one branch or one leaf.
-        if (!rootBranchState.getChildDockContainerStates().isEmpty()) {
-
-            final @NotNull DockContainerState childState =
-                    rootBranchState.getChildDockContainerStates()
-                            .getFirst();
+        for (final DockContainerState childState : rootBranchState.getChildDockContainerStates()) {
 
             final DockContainer dockContainer = restoreDockContainer(rootBranch, childState);
 
@@ -236,12 +237,9 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
                 rootBranch.addContainer(dockContainer);
             }
+        }
 
-        } else if (!rootBranchState.getChildDockableStates().isEmpty()) {
-
-            final @NotNull DockableState dockableState =
-                    rootBranchState.getChildDockableStates()
-                            .getFirst();
+        for (final DockableState dockableState : rootBranchState.getChildDockableStates()) {
 
             final Dockable dockable =
                     restoreDockable(dockableState.getIdentifier());
@@ -363,7 +361,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         );
 
         // FIXME BENTO-13: isCollapsed getting set but the leaf isn't collapsing
-        //  Do I need to change when setContainerCollapsed is called?
+        //  Do I need to change the order in which setContainerCollapsed is called?
         state.isCollapsed().ifPresent(isCollapsed -> {
                     logger.trace(
                             "Setting leaf {} collapsed to {}",
