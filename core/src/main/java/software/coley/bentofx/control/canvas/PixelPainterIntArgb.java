@@ -59,14 +59,14 @@ public class PixelPainterIntArgb implements PixelPainter<IntBuffer> {
 	public void fillRect(int x, int y, int width, int height, int color) {
 		int yBound = Math.min(y + height, imageHeight);
 		int xBound = Math.min(x + width, imageWidth);
-		IntBuffer drawBuffer = this.drawBuffer;
+		IntBuffer drawBufferReference = this.drawBuffer;
 		int capacity = drawBufferCapacity();
 		for (int ly = y; ly < yBound; ly++) {
 			int yOffset = ly * imageWidth;
 			for (int lx = x; lx < xBound; lx++) {
 				int index = yOffset + lx;
 				if (index < capacity)
-					drawBuffer.put(index, color);
+					drawBufferReference.put(index, color);
 			}
 		}
 	}

@@ -121,7 +121,7 @@ public class DragUtils {
 			return null;
 		try {
 			return Integer.parseInt(parts[1]);
-		} catch (Throwable t) {
+		} catch (Exception ignored) {
 			return null;
 		}
 	}

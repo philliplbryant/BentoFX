@@ -39,7 +39,7 @@ public class ArgbImageSource implements ArgbSource {
 	public int getArgb(int x, int y) {
 		try {
 			return image.getPixelReader().getArgb(x, y);
-		} catch (Throwable t) {
+		} catch (Exception ignored) {
 			// Thrown when coordinates are out of bounds.
 			// Default to transparent black.
 			return 0;
@@ -52,7 +52,7 @@ public class ArgbImageSource implements ArgbSource {
 			IntBuffer buffer = IntBuffer.allocate(width * height);
 			image.getPixelReader().getPixels(x, y, width, height, PixelFormat.getIntArgbInstance(), buffer, width);
 			return buffer.array();
-		} catch (Throwable t) {
+		} catch (Exception ignored) {
 			// Thrown when coordinates are out of bounds.
 			return null;
 		}

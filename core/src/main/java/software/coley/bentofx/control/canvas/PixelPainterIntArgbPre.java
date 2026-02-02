@@ -29,7 +29,9 @@ public class PixelPainterIntArgbPre extends PixelPainterIntArgb {
 
 	protected static int argbToArgbPre(int color) {
 		int alpha = (color >>> 24);
-		int red, green, blue;
+		int red;
+        int green;
+        int blue;
 		if (alpha > 0x00) {
 			red = (color >> 16) & 0xFF;
 			green = (color >> 8) & 0xFF;
@@ -45,6 +47,6 @@ public class PixelPainterIntArgbPre extends PixelPainterIntArgb {
 		return ((alpha & 0xFF) << 24) |
 				((red & 0xFF) << 16) |
 				((green & 0xFF) << 8) |
-				((blue & 0xFF));
+				(blue & 0xFF);
 	}
 }

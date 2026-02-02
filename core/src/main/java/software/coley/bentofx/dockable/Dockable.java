@@ -70,9 +70,9 @@ public class Dockable implements BentoBacked, Identifiable {
 	 * 		Action to run in the parent container, if one exists.
 	 */
 	public void inContainer(@Nonnull Consumer<DockContainerLeaf> consumer) {
-		DockContainerLeaf container = getContainer();
-		if (container != null)
-			consumer.accept(container);
+		DockContainerLeaf containerLeaf = getContainer();
+		if (containerLeaf != null)
+			consumer.accept(containerLeaf);
 	}
 
 	/**
@@ -80,9 +80,9 @@ public class Dockable implements BentoBacked, Identifiable {
 	 * 		Action to run in the parent container, if one exists.
 	 */
 	public void inContainer(@Nonnull BiConsumer<DockContainerLeaf, Dockable> consumer) {
-		DockContainerLeaf container = getContainer();
-		if (container != null)
-			consumer.accept(container, this);
+		DockContainerLeaf containerLeaf = getContainer();
+		if (containerLeaf != null)
+			consumer.accept(containerLeaf, this);
 	}
 
 	/**

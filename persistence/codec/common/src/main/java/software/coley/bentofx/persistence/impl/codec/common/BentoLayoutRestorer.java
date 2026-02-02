@@ -24,7 +24,6 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -34,6 +33,7 @@ import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -55,20 +55,12 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int UID_CAPACITY = 8;
 
-    @NotNull
-    private final LayoutStorage layoutStorage;
-    @NotNull
-    private final LayoutCodec codec;
-    @NotNull
-    private final DockBuilding dockBuilding;
-    @NotNull
-    private final DockableProvider dockableProvider;
-    @NotNull
-    private final ImageProvider imageProvider;
-    @Nullable
-    private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
-    @Nullable
-    private final DockableMenuFactoryProvider dockableMenuFactoryProvider;
+    private final @NotNull LayoutStorage layoutStorage;
+    private final @NotNull LayoutCodec codec;
+    private final @NotNull DockBuilding dockBuilding;
+    private final @NotNull DockableProvider dockableProvider;
+    private final @NotNull ImageProvider imageProvider;
+    private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
@@ -76,9 +68,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull LayoutCodec codec,
             final @NotNull DockableProvider dockableProvider,
             final @NotNull ImageProvider imageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
-            final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider
-    ) {
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
@@ -86,11 +77,10 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
         this.imageProvider = Objects.requireNonNull(imageProvider);
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
-        this.dockableMenuFactoryProvider = dockableMenuFactoryProvider;
     }
 
     @Override
-    public DockContainerRootBranch restoreLayout(
+    public @NotNull DockContainerRootBranch restoreLayout(
             final @NotNull Stage primaryStage
     ) throws BentoStateException {
         try {
@@ -131,14 +121,18 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
 
             // Primary stage root branch is the one with no parent stage state.
-            final DockContainerRootBranchState primaryRootBranchState =
+            final Optional<DockContainerRootBranchState> optionalRootBranchState =
                     bentoState.getRootBranchStates().stream()
                             .filter(rb -> rb.getParent().isEmpty())
-                            .findFirst()
-                            .orElse(bentoState.getRootBranchStates().iterator().next());
+                            .findFirst();
+
+            final DockContainerRootBranchState primaryRootBranchState =
+                    optionalRootBranchState.orElse(null);
 
             final DockContainerRootBranch primaryRootBranch =
-                    restorePrimaryStageRoot(primaryRootBranchState, primaryStage);
+                    primaryRootBranchState == null ?
+                            dockBuilding.root("empty-root-branch") :
+                            restoreRootBranchContainer(primaryRootBranchState);
 
             // Restore secondary stages (root branches that have parent stage state)
             for (final DockContainerRootBranchState rootBranchState : bentoState.getRootBranchStates()) {
@@ -152,6 +146,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             }
 
             return primaryRootBranch;
+
         } catch (final ExecutionException e) {
 
             throw new BentoStateException(
@@ -177,14 +172,6 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 stage.close();
             }
         }
-    }
-
-    private @NotNull DockContainerRootBranch restorePrimaryStageRoot(
-            final @NotNull DockContainerRootBranchState rootBranchState,
-            final @NotNull Stage primaryStage
-    ) {
-        primaryStage.show();
-        return restoreRootBranchContainer(rootBranchState);
     }
 
     // TODO BENTO-13: Should this use a StageBuilding and, if so, how?

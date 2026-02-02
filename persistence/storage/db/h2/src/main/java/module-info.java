@@ -5,7 +5,7 @@
  *
  * @author Phil Bryant
  */
-module bento.fx.persistence.storage.db.h2 {
+module bento.fx.persistence.storage.db.h2Database {
 
     requires transitive bento.fx.persistence.storage.db.common;
 

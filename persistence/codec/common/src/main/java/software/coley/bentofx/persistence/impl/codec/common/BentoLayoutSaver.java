@@ -120,6 +120,10 @@ public final class BentoLayoutSaver implements LayoutSaver {
                 dragDropStageState = null;
             }
 
+            // FIXME BENTO-13: I'm creating a builder here and adding the
+            //  branchState to it but I'm also creating a new builder in the
+            //  saveDockContainer method and adding the branch to that builder
+            //  before return it and adding it again here.
             final DockContainerRootBranchStateBuilder rootBuilder =
                     new DockContainerRootBranchStateBuilder(stageId);
             rootBuilder.setParent(dragDropStageState);

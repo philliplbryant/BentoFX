@@ -32,6 +32,8 @@ public class DockContainerLeafState extends DockContainerState {
     @Nullable
     private final Boolean isCollapsed;
 
+    // This is a read only class whose constructor is used to set all attributes.
+    @SuppressWarnings("java:S107")
     private DockContainerLeafState(
             final @NotNull String identifier,
             final @Nullable DragDropStageState parent,

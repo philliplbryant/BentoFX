@@ -17,7 +17,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
  * Builders for {@link DragDropStage}.
  */
 public class StageBuilding {
-	private static final StageFactory DEFAULT_STAGE_FACTORY = (sourceStage) -> new DragDropStage(true);
+	private static final StageFactory DEFAULT_STAGE_FACTORY = sourceStage -> new DragDropStage(true);
 	private static final SceneFactory DEFAULT_SCENE_FACTORY = (sourceScene, content, width, height) -> new Scene(content, width, height);
 	private final Bento bento;
 	private StageFactory stageFactory = DEFAULT_STAGE_FACTORY;

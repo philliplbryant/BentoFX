@@ -51,9 +51,9 @@ public class DockContainerState extends IdentifiableState {
 
     public static class DockContainerStateBuilder {
 
-        protected @NotNull final String identifier;
+        protected final @NotNull String identifier;
         protected @Nullable DragDropStageState parent;
-        protected @NotNull final List<DockableState> childDockableStates = new ArrayList<>();
+        protected final @NotNull List<DockableState> childDockableStates = new ArrayList<>();
         protected @Nullable Boolean pruneWhenEmpty;
 
         public DockContainerStateBuilder(

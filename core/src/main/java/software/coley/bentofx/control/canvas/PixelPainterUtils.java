@@ -9,6 +9,11 @@ import java.nio.IntBuffer;
  * @author Matt Coley
  */
 public class PixelPainterUtils {
+
+    private PixelPainterUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
 	public static final int[] EMPTY_ARRAY_I = new int[0];
 	public static final byte[] EMPTY_ARRAY_B = new byte[0];
 	public static final IntBuffer EMPTY_BUFFER_I = IntBuffer.wrap(EMPTY_ARRAY_I);

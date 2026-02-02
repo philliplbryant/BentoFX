@@ -14,7 +14,9 @@ public class PixelPainterByteBgraPre extends PixelPainterByteBgra {
 	@Override
 	public void fillRect(int x, int y, int width, int height, int color) {
 		int alpha = (color >>> 24);
-		int red, green, blue;
+		int red;
+        int green;
+        int blue;
 		if (alpha > 0x00) {
 			red = (color >> 16) & 0xFF;
 			green = (color >> 8) & 0xFF;
@@ -50,7 +52,9 @@ public class PixelPainterByteBgraPre extends PixelPainterByteBgra {
 		int i = ((y * imageWidth) + x) * DATA_SIZE;
 		if (i >= 0 && i < drawBufferCapacity()) {
 			int alpha = (color >>> 24);
-			int red, green, blue;
+			int red;
+            int green;
+            int blue;
 			if (alpha > 0x00) {
 				red = (color >> 16) & 0xFF;
 				green = (color >> 8) & 0xFF;

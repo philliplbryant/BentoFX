@@ -56,12 +56,12 @@ dependencies {
     // <editor-fold desc="Storage implementation">
 
     // <editor-fold desc="Database">
-    implementation(projects.persistence.storage.db.common)
-    implementation(projects.persistence.storage.db.h2)
+//    implementation(projects.persistence.storage.db.common)
+//    implementation(projects.persistence.storage.db.h2)
     // </editor-fold>
 
     // <editor-fold desc="File">
-//    implementation(projects.persistence.storage.file)
+    implementation(projects.persistence.storage.file)
     // </editor-fold>
 
     // </editor-fold>

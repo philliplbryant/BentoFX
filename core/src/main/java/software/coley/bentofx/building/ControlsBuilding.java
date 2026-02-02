@@ -22,7 +22,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	private static final HeadersFactory DEFAULT_HEADERS_FACTORY = Headers::new;
 	private static final HeaderFactory DEFAULT_HEADER_FACTORY = (dockable, parentPane) -> new Header(dockable, parentPane).withDragDrop();
 	private static final ContentWrapperFactory DEFAULT_CONTENT_WRAPPER_FACTORY = ContentWrapper::new;
-	private static final CanvasFactory DEFAULT_CANVAS_FACTORY = (parentPane) -> new PixelCanvas();
+	private static final CanvasFactory DEFAULT_CANVAS_FACTORY = parentPane -> new PixelCanvas();
 	private HeaderPaneFactory headerPaneFactory = DEFAULT_HEADER_PANE_FACTORY;
 	private HeadersFactory headersFactory = DEFAULT_HEADERS_FACTORY;
 	private HeaderFactory headerFactory = DEFAULT_HEADER_FACTORY;

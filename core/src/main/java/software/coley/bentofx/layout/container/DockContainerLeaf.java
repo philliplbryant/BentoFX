@@ -99,8 +99,11 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 
 	@Override
 	public boolean visit(@Nonnull SearchVisitor visitor) {
-		if (visitor.visitLeaf(this)) for (Dockable dockable : dockables)
-			if (!visitor.visitDockable(dockable)) return false;
+		if (visitor.visitLeaf(this)) {
+            for (Dockable dockable : dockables) {
+                if (!visitor.visitDockable(dockable)) return false;
+            }
+        }
 		return true;
 	}
 
@@ -270,11 +273,11 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		// Compute xy offset when 'target' is not a direct child of this view.
 		double ox = 0;
 		double oy = 0;
-		Parent parent = target.getParent();
-		while (parent != null && parent != this) {
-			ox += parent.getLayoutX();
-			oy += parent.getLayoutY();
-			parent = parent.getParent();
+		Parent targetParent = target.getParent();
+		while (targetParent != null && targetParent != this) {
+			ox += targetParent.getLayoutX();
+			oy += targetParent.getLayoutY();
+			targetParent = targetParent.getParent();
 		}
 
 		// Clear any old graphics.

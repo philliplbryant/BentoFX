@@ -139,8 +139,7 @@ public class BoxApp extends Application {
                 layoutCodec,
                 dockableProvider,
                 imageProvider,
-                dockContainerLeafMenuFactoryProvider,
-                dockableMenuFactoryProvider
+                dockContainerLeafMenuFactoryProvider
         );
     }
 

@@ -64,17 +64,17 @@ public class PixelPainterByteBgra implements PixelPainter<ByteBuffer> {
 		byte blue = (byte) (color & 0xFF);
 		int yBound = Math.min(y + height, imageHeight);
 		int xBound = Math.min(x + width, imageWidth);
-		ByteBuffer drawBuffer = this.drawBuffer;
+		ByteBuffer drawBufferReference = this.drawBuffer;
 		int capacity = drawBufferCapacity();
 		for (int ly = y; ly < yBound; ly++) {
 			int yOffset = ly * imageWidth;
 			for (int lx = x; lx < xBound; lx++) {
 				int index = (yOffset + lx) * DATA_SIZE;
 				if (index < capacity) {
-					drawBuffer.put(index, blue);
-					drawBuffer.put(index + 1, green);
-					drawBuffer.put(index + 2, red);
-					drawBuffer.put(index + 3, alpha);
+					drawBufferReference.put(index, blue);
+					drawBufferReference.put(index + 1, green);
+					drawBufferReference.put(index + 2, red);
+					drawBufferReference.put(index + 3, alpha);
 				}
 			}
 		}

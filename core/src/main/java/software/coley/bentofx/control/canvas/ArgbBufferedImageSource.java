@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * ARGB source wrapping a {@link BufferedImage}.
@@ -37,7 +38,7 @@ public class ArgbBufferedImageSource implements ArgbSource {
 	public int getArgb(int x, int y) {
 		try {
 			return image.getRGB(x, y);
-		} catch (Throwable t) {
+		} catch (Exception ignored) {
 			// Thrown when coordinates are out of bounds.
 			// Default to transparent black.
 			return 0;
@@ -48,7 +49,7 @@ public class ArgbBufferedImageSource implements ArgbSource {
 	public int[] getArgb(int x, int y, int width, int height) {
 		try {
 			return image.getRGB(x, y, width, height, null, 0, width);
-		} catch (Throwable t) {
+		} catch (Exception ignored) {
 			// Thrown when coordinates are out of bounds.
 			return null;
 		}
@@ -69,4 +70,13 @@ public class ArgbBufferedImageSource implements ArgbSource {
 			hash = Arrays.hashCode(getArgb());
 		return hash;
 	}
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        ArgbBufferedImageSource that = (ArgbBufferedImageSource) object;
+        return hash == that.hash &&
+                Objects.equals(image, that.image) &&
+                Objects.deepEquals(fullArgbCache, that.fullArgbCache);
+    }
 }
