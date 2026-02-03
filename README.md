@@ -209,7 +209,7 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 ## Persistence
 
-To persist docking layouts between application executions, refer to [persistence API and usage documentation](assets/bento-layout-persistence.md). 
+To persist docking layouts between application executions, review the [BoxApp](demo/src/main/java/software/coley/boxfx/demo/BoxApp.java) application and refer to the [persistence API and usage documentation](assets/bento-layout-persistence.md). 
 
 ### Dependency Injection
 
