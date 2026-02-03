@@ -24,6 +24,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableProvider;
 import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -59,6 +60,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final @NotNull DockableProvider dockableProvider;
     private final @NotNull ImageProvider imageProvider;
     private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
+    private final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider;
+
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
@@ -66,7 +69,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull LayoutCodec codec,
             final @NotNull DockableProvider dockableProvider,
             final @NotNull ImageProvider imageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
+            final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider
     ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
@@ -76,6 +80,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         this.dockableProvider = Objects.requireNonNull(dockableProvider);
         this.imageProvider = Objects.requireNonNull(imageProvider);
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
+        this.dockableMenuFactoryProvider = dockableMenuFactoryProvider;
     }
 
     @Override
@@ -201,7 +206,6 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                     stage.setScene(new Scene(rootContainer));
                 }
         );
-
 
         stage.show();
     }
@@ -394,9 +398,17 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
     private @Nullable Dockable restoreDockable(@NotNull String dockableIdentifier) {
 
-        return dockableProvider
-                .resolveDockable(dockableIdentifier)
-                .orElse(null);
+        final @NotNull Optional<Dockable> optionalDockableProvider =
+                dockableProvider.resolveDockable(dockableIdentifier);
+
+        final @Nullable Dockable dockable = optionalDockableProvider.orElse(null);
+
+        if (dockable != null) {
+            dockableMenuFactoryProvider.createDockableMenuFactory(dockable)
+                    .ifPresent(dockable::setContextMenuFactory);
+        }
+
+        return dockable;
     }
 
     private static @NotNull String createUniqueIdentifier(final String prefix) {

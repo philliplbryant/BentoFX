@@ -10,10 +10,7 @@ import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
-import software.coley.bentofx.persistence.api.provider.ImageProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer;
 import software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver;
@@ -39,11 +36,12 @@ public class BentoLayoutPersistenceProvider
     @Override
     public @NotNull LayoutRestorer createLayoutRestorer(
             final @NotNull Bento bento,
-            @NotNull LayoutStorage layoutStorage,
-            @NotNull LayoutCodec layoutCodec,
-            @NotNull DockableProvider dockableProvider,
-            @NotNull ImageProvider imageProvider,
-            @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            final @NotNull LayoutStorage layoutStorage,
+            final @NotNull LayoutCodec layoutCodec,
+            final @NotNull DockableProvider dockableProvider,
+            final @NotNull ImageProvider imageProvider,
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
+            final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider
     ) {
         return new BentoLayoutRestorer(
                 bento,
@@ -51,7 +49,8 @@ public class BentoLayoutPersistenceProvider
                 layoutCodec,
                 dockableProvider,
                 imageProvider,
-                dockContainerLeafMenuFactoryProvider
+                dockContainerLeafMenuFactoryProvider,
+                dockableMenuFactoryProvider
         );
     }
 }
