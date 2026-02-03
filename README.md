@@ -213,7 +213,7 @@ To persist docking layouts between application executions, review the [BoxApp](d
 
 ### Dependency Injection
 
-The `BoxApp` uses the [Service Locator pattern]() in which `ServiceLocator` is used to discover and load implementations matching the following Service Provider Interfaces (SPIs): 
+The `BoxApp` application uses the [Service Locator pattern]() in which `ServiceLocator` is used to discover and load implementations matching the following Service Provider Interfaces (SPIs): 
 - `DockableMenuFactoryProvider`
 - `DockableProvider`
 - `DockContainerLeafMenuFactoryProvider`
