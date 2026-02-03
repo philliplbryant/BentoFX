@@ -6,9 +6,13 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
 
 /**
  * Mappable Data Transfer Object representing the layout state of a
@@ -39,4 +43,8 @@ public class DragDropStageDto {
     public Boolean fullScreen;
     @XmlAttribute
     public Boolean maximized;
+
+    @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
+    @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
+    public DockContainerRootBranchDto dockContainerRootBranchDto;
 }

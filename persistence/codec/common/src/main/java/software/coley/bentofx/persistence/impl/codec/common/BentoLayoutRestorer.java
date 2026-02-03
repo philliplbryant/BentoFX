@@ -5,7 +5,6 @@
 
 package software.coley.bentofx.persistence.impl.codec.common;
 
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
@@ -42,9 +41,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-// FIXME BENTO-13: Persistence is wrapping "root" in an unnecessary/extra branch
-//  with no divider positions set.
-
 /**
  * Restores JavaFX stage layouts from a persisted {@link BentoState}.
  *
@@ -71,7 +67,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull DockableProvider dockableProvider,
             final @NotNull ImageProvider imageProvider,
             final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
-            ) {
+    ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
         this.stageBuilding = bento.stageBuilding();
@@ -87,6 +83,9 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull Stage primaryStage
     ) throws BentoStateException {
         try {
+
+            // TODO BENTO-13: Persist and restore to size and position of the primary stage
+
             primaryStage.hide();
             closeOtherStages(primaryStage);
 
@@ -138,14 +137,8 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                             restoreRootBranchContainer(primaryRootBranchState);
 
             // Restore secondary stages (root branches that have parent stage state)
-            for (final DockContainerRootBranchState rootBranchState : bentoState.getRootBranchStates()) {
-
-                if (rootBranchState != primaryRootBranchState) {
-
-                    rootBranchState.getParent().ifPresent(parentStage ->
-                            restoreDragDropStage(parentStage, rootBranchState)
-                    );
-                }
+            for (final DragDropStageState dragDropStageState : bentoState.getDragDropStageStates()) {
+                restoreDragDropStage(dragDropStageState);
             }
 
             return primaryRootBranch;
@@ -178,8 +171,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private void restoreDragDropStage(
-            final @NotNull DragDropStageState stageState,
-            final @NotNull DockContainerRootBranchState rootBranchState
+            final @NotNull DragDropStageState stageState
     ) {
 
         // TODO BENTO-13: Should this use a StageBuilding and, if so, how?
@@ -201,9 +193,16 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         stageState.isFullScreen().ifPresent(stage::setFullScreen);
         stageState.isMaximized().ifPresent(stage::setMaximized);
 
-        final Parent rootContainer =
-                restoreRootBranchContainer(rootBranchState);
-        stage.setScene(new Scene(rootContainer));
+        stageState.getDockContainerRootBranchState().ifPresent(
+                dockContainerRootBranchState -> {
+
+                    final DockContainerRootBranch rootContainer =
+                            restoreRootBranchContainer(dockContainerRootBranchState);
+                    stage.setScene(new Scene(rootContainer));
+                }
+        );
+
+
         stage.show();
     }
 

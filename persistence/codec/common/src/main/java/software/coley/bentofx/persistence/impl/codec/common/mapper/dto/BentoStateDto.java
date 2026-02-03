@@ -28,4 +28,9 @@ public class BentoStateDto {
     @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
     @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
     public List<DockContainerRootBranchDto> rootBranches = new ArrayList<>();
+
+    @XmlElementWrapper(name = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
+    @XmlElement(name = DRAG_DROP_STAGE_ELEMENT_NAME)
+    @JsonProperty(DRAG_DROP_STAGE_ELEMENT_NAME)
+    public List<DragDropStageDto> dragDropStages = new ArrayList<>();
 }

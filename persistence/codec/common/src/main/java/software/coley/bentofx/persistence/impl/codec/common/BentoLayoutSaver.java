@@ -66,16 +66,49 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         for (final Stage stage : FxStageUtils.getAllStages()) {
 
-            try {
+            if(stage instanceof final DragDropStage dragDropStage) {
+
+                final DragDropStageStateBuilder dragDropStageStateBuilder =
+                        new DragDropStageStateBuilder(
+                                dragDropStage.isAutoCloseWhenEmpty()
+                        )
+                                .setTitle(dragDropStage.getTitle())
+                                .setX(dragDropStage.getX())
+                                .setY(dragDropStage.getY())
+                                .setWidth(dragDropStage.getWidth())
+                                .setHeight(dragDropStage.getHeight())
+                                .setIsIconified(dragDropStage.isIconified())
+                                .setIsFullScreen(dragDropStage.isFullScreen())
+                                .setIsMaximized(dragDropStage.isMaximized())
+                                // Important: Do NOT set dockContainerRootBranchState to avoid cyclic graphs
+                                .setDockContainerRootBranchState(null);
+
+                final @Nullable DockContainerRootBranch rootBranch =
+                        getDockContainerRootBranch(stage);
+
                 DockContainerRootBranchState dockContainerRootBranchState =
-                        createDockContainerRootBranchState(stage);
+                        saveRootBranch(rootBranch);
 
-                if (dockContainerRootBranchState != null) {
-                    bentoBuilder.addRootBranchState(dockContainerRootBranchState);
+                DragDropStageState dragDropStageState =
+                        dragDropStageStateBuilder.setDockContainerRootBranchState(
+                        dockContainerRootBranchState
+                ).build();
+
+                bentoBuilder.addDragDropStageState(dragDropStageState);
+
+            } else {
+
+                try {
+                    DockContainerRootBranchState dockContainerRootBranchState =
+                            createDockContainerRootBranchState(stage);
+
+                    if (dockContainerRootBranchState != null) {
+                        bentoBuilder.addRootBranchState(dockContainerRootBranchState);
+                    }
+                } catch (final Exception ex) {
+
+                    logger.error("Failed to save stage layout: {}", stage, ex);
                 }
-            } catch (final Exception ex) {
-
-                logger.error("Failed to save stage layout: {}", stage, ex);
             }
         }
 
@@ -93,35 +126,11 @@ public final class BentoLayoutSaver implements LayoutSaver {
     private @Nullable DockContainerRootBranchState createDockContainerRootBranchState(
             final @NotNull Stage stage
     ) {
-        final DockContainerRootBranch rootBranch = getDockContainerRootBranch(stage);
-
-        if (rootBranch == null) {
-
+        final DockContainerRootBranch stageRootBranch = getDockContainerRootBranch(stage);
+        if(stageRootBranch == null) {
             return null;
         } else {
-
-            // Build drag-drop stage state - null for primary stages.
-            final DragDropStageStateBuilder dragDropStageStateBuilder;
-            if (stage instanceof final DragDropStage ddStage) {
-                dragDropStageStateBuilder =
-                        new DragDropStageStateBuilder(
-                                ddStage.isAutoCloseWhenEmpty()
-                        )
-                                .setTitle(stage.getTitle())
-                                .setX(stage.getX())
-                                .setY(stage.getY())
-                                .setWidth(stage.getWidth())
-                                .setHeight(stage.getHeight())
-                                .setIsIconified(stage.isIconified())
-                                .setIsFullScreen(stage.isFullScreen())
-                                .setIsMaximized(stage.isMaximized())
-                                // Important: Do NOT set dockContainerRootBranchState to avoid cyclic graphs
-                                .setDockContainerRootBranchState(null);
-            } else {
-                dragDropStageStateBuilder = null;
-            }
-
-            return saveRootBranch(dragDropStageStateBuilder, rootBranch);
+            return saveRootBranch(stageRootBranch);
         }
     }
 
@@ -168,49 +177,37 @@ public final class BentoLayoutSaver implements LayoutSaver {
         }
     }
 
-    private @NotNull DockContainerRootBranchState saveRootBranch(
-            final @Nullable DragDropStageStateBuilder parentDragDropStageStateBuilder,
-            final @NotNull DockContainerRootBranch branch
+    private @Nullable DockContainerRootBranchState saveRootBranch(
+            final @Nullable DockContainerRootBranch branch
     ) {
-        final String stageId = parentDragDropStageStateBuilder == null ?
-                nonEmptyOr(branch.getIdentifier(), "root") :
-                getStageId(parentDragDropStageStateBuilder);
+        if(branch == null) {
 
-        final DockContainerRootBranchStateBuilder builder =
-                new DockContainerRootBranchStateBuilder(
-                        stageId
-                );
+            return null;
+        } else {
 
-        builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
+            final DockContainerRootBranchStateBuilder builder =
+                    new DockContainerRootBranchStateBuilder(
+                            branch.getIdentifier()
+                    );
 
-        builder.setOrientation(branch.orientationProperty().get());
+            builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
 
-        // Divider positions (supports multiple)
-        final double[] positions = branch.getDividerPositions();
+            builder.setOrientation(branch.orientationProperty().get());
 
-        for (int i = 0; i < positions.length; i++) {
+            // Divider positions (supports multiple)
+            final double[] positions = branch.getDividerPositions();
 
-            builder.addDividerPosition(i, positions[i]);
+            for (int i = 0; i < positions.length; i++) {
+
+                builder.addDividerPosition(i, positions[i]);
+            }
+
+            for (final DockContainer dockContainer : branch.getChildContainers()) {
+                builder.addDockContainerState(saveDockContainer(dockContainer));
+            }
+
+            return builder.build();
         }
-
-        for (final DockContainer dockContainer : branch.getChildContainers()) {
-            builder.addDockContainerState(saveDockContainer(dockContainer));
-        }
-
-//        for (final Dockable dockable : branch.getDockables()) {
-//            builder.addChildDockableState(saveDockable(dockable));
-//        }
-
-        final DockContainerRootBranchState dockContainerRootBranchState =
-                builder.build();
-
-        if(parentDragDropStageStateBuilder != null) {
-            parentDragDropStageStateBuilder.setDockContainerRootBranchState(
-                    dockContainerRootBranchState
-            );
-        }
-
-        return dockContainerRootBranchState;
     }
 
     private @NotNull DockContainerBranchState saveBranch(
@@ -226,7 +223,7 @@ public final class BentoLayoutSaver implements LayoutSaver {
                         id
                 );
 
-        // TODO BENTO-13: Set parent
+        // TODO BENTO-13: Set parent?
 //        builder.setParent(parent);
 
         builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
@@ -306,7 +303,7 @@ public final class BentoLayoutSaver implements LayoutSaver {
     }
 
     private static String getStageId(
-            final @NotNull DragDropStageStateBuilder dragDropStageStateBuilder
+            final @Nullable DragDropStageStateBuilder dragDropStageStateBuilder
     ) {
 
         return "cstage:" + System.identityHashCode(dragDropStageStateBuilder);

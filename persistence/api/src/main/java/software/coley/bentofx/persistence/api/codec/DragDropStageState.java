@@ -28,7 +28,7 @@ public class DragDropStageState {
     private final @Nullable Boolean isIconified;
     private final @Nullable Boolean isFullScreen;
     private final @Nullable Boolean isMaximized;
-    private final @NotNull DockContainerRootBranchState dockContainerRootBranchState;
+    private final @Nullable DockContainerRootBranchState dockContainerRootBranchState;
 
     // Ignore the number or constructor parameters; this is a read-only class
     // whose member attributes must be set using the constructor.
@@ -43,7 +43,7 @@ public class DragDropStageState {
             final @Nullable Boolean isIconified,
             final @Nullable Boolean isFullScreen,
             final @Nullable Boolean isMaximized,
-            final @NotNull DockContainerRootBranchState dockContainerRootBranchState
+            final @Nullable DockContainerRootBranchState dockContainerRootBranchState
     ) {
         this.isAutoClosedWhenEmpty = requireNonNull(isAutoClosedWhenEmpty);
         this.title = title;
@@ -94,13 +94,12 @@ public class DragDropStageState {
     }
 
     public @NotNull Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
-        return Optional.of(dockContainerRootBranchState);
+        return Optional.ofNullable(dockContainerRootBranchState);
     }
 
     public static class DragDropStageStateBuilder {
 
         private final @NotNull Boolean isAutoClosedWhenEmpty;
-        private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
         private @Nullable String title;
         private @Nullable Double x;
         private @Nullable Double y;
@@ -109,6 +108,7 @@ public class DragDropStageState {
         private @Nullable Boolean isIconified;
         private @Nullable Boolean isFullScreen;
         private @Nullable Boolean isMaximized;
+        private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
 
         public DragDropStageStateBuilder(
                 final @NotNull Boolean isAutoClosedWhenEmpty

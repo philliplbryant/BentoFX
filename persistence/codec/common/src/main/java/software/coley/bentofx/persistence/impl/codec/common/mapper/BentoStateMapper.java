@@ -60,6 +60,10 @@ public final class BentoStateMapper {
             bentoStateDto.rootBranches.add(toDto(root));
         }
 
+        for (final DragDropStageState stage : state.getDragDropStageStates()) {
+            bentoStateDto.dragDropStages.add(toDto(stage));
+        }
+
         return bentoStateDto;
     }
 
@@ -118,11 +122,6 @@ public final class BentoStateMapper {
             }
         }
 
-
-//        for (final DockableState dockableState : root.getChildDockableStates()) {
-//            rootBranchDto.dockables.add(toDto(dockableState));
-//        }
-
         return rootBranchDto;
     }
 
@@ -146,6 +145,10 @@ public final class BentoStateMapper {
         stageDto.iconified = stageState.isIconified().orElse(null);
         stageDto.fullScreen = stageState.isFullScreen().orElse(null);
         stageDto.maximized = stageState.isMaximized().orElse(null);
+        stageState.getDockContainerRootBranchState().ifPresent(
+                dockContainerRootBranchState ->
+                        stageDto.dockContainerRootBranchDto =
+                                toDto(dockContainerRootBranchState));
         return stageDto;
     }
 
@@ -258,6 +261,13 @@ public final class BentoStateMapper {
                 builder.addRootBranchState(fromDto(rootDto));
             }
         }
+
+        if (bentoStateDto.dragDropStages != null) {
+            for (final DragDropStageDto stageDto : bentoStateDto.dragDropStages) {
+                builder.addDragDropStageState(fromDto(stageDto));
+            }
+        }
+
         return builder.build();
     }
 
@@ -322,9 +332,9 @@ public final class BentoStateMapper {
                 .setIsIconified(stageDto.iconified)
                 .setIsFullScreen(stageDto.fullScreen)
                 .setIsMaximized(stageDto.maximized)
-                // TODO BENTO-13: Why setDockContainerRootBranchState(null) here?
-                // Avoid cycles
-                .setDockContainerRootBranchState(null)
+                .setDockContainerRootBranchState(
+                        fromDto(stageDto.dockContainerRootBranchDto)
+                )
                 .build();
     }
 

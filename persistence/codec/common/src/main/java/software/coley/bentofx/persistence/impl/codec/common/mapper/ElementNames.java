@@ -27,4 +27,6 @@ public class ElementNames {
     public static final String DOCKABLE_LIST_ELEMENT_NAME = "dockables";
     public static final String DOCKABLE_ELEMENT_NAME = "dockable";
     public static final String PARENT_STAGE_ELEMENT_NAME = "parentStage";
+    public static final String DRAG_DROP_STAGE_LIST_ELEMENT_NAME = "dragDropStages";
+    public static final String DRAG_DROP_STAGE_ELEMENT_NAME = "dragDropStage";
 }
