@@ -2,6 +2,20 @@
 
 A docking system for JavaFX.
 
+## Table of Contents
+
+* [Usage](#usage)
+* [Overview](#overview)
+  * [Containers](#containers)
+  * [Controls](#controls)
+  * [Dockable](#dockable)
+* [Example](#example)
+  * [Construct the Layout](#construct-the-default-layout)
+  * [Show the layout](#show-it)
+* [Persistence](#persistence) 
+  * [Dependency Injection](#dependency-injection)
+  * [Execution](#execution)
+  * [Project Configuration](#project-configuration)
 ## Usage
 
 Requirements:
@@ -59,7 +73,7 @@ Bento comes with a few custom controls that you will want to create a custom sty
 look and feel of your application.
 
 An example reference sheet _(which is included in the dependency)_ can be found
-in [`bento.css`](src/main/resources/bento.css).
+in [`bento.css`](core/src/main/resources/bento.css).
 
 | Control                     | Description                                                                                                                                       |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -104,21 +118,36 @@ amongst one another. However, the primary docking container tabs with our _"proj
 dragged into the areas housing our tools. If you try this out in IntelliJ you'll find it
 follows the same behavior.
 
+### Construct the default layout
+***BoxApp#constructDefaultDockContainerRootBranch()***
 ```java
-Bento bento = new Bento();
-bento.placeholderBuilding().setDockablePlaceholderFactory(dockable -> new Label("Empty Dockable"));
-bento.placeholderBuilding().setContainerPlaceholderFactory(container -> new Label("Empty Container"));
-bento.events().addEventListener(System.out::println);
-DockBuilding builder = bento.dockBuilding();
-DockContainerBranch branchRoot = builder.root("root");
+DockContainerRootBranch branchRoot = builder.root("root");
 DockContainerBranch branchWorkspace = builder.branch("workspace");
 DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
 DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
 DockContainerLeaf leafTools = builder.leaf("misc-tools");
 
+branchWorkspace.setPruneWhenEmpty(false);
+leafWorkspaceTools.setPruneWhenEmpty(false);
+leafTools.setPruneWhenEmpty(false);
+leafTools.setPruneWhenEmpty(false);
+
+// Add dummy menus to each.
+dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+  leafTools
+).ifPresent(leafTools::setMenuFactory);
+
+dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+  leafWorkspaceHeaders
+).ifPresent(leafWorkspaceHeaders::setMenuFactory);
+
+dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+  leafWorkspaceTools
+).ifPresent(leafWorkspaceTools::setMenuFactory);
+
 // These leaves shouldn't auto-expand. They are intended to be a set size.
-DockContainerBranch.setResizableWithParent(leafTools, false);
-DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+SplitPane.setResizableWithParent(leafTools, false);
+SplitPane.setResizableWithParent(leafWorkspaceTools, false);
 
 // Root: Workspace on top, tools on bottom
 // Workspace: Explorer on left, primary editor tabs on right
@@ -127,51 +156,110 @@ branchWorkspace.setOrientation(Orientation.HORIZONTAL);
 branchRoot.addContainers(branchWorkspace, leafTools);
 branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
 
-// Changing tool header sides to be aligned with application's far edges (to facilitate better collaps
+// Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
 leafWorkspaceTools.setSide(Side.LEFT);
 leafTools.setSide(Side.BOTTOM);
 
-// Tools shouldn't allow splitting (mirroring intellij behavior)
+// Tools shouldn't allow splitting (mirroring IntelliJ behavior)
 leafWorkspaceTools.setCanSplit(false);
 leafTools.setCanSplit(false);
 
 // Primary editor space should not prune when empty
 leafWorkspaceHeaders.setPruneWhenEmpty(false);
 
-// Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the 
+// Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
 branchRoot.setContainerSizePx(leafTools, 200);
 branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
 // Make the bottom collapsed by default
 branchRoot.setContainerCollapsed(leafTools, true);
 
-// Adding dockables to the leafs
-leafWorkspaceTools.addDockables(
-		buildDockable(builder, 1, 0, "Workspace"),
-		buildDockable(builder, 1, 1, "Bookmarks"),
-		buildDockable(builder, 1, 2, "Modifications")
-);
-leafTools.addDockables(
-		buildDockable(builder, 2, 0, "Logging"),
-		buildDockable(builder, 2, 1, "Terminal"),
-		buildDockable(builder, 2, 2, "Problems")
-);
-leafWorkspaceHeaders.addDockables(
-		buildDockable(builder, 0, 0, "Class 1"),
-		buildDockable(builder, 0, 1, "Class 2"),
-		buildDockable(builder, 0, 2, "Class 3"),
-		buildDockable(builder, 0, 3, "Class 4"),
-		buildDockable(builder, 0, 4, "Class 5")
-);
+// Add dockables to leafWorkspaceTools
+addDockable(WORKSPACE_DOCKABLE_ID, leafWorkspaceTools);
+addDockable(BOOKMARKS_DOCKABLE_ID, leafWorkspaceTools);
+addDockable(MODIFICATIONS_DOCKABLE_ID, leafWorkspaceTools);
 
-// Show it
+// Add dockables to leafTools
+addDockable(LOGGING_DOCKABLE_ID, leafTools);
+addDockable(TERMINAL_DOCKABLE_ID, leafTools);
+addDockable(PROBLEMS_DOCKABLE_ID, leafTools);
+
+// Add dockables to leafWorkspaceHeaders
+addDockable(CLASS_1_DOCKABLE_ID, leafWorkspaceHeaders);
+addDockable(CLASS_2_DOCKABLE_ID, leafWorkspaceHeaders);
+addDockable(CLASS_3_DOCKABLE_ID, leafWorkspaceHeaders);
+addDockable(CLASS_4_DOCKABLE_ID, leafWorkspaceHeaders);
+addDockable(CLASS_5_DOCKABLE_ID, leafWorkspaceHeaders);
+
+return branchRoot;
+```
+
+### Show it
+
+```java
 Scene scene = new Scene(branchRoot);
 scene.getStylesheets().add("/bento.css");
 stage.setScene(scene);
 stage.setOnHidden(e -> System.exit(0));
 stage.show();
-```
-
+````
 For a more real-world example you can check out [Recaf](https://github.com/Col-E/Recaf/)
 
 ![containers](assets/example-recaf.png)
+
+## Persistence
+
+To persist docking layouts between application executions, refer to [persistence API and usage documentation](assets/bento-layout-persistence.md). 
+
+### Dependency Injection
+
+The `BoxApp` uses the [Service Locator pattern]() in which `ServiceLocator` is used to discover and load implementations matching the following Service Provider Interfaces (SPIs): 
+- `DockableMenuFactoryProvider`
+- `DockableProvider`
+- `DockContainerLeafMenuFactoryProvider`
+- `ImageProvider`
+- `LayoutCodecProvider`
+- `LayoutPersistenceProvider`
+- `LayoutStorageProvider` 
+
+### Execution
+
+The `BoxApp` application persists layouts when the main `Stage` is closed, using:
+
+```java
+stage.setOnCloseRequest(event -> {
+  try {
+    layoutSaver.saveLayout();
+  } catch (BentoStateException e) {
+    logger.warn("Could not save the Bento layout.", e);
+  }
+});
+```
+
+and it restores the most recent layout during `Scene` construction using:
+
+```java
+DockContainerRootBranch branchRoot;
+if (layoutStorage.exists()) {
+  try {
+    branchRoot = layoutRestorer.restoreLayout(stage);
+  } catch (final BentoStateException e) {
+    logger.warn("Could not restore the saved layout; using the default layout instead.", e);
+    branchRoot = constructDefaultDockContainerRootBranch();
+  }
+} else {
+  branchRoot = constructDefaultDockContainerRootBranch();
+}
+Scene scene = new Scene(branchRoot);
+```
+
+### Project configuration
+
+`LayoutCodec` implementations for JSON and XML - and `LayoutStorage` implementations for file and an H2 database - have been provided. Specify one Codec and one Storage SPI implementation for each by adding their concrete implementation classes to the `demo` project's class/module path and updating its module descriptor as follows:
+
+|                     | **[build.gradle.kts](build.gradle.kts)**                                                                      | **[module-info.java](demo/src/main/java/module-info.java)**                                  |
+|---------------------|---------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| JSON Codec          | implementation(projects.persistence.codec.json)                                                               | requires bento.fx.persistence.codec.json;<br/>uses JsonLayoutCodecProvider;                  |
+| XML Codec           | implementation(projects.persistence.codec.xml)                                                                | requires bentrequires bento.fx.persistence.codec.xml;<br/>uses XmlLayoutCodecProvider;       |
+| File Storage        | implementation(projects.persistence.storage.file)                                                             | requires bento.fx.persistence.storage.file;<br/>uses FileLayoutStorageProvider;              |
+| H2 Database Storage | implementation(projects.persistence.storage.db.common)<br/>implementation(projects.persistence.storage.db.h2) | requires bento.fx.persistence.storage.db.h2Database;<br/>uses DatabaseLayoutStorageProvider; |

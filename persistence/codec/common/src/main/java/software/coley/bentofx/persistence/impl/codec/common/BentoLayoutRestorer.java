@@ -347,33 +347,10 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
         state.getSide().ifPresent(leaf::setSide);
 
-        state.isResizableWithParent().ifPresent(isResizableWithParent ->
-                SplitPane.setResizableWithParent(
-                        leaf,
-                        isResizableWithParent
-                )
-        );
-
         state.isCanSplit().ifPresent(leaf::setCanSplit);
 
         final String selectedId =
                 state.getSelectedDockableIdentifier().orElse(null);
-
-        state.getUncollapsedSizePx().ifPresent(size ->
-                rootBranch.setContainerSizePx(leaf, size)
-        );
-
-        // FIXME BENTO-13: isCollapsed getting set but the leaf isn't collapsing
-        //  Do I need to change the order in which setContainerCollapsed is called?
-        state.isCollapsed().ifPresent(isCollapsed -> {
-                    logger.trace(
-                            "Setting leaf {} collapsed to {}",
-                            leaf.getIdentifier(),
-                            isCollapsed
-                    );
-                    rootBranch.setContainerCollapsed(leaf, isCollapsed);
-                }
-        );
 
         for (final DockableState dockableState : state.getChildDockableStates()) {
 
@@ -392,6 +369,30 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
             }
         }
+
+        state.isResizableWithParent().ifPresent(isResizableWithParent ->
+                SplitPane.setResizableWithParent(
+                        leaf,
+                        isResizableWithParent
+                )
+        );
+
+        state.getUncollapsedSizePx().ifPresent(size ->
+                rootBranch.setContainerSizePx(leaf, size)
+        );
+
+        // FIXME BENTO-13: isCollapsed getting set but the leaf isn't collapsing
+        //  What is the order in which Dockables should be added and
+        //  setContainerCollapsed should be called?
+        state.isCollapsed().ifPresent(isCollapsed -> {
+                    logger.trace(
+                            "Setting leaf {} collapsed to {}",
+                            leaf.getIdentifier(),
+                            isCollapsed
+                    );
+                    rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                }
+        );
 
         return leaf;
     }

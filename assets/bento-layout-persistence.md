@@ -1,0 +1,131 @@
+# Bento layout persistence design
+
+This document describes the design of BentoFX layout persistence as implemented by:
+
+- `software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver#saveLayout()`
+- `software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer#restoreLayout(Stage)`
+
+[Bento layout persistence diagrams](bento-layout-persistence-diagrams.md) are also available.
+
+## Scope
+
+This doc focuses on the persistence orchestration, not rendering, docking UX, or module dependency graphs.
+
+## Key concepts
+
+### Domain state model
+
+Persistence is expressed as immutable-ish *state* objects (built via builders) rather than direct serialization of UI classes:
+
+- `BentoState` is the persistence root.
+- `DockContainerRootBranchState`, `DockContainerBranchState`, `DockContainerLeafState` represent the container tree.
+- `DockableState` represents a dockable identity in a container/leaf.
+- `DragDropStageState` represents secondary (drag/drop) stages and contains a root-branch state.
+
+### Storage and codec
+
+Persistence is a two-step pipeline:
+
+1. Build a `BentoState` snapshot (in-memory).
+2. Encode/decode via a `LayoutCodec` to/from a `LayoutStorage` stream.
+
+This decoupling lets you choose XML/JSON (or future formats) without changing the save/restore logic.
+
+## saveLayout design
+
+### High-level algorithm
+
+`BentoLayoutSaver#saveLayout()`:
+
+1. Create a new `BentoStateBuilder`.
+2. Iterate all JavaFX stages (`FxStageUtils.getAllStages()`).
+3. For each stage:
+   - If it is a `DragDropStage`, build `DragDropStageState` including its `DockContainerRootBranchState`.
+   - Otherwise, attempt to build a `DockContainerRootBranchState` for the stage (if it contains a Bento root container).
+4. Build the final `BentoState`.
+5. Persist it: `layoutStorage.openOutputStream()` then `codec.encode(state, out)`.
+
+### How the container tree is captured
+
+The saver walks the Bento container graph and converts each runtime container to its corresponding `*State`:
+
+- `DockContainerBranch` → `DockContainerBranchState`
+- `DockContainerLeaf` → `DockContainerLeafState`
+
+Branch properties such as orientation, divider positions, prune rules, and child containers are captured by `setCommonDockContainerBranchProperties(...)`.
+
+Leaf properties include:
+- prune rules
+- side
+- resizable-with-parent
+- split capability
+- collapsed state and uncollapsed size
+- selected dockable id
+- child dockables
+
+### Error handling philosophy
+
+- Saver attempts to save each stage independently; failure to save one stage should not prevent saving others.
+- Encoding failures are treated as fatal and reported via `BentoStateException`.
+
+## restoreLayout design
+
+### High-level algorithm
+
+`BentoLayoutRestorer#restoreLayout(Stage primaryStage)`:
+
+1. Hide primary stage and close any other existing stages.
+2. Decode the persisted `BentoState` from storage **off the JavaFX application thread** using a scheduled executor and a `CompletableFuture`.
+3. Select a primary root branch:
+   - Prefer the root branch with no parent stage state.
+   - If none exist, fall back to an empty root branch.
+4. Restore that root branch into runtime containers via `DockBuilding`.
+5. Restore any saved `DragDropStageState` instances as secondary stages.
+6. Return the restored `DockContainerRootBranch` for the primary stage.
+
+### How dockables are restored
+
+Restoration resolves dockables by identifier:
+
+- Each persisted `DockableState` provides `identifier`.
+- `restoreDockable(id)` (resolver) obtains the runtime `Dockable`.
+- The dockable is added to the correct container/leaf.
+- Selected dockable id is applied after insertion.
+
+If a dockable cannot be resolved, the restorer logs a warning and continues.
+
+### Property rehydration order
+
+The restorer applies persisted properties in this rough order:
+
+- Container instance creation (via `DockBuilding`)
+- Prune rules / orientation / split flags
+- Dockables insertion
+- Selected dockable selection
+- Divider positions / sizes / collapsed state (for leaves)
+
+Leaf collapse is noted as a known issue (`BENTO-13`) if the runtime leaf does not visually collapse immediately after state application.
+
+## Design patterns used
+
+- **Builder**: `BentoStateBuilder`, `DockContainer*StateBuilder`, `DragDropStageStateBuilder`.
+- **Composite**: Runtime dock container graph (`DockContainerBranch` + `DockContainerLeaf`) and its mirrored state graph.
+- **Strategy**: `LayoutCodec` provides interchangeable encoding/decoding strategies (XML, JSON, etc.). `LayoutStorage` provides interchangeable storage strategies (Database, File, etc.).
+- **Adapter / Mapper** (in codec implementations): codecs often map between domain states and DTOs for JAXB/Jackson friendliness.
+- **Factory**: `DockBuilding` acts as a factory for container instances during restore. `DockContainerLeafMenuFactory` and `DockableMenuFactory` act as factories for `DockContainerLeaf` and `Dockable` context menus.
+- **Service Locator pattern**: `ServiceLocator` is used to discover and load implementations matching Service Provider Interfaces (SPIs): `DockableMenuFactoryProvider`, `DockableProvider`,`DockContainerLeafMenuFactoryProvifer`,`ImageProvider`,`LayoutCodecProvider`,`LayoutPersistenceProvider`, and `LayoutStorageProvider`.
+
+## Possible extension points
+
+- Implement additional `LayoutStorage` backends (web service/cloud, different database implements).
+- Add codec implementations for new formats (YAML) or versioned schemas.
+- Add layout versioning and migration in the codec layer (recommended place).
+
+## Additional capabilities for consideration
+
+- Create a service provider with methods to:
+  - Save layouts as named entries and codec identifiers.
+  - Return a list of saved layouts by name and codec identifier.
+- Update `BoxApp` with menu items to:
+  - Save the current layout.
+  - Restore previously persisted layouts.
