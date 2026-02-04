@@ -21,9 +21,6 @@ plugins {
     alias(libs.plugins.versionsCheck.gradlePlugin)
 }
 
-group = "software.coley.bentofx"
-version = property("version") as String
-
 dependencyAnalysis {
     issues {
         // Configure for all projects

@@ -19,7 +19,7 @@ import java.util.Optional;
  * creating {@link Dockable} instances and other user interface components.
  * <p>
  * <em>
- * Must be initialized using {@link #init(DockBuilding, DockableMenuFactory)}
+ * Must be initialized using {@link #init(DockBuilding, DockableMenuFactoryProvider)}
  * prior to calling {@link #resolveDockable(String)}.
  * </em>
  * </p>
@@ -40,7 +40,7 @@ public interface DockableProvider {
      *
      * @param builder {@link DockBuilding} to use to create
      *                {@link DockContainer} and {@link Dockable} instances.
-     * @param dockableMenuFactory {@link DockableMenuFactory} to use to create
+     * @param dockableMenuFactoryProvider {@link DockableMenuFactory} to use to create
      * {@code ContextMenu} instances.
      */
     void init(

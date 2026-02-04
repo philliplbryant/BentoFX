@@ -28,6 +28,13 @@ dependencies {
 }
 
 /**
+ * This project doesn't contain any classes to document.
+ */
+tasks.withType<Javadoc>().all {
+    enabled = false
+}
+
+/**
  * There appears to be a bug in the Dependency Analysis Gradle Plugin (DAGP),
  * which erroneously reports these dependencies to be unused and/or runtime only.
  * Generally speaking, they are runtime only dependencies **except** they are

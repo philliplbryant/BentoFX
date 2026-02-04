@@ -4,22 +4,24 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 plugins {
+    id("bento.project.project-convention")
     `maven-publish`
+// TODO BENTO-13: Enable JAR signing
 //    `signing`
 //    alias(libs.plugins.jreleaser.gradlePlugin)
 }
+
+// TODO BENTO-13: Revert publishing information to what was originally specified by Col-E
 
 publishing {
     publications {
         create<MavenPublication>("maven") {
 
-            group = "software.coley.bentofx"
             artifactId = project.path
                 // Delete the leading ':'
                 .substring(1)
                 // Replace the remaining ':' with '-'
                 .replace(':', '-')
-            version = property("version") as String
 
             from(components["java"])
 
@@ -57,13 +59,12 @@ publishing {
             findProperty("nexusPassword")?.toString() ?: System.getenv("NEXUS_PASSWORD") ?: ""
 
         maven {
-            url = run {
-                if (project.version.toString().endsWith("-SNAPSHOT")) {
-                    uri("https://nexus.jre.saic.com/repository/jre-central-snapshots/")
-                } else {
-                    uri("https://nexus.jre.saic.com/repository/jre-central/")
-                }
+            url = if (project.version.toString().endsWith("-SNAPSHOT")) {
+                uri("https://nexus.jre.saic.com/repository/jre-central-snapshots/")
+            } else {
+                uri("https://nexus.jre.saic.com/repository/jre-central/")
             }
+
             credentials {
                 username = nexusUsername
                 password = nexusPassword

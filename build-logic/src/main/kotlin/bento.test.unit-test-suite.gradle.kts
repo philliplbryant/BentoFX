@@ -8,9 +8,9 @@ import software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
+    id("bento.project.build-lifecycle")
     id("jacoco")
     id("jvm-test-suite")
-    id("bento.project.build-lifecycle")
 }
 
 val enableJacoco = enableJacoco(project)

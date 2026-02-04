@@ -3,12 +3,9 @@ This is an unpublished work of SAIC.
 Copyright (c) 2019 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-import software.coley.gradle.artifacts.TestFxAlignmentRule
-import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_ACTIVATION_API
-import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_ANNOTATION_API
-import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_INJECT_API
-import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.JAVAX_VALIDATION_API
+import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.*
 import org.gradlex.jvm.dependency.conflict.resolution.JvmDependencyConflictsExtension
+import software.coley.gradle.artifacts.TestFxAlignmentRule
 import software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 import software.coley.gradle.lifecycle.TestLifecycle.getTestReportMode
@@ -18,20 +15,22 @@ import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
     `java-library`
-    id("com.autonomousapps.dependency-analysis")
-    id("jacoco")
     id("bento.project.build-lifecycle")
-    id("jvm-test-suite")
     id("bento.test.unit-test-suite")
+    id("com.autonomousapps.dependency-analysis")
     id("org.gradlex.jvm-dependency-conflict-detection")
     id("org.gradlex.jvm-dependency-conflict-resolution")
 }
+
+// These properties are defined in gradle.properties
+group = property("software.coley.bentofx.group") as String
+version = property("software.coley.bentofx.version") as String
 
 // Version catalog type-safe accessors not available in
 // precompiled script plugins:
 // https://github.com/gradle/gradle/issues/15383.
 // Using version catalog API instead.
-val versionCatalog = versionCatalogs.named("libs")
+val versionCatalog: VersionCatalog = versionCatalogs.named("libs")
 
 // Accommodate all the different ways Gradle and its plugins take the Java
 // version...
@@ -70,6 +69,11 @@ jacoco {
         versionCatalog.findVersion("jacoco").get().requiredVersion
 
     toolVersion = jacocoVersion
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 @Suppress("UnstableApiUsage")
@@ -121,7 +125,7 @@ testing {
 
 tasks {
 
-    val classes by existing
+    val classes: TaskProvider<Task> by existing
 
     named(ALL_CLASSES_TASK_NAME) {
         dependsOn(classes)
@@ -143,14 +147,11 @@ tasks {
         }
     }
 
-    // Use the specific JAR task names (e.g. jar, javadocJar, etc.) instead of
-    // withType<Jar> to prevent using the same file names and overwriting JAR
-    // files when other JAR tasks are executed.
-    named<Jar>("jar").configure {
+    withType<Jar>().configureEach {
 
         // Name JARs using full project name, based on the project path.
-        // Otherwise, we will have JARs with the same names that will collide
-        // when aggregated into the lib directory during installation.
+        // Otherwise, we might get JARs with the same names that will collide
+        // when aggregated by the installer task.
         val projectJarName =
             "${project.path}.jar"
                 // Delete the leading ':'
@@ -158,7 +159,7 @@ tasks {
                 // Replace the remaining ':' with '.'
                 .replace(':', '.')
 
-        archiveFileName.set(projectJarName)
+        archiveBaseName.set(projectJarName)
     }
 
     withType<JavaCompile>().configureEach {
@@ -183,6 +184,11 @@ tasks {
             isFork = true
             forkOptions.memoryMaximumSize = "1g"
         }
+    }
+
+    named<Javadoc>("javadoc").configure {
+        (options as? StandardJavadocDocletOptions)
+            ?.addStringOption("Xdoclint:none", "-quiet")
     }
 
     withType<JavaExec>().configureEach {
