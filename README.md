@@ -5,6 +5,9 @@ A docking system for JavaFX.
 ## Table of Contents
 
 * [Usage](#usage)
+  * [Requirements](#requirements)
+  * [Gradle](#gradle)
+  * [Maven](#maven)
 * [Overview](#overview)
   * [Containers](#containers)
   * [Controls](#controls)
@@ -16,20 +19,21 @@ A docking system for JavaFX.
   * [Dependency Injection](#dependency-injection)
   * [Execution](#execution)
   * [Project Configuration](#project-configuration)
+
 ## Usage
 
-Requirements:
+### Requirements
 
 - JavaFX 19+
 - Java 17+
 
-Gradle syntax:
+### Gradle
 
 ```groovy
 implementation "software.coley:bento-fx:${version}"
 ```
 
-Maven syntax:
+### Maven
 
 ```xml
 <dependency>
@@ -213,7 +217,7 @@ To persist docking layouts between application executions, review the [BoxApp](d
 
 ### Dependency Injection
 
-The `BoxApp` application uses the [Service Locator pattern]() in which `ServiceLocator` is used to discover and load implementations matching the following Service Provider Interfaces (SPIs): 
+The `BoxApp` application uses the [Service Locator pattern](https://en.wikipedia.org/wiki/Service_locator_pattern) in which `ServiceLocator` is used to discover and load implementations matching the following Service Provider Interfaces (SPIs): 
 - `DockableMenuFactoryProvider`
 - `DockableProvider`
 - `DockContainerLeafMenuFactoryProvider`
@@ -221,6 +225,8 @@ The `BoxApp` application uses the [Service Locator pattern]() in which `ServiceL
 - `LayoutCodecProvider`
 - `LayoutPersistenceProvider`
 - `LayoutStorageProvider` 
+
+Alternatively, dependencies could be injected (more directly) using frameworks like Spring. 
 
 ### Execution
 

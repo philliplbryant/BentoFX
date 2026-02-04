@@ -4,8 +4,8 @@ Copyright (c) 2025 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 plugins {
-
     id("bento.project.project-convention")
+    id("bento.release.publish-convention")
     alias(libs.plugins.javafx.gradlePlugin)
 }
 

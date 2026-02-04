@@ -69,7 +69,7 @@ tasks {
     // Use this task to upgrade Gradle in order to keep
     // gradle-wrapper.properties in sync.
     named<Wrapper>("wrapper").configure {
-        gradleVersion = "9.2.1"
+        gradleVersion = "9.3.0"
         // Using `ALL` instead of `BIN` to provide support for developers using
         // the Gradle scripts.
         distributionType = ALL
