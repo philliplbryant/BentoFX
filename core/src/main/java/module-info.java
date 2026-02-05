@@ -1,4 +1,9 @@
-// Just open/export everything. Do whatever you want.
+/**
+ * A docking system for JavaFX.
+ * <p>
+ * Everything is open/exported. Do whatever you want.
+ * </p>
+ */
 open module bento.fx {
 
     requires java.desktop;

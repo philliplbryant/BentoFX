@@ -12,8 +12,7 @@ plugins {
 
 // TODO BENTO-13: Enable JAR signing
 
-// TODO BENTO-13: Revert publishing information to what was originally
-//  specified by Col-E
+// TODO BENTO-13: Use publishing information specified by Col-E
 
 publishing {
     publications {
@@ -28,7 +27,7 @@ publishing {
             from(components["java"])
 
             pom {
-                url.set("https://github.com/philliplbryant/BentoFX")
+                url.set("https://github.com/Col-E/BentoFX")
                 inceptionYear.set("2025")
 
                 licenses {
@@ -39,20 +38,29 @@ publishing {
                 }
                 developers {
                     developer {
+                        id = "Col-E"
+                        name = "Matt Coley"
+                    }
+                    developer {
                         id.set("philliplbryant")
                         name.set("Phil Bryant")
                     }
                 }
                 scm {
-                    connection.set("scm:git:https://github.com/philliplbryant/BentoFX.git")
-                    developerConnection.set("scm:git:ssh://github.com/philliplbryant-E/BentoFX.git")
-                    url.set("https://github.com/philliplbryant/BentoFX")
+                    connection.set("scm:git:https://github.com/Col-E/BentoFX.git")
+                    developerConnection.set("scm:git:ssh://github.com/Col-E/BentoFX.git")
+                    url.set("https://github.com/Col-E/BentoFX")
                 }
             }
         }
     }
 
     repositories {
+
+//        mavenLocal()
+//        maven {
+//            url = layout.buildDirectory.dir('staging-deploy')
+//        }
 
         val nexusUsername: String =
             findProperty("nexusUsername")?.toString() ?: System.getenv("NEXUS_USERNAME") ?: ""
@@ -73,7 +81,6 @@ publishing {
             }
         }
     }
-}
 
 //jreleaser {
 //    signing {
@@ -114,4 +121,5 @@ publishing {
 //            }
 //        }
 //    }
-//}
+
+}
