@@ -20,6 +20,7 @@ plugins {
     id("com.autonomousapps.dependency-analysis")
     id("org.gradlex.jvm-dependency-conflict-detection")
     id("org.gradlex.jvm-dependency-conflict-resolution")
+    id("org.jreleaser")
 }
 
 // These properties are defined in gradle.properties

@@ -152,6 +152,10 @@ module = "org.junit.jupiter:junit-jupiter-api"
 module = "org.gradlex:jvm-dependency-conflict-resolution"
 version.ref = "jvmDependencyConflict-gradlePlugin"
 
+[libraries.jreleaser-gradlePlugin-dependency]
+module = "org.jreleaser:org.jreleaser.gradle.plugin"
+version.ref = "jreleaser-gradlePlugin"
+
 [libraries.kotlin-bom]
 module = "org.jetbrains.kotlin:kotlin-bom"
 version.ref = "kotlin"

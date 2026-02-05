@@ -6,12 +6,14 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
 plugins {
     id("bento.project.project-convention")
     `maven-publish`
-// TODO BENTO-13: Enable JAR signing
-//    `signing`
-//    alias(libs.plugins.jreleaser.gradlePlugin)
+    signing
+    id("org.jreleaser")
 }
 
-// TODO BENTO-13: Revert publishing information to what was originally specified by Col-E
+// TODO BENTO-13: Enable JAR signing
+
+// TODO BENTO-13: Revert publishing information to what was originally
+//  specified by Col-E
 
 publishing {
     publications {

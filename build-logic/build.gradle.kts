@@ -21,6 +21,5 @@ dependencies {
     }
 
     implementation(libs.jvmDependencyConflict.gradlePlugin.dependency)
-    implementation(libs.kotlin.gradlePlugin.dependency)
-    implementation(libs.kotlin.spring.gradlePlugin.dependency)
+    implementation(libs.jreleaser.gradlePlugin.dependency)
 }
