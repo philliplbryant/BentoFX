@@ -18,33 +18,16 @@ dependencies {
     /*
      * BOMs
      * Ordering matters! Declaring a BOM before subsequent platform declarations
-     * will cause third-party dependencies declared in the BOM to be overriden
+     * will cause third-party dependencies declared in the BOM to be overridden
      * by those platform declarations.
      */
 
-    // First instead of alphabetically because the Spring Boot BOM includes
-    // many third-party dependencies that we may want to override with
-    // subsequent platform declarations.
-    api(platform(libs.springboot.bom)) {
-        because(
-            """
-            We leverage the Spring Boot BOM as the reference set for all Spring
-            and many third-party libraries. Before adding additional BOMs or
-            individual artifact version constraints, you can see whether the
-            artifact in question is already covered (replacing "current" with
-            the `springBootVersion` value as needed):
-            https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
-
-            The Spring Boot BOM includes additional non-Spring dependencies, so
-            importing as an enforcedPlatform could be problematic.
-
-            Gradle processes platform declarations in the order they appear.
-            When multiple platforms declare the same dependency, the last
-            declared platform takes precedence.
-            """.trimIndent()
-        )
+    // First instead of alphabetically because the BOM includes many third-party
+    // dependencies that we may want to override with subsequent platform
+    // declarations.
+    api(platform(libs.jackson.bom)) {
         version {
-            strictly(libs.versions.springboot.constraint.get())
+            strictly(libs.versions.jackson.get())
         }
     }
 
