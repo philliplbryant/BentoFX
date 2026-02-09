@@ -340,8 +340,11 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
 
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(leaf)
-                .ifPresent(leaf::setMenuFactory);
+        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                leaf.getIdentifier()
+        ).ifPresent(
+                leaf::setMenuFactory
+        );
 
         state.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
 

@@ -251,15 +251,15 @@ public class BoxApp extends Application {
 
         // Add dummy menus to each.
         dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafTools
+                leafTools.getIdentifier()
         ).ifPresent(leafTools::setMenuFactory);
 
         dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafWorkspaceHeaders
+                leafWorkspaceHeaders.getIdentifier()
         ).ifPresent(leafWorkspaceHeaders::setMenuFactory);
 
         dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafWorkspaceTools
+                leafWorkspaceTools.getIdentifier()
         ).ifPresent(leafWorkspaceTools::setMenuFactory);
 
         // These leaves shouldn't auto-expand. They are intended to be a set size.

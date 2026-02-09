@@ -22,8 +22,8 @@ public class BoxAppDockContainerLeafMenuFactoryProvider
         implements DockContainerLeafMenuFactoryProvider {
 
     @Override
-    public @NotNull Optional<@Nullable DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
-            final @Nullable DockContainerLeaf dockContainerLeaf
+    public @NotNull Optional<@NotNull DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
+            final @Nullable String dockContainerLeafIdentifier
     ) {
         return Optional.of(factory);
     }
