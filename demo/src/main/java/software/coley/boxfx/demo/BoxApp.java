@@ -59,6 +59,10 @@ public class BoxApp extends Application {
     @Override
     public void init() {
 
+        // TODO BENTO-13: The bento will not be created here, it will be
+        //  acquired from the layoutRestorer's retore method. The layoutRestorer
+        //  will either create the bento or it will acquire it from the method
+        //  used to create the default layout.
         final Bento bento = new Bento();
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
