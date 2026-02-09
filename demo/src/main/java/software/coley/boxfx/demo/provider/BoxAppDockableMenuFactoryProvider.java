@@ -21,7 +21,7 @@ public class BoxAppDockableMenuFactoryProvider
 
     @Override
     public @NotNull Optional<DockableMenuFactory> createDockableMenuFactory(
-            @NotNull Dockable dockable
+            @NotNull String dockableIdentifier
     ) {
         return Optional.of(factory);
     }

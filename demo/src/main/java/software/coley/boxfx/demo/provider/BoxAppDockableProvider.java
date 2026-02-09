@@ -192,10 +192,11 @@ public class BoxAppDockableProvider implements DockableProvider {
 
         if (dockableMenuFactoryProvider != null) {
 
-            dockableMenuFactoryProvider.createDockableMenuFactory(dockable)
-                    .ifPresent(
-                            dockable::setContextMenuFactory
-                    );
+            dockableMenuFactoryProvider.createDockableMenuFactory(
+                    dockable.getIdentifier()
+            ).ifPresent(
+                    dockable::setContextMenuFactory
+            );
         }
 
         if (s > 0) {

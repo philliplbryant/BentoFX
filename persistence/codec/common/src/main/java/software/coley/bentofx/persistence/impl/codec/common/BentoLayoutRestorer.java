@@ -408,8 +408,11 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
         final @Nullable Dockable dockable = optionalDockableProvider.orElse(null);
 
         if (dockable != null) {
-            dockableMenuFactoryProvider.createDockableMenuFactory(dockable)
-                    .ifPresent(dockable::setContextMenuFactory);
+            dockableMenuFactoryProvider.createDockableMenuFactory(
+                    dockable.getIdentifier()
+            ).ifPresent(
+                    dockable::setContextMenuFactory
+            );
         }
 
         return dockable;

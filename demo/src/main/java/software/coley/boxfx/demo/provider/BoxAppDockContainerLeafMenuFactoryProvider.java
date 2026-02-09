@@ -5,7 +5,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
@@ -23,7 +22,7 @@ public class BoxAppDockContainerLeafMenuFactoryProvider
 
     @Override
     public @NotNull Optional<@NotNull DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
-            final @Nullable String dockContainerLeafIdentifier
+            final @NotNull String dockContainerLeafIdentifier
     ) {
         return Optional.of(factory);
     }

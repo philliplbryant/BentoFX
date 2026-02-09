@@ -1,7 +1,6 @@
 package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 
@@ -23,6 +22,6 @@ public interface DockContainerLeafMenuFactoryProvider {
      * @return a {@link DockContainerLeafMenuFactory}.
      */
     @NotNull Optional<@NotNull DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
-            final @Nullable String dockContainerLeafIdentifier
+            final @NotNull String dockContainerLeafIdentifier
     );
 }

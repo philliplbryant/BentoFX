@@ -1,7 +1,6 @@
 package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
-import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
 
 import java.util.Optional;
@@ -20,6 +19,6 @@ public interface DockableMenuFactoryProvider {
      * @return a {@link DockableMenuFactory}
      */
     @NotNull Optional<DockableMenuFactory> createDockableMenuFactory(
-            final @NotNull Dockable dockable
+            final @NotNull String dockableIdentifier
     );
 }
