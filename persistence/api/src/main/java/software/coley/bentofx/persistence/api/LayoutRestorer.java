@@ -6,8 +6,10 @@
 package software.coley.bentofx.persistence.api;
 
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.codec.BentoStateException;
+
+import java.util.function.Supplier;
 
 /**
  * The Application Programming Interface for restoring a persisted BentoFX layout.
@@ -16,6 +18,8 @@ import software.coley.bentofx.persistence.api.codec.BentoStateException;
  */
 public interface LayoutRestorer {
 
-    DockContainerRootBranch restoreLayout(final Stage primaryStage)
-            throws BentoStateException;
+    DockContainerRootBranch restoreLayout(
+            final @NotNull Stage primaryStage,
+            final @NotNull Supplier<DockContainerRootBranch> defaultLayoutSupplier
+    );
 }

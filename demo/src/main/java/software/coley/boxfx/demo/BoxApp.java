@@ -53,6 +53,11 @@ public class BoxApp extends Application {
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
 
+    // TODO BENTO-13: Do not create the Bento here; it should be acquired from
+    //  the layoutRestorer's restore method. The layoutRestorer will create the
+    //  Bento and pass it into the method used to create default layout.
+    private final Bento bento = new Bento();
+
     /**
      * Uses {@link ServiceLoader} and Service Provider Interfaces to acquire
      * injected dependencies before starting the JavaFX application.
@@ -60,11 +65,6 @@ public class BoxApp extends Application {
     @Override
     public void init() {
 
-        // TODO BENTO-13: The bento will not be created here, it will be
-        //  acquired from the layoutRestorer's retore method. The layoutRestorer
-        //  will either create the bento or it will acquire it from the method
-        //  used to create the default layout.
-        final Bento bento = new Bento();
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
         );
@@ -158,27 +158,18 @@ public class BoxApp extends Application {
 
         DockContainerRootBranch branchRoot;
 
-        // If a prior layout has been saved, restore the BentoFX layout from the
+        // If a prior docking layout has been saved, restore it from the
         // persisted state. Otherwise, use the default layout.
         if (layoutStorage.exists()) {
-            try {
-                branchRoot = layoutRestorer.restoreLayout(stage);
 
-            } catch (final BentoStateException e) {
+            branchRoot = layoutRestorer.restoreLayout(
+                    stage,
+                    this::getDefaultLayout
+            );
 
-                logger.warn(
-                        "Could not restore the saved layout; using the " +
-                                "default layout instead.",
-                        e
-                );
-
-                branchRoot =
-                        constructDefaultDockContainerRootBranch();
-            }
         } else {
 
-            branchRoot =
-                    constructDefaultDockContainerRootBranch();
+            branchRoot = getDefaultLayout();
         }
 
         Scene scene = new Scene(branchRoot);
@@ -195,6 +186,10 @@ public class BoxApp extends Application {
                 logger.warn("Could not save the Bento layout.", e);
             }
         });
+
+        // We don't need to wait for dockables to be initialized so we can show
+        // all of our stages now.
+        // TODO BENTO-13: Use the Bento to show all stages
         stage.show();
     }
 
@@ -236,7 +231,7 @@ public class BoxApp extends Application {
         }
     }
 
-    private DockContainerRootBranch constructDefaultDockContainerRootBranch() {
+    private DockContainerRootBranch getDefaultLayout() {
 
         DockContainerRootBranch branchRoot = builder.root("root");
         DockContainerBranch branchWorkspace = builder.branch("workspace");

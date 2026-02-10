@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -77,8 +78,10 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
     @Override
     public @NotNull DockContainerRootBranch restoreLayout(
-            final @NotNull Stage primaryStage
-    ) throws BentoStateException {
+            final @NotNull Stage primaryStage,
+            final @NotNull Supplier<DockContainerRootBranch> defaultLayoutSupplier
+    ) {
+
         try {
 
             // TODO BENTO-13: Persist and restore to size and position of the primary stage?
@@ -142,17 +145,20 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
         } catch (final ExecutionException e) {
 
-            throw new BentoStateException(
+            logger.warn(
                     "An error occurred while attempting to read the layout",
                     e
             );
+            return defaultLayoutSupplier.get();
+
         } catch (final InterruptedException e) {
 
             Thread.currentThread().interrupt();
-            throw new BentoStateException(
+            logger.warn(
                     "Interrupted while attempting to read the layout",
                     e
             );
+            return defaultLayoutSupplier.get();
         }
     }
 
