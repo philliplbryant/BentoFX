@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
-import software.coley.bentofx.building.StageBuilding;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
@@ -24,8 +23,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.ImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
@@ -56,31 +54,25 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private final @NotNull LayoutStorage layoutStorage;
     private final @NotNull LayoutCodec codec;
     private final @NotNull DockBuilding dockBuilding;
-    private final @NotNull StageBuilding stageBuilding;
-    private final @NotNull DockableProvider dockableProvider;
+    private final @NotNull DockableStateProvider dockableStateProvider;
     private final @NotNull ImageProvider imageProvider;
     private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
-    private final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider;
-
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull LayoutCodec codec,
-            final @NotNull DockableProvider dockableProvider,
+            final @NotNull DockableStateProvider dockableStateProvider,
             final @NotNull ImageProvider imageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
-            final @NotNull DockableMenuFactoryProvider dockableMenuFactoryProvider
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
-        this.stageBuilding = bento.stageBuilding();
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.codec = Objects.requireNonNull(codec);
-        this.dockableProvider = Objects.requireNonNull(dockableProvider);
+        this.dockableStateProvider = Objects.requireNonNull(dockableStateProvider);
         this.imageProvider = Objects.requireNonNull(imageProvider);
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
-        this.dockableMenuFactoryProvider = dockableMenuFactoryProvider;
     }
 
     @Override
@@ -89,7 +81,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     ) throws BentoStateException {
         try {
 
-            // TODO BENTO-13: Persist and restore to size and position of the primary stage
+            // TODO BENTO-13: Persist and restore to size and position of the primary stage?
 
             primaryStage.hide();
             closeOtherStages(primaryStage);
@@ -178,9 +170,6 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
     private void restoreDragDropStage(
             final @NotNull DragDropStageState stageState
     ) {
-
-        // TODO BENTO-13: Should this use a StageBuilding and, if so, how?
-//        stageBuilding.newStageForDockable()
 
         final DragDropStage stage = new DragDropStage(
                 stageState.isAutoClosedWhenEmpty()
@@ -402,17 +391,48 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
 
     private @Nullable Dockable restoreDockable(@NotNull String dockableIdentifier) {
 
-        final @NotNull Optional<Dockable> optionalDockableProvider =
-                dockableProvider.resolveDockable(dockableIdentifier);
+        final @NotNull Optional<DockableState> optionalDockableProvider =
+                dockableStateProvider.resolveDockableState(dockableIdentifier);
 
-        final @Nullable Dockable dockable = optionalDockableProvider.orElse(null);
+        final @Nullable DockableState dockableState = optionalDockableProvider.orElse(null);
 
-        if (dockable != null) {
-            dockableMenuFactoryProvider.createDockableMenuFactory(
-                    dockable.getIdentifier()
-            ).ifPresent(
+        Dockable dockable;
+
+        if (dockableState != null) {
+
+            dockable = dockBuilding.dockable(dockableIdentifier);
+
+            dockableState.getTitle().ifPresent(
+                    dockable::setTitle
+            );
+
+            dockableState.getDockableIconFactory().ifPresent(
+                    dockable::setIconFactory
+            );
+
+            dockableState.getDockableNode().ifPresent(
+                    dockable::setNode
+            );
+
+            dockableState.getDockableMenuFactory().ifPresent(
                     dockable::setContextMenuFactory
             );
+
+            dockableState.getDragGroupMask().ifPresent(
+                    dockable::setDragGroupMask
+            );
+
+            dockableState.isClosable().ifPresent(
+                    dockable::setClosable
+            );
+
+            dockableState.getDockableConsumer().ifPresent(consumer ->
+                    consumer.accept(dockable)
+            );
+
+        } else {
+
+            dockable = null;
         }
 
         return dockable;

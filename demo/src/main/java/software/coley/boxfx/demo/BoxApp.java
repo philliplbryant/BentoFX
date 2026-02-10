@@ -23,6 +23,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.DockableState;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -30,7 +31,7 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import java.util.ServiceLoader;
 
 import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvider.DEFAULT_LAYOUT_NAME;
-import static software.coley.boxfx.demo.provider.BoxAppDockableProvider.*;
+import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
 
 /**
  * JavaFX application that demonstrates using the BentoFX framework.
@@ -45,7 +46,7 @@ public class BoxApp extends Application {
 
     private DockBuilding builder;
     private LayoutStorage layoutStorage;
-    private DockableProvider dockableProvider;
+    private DockableStateProvider dockableStateProvider;
     private ImageProvider imageProvider;
     private DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
     private DockableMenuFactoryProvider dockableMenuFactoryProvider;
@@ -94,16 +95,16 @@ public class BoxApp extends Application {
                 storageProviders.iterator().next();
         layoutStorage =
                 storageProvider.createLayoutStorage(
-                                     DEFAULT_LAYOUT_NAME,
+                        DEFAULT_LAYOUT_NAME,
                         layoutCodec.getIdentifier()
                 );
 
-        // DockableProvider
-        final Iterable<DockableProvider> dockableProviders =
-                ServiceLoader.load(DockableProvider.class);
+        // DockableStateProvider
+        final Iterable<DockableStateProvider> dockableProviders =
+                ServiceLoader.load(DockableStateProvider.class);
 
-        dockableProvider = dockableProviders.iterator().next();
-        dockableProvider.init(builder, dockableMenuFactoryProvider);
+        dockableStateProvider = dockableProviders.iterator().next();
+        dockableStateProvider.init(builder, dockableMenuFactoryProvider);
 
         // ImageProvider
         final Iterable<ImageProvider> imageProviders =
@@ -141,10 +142,9 @@ public class BoxApp extends Application {
                 bento,
                 layoutStorage,
                 layoutCodec,
-                dockableProvider,
+                dockableStateProvider,
                 imageProvider,
-                dockContainerLeafMenuFactoryProvider,
-                dockableMenuFactoryProvider
+                dockContainerLeafMenuFactoryProvider
         );
     }
 
@@ -324,11 +324,42 @@ public class BoxApp extends Application {
             final @NotNull String dockableId,
             final @NotNull DockContainer container
     ) {
-        dockableProvider.resolveDockable(dockableId)
+        dockableStateProvider.resolveDockableState(dockableId)
                 .ifPresentOrElse(
-                        container::addDockable,
-                        () -> logger.warn("Could not add dockable {}.", dockableId)
+                        dockableState ->
+                                container.addDockable(
+                                        createDockable(dockableState)
+                                ),
+                        () ->
+                                logger.warn(
+                                        "Could not add dockable {}.",
+                                        dockableId
+                                )
                 );
+    }
 
+    private @NotNull Dockable createDockable(
+            @NotNull DockableState dockableState
+    ) {
+        final Dockable dockable =
+                builder.dockable(dockableState.getIdentifier());
+
+        dockableState.getDockableNode().ifPresent(
+                dockable::setNode
+        );
+
+        dockableState.getTitle().ifPresent(
+                dockable::setTitle
+        );
+
+        dockableState.getDockableIconFactory().ifPresent(
+                dockable::setIconFactory
+        );
+
+        dockableState.getDockableMenuFactory().ifPresent(
+                dockable::setContextMenuFactory
+        );
+
+        return dockable;
     }
 }

@@ -8,7 +8,7 @@ import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProv
 import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactoryProvider;
-import software.coley.boxfx.demo.provider.BoxAppDockableProvider;
+import software.coley.boxfx.demo.provider.BoxAppDockableStateProvider;
 import software.coley.boxfx.demo.provider.BoxAppImageProvider;
 
 /**
@@ -76,7 +76,7 @@ module bento.fx.demo {
 
     // <editor-fold desc="Service provider interfaces used">
 
-    uses DockableProvider;
+    uses DockableStateProvider;
     uses ImageProvider;
     uses DockContainerLeafMenuFactoryProvider;
     uses DockableMenuFactoryProvider;
@@ -90,8 +90,8 @@ module bento.fx.demo {
 
     // <editor-fold desc="Service provider implementations used">
 
-    // DockableProvider
-    uses BoxAppDockableProvider;
+    // DockableStateProvider
+    uses BoxAppDockableStateProvider;
     // ImageProvider
     uses BoxAppImageProvider;
     // DockContainerLeafMenuFactoryProvider
@@ -109,8 +109,8 @@ module bento.fx.demo {
 
     // <editor-fold desc="Service provider implementations provided">
 
-    provides DockableProvider with
-            BoxAppDockableProvider;
+    provides DockableStateProvider with
+            BoxAppDockableStateProvider;
 
     provides ImageProvider with
             BoxAppImageProvider;

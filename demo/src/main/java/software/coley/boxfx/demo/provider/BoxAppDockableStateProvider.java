@@ -15,10 +15,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.persistence.api.codec.DockableState;
+import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableProvider;
+import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,11 +33,14 @@ import static javafx.scene.paint.Color.BLACK;
 
 /**
  * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link DockableProvider}.
+ * {@link DockableStateProvider}.
  *
  * @author Phil Bryant
  */
-public class BoxAppDockableProvider implements DockableProvider {
+public class BoxAppDockableStateProvider implements DockableStateProvider {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(BoxAppDockableStateProvider.class);
 
     public static final @NotNull String WORKSPACE_DOCKABLE_ID = "Workspace";
     public static final @NotNull String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
@@ -48,7 +55,7 @@ public class BoxAppDockableProvider implements DockableProvider {
     public static final @NotNull String CLASS_5_DOCKABLE_ID = "Class 5";
 
     @NotNull
-    private final Map<@NotNull String, @NotNull Dockable> dockablesMap =
+    private final Map<@NotNull String, @NotNull DockableState> dockablesMap =
             new HashMap<>();
 
     public void init(
@@ -61,8 +68,8 @@ public class BoxAppDockableProvider implements DockableProvider {
         Platform.runLater(() -> {
                     dockablesMap.put(
                             WORKSPACE_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    WORKSPACE_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     1,
                                     0,
@@ -71,8 +78,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             BOOKMARKS_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    BOOKMARKS_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     1,
                                     1,
@@ -81,8 +88,9 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             MODIFICATIONS_DOCKABLE_ID,
-                            buildDockable(
-                                    builder, dockableMenuFactoryProvider,
+                            buildDockableState(
+                                    MODIFICATIONS_DOCKABLE_ID,
+                                    dockableMenuFactoryProvider,
                                     1,
                                     2,
                                     MODIFICATIONS_DOCKABLE_ID
@@ -90,8 +98,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             LOGGING_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    LOGGING_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     2,
                                     0,
@@ -100,8 +108,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             TERMINAL_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    TERMINAL_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     2,
                                     1,
@@ -110,8 +118,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             PROBLEMS_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    PROBLEMS_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     2,
                                     2,
@@ -120,8 +128,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_1_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    CLASS_1_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     0,
                                     0,
@@ -130,8 +138,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_2_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    CLASS_2_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     0,
                                     1,
@@ -140,8 +148,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_3_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    CLASS_3_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     0,
                                     2,
@@ -150,8 +158,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_4_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    CLASS_4_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     0,
                                     3,
@@ -160,8 +168,8 @@ public class BoxAppDockableProvider implements DockableProvider {
                     );
                     dockablesMap.put(
                             CLASS_5_DOCKABLE_ID,
-                            buildDockable(
-                                    builder,
+                            buildDockableState(
+                                    CLASS_5_DOCKABLE_ID,
                                     dockableMenuFactoryProvider,
                                     0,
                                     4,
@@ -173,41 +181,41 @@ public class BoxAppDockableProvider implements DockableProvider {
     }
 
     @Override
-    public Optional<@Nullable Dockable> resolveDockable(String id) {
+    public @NotNull Optional<@NotNull DockableState> resolveDockableState(
+            String id
+    ) {
         return Optional.ofNullable(dockablesMap.get(id));
     }
 
-    @NotNull
-    private Dockable buildDockable(
-            @NotNull DockBuilding builder,
+    private @NotNull DockableState buildDockableState(
+            @NotNull String identifier,
             @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider,
             int s,
             int i,
             @NotNull String title
     ) {
-        Dockable dockable = builder.dockable(title);
-        dockable.setTitle(title);
-        dockable.setIconFactory(d -> makeIcon(s, i));
-        dockable.setNode(new Label("<" + title + ":" + i + ">"));
+        DockableStateBuilder builder = new DockableStateBuilder(identifier)
+                .setTitle(title)
+                .setDockableIconFactory(dockable -> makeIcon(s, i))
+                .setDockableNode(new Label("<" + title + ":" + i + ">"))
+                .setDockableConsumer(
+                        BoxAppDockableStateProvider::consumeDockable
+                );
 
         if (dockableMenuFactoryProvider != null) {
-
-            dockableMenuFactoryProvider.createDockableMenuFactory(
-                    dockable.getIdentifier()
-            ).ifPresent(
-                    dockable::setContextMenuFactory
-            );
+            dockableMenuFactoryProvider.createDockableMenuFactory(identifier)
+                    .ifPresent(builder::setDockableMenuFactory);
         }
 
         if (s > 0) {
-            dockable.setDragGroupMask(1);
-            dockable.setClosable(false);
+            builder.setDragGroupMask(1);
+            builder.setClosable(false);
         }
-        return dockable;
+
+        return builder.build();
     }
 
-    @NotNull
-    private static Shape makeIcon(int shapeMode, int i) {
+    private static @NotNull Shape makeIcon(int shapeMode, int i) {
         final int radius = 6;
         Shape icon = switch (shapeMode) {
             case 1 -> new Polygon(
@@ -241,5 +249,16 @@ public class BoxAppDockableProvider implements DockableProvider {
                 )
         );
         return icon;
+    }
+
+    /**
+     * Callback function executed when the {@link Dockable} is created from the
+     * {@link DockableState} returned by {@link #buildDockableState}.
+     *
+     * @param dockable the {@link Dockable} created from the
+     *                 {@link DockableState} returned by {@link #buildDockableState}.
+     */
+    private static void consumeDockable(@NotNull Dockable dockable) {
+        logger.debug("Consuming dockable {}", dockable);
     }
 }

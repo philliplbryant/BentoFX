@@ -11,6 +11,7 @@ import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.layout.DockContainer;
+import software.coley.bentofx.persistence.api.codec.DockableState;
 
 import java.util.Optional;
 
@@ -20,20 +21,20 @@ import java.util.Optional;
  * <p>
  * <em>
  * Must be initialized using {@link #init(DockBuilding, DockableMenuFactoryProvider)}
- * prior to calling {@link #resolveDockable(String)}.
+ * prior to calling {@link #resolveDockableState(String)}.
  * </em>
  * </p>
  *
  * @author Phil Bryant
  */
-public interface DockableProvider {
+public interface DockableStateProvider {
 
     /**
-     * Initializes this {@code DockableProvider}.
+     * Initializes this {@code DockableStateProvider}.
      *
      * <p>
      * <em>
-     * The {@code DockableProvider} must be iniatilized to create
+     * The {@code DockableStateProvider} must be iniatilized to create
      * {@link DockContainer} and {@link Dockable} instances
      * </em>
      * </p>
@@ -54,5 +55,5 @@ public interface DockableProvider {
      * @param id the identifier of the {@link Dockable} to be returned.
      * @return the {@link Dockable} with the given identifier.
      */
-    Optional<@Nullable Dockable> resolveDockable(String id);
+    @NotNull Optional<@NotNull DockableState> resolveDockableState(String id);
 }
