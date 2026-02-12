@@ -16,6 +16,7 @@ import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorag
 module bento.fx.persistence.storage.file {
 
     requires transitive bento.fx.persistence.api;
+
     requires transitive java.logging;
 
     requires static org.jetbrains.annotations;

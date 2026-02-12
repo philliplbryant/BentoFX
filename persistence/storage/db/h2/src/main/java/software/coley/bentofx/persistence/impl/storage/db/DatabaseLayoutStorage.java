@@ -27,7 +27,6 @@ public class DatabaseLayoutStorage implements LayoutStorage {
     private static final Logger logger =
             LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
-
     private final @NotNull EntityManagerFactory emf;
     private final @NotNull String layoutIdentifier;
     private final @NotNull String codecIdentifier;

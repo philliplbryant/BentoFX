@@ -3,7 +3,7 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.impl.codec.common;
+package software.coley.bentofx.persistence.impl;
 
 import javafx.stage.Stage;
 import javafx.stage.Window;

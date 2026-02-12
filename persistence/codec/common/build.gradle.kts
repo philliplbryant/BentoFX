@@ -13,7 +13,6 @@ description = "BentoFX Persistence"
 
 dependencies {
 
-    api(projects.core)
     api(projects.persistence.api)
 
     api(libs.jackson.annotations)
@@ -21,8 +20,6 @@ dependencies {
     api(libs.javafx.graphics)
 
     implementation(libs.slf4j.api)
-    implementation(libs.javafx.base)
-    implementation(libs.javafx.controls)
 
     compileOnly(libs.jakarta.annotation)
     compileOnly(libs.jetbrains.annotations)

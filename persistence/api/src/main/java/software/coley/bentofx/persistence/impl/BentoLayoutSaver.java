@@ -3,7 +3,7 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.impl.codec.common;
+package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Node;
 import javafx.stage.Stage;
@@ -37,7 +37,7 @@ import java.util.Objects;
  *
  * @author Phil Bryant
  */
-public final class BentoLayoutSaver implements LayoutSaver {
+public class BentoLayoutSaver implements LayoutSaver {
 
     private static final Logger logger =
             LoggerFactory.getLogger(BentoLayoutSaver.class);
@@ -47,16 +47,16 @@ public final class BentoLayoutSaver implements LayoutSaver {
     @NotNull
     private final LayoutStorage layoutStorage;
     @NotNull
-    private final LayoutCodec codec;
+    private final LayoutCodec layoutCodec;
 
     public BentoLayoutSaver(
             final @NotNull Bento bento,
-            final @NotNull LayoutStorage layoutStorage,
-            final @NotNull LayoutCodec layoutCodec
+            final @NotNull LayoutCodec layoutCodec,
+            final @NotNull LayoutStorage layoutStorage
     ) {
         this.bento = Objects.requireNonNull(bento);
+        this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
-        this.codec = Objects.requireNonNull(layoutCodec);
     }
 
     @Override
@@ -116,7 +116,7 @@ public final class BentoLayoutSaver implements LayoutSaver {
 
         try (final OutputStream out = layoutStorage.openOutputStream()) {
 
-            codec.encode(state, out);
+            layoutCodec.encode(state, out);
         } catch (final Exception ex) {
 
             throw new BentoStateException("Failed to encode BentoState", ex);
@@ -220,9 +220,6 @@ public final class BentoLayoutSaver implements LayoutSaver {
             final @NotNull DockContainerBranchStateBuilder builder,
             final @NotNull DockContainerBranch branch
     ) {
-
-        // TODO BENTO-13: Set parent?
-//            builder.setParent(parent);
 
         builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
 

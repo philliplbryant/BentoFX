@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 /**
  * {@code ServiceLoader} compatible Service Provider Interface for creating
@@ -20,18 +18,13 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
  */
 public interface LayoutPersistenceProvider {
 
-    @NotNull LayoutSaver createLayoutSaver(
-            final @NotNull Bento bento,
-            final @NotNull LayoutStorage layoutStorage,
-            final @NotNull LayoutCodec layoutCodec
-    );
+    @NotNull Bento getBento();
 
-    @NotNull LayoutRestorer createLayoutRestorer(
-            final @NotNull Bento bento,
-            final @NotNull LayoutStorage layoutStorage,
-            final @NotNull LayoutCodec layoutCodec,
+    @NotNull LayoutSaver getLayoutSaver();
+
+    @NotNull LayoutRestorer getLayoutRestorer(
             final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull ImageProvider imageProvider,
+            final @NotNull StageIconImageProvider stageIconImageProvider,
             final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     );
 }

@@ -17,5 +17,8 @@ dependencies {
 
     api(libs.javafx.graphics)
 
+    implementation(libs.javafx.base)
+    implementation(libs.slf4j.api)
+
     compileOnly(libs.jetbrains.annotations)
 }

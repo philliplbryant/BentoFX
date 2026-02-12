@@ -4,7 +4,7 @@
  ******************************************************************************/
 
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.impl.codec.provider.XmlLayoutCodecProvider;
+import software.coley.bentofx.persistence.impl.codec.xml.provider.XmlLayoutCodecProvider;
 
 /**
  * This module implements the Application Programming Interface (API) for
@@ -23,8 +23,8 @@ module bento.fx.persistence.codec.xml {
 
     requires static org.jetbrains.annotations;
 
-	exports software.coley.bentofx.persistence.impl.codec.xml;
-    exports software.coley.bentofx.persistence.impl.codec.provider;
+    exports software.coley.bentofx.persistence.impl.codec.xml;
+    exports software.coley.bentofx.persistence.impl.codec.xml.provider;
 
     provides LayoutCodecProvider with XmlLayoutCodecProvider;
 }

@@ -3,7 +3,7 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.impl.codec.common;
+package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
@@ -24,7 +24,7 @@ import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.api.provider.ImageProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
@@ -46,34 +46,39 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  *
  * @author Phil Bryant
  */
-public final class BentoLayoutRestorer implements LayoutRestorer {
+public class BentoLayoutRestorer implements LayoutRestorer {
 
     private static final Logger logger = LoggerFactory.getLogger(BentoLayoutRestorer.class);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int UID_CAPACITY = 8;
 
     private final @NotNull LayoutStorage layoutStorage;
-    private final @NotNull LayoutCodec codec;
+    private final @NotNull LayoutCodec layoutCodec;
     private final @NotNull DockBuilding dockBuilding;
     private final @NotNull DockableStateProvider dockableStateProvider;
-    private final @NotNull ImageProvider imageProvider;
+    private final @NotNull StageIconImageProvider stageIconImageProvider;
     private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
+            final @NotNull LayoutCodec layoutCodec,
             final @NotNull LayoutStorage layoutStorage,
-            final @NotNull LayoutCodec codec,
             final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull ImageProvider imageProvider,
+            final @NotNull StageIconImageProvider stageIconImageProvider,
             final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
+        this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
-        this.codec = Objects.requireNonNull(codec);
         this.dockableStateProvider = Objects.requireNonNull(dockableStateProvider);
-        this.imageProvider = Objects.requireNonNull(imageProvider);
+        this.stageIconImageProvider = Objects.requireNonNull(stageIconImageProvider);
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
+    }
+
+    @Override
+    public boolean doesLayoutExist() {
+        return layoutStorage.exists();
     }
 
     @Override
@@ -105,7 +110,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                                             layoutStorage.openInputStream()
                             ) {
 
-                                futureState.complete(codec.decode(in));
+                                futureState.complete(layoutCodec.decode(in));
                             } catch (final BentoStateException | IOException e) {
                                 futureState.completeExceptionally(e);
                             }
@@ -181,7 +186,7 @@ public final class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        stage.getIcons().addAll(imageProvider.getDefaultStageIcons());
+        stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
         stageState.getTitle().ifPresent(stage::setTitle);
         stageState.getX().ifPresent(stage::setX);
         stageState.getY().ifPresent(stage::setY);

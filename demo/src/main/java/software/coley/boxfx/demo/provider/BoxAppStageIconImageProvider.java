@@ -4,7 +4,7 @@ import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.provider.ImageProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,14 +14,14 @@ import java.util.List;
 
 /**
  * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link ImageProvider}.
+ * {@link StageIconImageProvider}.
  *
  * @author Phil Bryant
  */
-public class BoxAppImageProvider implements ImageProvider {
+public class BoxAppStageIconImageProvider implements StageIconImageProvider {
 
     private static final Logger logger =
-            LoggerFactory.getLogger(BoxAppImageProvider.class);
+            LoggerFactory.getLogger(BoxAppStageIconImageProvider.class);
 
     private static final @NotNull List<@NotNull String> ICON_RESOURCES = List.of(
             "/images/logo-16.png",
@@ -31,7 +31,7 @@ public class BoxAppImageProvider implements ImageProvider {
     );
 
     @Override
-    public @NotNull Collection<@NotNull Image> getDefaultStageIcons() {
+    public @NotNull Collection<@NotNull Image> getStageIcons() {
 
         final List<@NotNull Image> images = new ArrayList<>();
 

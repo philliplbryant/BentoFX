@@ -17,11 +17,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.persistence.api.codec.DockableState;
 import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 
 import java.util.HashMap;
@@ -58,11 +57,14 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
     private final Map<@NotNull String, @NotNull DockableState> dockablesMap =
             new HashMap<>();
 
-    public void init(
-            final @NotNull DockBuilding builder,
-            final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider
+    /**
+     * Creates a {@code BoxAppDockableStateProvider}.
+     * @param dockableMenuFactory {@link DockableMenuFactory} to use to create
+     * {@code ContextMenu} instances.
+     */
+    public BoxAppDockableStateProvider(
+            final @Nullable DockableMenuFactory dockableMenuFactory
     ) {
-
         // Initialization of these values must be performed on the JavaFX
         // Application Thread because they create JavaFX components.
         Platform.runLater(() -> {
@@ -70,7 +72,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             WORKSPACE_DOCKABLE_ID,
                             buildDockableState(
                                     WORKSPACE_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     1,
                                     0,
                                     WORKSPACE_DOCKABLE_ID
@@ -80,7 +82,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             BOOKMARKS_DOCKABLE_ID,
                             buildDockableState(
                                     BOOKMARKS_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     1,
                                     1,
                                     BOOKMARKS_DOCKABLE_ID
@@ -90,7 +92,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             MODIFICATIONS_DOCKABLE_ID,
                             buildDockableState(
                                     MODIFICATIONS_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     1,
                                     2,
                                     MODIFICATIONS_DOCKABLE_ID
@@ -100,7 +102,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             LOGGING_DOCKABLE_ID,
                             buildDockableState(
                                     LOGGING_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     2,
                                     0,
                                     LOGGING_DOCKABLE_ID
@@ -110,7 +112,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             TERMINAL_DOCKABLE_ID,
                             buildDockableState(
                                     TERMINAL_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     2,
                                     1,
                                     TERMINAL_DOCKABLE_ID
@@ -120,7 +122,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             PROBLEMS_DOCKABLE_ID,
                             buildDockableState(
                                     PROBLEMS_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     2,
                                     2,
                                     PROBLEMS_DOCKABLE_ID
@@ -130,7 +132,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             CLASS_1_DOCKABLE_ID,
                             buildDockableState(
                                     CLASS_1_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     0,
                                     0,
                                     CLASS_1_DOCKABLE_ID
@@ -140,7 +142,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             CLASS_2_DOCKABLE_ID,
                             buildDockableState(
                                     CLASS_2_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     0,
                                     1,
                                     CLASS_2_DOCKABLE_ID
@@ -150,7 +152,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             CLASS_3_DOCKABLE_ID,
                             buildDockableState(
                                     CLASS_3_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     0,
                                     2,
                                     CLASS_3_DOCKABLE_ID
@@ -160,7 +162,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             CLASS_4_DOCKABLE_ID,
                             buildDockableState(
                                     CLASS_4_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     0,
                                     3,
                                     CLASS_4_DOCKABLE_ID
@@ -170,7 +172,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                             CLASS_5_DOCKABLE_ID,
                             buildDockableState(
                                     CLASS_5_DOCKABLE_ID,
-                                    dockableMenuFactoryProvider,
+                                    dockableMenuFactory,
                                     0,
                                     4,
                                     CLASS_5_DOCKABLE_ID
@@ -189,7 +191,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 
     private @NotNull DockableState buildDockableState(
             @NotNull String identifier,
-            @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider,
+            @Nullable DockableMenuFactory dockableMenuFactory,
             int s,
             int i,
             @NotNull String title
@@ -200,12 +202,8 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
                 .setDockableNode(new Label("<" + title + ":" + i + ">"))
                 .setDockableConsumer(
                         BoxAppDockableStateProvider::consumeDockable
-                );
+                ).setDockableMenuFactory(dockableMenuFactory);
 
-        if (dockableMenuFactoryProvider != null) {
-            dockableMenuFactoryProvider.createDockableMenuFactory(identifier)
-                    .ifPresent(builder::setDockableMenuFactory);
-        }
 
         if (s > 0) {
             builder.setDragGroupMask(1);

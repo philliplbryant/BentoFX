@@ -2,8 +2,8 @@
 
 This document describes the design of BentoFX layout persistence as implemented by:
 
-- `software.coley.bentofx.persistence.impl.codec.common.BentoLayoutSaver#saveLayout()`
-- `software.coley.bentofx.persistence.impl.codec.common.BentoLayoutRestorer#restoreLayout(Stage)`
+- `software.coley.bentofx.persistence.impl.BentoLayoutSaver#saveLayout()`
+- `software.coley.bentofx.persistence.impl.BentoLayoutRestorer#restoreLayout(Stage)`
 
 [Bento layout persistence diagrams](bento-layout-persistence-diagrams.md) are also available.
 

@@ -3,7 +3,7 @@
  Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
-package software.coley.bentofx.persistence.impl.storage.provider;
+package software.coley.bentofx.persistence.impl.storage.db.provider;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;

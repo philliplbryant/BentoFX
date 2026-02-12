@@ -8,4 +8,4 @@
  *
  * @author Phil Bryant
  */
-package software.coley.bentofx.persistence.impl.codec.common;
+package software.coley.bentofx.persistence.impl;

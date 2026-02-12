@@ -24,13 +24,18 @@ import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.DockableState;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.*;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
+import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactory;
+import software.coley.boxfx.demo.provider.BoxAppDockableStateProvider;
+import software.coley.boxfx.demo.provider.BoxAppStageIconImageProvider;
 
+import java.util.Iterator;
 import java.util.ServiceLoader;
 
-import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvider.DEFAULT_LAYOUT_NAME;
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
 
 /**
@@ -44,19 +49,22 @@ public class BoxApp extends Application {
     private static final Logger logger =
             LoggerFactory.getLogger(BoxApp.class);
 
-    private DockBuilding builder;
-    private LayoutStorage layoutStorage;
-    private DockableStateProvider dockableStateProvider;
-    private ImageProvider imageProvider;
-    private DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
-    private DockableMenuFactoryProvider dockableMenuFactoryProvider;
+    private final DockableStateProvider dockableStateProvider =
+            new BoxAppDockableStateProvider(
+                    new BoxAppDockableMenuFactory()
+            );
+
+    private final StageIconImageProvider stageIconImageProvider =
+            new BoxAppStageIconImageProvider();
+    ;
+
+    private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider =
+            new BoxAppDockContainerLeafMenuFactoryProvider();
+    ;
+
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
-
-    // TODO BENTO-13: Do not create the Bento here; it should be acquired from
-    //  the layoutRestorer's restore method. The layoutRestorer will create the
-    //  Bento and pass it into the method used to create default layout.
-    private final Bento bento = new Bento();
+    private DockBuilding builder;
 
     /**
      * Uses {@link ServiceLoader} and Service Provider Interfaces to acquire
@@ -64,6 +72,37 @@ public class BoxApp extends Application {
      */
     @Override
     public void init() {
+
+        final Bento bento;
+
+        final Iterable<LayoutPersistenceProvider> persistenceProviders =
+                ServiceLoader.load(LayoutPersistenceProvider.class);
+
+        final Iterator<LayoutPersistenceProvider> persistenceProviderIterator =
+                persistenceProviders.iterator();
+
+        if (!persistenceProviderIterator.hasNext()) {
+
+            logger.warn("No LayoutPersistenceProvider found. " +
+                    "Docking persistence will not be enabled.");
+
+            bento = new Bento();
+
+        } else {
+
+            final LayoutPersistenceProvider persistenceProvider =
+                    persistenceProviderIterator.next();
+
+            layoutSaver = persistenceProvider.getLayoutSaver();
+
+            layoutRestorer = persistenceProvider.getLayoutRestorer(
+                    dockableStateProvider,
+                    stageIconImageProvider,
+                    dockContainerLeafMenuFactoryProvider
+            );
+
+            bento = persistenceProvider.getBento();
+        }
 
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
@@ -77,75 +116,6 @@ public class BoxApp extends Application {
         });
 
         builder = bento.dockBuilding();
-
-        // Use the ServiceLoader to inject Service Provider implementations for
-        // storing, encoding, and decoding Bento layouts.
-
-        // LayoutCodecProvider
-        final Iterable<LayoutCodecProvider> codecProviders =
-                ServiceLoader.load(LayoutCodecProvider.class);
-        final LayoutCodecProvider codecProvider =
-                codecProviders.iterator().next();
-        final LayoutCodec layoutCodec = codecProvider.createLayoutCodec();
-
-        // LayoutStorageProvider - use the default layout name
-        final Iterable<LayoutStorageProvider> storageProviders =
-                ServiceLoader.load(LayoutStorageProvider.class);
-        final LayoutStorageProvider storageProvider =
-                storageProviders.iterator().next();
-        layoutStorage =
-                storageProvider.createLayoutStorage(
-                        DEFAULT_LAYOUT_NAME,
-                        layoutCodec.getIdentifier()
-                );
-
-        // DockableStateProvider
-        final Iterable<DockableStateProvider> dockableProviders =
-                ServiceLoader.load(DockableStateProvider.class);
-
-        dockableStateProvider = dockableProviders.iterator().next();
-        dockableStateProvider.init(builder, dockableMenuFactoryProvider);
-
-        // ImageProvider
-        final Iterable<ImageProvider> imageProviders =
-                ServiceLoader.load(ImageProvider.class);
-
-        imageProvider = imageProviders.iterator().next();
-
-        // DockContainerLeafMenuFactoryProvider
-        final Iterable<DockContainerLeafMenuFactoryProvider> dockContainerLeafMenuFactoryProviders =
-                ServiceLoader.load(DockContainerLeafMenuFactoryProvider.class);
-
-        dockContainerLeafMenuFactoryProvider =
-                dockContainerLeafMenuFactoryProviders.iterator().next();
-
-        // DockableMenuFactoryProvider
-        final Iterable<DockableMenuFactoryProvider> dockableMenuFactoryProviders =
-                ServiceLoader.load(DockableMenuFactoryProvider.class);
-
-        dockableMenuFactoryProvider =
-                dockableMenuFactoryProviders.iterator().next();
-
-        // LayoutPersistenceProvider
-        final Iterable<LayoutPersistenceProvider> persistenceProviders =
-                ServiceLoader.load(LayoutPersistenceProvider.class);
-        final LayoutPersistenceProvider persistenceProvider =
-                persistenceProviders.iterator().next();
-
-        layoutSaver = persistenceProvider.createLayoutSaver(
-                bento,
-                layoutStorage,
-                layoutCodec
-        );
-
-        layoutRestorer = persistenceProvider.createLayoutRestorer(
-                bento,
-                layoutStorage,
-                layoutCodec,
-                dockableStateProvider,
-                imageProvider,
-                dockContainerLeafMenuFactoryProvider
-        );
     }
 
     @Override
@@ -153,14 +123,14 @@ public class BoxApp extends Application {
 
         stage.setWidth(1000);
         stage.setHeight(700);
-        stage.getIcons().addAll(imageProvider.getDefaultStageIcons());
+        stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
         stage.setTitle("BentoFX Demo");
 
         DockContainerRootBranch branchRoot;
 
         // If a prior docking layout has been saved, restore it from the
         // persisted state. Otherwise, use the default layout.
-        if (layoutStorage.exists()) {
+        if (layoutRestorer != null && layoutRestorer.doesLayoutExist()) {
 
             branchRoot = layoutRestorer.restoreLayout(
                     stage,
@@ -177,20 +147,33 @@ public class BoxApp extends Application {
         stage.setScene(scene);
         stage.setOnHidden(e -> System.exit(0));
         stage.setOnCloseRequest(event -> {
-
-            try {
-
-                layoutSaver.saveLayout();
-            } catch (BentoStateException e) {
-
-                logger.warn("Could not save the Bento layout.", e);
-            }
+            close();
         });
 
         // We don't need to wait for dockables to be initialized so we can show
         // all of our stages now.
         // TODO BENTO-13: Use the Bento to show all stages
         stage.show();
+    }
+
+    private void close() {
+
+        if (layoutSaver == null) {
+
+            logger.warn("No LayoutPersistenceProvider found. " +
+                    "Docking layout will not be persisted.");
+
+        } else {
+
+            try {
+
+                layoutSaver.saveLayout();
+
+            } catch (BentoStateException e) {
+
+                logger.warn("Could not save the Bento layout.", e);
+            }
+        }
     }
 
     private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {
@@ -322,6 +305,9 @@ public class BoxApp extends Application {
         dockableStateProvider.resolveDockableState(dockableId)
                 .ifPresentOrElse(
                         dockableState ->
+                                // Our application isn't doing anything with the
+                                // reconstructed Dockable. Just add it to the
+                                // container.
                                 container.addDockable(
                                         createDockable(dockableState)
                                 ),

@@ -1,6 +1,6 @@
 /*******************************************************************************
 This is an unpublished work of SAIC.
-Copyright (c) 2025 SAIC. All Rights Reserved.
+Copyright (c) 2026 SAIC. All Rights Reserved.
  ******************************************************************************/
 
 plugins {
@@ -13,7 +13,9 @@ description = "H2 Database Implementation of the Bento LayoutStorage interface."
 
 dependencies {
 
-    api(projects.persistence.storage.db.common)
+    api(projects.persistence.api)
+
+    api(libs.jakarta.persistence)
 
     implementation(libs.byte.buddy)
     implementation(libs.hibernate.hikari.cp)
@@ -21,17 +23,15 @@ dependencies {
     implementation(libs.jakarta.cdi.api)
     implementation(libs.jakarta.el)
     implementation(libs.jakarta.transaction)
+    implementation(libs.slf4j.api)
     implementation(libs.zaxxer.hikari.cp)
+
+    compileOnly(libs.hibernate.core)
+
+    compileOnly(libs.jetbrains.annotations)
 
     runtimeOnly(libs.h2)
     runtimeOnly(libs.javafx.controls)
-}
-
-/**
- * This project doesn't contain any classes to document.
- */
-tasks.withType<Javadoc>().all {
-    enabled = false
 }
 
 /**
@@ -44,7 +44,6 @@ tasks.withType<Javadoc>().all {
 dependencyAnalysis {
     issues {
         onUnusedDependencies {
-            exclude(projects.persistence.storage.db.common)
             exclude(libs.byte.buddy)
             exclude(libs.jakarta.cdi.api)
             exclude(libs.jakarta.el)
