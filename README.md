@@ -26,7 +26,7 @@ A docking system for JavaFX.
   * [Extending Persistence](#extending-persistence)
 * [Demo Application](#demo-application)
 
-## Requirements**
+## Requirements
 
 - JavaFX 19+
 - Java 17+
