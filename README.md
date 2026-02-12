@@ -17,7 +17,7 @@ A docking system for JavaFX.
   * [Example](#example)
     * [Construct the Default Docking Layout](#construct-the-default-layout)
     * [Show the Layout](#show-it)
-* [Persistence Framework](#persistence-module)
+* [Persistence Framework](#persistence-modules)
   * [Usage](#persistence-usage)
     * [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
     * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
@@ -247,6 +247,7 @@ The persistence framework has dependencies on the following modules:
     * File (`persistence-storage-file`)
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>   
+
 ```groovy  
 implementation 'software.coley.bentofx:persistence-api:${version}'
 runtimeOnly 'software.coley.bentofx:persistence-codec-xml:${version}'
@@ -254,6 +255,7 @@ runtimeOnly 'software.coley.bentofx:persistence-storage-file:${version}'
 ```
 
 <h4 id="persistence-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>  
+
 ```kotlin  
 implementation("software.coley.bentofx:persistence-api:${version}")
 runtimeOnly("software.coley.bentofx:persistence-codec-xml:${version}")
@@ -261,6 +263,7 @@ runtimeOnly("software.coley.bentofx:persistence-storage-file:${version}")
 ```
 
 <h4 id="persistence-maven">Maven</h4>   
+
 ```xml  
 <dependency>
     <groupId>software.coley.bentofx</groupId>
