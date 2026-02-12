@@ -287,25 +287,25 @@ The primary interface for interacting with persistence framework is the `LayoutP
 `BentoLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
 
 1. Manual construction
-    ```java
-    final LayoutPersistenceProvider provider =   
-      new BentoLayoutPersistenceProvider();
-    ```
+```java
+final LayoutPersistenceProvider provider =   
+  new BentoLayoutPersistenceProvider();
+```
 
 2. Using `ServiceLocator`
-    ```java
-    final Iterable<LayoutPersistenceProvider> persistenceProviders =
-            ServiceLoader.load(LayoutPersistenceProvider.class);
+```java
+final Iterable<LayoutPersistenceProvider> persistenceProviders =
+        ServiceLoader.load(LayoutPersistenceProvider.class);
 
-    final Iterator<LayoutPersistenceProvider> persistenceProviderIterator =
-            persistenceProviders.iterator();
-  
-    if (persistenceProviderIterator.hasNext()) {
-  
-        final LayoutPersistenceProvider persistenceProvider =
-                persistenceProviderIterator.next();
-    }
-    ```
+final Iterator<LayoutPersistenceProvider> persistenceProviderIterator =
+        persistenceProviders.iterator();
+
+if (persistenceProviderIterator.hasNext()) {
+
+    final LayoutPersistenceProvider persistenceProvider =
+            persistenceProviderIterator.next();
+}
+```
 
 Once the `LayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver`, `LayoutRestorer`, and `Bento` implementations:  
 
@@ -370,46 +370,46 @@ The `BentoLayoutPersistenceProvider` uses the `ServiceLoader` to acquire `Layout
 Albeit otherwise not very useful, the following example is provided to demonstrate extending the `BentoLayoutPersistenceProvider` to use a `LayoutStorage` other than the default implementations provided by the persistence framework:
 
 1. Implement the `LayoutStorage` interface:
-   ```java
-   public class SystemLayoutStorage implements LayoutStorage {
-      @Override
-       public boolean exists() {
-           // For our example, just return false; otherwise, 
-           // the LayoutRestorer will attempt to read a 
-           // previously persisted layout that doesn't exist.
-           return false;
-       }
-
-       @Override
-       public OutputStream openOutputStream() throws IOException {
-           return System.out;
-       }
-
-       @Override
-       public InputStream openInputStream() throws IOException {
-           return System.in;
-       }
+```java
+public class SystemLayoutStorage implements LayoutStorage {
+  @Override
+   public boolean exists() {
+       // For our example, just return false; otherwise, 
+       // the LayoutRestorer will attempt to read a 
+       // previously persisted layout that doesn't exist.
+       return false;
    }
-   ```
+
+   @Override
+   public OutputStream openOutputStream() throws IOException {
+       return System.out;
+   }
+
+   @Override
+   public InputStream openInputStream() throws IOException {
+       return System.in;
+   }
+}
+```
 
 2. Implement the `LayoutStorageProvider` interface to return an instantiated implementation of the interface:
-   ```java
-    public class SystemLayoutStorageProvider implements LayoutStorageProvider {
-       @Override
-       public LayoutStorage createLayoutStorage(
-          final @NotNull String layoutIdentifier,
-          final @NotNull String codecIdentifier
-       ) {
+```java
+public class SystemLayoutStorageProvider implements LayoutStorageProvider {
+   @Override
+   public LayoutStorage createLayoutStorage(
+      final @NotNull String layoutIdentifier,
+      final @NotNull String codecIdentifier
+   ) {
 
-          return new SystemLayoutStorage();
-       }
+      return new SystemLayoutStorage();
    }
-   ```
+}
+```
  
 3. Register the provider implementation with the module's descriptor:
-   ```java
-   provides LayoutStorageProvider with SystemLayoutStorageProvider;
-   ``` 
+```java
+provides LayoutStorageProvider with SystemLayoutStorageProvider;
+``` 
 
 Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces and registering the `LayoutCodecProvider` implementation with the module's descriptor.     
 
