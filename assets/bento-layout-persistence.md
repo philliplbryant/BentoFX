@@ -121,8 +121,8 @@ The restorer applies persisted properties in this rough order:
 
 ## Extension points
 
-- Users may implement additional `LayoutStorage` backends (web service/cloud, additional database implementations, etc.).
-- Users may implement additional codec formats (YAML, Protobuf, etc.) or versioned schemas.
+- Users may implement additional storage destinations (Google Remote Procedure Call (gRPC), web service, cloud, additional database implementations, etc.).
+- Users may implement additional codec formats (Protobuf, YAML, etc.) or versioned schemas.
 
 ## Additional capabilities under consideration
 
@@ -130,6 +130,7 @@ The restorer applies persisted properties in this rough order:
 - Create a service provider with methods to:
   - Save layouts as named entries and codec identifiers.
   - Return a list of saved layouts by name and codec identifier.
+  - Restore a layout by name and codec identifier.
 - Update `BoxApp` with menu items to:
-  - Save the current layout.
-  - Restore previously persisted layouts.
+  - Save the current layout without exiting.
+  - Restore previously persisted layouts by name and codec identifier.
