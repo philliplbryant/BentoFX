@@ -39,7 +39,8 @@ import java.util.ServiceLoader;
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
 
 /**
- * JavaFX application that demonstrates using the BentoFX framework.
+ * JavaFX application that demonstrates using the BentoFX docking and docking
+ * persistence frameworks.
  *
  * @author Matt Coley
  * @author Phil Bryant
@@ -147,7 +148,7 @@ public class BoxApp extends Application {
         stage.setScene(scene);
         stage.setOnHidden(e -> System.exit(0));
         stage.setOnCloseRequest(event -> {
-            close();
+            doOnClose();
         });
 
         // We don't need to wait for dockables to be initialized so we can show
@@ -156,7 +157,7 @@ public class BoxApp extends Application {
         stage.show();
     }
 
-    private void close() {
+    private void doOnClose() {
 
         if (layoutSaver == null) {
 
@@ -171,7 +172,7 @@ public class BoxApp extends Application {
 
             } catch (BentoStateException e) {
 
-                logger.warn("Could not save the Bento layout.", e);
+                logger.warn("Could not save the docking layout.", e);
             }
         }
     }

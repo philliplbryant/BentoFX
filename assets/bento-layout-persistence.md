@@ -9,7 +9,7 @@ This document describes the design of BentoFX layout persistence as implemented 
 
 ## Scope
 
-This doc focuses on the persistence orchestration, not rendering, docking UX, or module dependency graphs.
+This document focuses on the persistence orchestration, not rendering, docking UX, or module dependency graphs.
 
 ## Key concepts
 
@@ -19,7 +19,7 @@ Persistence is expressed as immutable-ish *state* objects (built via builders) r
 
 - `BentoState` is the persistence root.
 - `DockContainerRootBranchState`, `DockContainerBranchState`, `DockContainerLeafState` represent the container tree.
-- `DockableState` represents a dockable identity in a container/leaf.
+- `DockableState` represents a dockable identity in a container/leaf and contains references to factories used to reconstruct a dockable.
 - `DragDropStageState` represents secondary (drag/drop) stages and contains a root-branch state.
 
 ### Storage and codec
@@ -29,7 +29,7 @@ Persistence is a two-step pipeline:
 1. Build a `BentoState` snapshot (in-memory).
 2. Encode/decode via a `LayoutCodec` to/from a `LayoutStorage` stream.
 
-This decoupling lets you choose XML/JSON (or future formats) without changing the save/restore logic.
+This decoupling lets you choose the persisted format (XML/JSON or future formats) without changing the save/restore logic.
 
 ## saveLayout design
 
@@ -49,8 +49,12 @@ This decoupling lets you choose XML/JSON (or future formats) without changing th
 
 The saver walks the Bento container graph and converts each runtime container to its corresponding `*State`:
 
+- `Bento` → `BentoState`
+- `DragDropStage` → `DragDropStageState`
+- `DockContainerRootBranch` → `DockContainerRootBranchState`
 - `DockContainerBranch` → `DockContainerBranchState`
 - `DockContainerLeaf` → `DockContainerLeafState`
+- `Dockable` → `DockableState`
 
 Branch properties such as orientation, divider positions, prune rules, and child containers are captured by `setCommonDockContainerBranchProperties(...)`.
 
@@ -88,13 +92,13 @@ Leaf properties include:
 Restoration resolves dockables by identifier:
 
 - Each persisted `DockableState` provides `identifier`.
-- `restoreDockable(id)` (resolver) obtains the runtime `Dockable`.
-- The dockable is added to the correct container/leaf.
-- Selected dockable id is applied after insertion.
+- `restoreDockableState(id)` (resolver) obtains the runtime `DockableState`.
+- The dockable is reconstructed from the `DockableState` and added to the correct container/leaf.
+- Selected dockable id is applied after `Dockable` addition.
 
 If a dockable cannot be resolved, the restorer logs a warning and continues.
 
-### Property rehydration order
+### Property restoration order
 
 The restorer applies persisted properties in this rough order:
 
@@ -104,7 +108,7 @@ The restorer applies persisted properties in this rough order:
 - Selected dockable selection
 - Divider positions / sizes / collapsed state (for leaves)
 
-Leaf collapse is noted as a known issue (`BENTO-13`) if the runtime leaf does not visually collapse immediately after state application.
+> <span style="font-size: 1.5em;">💡</span> Leaf collapse is noted as a known issue (`BENTO-13`) where the runtime leaf does not visually collapse after state restoration.
 
 ## Design patterns used
 
@@ -113,16 +117,16 @@ Leaf collapse is noted as a known issue (`BENTO-13`) if the runtime leaf does no
 - **Strategy**: `LayoutCodec` provides interchangeable encoding/decoding strategies (XML, JSON, etc.). `LayoutStorage` provides interchangeable storage strategies (Database, File, etc.).
 - **Adapter / Mapper** (in codec implementations): codecs often map between domain states and DTOs for JAXB/Jackson friendliness.
 - **Factory**: `DockBuilding` acts as a factory for container instances during restore. `DockContainerLeafMenuFactory` and `DockableMenuFactory` act as factories for `DockContainerLeaf` and `Dockable` context menus.
-- **Service Locator pattern**: `ServiceLocator` is used to discover and load implementations matching Service Provider Interfaces (SPIs): `DockableMenuFactoryProvider`, `DockableProvider`,`DockContainerLeafMenuFactoryProvifer`,`ImageProvider`,`LayoutCodecProvider`,`LayoutPersistenceProvider`, and `LayoutStorageProvider`.
+- **Service Locator pattern**: `ServiceLocator` is used to discover and load implementations matching Service Provider Interfaces (SPIs): `LayoutPersistenceProvider`, `LayoutCodecProvider`,and `LayoutStorageProvider`.
 
-## Possible extension points
+## Extension points
 
-- Implement additional `LayoutStorage` backends (web service/cloud, different database implements).
-- Add codec implementations for new formats (YAML) or versioned schemas.
-- Add layout versioning and migration in the codec layer (recommended place).
+- Users may implement additional `LayoutStorage` backends (web service/cloud, additional database implementations, etc.).
+- Users may implement additional codec formats (YAML, Protobuf, etc.) or versioned schemas.
 
-## Additional capabilities for consideration
+## Additional capabilities under consideration
 
+- Add layout versioning and migration (recommend in the codec layer).
 - Create a service provider with methods to:
   - Save layouts as named entries and codec identifiers.
   - Return a list of saved layouts by name and codec identifier.

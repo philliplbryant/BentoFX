@@ -56,23 +56,23 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     private final @NotNull LayoutCodec layoutCodec;
     private final @NotNull DockBuilding dockBuilding;
     private final @NotNull DockableStateProvider dockableStateProvider;
-    private final @NotNull StageIconImageProvider stageIconImageProvider;
-    private final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
+    private final @Nullable StageIconImageProvider stageIconImageProvider;
+    private final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
     public BentoLayoutRestorer(
             final @NotNull Bento bento,
             final @NotNull LayoutCodec layoutCodec,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull StageIconImageProvider stageIconImageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            final @Nullable StageIconImageProvider stageIconImageProvider,
+            final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         Objects.requireNonNull(bento);
         this.dockBuilding = bento.dockBuilding();
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.dockableStateProvider = Objects.requireNonNull(dockableStateProvider);
-        this.stageIconImageProvider = Objects.requireNonNull(stageIconImageProvider);
+        this.stageIconImageProvider = stageIconImageProvider;
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
     }
 
@@ -186,7 +186,9 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
+        if(stageIconImageProvider != null) {
+            stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
+        }
         stageState.getTitle().ifPresent(stage::setTitle);
         stageState.getX().ifPresent(stage::setX);
         stageState.getY().ifPresent(stage::setY);
@@ -340,11 +342,13 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
 
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leaf.getIdentifier()
-        ).ifPresent(
-                leaf::setMenuFactory
-        );
+        if(dockContainerLeafMenuFactoryProvider != null) {
+            dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+                    leaf.getIdentifier()
+            ).ifPresent(
+                    leaf::setMenuFactory
+            );
+        }
 
         state.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
 

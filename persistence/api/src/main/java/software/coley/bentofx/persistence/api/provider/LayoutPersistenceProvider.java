@@ -6,6 +6,7 @@
 package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
@@ -24,7 +25,7 @@ public interface LayoutPersistenceProvider {
 
     @NotNull LayoutRestorer getLayoutRestorer(
             final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull StageIconImageProvider stageIconImageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            final @Nullable StageIconImageProvider stageIconImageProvider,
+            final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     );
 }

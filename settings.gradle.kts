@@ -42,7 +42,6 @@ include(":persistence:codec:common")
 include(":persistence:codec:json")
 include(":persistence:codec:xml")
 include(":persistence:storage:file")
-//include(":persistence:storage:db:common")
 include(":persistence:storage:db:h2")
 
 include("demo")

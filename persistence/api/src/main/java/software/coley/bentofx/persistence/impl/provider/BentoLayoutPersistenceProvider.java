@@ -74,8 +74,8 @@ public class BentoLayoutPersistenceProvider
     @Override
     public @NotNull LayoutRestorer getLayoutRestorer(
             final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull StageIconImageProvider stageIconImageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
+            final @Nullable StageIconImageProvider stageIconImageProvider,
+            final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         if (layoutRestorer == null) {
 

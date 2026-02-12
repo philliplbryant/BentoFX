@@ -6,11 +6,11 @@
 classDiagram
   direction LR
 
-  class BentoLayoutSaver {
+  class LayoutSaver {
     +saveLayout()
   }
 
-  class BentoLayoutRestorer {
+  class LayoutRestorer {
     +restoreLayout(primaryStage)
   }
 
@@ -35,8 +35,8 @@ classDiagram
     +leaf(id)
   }
 
-  class DockableResolver {
-    +resolveDockable(id)
+  class DockableStateResolver {
+    +resolveDockableState(id)
   }
 
   LayoutSaver --> LayoutStorage : writes
@@ -46,7 +46,7 @@ classDiagram
   LayoutRestorer --> LayoutStorage : reads
   LayoutRestorer --> LayoutCodec : decodes
   LayoutRestorer --> DockBuilding : creates containers
-  LayoutRestorer --> DockableResolver : resolves dockables
+  LayoutRestorer --> DockableStateResolver : resolves dockable states
   LayoutRestorer --> BentoState : consumes
 ```
 
@@ -56,7 +56,7 @@ classDiagram
 sequenceDiagram
   autonumber
   actor App
-  participant Saver as BentoLayoutSaver
+  participant Saver as LayoutSaver
   participant Fx as FxStageUtils
   participant Storage as LayoutStorage
   participant Codec as LayoutCodec
@@ -84,11 +84,11 @@ sequenceDiagram
 sequenceDiagram
   autonumber
   actor App
-  participant Restorer as BentoLayoutRestorer
+  participant Restorer as LayoutRestorer
   participant Storage as LayoutStorage
   participant Codec as LayoutCodec
   participant Dock as DockBuilding
-  participant Resolver as DockableResolver
+  participant Resolver as DockableStateResolver
 
   App->>Restorer: restoreLayout(primaryStage)
   Restorer->>Restorer: primaryStage.hide()
@@ -105,7 +105,7 @@ sequenceDiagram
     Restorer->>Dock: root(rootBranchState.id)
     Restorer->>Restorer: restore containers and properties
     loop dockables in states
-      Restorer->>Resolver: resolveDockable(id)
+      Restorer->>Resolver: resolveDockableState(id)
       Restorer->>Restorer: addDockable / selectDockable
     end
     loop dragDropStageStates
