@@ -227,7 +227,7 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 ## Persistence Modules
 
-The [persistence](./persistence) modules create a framework that can be used to supplement the [core module](#core-module), allowing BentoFX docking layouts that have been customized at runtime to be to saved and restored across application executions.  Application developers control the format and storage destination by adding runtime dependencies to implementations of codec and storage interfaces as noted below.
+The [persistence](./persistence) modules create a framework that can be used to supplement the [core](#core-module) module, allowing BentoFX docking layouts that have been customized at runtime to be to saved and restored across application executions.  Application developers control the format and storage destination by adding runtime dependencies to implementations of codec and storage interfaces as noted below.
 
 > <span style="font-size: 1.5em;">💡</span> The persistence framework is currently limited to saving and restoring a single format at a single storage destination.
 
@@ -237,14 +237,14 @@ The persistence framework has dependencies on the following modules:
 * Persistence API  
   The persistence API contains core classes for saving and restoring docking layouts using the format and storage destination implementations discovered at runtime.
     * `persistence-api`
-* Codec implementation  
-  The codec implementation contain classes for encoding and decoding the docking layout in the format defined by the implementation. The BentoFX persistence framework includes the following codec implementations:
+* Codec implementations  
+  The codec implementations contain classes for encoding and decoding the docking layout in the format defined by each implementation. The BentoFX persistence framework includes the following codec implementations:
     * JavaScript Object notation (JSON) (`persistence-codec-json`)
     * eXtensible Markup Language (XML) (`persistence-codec-xml`)
-* Storage implementation  
-  The storage implementation contain classes for reading and writing the docking layout to input and output streams as defined by the implementation. The BentoFX persistence framework includes the following storage implementations:
-    * H2 Database (`persistence-storage-db-h2`)
+* Storage implementations  
+  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes the following storage implementations:
     * File (`persistence-storage-file`)
+    * H2 Database (`persistence-storage-db-h2`)
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>   
 
@@ -285,6 +285,7 @@ runtimeOnly("software.coley.bentofx:persistence-storage-file:${version}")
 ```
 
 <h3 id=persistence-overview>Overview</h3>
+
 The primary interface for interacting with persistence framework is the `LayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer` that can be used to persist and restore a docking layout.  
 
 `BentoLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
@@ -353,7 +354,8 @@ private void doOnClose() {
 The `LayoutRestorer` is used to restore the last saved docking layout, similar to the follows:
 
 ```java
-// If a prior docking layout has been saved, restore it from the persisted state. Otherwise, use the default layout.
+// If a prior docking layout has been saved, restore it from the    
+// persisted state. Otherwise, use the default layout.
 if (layoutRestorer != null && layoutRestorer.doesLayoutExist()) {
 
     branchRoot = layoutRestorer.restoreLayout(
@@ -417,17 +419,17 @@ provides LayoutStorageProvider with SystemLayoutStorageProvider;
 Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces and registering the `LayoutCodecProvider` implementation with the module's descriptor.     
 
 For complete examples, refer to these modules:
-[JSON Codec](./persistence/codec/json)
-[XML Codec](./persistence/codec/xml)
-[H2 Database Storage](./persistence/storage/db/h2)
+[JSON Codec](./persistence/codec/json)  
+[XML Codec](./persistence/codec/xml)  
+[H2 Database Storage](./persistence/storage/db/h2)  
 [File Storage](./persistence/storage/file)  
 
 API and usage documentation can be found [here](assets/bento-layout-persistence.md).
 
 The following are also provided for additional information on using the `ServiceLoader`:
-https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
-https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html
-https://www.baeldung.com/java-spi
+https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
+https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html   
+https://www.baeldung.com/java-spi   
 
 ## Demo Application
 
