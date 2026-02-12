@@ -418,7 +418,7 @@ provides LayoutStorageProvider with SystemLayoutStorageProvider;
 
 Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces and registering the `LayoutCodecProvider` implementation with the module's descriptor.     
 
-For complete examples, refer to these modules:
+For complete examples, refer to these modules:  
 [JSON Codec](./persistence/codec/json)  
 [XML Codec](./persistence/codec/xml)  
 [H2 Database Storage](./persistence/storage/db/h2)  
@@ -426,7 +426,7 @@ For complete examples, refer to these modules:
 
 API and usage documentation can be found [here](assets/bento-layout-persistence.md).
 
-The following are also provided for additional information on using the `ServiceLoader`:
+The following are also provided for additional information on using `ServiceLoader`:
 https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
 https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html   
 https://www.baeldung.com/java-spi   
