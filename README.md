@@ -247,21 +247,21 @@ The persistence framework has dependencies on the following modules:
     * File (`persistence-storage-file`)
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>   
-```groovy
+```groovy  
 implementation 'software.coley.bentofx:persistence-api:${version}'
 runtimeOnly 'software.coley.bentofx:persistence-codec-xml:${version}'
 runtimeOnly 'software.coley.bentofx:persistence-storage-file:${version}'
 ```
 
 <h4 id="persistence-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>  
-```kotlin
+```kotlin  
 implementation("software.coley.bentofx:persistence-api:${version}")
 runtimeOnly("software.coley.bentofx:persistence-codec-xml:${version}")
 runtimeOnly("software.coley.bentofx:persistence-storage-file:${version}")
 ```
 
 <h4 id="persistence-maven">Maven</h4>   
-```xml
+```xml  
 <dependency>
     <groupId>software.coley.bentofx</groupId>
     <artifactId>persistence-api</artifactId>
