@@ -57,11 +57,9 @@ public class BoxApp extends Application {
 
     private final StageIconImageProvider stageIconImageProvider =
             new BoxAppStageIconImageProvider();
-    ;
 
     private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider =
             new BoxAppDockContainerLeafMenuFactoryProvider();
-    ;
 
     private LayoutSaver layoutSaver;
     private LayoutRestorer layoutRestorer;
@@ -116,7 +114,7 @@ public class BoxApp extends Application {
         stage.setScene(scene);
         stage.setOnHidden(e -> System.exit(0));
         stage.setOnCloseRequest(event -> {
-            doOnClose();
+            saveDockingLayout();
         });
 
         // We don't need to wait for dockables to be initialized so we can show
@@ -146,7 +144,7 @@ public class BoxApp extends Application {
         return branchRoot;
     }
 
-    private void doOnClose() {
+    private void saveDockingLayout() {
 
         if (layoutSaver == null) {
 
@@ -186,8 +184,7 @@ public class BoxApp extends Application {
 
         if (result.equals(ButtonType.YES)) {
 
-            // Save the docking layout
-            doOnClose();
+            saveDockingLayout();
 
         } else if (result.equals(ButtonType.NO)) {
 
