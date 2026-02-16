@@ -127,6 +127,24 @@ public class BoxApp extends Application {
         stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
         stage.setTitle("BentoFX Demo");
 
+        DockContainerRootBranch branchRoot = restoreBranch(stage);
+
+        Scene scene = new Scene(branchRoot);
+        scene.getStylesheets().add("/bento.css");
+        stage.setScene(scene);
+        stage.setOnHidden(e -> System.exit(0));
+        stage.setOnCloseRequest(event -> {
+            doOnClose();
+        });
+
+        // We don't need to wait for dockables to be initialized so we can show
+        // all of our stages now.
+        // TODO BENTO-13: Use the Bento to show all stages
+        stage.show();
+    }
+
+    private DockContainerRootBranch restoreBranch(final Stage stage) {
+
         DockContainerRootBranch branchRoot;
 
         // If a prior docking layout has been saved, restore it from the
@@ -143,18 +161,7 @@ public class BoxApp extends Application {
             branchRoot = getDefaultLayout();
         }
 
-        Scene scene = new Scene(branchRoot);
-        scene.getStylesheets().add("/bento.css");
-        stage.setScene(scene);
-        stage.setOnHidden(e -> System.exit(0));
-        stage.setOnCloseRequest(event -> {
-            doOnClose();
-        });
-
-        // We don't need to wait for dockables to be initialized so we can show
-        // all of our stages now.
-        // TODO BENTO-13: Use the Bento to show all stages
-        stage.show();
+        return branchRoot;
     }
 
     private void doOnClose() {
@@ -177,6 +184,7 @@ public class BoxApp extends Application {
         }
     }
 
+    // TODO BENTO-13: Is this ever called?
     private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {
         final Dockable dockable = closingEvent.dockable();
         if (!dockable.getTitle().startsWith("Class "))
@@ -197,17 +205,14 @@ public class BoxApp extends Application {
 
         if (result.equals(ButtonType.YES)) {
 
-            try {
+            // Save the docking layout
+            doOnClose();
 
-                layoutSaver.saveLayout();
-            } catch (BentoStateException e) {
-
-                logger.error("Could not save the Bento layout.", e);
-            }
         } else if (result.equals(ButtonType.NO)) {
 
             // nothing to do - just close
             logger.debug("Closing {} without saving...", dockable.getTitle());
+
         } else if (result.equals(ButtonType.CANCEL)) {
 
             // prevent closing

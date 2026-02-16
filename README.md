@@ -17,7 +17,7 @@ A docking system for JavaFX.
   * [Example](#example)
     * [Construct the Default Docking Layout](#construct-the-default-layout)
     * [Show the Layout](#show-it)
-* [Persistence Framework](#persistence-modules)
+* [Persistence Framework](#persistence)
   * [Usage](#persistence-usage)
     * [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
     * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
@@ -225,7 +225,7 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 ![containers](assets/example-recaf.png)
 
-## Persistence Modules
+## Persistence
 
 The [persistence](./persistence) modules create a framework that can be used to supplement the [core](#core-module) module, allowing BentoFX docking layouts that have been customized at runtime to be to saved and restored across application executions.  Application developers control the format and storage destination by adding runtime dependencies to implementations of codec and storage interfaces as noted below.
 
@@ -238,13 +238,17 @@ The persistence framework has dependencies on the following modules:
   The persistence API contains core classes for saving and restoring docking layouts using the format and storage destination implementations discovered at runtime.
     * `persistence-api`
 * Codec implementations  
-  The codec implementations contain classes for encoding and decoding the docking layout in the format defined by each implementation. The BentoFX persistence framework includes the following codec implementations:
-    * JavaScript Object notation (JSON) (`persistence-codec-json`)
-    * eXtensible Markup Language (XML) (`persistence-codec-xml`)
+  The codec implementations contain classes for encoding and decoding the docking layout in the format defined by each implementation. The BentoFX persistence framework includes codec implementations with the following artifact names:
+    * JavaScript Object notation (JSON)   
+      * `persistence-codec-json`
+    * eXtensible Markup Language (XML)  
+      * `persistence-codec-xml`
 * Storage implementations  
-  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes the following storage implementations:
-    * File (`persistence-storage-file`)
-    * H2 Database (`persistence-storage-db-h2`)
+  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes storage implementations artifacts with the following artifact names:
+    * File  
+      * `persistence-storage-file`
+    * H2 Database  
+      * `persistence-storage-db-h2`
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>   
 
@@ -367,12 +371,14 @@ if (layoutRestorer != null && layoutRestorer.doesLayoutExist()) {
 
     branchRoot = getDefaultLayout();
 }
+
+Scene scene = new Scene(branchRoot);
 ```
 
 ### Extending Persistence
 The `BentoLayoutPersistenceProvider` uses the `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the module path at runtime.  
 
-Albeit otherwise not very useful, the following example is provided to demonstrate extending the `BentoLayoutPersistenceProvider` to use a `LayoutStorage` other than the default implementations provided by the persistence framework:
+Albeit otherwise not very useful, the following example is provided to demonstrate extending the the persistence framework to use a `LayoutStorage` other than the default implementations provided by the persistence framework:
 
 1. Implement the `LayoutStorage` interface:
 ```java
@@ -405,8 +411,10 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
       final @NotNull String layoutIdentifier,
       final @NotNull String codecIdentifier
    ) {
-
-      return new SystemLayoutStorage();
+       // Normally, we might use the layout and codec identifiers to construct 
+       // a file name, use them as keys in a database table, etc. We'll just 
+       // ignore them here,  
+       return new SystemLayoutStorage();
    }
 }
 ```
@@ -416,7 +424,12 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 provides LayoutStorageProvider with SystemLayoutStorageProvider;
 ``` 
 
-Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces and registering the `LayoutCodecProvider` implementation with the module's descriptor.     
+4. Add the module to the application's module path:
+```kotlin
+runtimeOnly("software.coley.bentofx:persistence-storage-system:${version}")
+``` 
+
+Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces, registering the `LayoutCodecProvider` implementation with the module's descriptor and adding the module to the application's module path.     
 
 For complete examples, refer to these modules:  
 [JSON Codec](./persistence/codec/json)  
@@ -435,4 +448,8 @@ https://www.baeldung.com/java-spi
 
 The [demo](./demo) module contains the [BoxApp](./demo/src/main/java/software/coley/boxfx/demo/BoxApp.java) application, an example application that demonstrates using:
 * The [core](./core) framework to create a layout structure that loosely models how an IDE is laid out.
-* The [persistence](./persistence) framework to save and restore a BentoFX docking layout between application executions.
+  * For details, refer to `BoxApp.getDefaultLayout()`.
+* The [persistence](./persistence) framework to save and restore a BentoFX docking layout between application executions. 
+  * For details on acquiring the `LayoutPersistenceProvider`, refer to `BoxApp.init()`
+  * For details on restoring a persisted docking layout, refer to `BoxApp.restoreBranch(Stage)` 
+  * For details on saving the current docking layout, refer to `BoxApp.doOnClose()`
