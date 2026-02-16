@@ -166,7 +166,6 @@ public class BoxApp extends Application {
         }
     }
 
-    // TODO BENTO-13: Is this ever called?
     private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {
         final Dockable dockable = closingEvent.dockable();
         if (!dockable.getTitle().startsWith("Class "))
