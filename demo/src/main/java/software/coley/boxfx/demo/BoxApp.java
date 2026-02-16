@@ -28,12 +28,12 @@ import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFact
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.impl.provider.BentoLayoutPersistenceProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactory;
 import software.coley.boxfx.demo.provider.BoxAppDockableStateProvider;
 import software.coley.boxfx.demo.provider.BoxAppStageIconImageProvider;
 
-import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
@@ -74,36 +74,18 @@ public class BoxApp extends Application {
     @Override
     public void init() {
 
-        final Bento bento;
+        final LayoutPersistenceProvider persistenceProvider =
+                new BentoLayoutPersistenceProvider();
 
-        final Iterable<LayoutPersistenceProvider> persistenceProviders =
-                ServiceLoader.load(LayoutPersistenceProvider.class);
+        layoutSaver = persistenceProvider.getLayoutSaver();
 
-        final Iterator<LayoutPersistenceProvider> persistenceProviderIterator =
-                persistenceProviders.iterator();
+        layoutRestorer = persistenceProvider.getLayoutRestorer(
+                dockableStateProvider,
+                stageIconImageProvider,
+                dockContainerLeafMenuFactoryProvider
+        );
 
-        if (!persistenceProviderIterator.hasNext()) {
-
-            logger.warn("No LayoutPersistenceProvider found. " +
-                    "Docking persistence will not be enabled.");
-
-            bento = new Bento();
-
-        } else {
-
-            final LayoutPersistenceProvider persistenceProvider =
-                    persistenceProviderIterator.next();
-
-            layoutSaver = persistenceProvider.getLayoutSaver();
-
-            layoutRestorer = persistenceProvider.getLayoutRestorer(
-                    dockableStateProvider,
-                    stageIconImageProvider,
-                    dockContainerLeafMenuFactoryProvider
-            );
-
-            bento = persistenceProvider.getBento();
-        }
+        final Bento bento = persistenceProvider.getBento();
 
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
