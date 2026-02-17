@@ -26,11 +26,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * try-with- resources block to automatically call {@link #close()} to save the
  * docking layout when the try block exits.
  */
-public abstract class AbstractAutoSavableLayoutSaver
+public abstract class AbstractAutoCloseableLayoutSaver
         implements LayoutSaver, AutoCloseable, DockEventListener {
 
     private static final Logger logger =
-            LoggerFactory.getLogger(AbstractAutoSavableLayoutSaver.class);
+            LoggerFactory.getLogger(AbstractAutoCloseableLayoutSaver.class);
 
     private static final long DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES = 5;
 
@@ -56,16 +56,21 @@ public abstract class AbstractAutoSavableLayoutSaver
     protected final @NotNull Bento bento;
 
     /**
-     * Constructs an {@code AbstractAutoSavableLayoutSaver} and listens for
-     * {@link DockEvent}s originating from the specified {@link Bento}.
+     * Constructs an {@code AbstractAutoCloseableLayoutSaver} and listens for
+     * {@link DockEvent}s originating from the specified {@link Bento} to
+     * determine whether the docking layout should be saved at scheduled
+     * intervals and/or when exiting a try-with-resources block.
      *
      * @param bento the {@link Bento} whose {@link DockEvent}s will be used to
      *              determine whether the docking layout should be saved.
      */
-    protected AbstractAutoSavableLayoutSaver(final @NotNull Bento bento) {
+    protected AbstractAutoCloseableLayoutSaver(final @NotNull Bento bento) {
+
         this.bento = Objects.requireNonNull(bento);
-        RunnableResource state = new RunnableResource(this::autoSave);
-        this.cleanable = CLEANER.register(this, state);
+        this.cleanable = CLEANER.register(
+                this,
+                new RunnableResource(this::autoSave)
+        );
         enableAutoSave(autoSaveInterval, autoSaveTimeUnit);
     }
 
@@ -177,7 +182,7 @@ public abstract class AbstractAutoSavableLayoutSaver
     /**
      * The {@code RunnableResource} encapsulates the cleaning action.
      * It is implemented as a {@code record} to avoid implicitly holding a
-     * reference to the outer {@link AbstractAutoSavableLayoutSaver} instance.
+     * reference to the outer {@link AbstractAutoCloseableLayoutSaver} instance.
      */
     private record RunnableResource(@NotNull Runnable runnable)
             implements Runnable {

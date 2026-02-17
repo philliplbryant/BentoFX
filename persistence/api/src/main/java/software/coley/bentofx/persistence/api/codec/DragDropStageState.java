@@ -5,6 +5,7 @@
 
 package software.coley.bentofx.persistence.api.codec;
 
+import javafx.stage.Modality;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,7 @@ public class DragDropStageState {
     private final @Nullable Boolean isIconified;
     private final @Nullable Boolean isFullScreen;
     private final @Nullable Boolean isMaximized;
+    private final @Nullable Modality modality;
     private final @Nullable DockContainerRootBranchState dockContainerRootBranchState;
 
     // Ignore the number or constructor parameters; this is a read-only class
@@ -43,6 +45,7 @@ public class DragDropStageState {
             final @Nullable Boolean isIconified,
             final @Nullable Boolean isFullScreen,
             final @Nullable Boolean isMaximized,
+            final @Nullable Modality modality,
             final @Nullable DockContainerRootBranchState dockContainerRootBranchState
     ) {
         this.isAutoClosedWhenEmpty = requireNonNull(isAutoClosedWhenEmpty);
@@ -54,6 +57,7 @@ public class DragDropStageState {
         this.isIconified = isIconified;
         this.isFullScreen = isFullScreen;
         this.isMaximized = isMaximized;
+        this.modality = modality;
         this.dockContainerRootBranchState = dockContainerRootBranchState;
     }
 
@@ -93,6 +97,10 @@ public class DragDropStageState {
         return Optional.ofNullable(isMaximized);
     }
 
+    public @NotNull Optional<Modality> getModality() {
+        return Optional.ofNullable(modality);
+    }
+
     public @NotNull Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
         return Optional.ofNullable(dockContainerRootBranchState);
     }
@@ -108,6 +116,7 @@ public class DragDropStageState {
         private @Nullable Boolean isIconified;
         private @Nullable Boolean isFullScreen;
         private @Nullable Boolean isMaximized;
+        private @Nullable Modality modality;
         private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
 
         public DragDropStageStateBuilder(
@@ -173,6 +182,13 @@ public class DragDropStageState {
             return this;
         }
 
+        public @NotNull DragDropStageStateBuilder setModality(
+                final Modality modality
+        ) {
+            this.modality = modality;
+            return this;
+        }
+
         public @NotNull DragDropStageStateBuilder setDockContainerRootBranchState(
                 final @Nullable DockContainerRootBranchState dockContainerRootBranchState
         ) {
@@ -191,6 +207,7 @@ public class DragDropStageState {
                     isIconified,
                     isFullScreen,
                     isMaximized,
+                    modality,
                     dockContainerRootBranchState
             );
         }

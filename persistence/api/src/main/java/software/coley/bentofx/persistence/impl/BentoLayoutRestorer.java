@@ -199,6 +199,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         stageState.isIconified().ifPresent(stage::setIconified);
         stageState.isFullScreen().ifPresent(stage::setFullScreen);
         stageState.isMaximized().ifPresent(stage::setMaximized);
+        stageState.getModality().ifPresent(stage::initModality);
 
         stageState.getDockContainerRootBranchState().ifPresent(
                 dockContainerRootBranchState -> {

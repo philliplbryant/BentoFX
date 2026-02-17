@@ -113,6 +113,10 @@ public class BoxApp extends Application {
         scene.getStylesheets().add("/bento.css");
         stage.setScene(scene);
         stage.setOnHidden(e -> System.exit(0));
+        // We need to save the docking layout on close request because the
+        // primary stage is (and all other windows are) no longer available
+        // after closed and, as such, will not be included when saving the
+        // docking layout.
         stage.setOnCloseRequest(event -> saveDockingLayout());
 
         // We don't need to wait for dockables to be initialized so we can show
@@ -181,8 +185,8 @@ public class BoxApp extends Application {
                 .orElse(ButtonType.CANCEL);
 
         if (result.equals(ButtonType.YES)) {
-
-            saveDockingLayout();
+            // simulate saving application (not docking layout) state
+            logger.debug("Saving {}...", dockable.getTitle());
 
         } else if (result.equals(ButtonType.NO)) {
 

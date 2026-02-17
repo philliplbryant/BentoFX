@@ -36,7 +36,7 @@ import java.util.Objects;
  *
  * @author Phil Bryant
  */
-public class BentoLayoutSaver extends AbstractAutoSavableLayoutSaver {
+public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     private static final Logger logger =
             LoggerFactory.getLogger(BentoLayoutSaver.class);
@@ -77,6 +77,7 @@ public class BentoLayoutSaver extends AbstractAutoSavableLayoutSaver {
                                 .setIsIconified(dragDropStage.isIconified())
                                 .setIsFullScreen(dragDropStage.isFullScreen())
                                 .setIsMaximized(dragDropStage.isMaximized())
+                                .setModality(dragDropStage.getModality())
                                 // Important: Do NOT set dockContainerRootBranchState to avoid cyclic graphs
                                 .setDockContainerRootBranchState(null);
 

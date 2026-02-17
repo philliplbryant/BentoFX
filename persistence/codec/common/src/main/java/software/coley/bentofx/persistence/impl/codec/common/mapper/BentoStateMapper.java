@@ -145,6 +145,7 @@ public final class BentoStateMapper {
         stageDto.iconified = stageState.isIconified().orElse(null);
         stageDto.fullScreen = stageState.isFullScreen().orElse(null);
         stageDto.maximized = stageState.isMaximized().orElse(null);
+        stageDto.modality = stageState.getModality().orElse(null);
         stageState.getDockContainerRootBranchState().ifPresent(
                 dockContainerRootBranchState ->
                         stageDto.dockContainerRootBranchDto =
@@ -332,6 +333,7 @@ public final class BentoStateMapper {
                 .setIsIconified(stageDto.iconified)
                 .setIsFullScreen(stageDto.fullScreen)
                 .setIsMaximized(stageDto.maximized)
+                .setModality(stageDto.modality)
                 .setDockContainerRootBranchState(
                         fromDto(stageDto.dockContainerRootBranchDto)
                 )
