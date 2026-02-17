@@ -19,9 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract {@link LayoutSaver} that automatically saves the docking layout at
- * schedule intervals. To do so efficiently, this class listens for
- * {@link DockEvent}s to track whether changes have been made to the layout and
- * only saves when changes have actually been made.
+ * schedule intervals and when the application exits. To do so efficiently, this
+ * class listens for {@link DockEvent}s to track whether changes have been made
+ * to the layout and only saves when changes have actually been made. Because
+ * this class implements :@link {@link AutoCloseable}, it can be used in a
+ * try-with- resources block to automatically call {@link #close()} to save the
+ * docking layout when the try block exits.
  */
 public abstract class AbstractAutoSavableLayoutSaver
         implements LayoutSaver, AutoCloseable, DockEventListener {
@@ -185,6 +188,7 @@ public abstract class AbstractAutoSavableLayoutSaver
 
         @Override
         public void run() {
+            logger.debug("Running runnable on close: {}", runnable);
             runnable.run();
         }
     }
