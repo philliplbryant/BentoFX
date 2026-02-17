@@ -5,6 +5,7 @@
 
 package software.coley.bentofx.persistence.impl.storage.file;
 
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.File;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Objects;
 
 /**
  * Implementation of the {@link LayoutStorage} interface for persisting Bento
@@ -31,8 +33,8 @@ public class FileLayoutStorage implements LayoutStorage {
      * layout to a file.
      * @param file the {@link File} to which the Bento is to be persisted.
      */
-    public FileLayoutStorage(final File file) {
-        this.file = file;
+    public FileLayoutStorage(final @NotNull File file) {
+        this.file = Objects.requireNonNull(file);
     }
 
     @Override

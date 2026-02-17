@@ -113,9 +113,7 @@ public class BoxApp extends Application {
         scene.getStylesheets().add("/bento.css");
         stage.setScene(scene);
         stage.setOnHidden(e -> System.exit(0));
-        stage.setOnCloseRequest(event -> {
-            saveDockingLayout();
-        });
+        stage.setOnCloseRequest(event -> saveDockingLayout());
 
         // We don't need to wait for dockables to be initialized so we can show
         // all of our stages now.

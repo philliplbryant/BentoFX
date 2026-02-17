@@ -18,7 +18,6 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.codec.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
@@ -37,13 +36,11 @@ import java.util.Objects;
  *
  * @author Phil Bryant
  */
-public class BentoLayoutSaver implements LayoutSaver {
+public class BentoLayoutSaver extends AbstractAutoSavableLayoutSaver {
 
     private static final Logger logger =
             LoggerFactory.getLogger(BentoLayoutSaver.class);
 
-    @NotNull
-    private final Bento bento;
     @NotNull
     private final LayoutStorage layoutStorage;
     @NotNull
@@ -54,7 +51,7 @@ public class BentoLayoutSaver implements LayoutSaver {
             final @NotNull LayoutCodec layoutCodec,
             final @NotNull LayoutStorage layoutStorage
     ) {
-        this.bento = Objects.requireNonNull(bento);
+        super(bento);
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
     }
@@ -289,13 +286,6 @@ public class BentoLayoutSaver implements LayoutSaver {
     private DockableState saveDockable(final @NotNull Dockable dockable) {
         return new DockableStateBuilder(dockable.getIdentifier())
                 .build();
-    }
-
-    private static String getStageId(
-            final @Nullable DragDropStageStateBuilder dragDropStageStateBuilder
-    ) {
-
-        return "cstage:" + System.identityHashCode(dragDropStageStateBuilder);
     }
 
     private static String nonEmptyOr(
