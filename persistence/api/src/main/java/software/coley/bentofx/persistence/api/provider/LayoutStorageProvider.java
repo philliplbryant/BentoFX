@@ -17,17 +17,13 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 public interface LayoutStorageProvider {
 
     /**
-     * The name used to identify the default layout.
-     */
-    String DEFAULT_LAYOUT_NAME = "recent-bento";
-
-    /**
      * Creates a {@link LayoutStorage} that can be used to persist a Bento
      * layout.
      * @return a {@link LayoutStorage} that can be used to persist a Bento
      * layout.
      */
     LayoutStorage createLayoutStorage(
+            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     );

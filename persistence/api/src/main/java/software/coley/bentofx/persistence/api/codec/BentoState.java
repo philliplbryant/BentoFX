@@ -20,14 +20,20 @@ import static java.util.Objects.requireNonNull;
  */
 public class BentoState {
 
+    private final @NotNull String identifier;
+
     private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
 
     private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates;
 
     private BentoState(
+            final @NotNull String identifier,
             final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates,
             final @NotNull List<@NotNull DragDropStageState> dragDropStageStates
     ) {
+
+        this.identifier = identifier;
+
         this.rootBranchStates =
                 List.of(rootBranchStates.toArray(
                         new DockContainerRootBranchState[0])
@@ -37,6 +43,10 @@ public class BentoState {
                 List.of(dragDropStageStates.toArray(
                         new DragDropStageState[0])
                 );
+    }
+
+    public @NotNull String getIdentifier() {
+        return identifier;
     }
 
     public @NotNull Set<@NotNull DockContainerRootBranchState> getRootBranchStates() {
@@ -49,11 +59,17 @@ public class BentoState {
 
     public static class BentoStateBuilder {
 
+        private final @NotNull String identifier;
+
         private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates =
                 new ArrayList<>();
 
         private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates =
                 new ArrayList<>();
+
+        public BentoStateBuilder(final @NotNull String identifier) {
+            this.identifier = identifier;
+        }
 
         public @NotNull BentoStateBuilder addDragDropStageState(
                 final @NotNull DragDropStageState... dragDropStageStates
@@ -75,6 +91,7 @@ public class BentoState {
 
         public @NotNull BentoState build() {
             return new BentoState(
+                    identifier,
                     rootBranchStates,
                     dragDropStageStates
             );

@@ -111,7 +111,7 @@ public class DockBuilding {
 	}
 
 	@Nonnull
-	private static String uid(@Nonnull String prefix) {
+	public static String uid(@Nonnull String prefix) {
 		StringBuilder suffix = new StringBuilder(8);
 		for (int i = 0; i < 8; i++)
 			suffix.append((char) RANDOM.nextInt('A', 'Z'));

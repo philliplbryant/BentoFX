@@ -54,21 +54,17 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
     private final @NotNull LayoutStorage layoutStorage;
     private final @NotNull LayoutCodec layoutCodec;
-    private final @NotNull DockBuilding dockBuilding;
     private final @NotNull DockableStateProvider dockableStateProvider;
     private final @Nullable StageIconImageProvider stageIconImageProvider;
     private final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
     public BentoLayoutRestorer(
-            final @NotNull Bento bento,
             final @NotNull LayoutCodec layoutCodec,
             final @NotNull LayoutStorage layoutStorage,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
-        Objects.requireNonNull(bento);
-        this.dockBuilding = bento.dockBuilding();
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.dockableStateProvider = Objects.requireNonNull(dockableStateProvider);
@@ -123,31 +119,40 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             // Wait for the future to complete
             final BentoState bentoState = futureState.get();
 
+            final Bento bento = new Bento(bentoState.getIdentifier());
+
+            final DockBuilding dockBuilding = bento.dockBuilding();
+
             if (bentoState.getRootBranchStates().isEmpty()) {
+
                 return dockBuilding.root("root-branch");
+
+            } else {
+
+                // Primary stage root branch is the one with no parent stage state.
+                final Optional<DockContainerRootBranchState> optionalRootBranchState =
+                        bentoState.getRootBranchStates().stream()
+                                .filter(rb -> rb.getParent().isEmpty())
+                                .findFirst();
+
+                final DockContainerRootBranchState primaryRootBranchState =
+                        optionalRootBranchState.orElse(null);
+
+                final DockContainerRootBranch primaryRootBranch =
+                        primaryRootBranchState == null ?
+                                dockBuilding.root("empty-root-branch") :
+                                restoreRootBranchContainer(
+                                        dockBuilding,
+                                        primaryRootBranchState
+                                );
+
+                // Restore secondary stages (root branches that have parent stage state)
+                for (final DragDropStageState dragDropStageState : bentoState.getDragDropStageStates()) {
+                    restoreDragDropStage(dockBuilding, dragDropStageState);
+                }
+
+                return primaryRootBranch;
             }
-
-            // Primary stage root branch is the one with no parent stage state.
-            final Optional<DockContainerRootBranchState> optionalRootBranchState =
-                    bentoState.getRootBranchStates().stream()
-                            .filter(rb -> rb.getParent().isEmpty())
-                            .findFirst();
-
-            final DockContainerRootBranchState primaryRootBranchState =
-                    optionalRootBranchState.orElse(null);
-
-            final DockContainerRootBranch primaryRootBranch =
-                    primaryRootBranchState == null ?
-                            dockBuilding.root("empty-root-branch") :
-                            restoreRootBranchContainer(primaryRootBranchState);
-
-            // Restore secondary stages (root branches that have parent stage state)
-            for (final DragDropStageState dragDropStageState : bentoState.getDragDropStageStates()) {
-                restoreDragDropStage(dragDropStageState);
-            }
-
-            return primaryRootBranch;
-
         } catch (final ExecutionException e) {
 
             logger.warn(
@@ -179,6 +184,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private void restoreDragDropStage(
+            final @NotNull DockBuilding dockBuilding,
             final @NotNull DragDropStageState stageState
     ) {
 
@@ -205,7 +211,11 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 dockContainerRootBranchState -> {
 
                     final DockContainerRootBranch rootContainer =
-                            restoreRootBranchContainer(dockContainerRootBranchState);
+                            restoreRootBranchContainer(
+                                    dockBuilding,
+                                    dockContainerRootBranchState
+                            );
+
                     stage.setScene(new Scene(rootContainer));
                 }
         );
@@ -214,6 +224,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @NotNull DockContainerRootBranch restoreRootBranchContainer(
+            final @NotNull DockBuilding dockBuilding,
             final @NotNull DockContainerRootBranchState rootBranchState
     ) {
         final DockContainerRootBranch rootBranch =
@@ -248,7 +259,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         for (final DockableState dockableState : rootBranchState.getChildDockableStates()) {
 
             final Dockable dockable =
-                    restoreDockable(dockableState.getIdentifier());
+                    restoreDockable(
+                            dockBuilding,
+                            dockableState.getIdentifier()
+                    );
 
             if (dockable != null) {
                 rootBranch.addDockable(dockable);
@@ -284,13 +298,11 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull DockContainerRootBranch rootBranch,
             final @NotNull DockContainerBranchState branchState
     ) {
-        final String id =
-                nonEmptyOr(
-                        branchState.getIdentifier(),
-                        createUniqueIdentifier("branch")
-                );
+        final String id = branchState.getIdentifier();
 
-        final DockContainerBranch branch = dockBuilding.branch(id);
+        final DockContainerBranch branch = rootBranch.getBento()
+                .dockBuilding()
+                .branch(id);
 
         branchState.doPruneWhenEmpty().ifPresent(branch::setPruneWhenEmpty);
 
@@ -336,11 +348,9 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull DockContainerRootBranch rootBranch,
             final @NotNull DockContainerLeafState state
     ) {
-        final String id = nonEmptyOr(
-                state.getIdentifier(),
-                createUniqueIdentifier("leaf")
-        );
+        final String id = state.getIdentifier();
 
+        final DockBuilding dockBuilding = rootBranch.getBento().dockBuilding();
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
 
         if(dockContainerLeafMenuFactoryProvider != null) {
@@ -364,7 +374,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
             final String dockableId = dockableState.getIdentifier();
 
-            final Dockable dockable = restoreDockable(dockableId);
+            final Dockable dockable = restoreDockable(
+                    dockBuilding,
+                    dockableId
+            );
 
             if (dockable != null) {
 
@@ -405,7 +418,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         return leaf;
     }
 
-    private @Nullable Dockable restoreDockable(@NotNull String dockableIdentifier) {
+    private @Nullable Dockable restoreDockable(
+            @NotNull DockBuilding dockBuilding,
+            @NotNull String dockableIdentifier
+    ) {
 
         final @NotNull Optional<DockableState> optionalDockableProvider =
                 dockableStateProvider.resolveDockableState(dockableIdentifier);
@@ -452,23 +468,5 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         }
 
         return dockable;
-    }
-
-    private static @NotNull String createUniqueIdentifier(final String prefix) {
-
-        final byte[] bytes = new byte[UID_CAPACITY];
-        RANDOM.nextBytes(bytes);
-        final StringBuilder sb = new StringBuilder(prefix).append("-");
-        for (final byte b : bytes) {
-            sb.append(String.format("%02X", b));
-        }
-        return sb.toString();
-    }
-
-    private static String nonEmptyOr(
-            final String value,
-            final String fallback
-    ) {
-        return value != null && !value.isBlank() ? value : fallback;
     }
 }

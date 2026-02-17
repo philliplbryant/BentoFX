@@ -2,17 +2,19 @@ package software.coley.bentofx.persistence.impl.storage.db;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-import static software.coley.bentofx.persistence.api.provider.LayoutStorageProvider.DEFAULT_LAYOUT_NAME;
-
 @Embeddable
 public class DockingLayoutEntityCompositeKey implements Serializable {
 
+    @Column(name = "bento_id", nullable = false, length = 24)
+    public String bentoIdentifier;
+
     @Column(name = "layout_id", nullable = false, length = 24)
-    public String layoutIdentifier = DEFAULT_LAYOUT_NAME;
+    public String layoutIdentifier;
 
     @Column(name = "codec_id", nullable = false, length = 4)
     public String codecIdentifier;
@@ -20,11 +22,13 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
     public DockingLayoutEntityCompositeKey() {}
 
     public DockingLayoutEntityCompositeKey(
-            final String layoutIdentifier,
-            final String codecIdentifier
+            final @NotNull String bentoIdentifier,
+            final @NotNull String layoutIdentifier,
+            final @NotNull String codecIdentifier
     ) {
-        this.layoutIdentifier = layoutIdentifier;
-        this.codecIdentifier = codecIdentifier;
+        this.bentoIdentifier = Objects.requireNonNull(bentoIdentifier);
+        this.layoutIdentifier = Objects.requireNonNull(layoutIdentifier);
+        this.codecIdentifier = Objects.requireNonNull(codecIdentifier);
     }
 
     @Override
@@ -38,6 +42,9 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
                 (DockingLayoutEntityCompositeKey) that;
 
         return Objects.equals(
+                this.bentoIdentifier,
+                thatKey.bentoIdentifier
+        ) && Objects.equals(
                 this.layoutIdentifier,
                 thatKey.layoutIdentifier
         ) && Objects.equals(
@@ -48,6 +55,10 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(layoutIdentifier, codecIdentifier);
+        return Objects.hash(
+                bentoIdentifier,
+                layoutIdentifier,
+                codecIdentifier
+        );
     }
 }

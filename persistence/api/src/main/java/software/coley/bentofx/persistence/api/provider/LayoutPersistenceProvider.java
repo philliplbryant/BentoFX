@@ -19,11 +19,14 @@ import software.coley.bentofx.persistence.api.LayoutSaver;
  */
 public interface LayoutPersistenceProvider {
 
-    @NotNull Bento getBento();
-
-    @NotNull LayoutSaver getLayoutSaver();
+    @NotNull LayoutSaver getLayoutSaver(
+            final @NotNull Bento bento,
+            final @NotNull String layoutIdentifier
+    );
 
     @NotNull LayoutRestorer getLayoutRestorer(
+            final @NotNull Bento bento,
+            final @NotNull String layoutIdentifier,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider

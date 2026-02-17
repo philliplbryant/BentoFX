@@ -24,6 +24,9 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BentoStateDto {
 
+    @XmlAttribute
+    public String identifier;
+
     @XmlElementWrapper(name = ROOT_BRANCH_LIST_ELEMENT_NAME)
     @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
     @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)

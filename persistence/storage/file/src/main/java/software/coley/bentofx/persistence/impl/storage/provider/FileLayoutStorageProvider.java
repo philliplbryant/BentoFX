@@ -25,6 +25,7 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
     @Override
     public LayoutStorage createLayoutStorage(
+            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     ) {
@@ -35,7 +36,7 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
         final File layoutFile = new File(
                 DEFAULT_BENTO_DIRECTORY,
-                layoutIdentifier + "." + normalizedFileExtension
+                bentoIdentifier + "-" + layoutIdentifier + "." + normalizedFileExtension
         );
 
         return new FileLayoutStorage(layoutFile);

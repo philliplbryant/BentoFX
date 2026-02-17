@@ -59,7 +59,8 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
     @Override
     public void saveLayout() throws BentoStateException {
 
-        final BentoStateBuilder bentoBuilder = new BentoStateBuilder();
+        final BentoStateBuilder bentoBuilder =
+                new BentoStateBuilder(bento.getIdentifier());
 
         for (final Stage stage : FxStageUtils.getAllStages()) {
 

@@ -22,7 +22,9 @@ import software.coley.bentofx.search.SearchHandler;
  *
  * @author Matt Coley
  */
-public class Bento {
+public class Bento implements Identifiable {
+
+    private final @Nonnull String identifier;
 	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
 	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
 	private final EventBus eventBus = newEventBus();
@@ -33,6 +35,14 @@ public class Bento {
 	private final PlaceholderBuilding placeholderBuilding = newPlaceholderBuilding();
 	private final DockableDragDropBehavior dragDropBehavior = newDragDropBehavior();
 	private final DockableClickBehavior clickBehavior = newClickBehavior();
+
+    public Bento() {
+        identifier = DockBuilding.uid("bento");
+    }
+
+    public Bento(final @Nonnull String identifier) {
+        this.identifier = identifier;
+    }
 
 	@Nonnull
 	protected EventBus newEventBus() {
@@ -74,7 +84,22 @@ public class Bento {
 		return new DockableClickBehavior() {};
 	}
 
-	/**
+    /**
+     * @return the identifier specified when creating this {@code Bento}. This
+     * identifier is not guaranteed to be unique.
+     */
+    @Override
+    @Nonnull
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public boolean matchesIdentity(@Nonnull Identifiable other) {
+        return this.identifier.equals(other.getIdentifier());
+    }
+
+    /**
 	 * @return Bus for handling event firing and event listeners.
 	 */
 	@Nonnull

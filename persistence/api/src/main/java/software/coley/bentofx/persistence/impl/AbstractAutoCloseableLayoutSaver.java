@@ -134,7 +134,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
     @Override
     public void onDockEvent(final @NotNull DockEvent event) {
-        logger.debug("Dock event received: {}", event);
+        logger.trace("Dock event received: {}", event);
         this.wasDockEventReceived.set(true);
     }
 
@@ -193,7 +193,6 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
         @Override
         public void run() {
-            logger.debug("Running runnable on close: {}", runnable);
             runnable.run();
         }
     }

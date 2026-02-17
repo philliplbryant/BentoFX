@@ -50,6 +50,11 @@ public class BoxApp extends Application {
     private static final Logger logger =
             LoggerFactory.getLogger(BoxApp.class);
 
+    private static final String DEFAULT_LAYOUT_IDENTIFIER = "recent";
+
+    private final LayoutPersistenceProvider persistenceProvider =
+            new BentoLayoutPersistenceProvider();
+
     private final DockableStateProvider dockableStateProvider =
             new BoxAppDockableStateProvider(
                     new BoxAppDockableMenuFactory()
@@ -61,9 +66,7 @@ public class BoxApp extends Application {
     private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider =
             new BoxAppDockContainerLeafMenuFactoryProvider();
 
-    private LayoutSaver layoutSaver;
-    private LayoutRestorer layoutRestorer;
-    private DockBuilding builder;
+    private Bento bento;
 
     /**
      * Uses {@link ServiceLoader} and Service Provider Interfaces to acquire
@@ -72,31 +75,8 @@ public class BoxApp extends Application {
     @Override
     public void init() {
 
-        final LayoutPersistenceProvider persistenceProvider =
-                new BentoLayoutPersistenceProvider();
-
-        layoutSaver = persistenceProvider.getLayoutSaver();
-
-        layoutRestorer = persistenceProvider.getLayoutRestorer(
-                dockableStateProvider,
-                stageIconImageProvider,
-                dockContainerLeafMenuFactoryProvider
-        );
-
-        final Bento bento = persistenceProvider.getBento();
-
-        bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
-                new Label("Empty Dockable")
-        );
-        bento.placeholderBuilding().setContainerPlaceholderFactory(container ->
-                new Label("Empty Container")
-        );
-        bento.events().addEventListener((DockEvent event) -> {
-            if (event instanceof DockEvent.DockableClosing closingEvent)
-                handleDockableClosing(closingEvent);
-        });
-
-        builder = bento.dockBuilding();
+        bento = new Bento(getClass().getSimpleName());
+        initializeBento(bento);
     }
 
     @Override
@@ -125,18 +105,46 @@ public class BoxApp extends Application {
         stage.show();
     }
 
+    private void initializeBento(final @NotNull Bento bento) {
+
+        bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
+                new Label("Empty Dockable")
+        );
+        bento.placeholderBuilding().setContainerPlaceholderFactory(container ->
+                new Label("Empty Container")
+        );
+        bento.events().addEventListener((DockEvent event) -> {
+            if (event instanceof DockEvent.DockableClosing closingEvent)
+                handleDockableClosing(closingEvent);
+        });
+    }
+
     private DockContainerRootBranch restoreBranch(final Stage stage) {
 
         DockContainerRootBranch branchRoot;
 
+        final LayoutRestorer layoutRestorer =
+                persistenceProvider.getLayoutRestorer(
+                        bento,
+                        DEFAULT_LAYOUT_IDENTIFIER,
+                        dockableStateProvider,
+                        stageIconImageProvider,
+                        dockContainerLeafMenuFactoryProvider
+                );
+
         // If a prior docking layout has been saved, restore it from the
         // persisted state. Otherwise, use the default layout.
-        if (layoutRestorer != null && layoutRestorer.doesLayoutExist()) {
+        if (layoutRestorer.doesLayoutExist()) {
 
             branchRoot = layoutRestorer.restoreLayout(
                     stage,
                     this::getDefaultLayout
             );
+
+            // Update the new Bento
+            bento = branchRoot.getBento();
+            // TODO BENTO-13: Re-initialize the Bento when restoring it
+            initializeBento(bento);
 
         } else {
 
@@ -148,21 +156,19 @@ public class BoxApp extends Application {
 
     private void saveDockingLayout() {
 
-        if (layoutSaver == null) {
+        try {
 
-            logger.warn("No LayoutPersistenceProvider found. " +
-                    "Docking layout will not be persisted.");
+            final LayoutSaver layoutSaver =
+                    persistenceProvider.getLayoutSaver(
+                            bento,
+                            DEFAULT_LAYOUT_IDENTIFIER
+                    );
 
-        } else {
+            layoutSaver.saveLayout();
 
-            try {
+        } catch (BentoStateException e) {
 
-                layoutSaver.saveLayout();
-
-            } catch (BentoStateException e) {
-
-                logger.warn("Could not save the docking layout.", e);
-            }
+            logger.warn("Could not save the docking layout.", e);
         }
     }
 
@@ -202,11 +208,13 @@ public class BoxApp extends Application {
 
     private DockContainerRootBranch getDefaultLayout() {
 
-        DockContainerRootBranch branchRoot = builder.root("root");
-        DockContainerBranch branchWorkspace = builder.branch("workspace");
-        DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
-        DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
-        DockContainerLeaf leafTools = builder.leaf("misc-tools");
+        final DockBuilding dockBuilding = bento.dockBuilding();
+
+        DockContainerRootBranch branchRoot = dockBuilding.root("root");
+        DockContainerBranch branchWorkspace = dockBuilding.branch("workspace");
+        DockContainerLeaf leafWorkspaceTools = dockBuilding.leaf("workspace-tools");
+        DockContainerLeaf leafWorkspaceHeaders = dockBuilding.leaf("workspace-headers");
+        DockContainerLeaf leafTools = dockBuilding.leaf("misc-tools");
 
         branchWorkspace.setPruneWhenEmpty(false);
         leafWorkspaceTools.setPruneWhenEmpty(false);
@@ -308,8 +316,10 @@ public class BoxApp extends Application {
     private @NotNull Dockable createDockable(
             @NotNull DockableState dockableState
     ) {
+        final DockBuilding dockBuilding = bento.dockBuilding();
+
         final Dockable dockable =
-                builder.dockable(dockableState.getIdentifier());
+                dockBuilding.dockable(dockableState.getIdentifier());
 
         dockableState.getDockableNode().ifPresent(
                 dockable::setNode

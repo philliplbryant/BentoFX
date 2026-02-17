@@ -56,6 +56,8 @@ public final class BentoStateMapper {
 
         final BentoStateDto bentoStateDto = new BentoStateDto();
 
+        bentoStateDto.identifier = state.getIdentifier();
+
         for (final DockContainerRootBranchState root : state.getRootBranchStates()) {
             bentoStateDto.rootBranches.add(toDto(root));
         }
@@ -255,7 +257,8 @@ public final class BentoStateMapper {
     ) {
         requireNonNull(bentoStateDto);
 
-        final BentoStateBuilder builder = new BentoStateBuilder();
+        final BentoStateBuilder builder =
+                new BentoStateBuilder(bentoStateDto.identifier);
 
         if (bentoStateDto.rootBranches != null) {
             for (final DockContainerRootBranchDto rootDto : bentoStateDto.rootBranches) {

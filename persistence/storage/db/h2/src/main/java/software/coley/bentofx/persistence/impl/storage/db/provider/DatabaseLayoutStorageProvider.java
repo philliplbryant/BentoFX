@@ -22,6 +22,7 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
     @Override
     public LayoutStorage createLayoutStorage(
+            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     ) {
@@ -31,6 +32,7 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
         return new DatabaseLayoutStorage(
                 entityManagerFactory,
+                bentoIdentifier,
                 layoutIdentifier,
                 codecIdentifier
         );
