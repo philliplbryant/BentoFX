@@ -119,6 +119,11 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             // Wait for the future to complete
             final BentoState bentoState = futureState.get();
 
+            // TODO BENTO-13: Create and inject a BentoProvider that returns the
+            //  correct Bento for the identifier. All Bentos are not created
+            //  equal - it's possible the client application extended the Bento
+            //  class, customized its functionality, and used it when creating
+            //  the default layout.
             final Bento bento = new Bento(bentoState.getIdentifier());
 
             final DockBuilding dockBuilding = bento.dockBuilding();
