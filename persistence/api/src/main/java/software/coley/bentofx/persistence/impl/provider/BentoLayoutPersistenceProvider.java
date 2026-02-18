@@ -54,7 +54,6 @@ public class BentoLayoutPersistenceProvider
 
         final LayoutStorage layoutStorage =
                 layoutStorageProvider.createLayoutStorage(
-                        bento.getIdentifier(),
                         layoutIdentifier,
                         layoutCodec.getIdentifier()
                 );
@@ -68,7 +67,7 @@ public class BentoLayoutPersistenceProvider
 
     @Override
     public @NotNull LayoutRestorer getLayoutRestorer(
-            final @NotNull Bento bento,
+            final @NotNull BentoProvider bentoProvider,
             final @NotNull String layoutIdentifier,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
@@ -79,7 +78,6 @@ public class BentoLayoutPersistenceProvider
 
         final LayoutStorage layoutStorage =
                 layoutStorageProvider.createLayoutStorage(
-                        bento.getIdentifier(),
                         layoutIdentifier,
                         layoutCodec.getIdentifier()
                 );
@@ -87,6 +85,7 @@ public class BentoLayoutPersistenceProvider
         return new BentoLayoutRestorer(
                 layoutCodec,
                 layoutStorage,
+                bentoProvider,
                 dockableStateProvider,
                 stageIconImageProvider,
                 dockContainerLeafMenuFactoryProvider

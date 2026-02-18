@@ -25,7 +25,7 @@ public interface LayoutPersistenceProvider {
     );
 
     @NotNull LayoutRestorer getLayoutRestorer(
-            final @NotNull Bento bento,
+            final @NotNull BentoProvider bentoprovider,
             final @NotNull String layoutIdentifier,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,

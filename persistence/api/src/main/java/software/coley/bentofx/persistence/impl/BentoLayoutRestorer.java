@@ -22,6 +22,7 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
+import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
@@ -29,7 +30,6 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,11 +49,10 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class BentoLayoutRestorer implements LayoutRestorer {
 
     private static final Logger logger = LoggerFactory.getLogger(BentoLayoutRestorer.class);
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final int UID_CAPACITY = 8;
 
-    private final @NotNull LayoutStorage layoutStorage;
     private final @NotNull LayoutCodec layoutCodec;
+    private final @NotNull LayoutStorage layoutStorage;
+    private final @NotNull BentoProvider bentoProvider;
     private final @NotNull DockableStateProvider dockableStateProvider;
     private final @Nullable StageIconImageProvider stageIconImageProvider;
     private final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
@@ -61,12 +60,14 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     public BentoLayoutRestorer(
             final @NotNull LayoutCodec layoutCodec,
             final @NotNull LayoutStorage layoutStorage,
+            final @NotNull BentoProvider bentoProvider,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
+        this.bentoProvider = Objects.requireNonNull(bentoProvider);
         this.dockableStateProvider = Objects.requireNonNull(dockableStateProvider);
         this.stageIconImageProvider = stageIconImageProvider;
         this.dockContainerLeafMenuFactoryProvider = dockContainerLeafMenuFactoryProvider;
@@ -82,10 +83,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             final @NotNull Stage primaryStage,
             final @NotNull Supplier<DockContainerRootBranch> defaultLayoutSupplier
     ) {
-
         try {
 
-            // TODO BENTO-13: Persist and restore to size and position of the primary stage?
+            // TODO BENTO-13: Persist and restore to size and position of the
+            //  primary stage?
 
             primaryStage.hide();
             closeOtherStages(primaryStage);
@@ -93,10 +94,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             final CompletableFuture<BentoState> futureState =
                     new CompletableFuture<>();
 
-            try (
-                    final ScheduledExecutorService executorService =
-                            newSingleThreadScheduledExecutor()
-            ) {
+            try (final ScheduledExecutorService executorService =
+                         newSingleThreadScheduledExecutor()) {
 
                 // Do not decode on the application thread
                 executorService.schedule(
@@ -119,12 +118,22 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             // Wait for the future to complete
             final BentoState bentoState = futureState.get();
 
-            // TODO BENTO-13: Create and inject a BentoProvider that returns the
-            //  correct Bento for the identifier. All Bentos are not created
-            //  equal - it's possible the client application extended the Bento
-            //  class, customized its functionality, and used it when creating
-            //  the default layout.
-            final Bento bento = new Bento(bentoState.getIdentifier());
+            final String bentoId = bentoState.getIdentifier();
+
+            // All Bentos are not created equal - it's possible the client
+            // application extended the Bento class or otherwise customized
+            // its functionality, and used it when creating the layout that is
+            // being restored.
+            final Bento bento = bentoProvider.getBento(bentoId)
+                    .orElseGet(() -> {
+                                logger.warn(
+                                        "Could not find the Bento with identifier {}. " +
+                                                "Some docking features might not be available.",
+                                        bentoId
+                                );
+                                return new Bento();
+                            }
+                    );
 
             final DockBuilding dockBuilding = bento.dockBuilding();
 
@@ -197,7 +206,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        if(stageIconImageProvider != null) {
+        if (stageIconImageProvider != null) {
             stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
         }
         stageState.getTitle().ifPresent(stage::setTitle);
@@ -358,7 +367,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         final DockBuilding dockBuilding = rootBranch.getBento().dockBuilding();
         final DockContainerLeaf leaf = dockBuilding.leaf(id);
 
-        if(dockContainerLeafMenuFactoryProvider != null) {
+        if (dockContainerLeafMenuFactoryProvider != null) {
             dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
                     leaf.getIdentifier()
             ).ifPresent(

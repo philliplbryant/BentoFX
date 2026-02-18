@@ -28,18 +28,15 @@ public class DatabaseLayoutStorage implements LayoutStorage {
             LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
     private final @NotNull EntityManagerFactory emf;
-    private final @NotNull String bentoIdentifier;
     private final @NotNull String layoutIdentifier;
     private final @NotNull String codecIdentifier;
 
     public DatabaseLayoutStorage(
             final @NotNull EntityManagerFactory emf,
-            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     ) {
         this.emf = emf;
-        this.bentoIdentifier = bentoIdentifier;
         this.layoutIdentifier = layoutIdentifier;
         this.codecIdentifier = codecIdentifier;
     }
@@ -50,7 +47,6 @@ public class DatabaseLayoutStorage implements LayoutStorage {
         try (final EntityManager em = emf.createEntityManager()) {
 
             final DockingLayoutEntityCompositeKey key = new DockingLayoutEntityCompositeKey(
-                            bentoIdentifier,
                             layoutIdentifier,
                             codecIdentifier
                     );
@@ -73,15 +69,13 @@ public class DatabaseLayoutStorage implements LayoutStorage {
         try (final EntityManager em = emf.createEntityManager()) {
 
             logger.debug(
-                    "Creating input stream for bento {} using layout {} and codec {}.",
-                    bentoIdentifier,
+                    "Creating input stream using layout {} and codec {}.",
                     layoutIdentifier,
                     codecIdentifier
                     );
 
             final DockingLayoutEntityCompositeKey key =
                     new DockingLayoutEntityCompositeKey(
-                            bentoIdentifier,
                             layoutIdentifier,
                             codecIdentifier
                     );
@@ -124,7 +118,6 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 
                         final DockingLayoutEntityCompositeKey key =
                                 new DockingLayoutEntityCompositeKey(
-                                        bentoIdentifier,
                                         layoutIdentifier,
                                         codecIdentifier
                                 );

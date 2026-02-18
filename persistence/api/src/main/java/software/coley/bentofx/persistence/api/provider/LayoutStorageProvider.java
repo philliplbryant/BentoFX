@@ -23,7 +23,6 @@ public interface LayoutStorageProvider {
      * layout.
      */
     LayoutStorage createLayoutStorage(
-            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     );

@@ -10,9 +10,6 @@ import java.util.Objects;
 @Embeddable
 public class DockingLayoutEntityCompositeKey implements Serializable {
 
-    @Column(name = "bento_id", nullable = false, length = 24)
-    public String bentoIdentifier;
-
     @Column(name = "layout_id", nullable = false, length = 24)
     public String layoutIdentifier;
 
@@ -22,11 +19,9 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
     public DockingLayoutEntityCompositeKey() {}
 
     public DockingLayoutEntityCompositeKey(
-            final @NotNull String bentoIdentifier,
             final @NotNull String layoutIdentifier,
             final @NotNull String codecIdentifier
     ) {
-        this.bentoIdentifier = Objects.requireNonNull(bentoIdentifier);
         this.layoutIdentifier = Objects.requireNonNull(layoutIdentifier);
         this.codecIdentifier = Objects.requireNonNull(codecIdentifier);
     }
@@ -42,9 +37,6 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
                 (DockingLayoutEntityCompositeKey) that;
 
         return Objects.equals(
-                this.bentoIdentifier,
-                thatKey.bentoIdentifier
-        ) && Objects.equals(
                 this.layoutIdentifier,
                 thatKey.layoutIdentifier
         ) && Objects.equals(
@@ -56,7 +48,6 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(
-                bentoIdentifier,
                 layoutIdentifier,
                 codecIdentifier
         );

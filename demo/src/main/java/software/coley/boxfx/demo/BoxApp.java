@@ -4,9 +4,6 @@ import javafx.application.Application;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
@@ -24,17 +20,9 @@ import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.DockableState;
-import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
-import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.impl.provider.BentoLayoutPersistenceProvider;
-import software.coley.boxfx.demo.provider.BoxAppDockContainerLeafMenuFactoryProvider;
-import software.coley.boxfx.demo.provider.BoxAppDockableMenuFactory;
-import software.coley.boxfx.demo.provider.BoxAppDockableStateProvider;
-import software.coley.boxfx.demo.provider.BoxAppStageIconImageProvider;
-
-import java.util.ServiceLoader;
+import software.coley.boxfx.demo.provider.*;
 
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
 
@@ -66,17 +54,22 @@ public class BoxApp extends Application {
     private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider =
             new BoxAppDockContainerLeafMenuFactoryProvider();
 
-    private Bento bento;
+    private final BentoProvider bentoProvider = new BoxAppBentoProvider();
+    private final Bento bento;
 
-    /**
-     * Uses {@link ServiceLoader} and Service Provider Interfaces to acquire
-     * injected dependencies before starting the JavaFX application.
-     */
-    @Override
-    public void init() {
+    public BoxApp() {
+        this.bento = bentoProvider.getBento(BoxAppBentoProvider.IDENTIFIER)
+                .orElseGet(() -> {
 
-        bento = new Bento(getClass().getSimpleName());
-        initializeBento(bento);
+                            logger.warn(
+                                    "Could not find the Bento with identifier {}. " +
+                                            "Some docking features might not be available.",
+                                    BoxAppBentoProvider.IDENTIFIER
+                            );
+
+                            return new Bento();
+                        }
+                );
     }
 
     @Override
@@ -105,27 +98,13 @@ public class BoxApp extends Application {
         stage.show();
     }
 
-    private void initializeBento(final @NotNull Bento bento) {
-
-        bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
-                new Label("Empty Dockable")
-        );
-        bento.placeholderBuilding().setContainerPlaceholderFactory(container ->
-                new Label("Empty Container")
-        );
-        bento.events().addEventListener((DockEvent event) -> {
-            if (event instanceof DockEvent.DockableClosing closingEvent)
-                handleDockableClosing(closingEvent);
-        });
-    }
-
     private DockContainerRootBranch restoreBranch(final Stage stage) {
 
         DockContainerRootBranch branchRoot;
 
         final LayoutRestorer layoutRestorer =
                 persistenceProvider.getLayoutRestorer(
-                        bento,
+                        bentoProvider,
                         DEFAULT_LAYOUT_IDENTIFIER,
                         dockableStateProvider,
                         stageIconImageProvider,
@@ -140,11 +119,6 @@ public class BoxApp extends Application {
                     stage,
                     this::getDefaultLayout
             );
-
-            // Update the new Bento
-            bento = branchRoot.getBento();
-            // TODO BENTO-13: Re-initialize the Bento when restoring it
-            initializeBento(bento);
 
         } else {
 
@@ -169,40 +143,6 @@ public class BoxApp extends Application {
         } catch (BentoStateException e) {
 
             logger.warn("Could not save the docking layout.", e);
-        }
-    }
-
-    private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {
-        final Dockable dockable = closingEvent.dockable();
-        if (!dockable.getTitle().startsWith("Class "))
-            return;
-
-        final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmation");
-        alert.setHeaderText(null);
-        alert.setContentText("Save changes to [" + dockable.getTitle() + "] before closing?");
-        alert.getButtonTypes().setAll(
-                ButtonType.YES,
-                ButtonType.NO,
-                ButtonType.CANCEL
-        );
-
-        final ButtonType result = alert.showAndWait()
-                .orElse(ButtonType.CANCEL);
-
-        if (result.equals(ButtonType.YES)) {
-            // simulate saving application (not docking layout) state
-            logger.debug("Saving {}...", dockable.getTitle());
-
-        } else if (result.equals(ButtonType.NO)) {
-
-            // nothing to do - just close
-            logger.debug("Closing {} without saving...", dockable.getTitle());
-
-        } else if (result.equals(ButtonType.CANCEL)) {
-
-            // prevent closing
-            closingEvent.cancel();
         }
     }
 
