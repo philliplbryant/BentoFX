@@ -11,11 +11,12 @@ import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateListDto;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
@@ -43,13 +44,13 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
     @Override
     public void encode(
-            final @NotNull BentoState state,
+            final @NotNull List<@NotNull BentoState> states,
             final @NotNull OutputStream outputStream
     ) throws BentoStateException {
 
         try {
 
-            final BentoStateDto bentoStateDto = BentoStateMapper.toDto(state);
+            final BentoStateListDto bentoStateDto = BentoStateMapper.toDto(states);
             mapper.writeValue(outputStream, bentoStateDto);
         } catch (final Exception e) {
 
@@ -61,22 +62,21 @@ public final class JsonLayoutCodec implements LayoutCodec {
     }
 
     @Override
-    public @NotNull BentoState decode(
-            @NotNull
-            final InputStream inputStream
+    public @NotNull List<@NotNull BentoState> decode(
+            @NotNull final InputStream inputStream
     ) throws BentoStateException {
         try {
-            final BentoStateDto bentoStateDto =
+            final BentoStateListDto bentoStateListDto =
                     mapper.readValue(
                             inputStream,
-                            BentoStateDto.class
+                            BentoStateListDto.class
                     );
 
-            return BentoStateMapper.fromDto(bentoStateDto);
+            return BentoStateMapper.fromDto(bentoStateListDto);
         } catch (final IOException e) {
 
             throw new BentoStateException(
-                    "Failed to decode BentoState from JSON",
+                    "Failed to decode BentoStateList from JSON",
                     e
             );
         }

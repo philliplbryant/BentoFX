@@ -17,8 +17,10 @@ import software.coley.bentofx.persistence.api.codec.DockContainerLeafState.DockC
 import software.coley.bentofx.persistence.api.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.codec.DragDropStageState.DragDropStageStateBuilder;
+import software.coley.bentofx.persistence.api.codec.IdentifiableStageState.StageStateBuilder;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -44,6 +46,25 @@ public final class BentoStateMapper {
     }
 
     /**
+     * Maps a {@code List<BentoState>} to a {@link BentoStateListDto}.
+     *
+     * @param bentoStates the {@code List<BentoState>} to map.
+     * @return the {@link BentoStateListDto} mapped from the
+     * {@code List<BentoState>}.
+     */
+    public static @NotNull BentoStateListDto toDto(
+            final @NotNull List<@NotNull BentoState> bentoStates
+    ) {
+        final BentoStateListDto stateDtoList = new BentoStateListDto();
+
+        for (final BentoState state : bentoStates) {
+            stateDtoList.getBentoStates().add(toDto(state));
+        }
+
+        return stateDtoList;
+    }
+
+    /**
      * Maps a {@link BentoState} to a {@link BentoStateDto}.
      *
      * @param state the {@link BentoState} to map.
@@ -58,8 +79,8 @@ public final class BentoStateMapper {
 
         bentoStateDto.identifier = state.getIdentifier();
 
-        for (final DockContainerRootBranchState root : state.getRootBranchStates()) {
-            bentoStateDto.rootBranches.add(toDto(root));
+        for (final IdentifiableStageState identifiableStageState : state.getIdentifiableStageStates()) {
+            bentoStateDto.identifiableStages.add(toDto(identifiableStageState));
         }
 
         for (final DragDropStageState stage : state.getDragDropStageStates()) {
@@ -128,6 +149,40 @@ public final class BentoStateMapper {
     }
 
     /**
+     * Maps a {@link IdentifiableStageState} to a {@link IdentifiableStageDto}.
+     *
+     * @param identifiableStageState the {@link IdentifiableStageState} to map.
+     * @return the {@link IdentifiableStageDto} mapped from the {@link IdentifiableStageState}.
+     */
+    public static @NotNull IdentifiableStageDto toDto(
+            final @NotNull IdentifiableStageState identifiableStageState
+    ) {
+        final IdentifiableStageDto identifiableStageDto = new IdentifiableStageDto();
+        identifiableStageDto.identifier = identifiableStageState.getIdentifier();
+        identifiableStageDto.title = identifiableStageState.getTitle().orElse(null);
+        identifiableStageDto.x = identifiableStageState.getX().orElse(null);
+        identifiableStageDto.y = identifiableStageState.getY().orElse(null);
+        identifiableStageDto.width = identifiableStageState.getWidth().orElse(null);
+        identifiableStageDto.height = identifiableStageState.getHeight().orElse(null);
+        identifiableStageDto.opacity = identifiableStageState.getOpacity().orElse(null);
+        identifiableStageDto.iconified = identifiableStageState.isIconified().orElse(null);
+        identifiableStageDto.fullScreen = identifiableStageState.isFullScreen().orElse(null);
+        identifiableStageDto.maximized = identifiableStageState.isMaximized().orElse(null);
+        identifiableStageDto.alwaysOnTop = identifiableStageState.isAlwaysOnTop().orElse(null);
+        identifiableStageDto.resizable = identifiableStageState.isResizable().orElse(null);
+        identifiableStageDto.showing = identifiableStageState.isShowing().orElse(null);
+        identifiableStageDto.showing = identifiableStageState.isFocused().orElse(null);
+        identifiableStageDto.modality = identifiableStageState.getModality().orElse(null);
+
+        for (DockContainerRootBranchState rootBranchState :
+                identifiableStageState.getRootBranchStates()) {
+            identifiableStageDto.dockContainerRootBranches.add(toDto(rootBranchState));
+        }
+
+        return identifiableStageDto;
+    }
+
+    /**
      * Maps a {@link DragDropStageState} to a {@link DragDropStageDto}.
      *
      * @param stageState the {@link DragDropStageState} to map.
@@ -138,15 +193,21 @@ public final class BentoStateMapper {
             final @NotNull DragDropStageState stageState
     ) {
         final DragDropStageDto stageDto = new DragDropStageDto();
+        stageDto.identifier = stageState.getIdentifier();
         stageDto.autoCloseWhenEmpty = stageState.isAutoClosedWhenEmpty();
-        stageDto.title = stageState.getTitle().orElse("");
+        stageDto.title = stageState.getTitle().orElse(null);
         stageDto.x = stageState.getX().orElse(null);
         stageDto.y = stageState.getY().orElse(null);
         stageDto.width = stageState.getWidth().orElse(null);
         stageDto.height = stageState.getHeight().orElse(null);
+        stageDto.opacity = stageState.getOpacity().orElse(null);
         stageDto.iconified = stageState.isIconified().orElse(null);
         stageDto.fullScreen = stageState.isFullScreen().orElse(null);
         stageDto.maximized = stageState.isMaximized().orElse(null);
+        stageDto.alwaysOnTop = stageState.isAlwaysOnTop().orElse(null);
+        stageDto.resizable = stageState.isResizable().orElse(null);
+        stageDto.showing = stageState.isShowing().orElse(null);
+        stageDto.showing = stageState.isFocused().orElse(null);
         stageDto.modality = stageState.getModality().orElse(null);
         stageState.getDockContainerRootBranchState().ifPresent(
                 dockContainerRootBranchState ->
@@ -247,6 +308,25 @@ public final class BentoStateMapper {
     }
 
     /**
+     * Maps a {@link BentoStateListDto} to a {@code List<BentoState>}.
+     *
+     * @param bentoStateListDto the {@link BentoStateListDto} to map.
+     * @return the {@code List<BentoState>} mapped from the
+     * {@link BentoStateListDto}.
+     */
+    public static @NotNull List<@NotNull BentoState> fromDto(
+            final @NotNull BentoStateListDto bentoStateListDto
+    ) {
+        final List<BentoState> bentoStateList = new ArrayList<>();
+
+        for (final BentoStateDto stateDto : bentoStateListDto.getBentoStates()) {
+            bentoStateList.add(fromDto(stateDto));
+        }
+
+        return bentoStateList;
+    }
+
+    /**
      * Maps a {@link BentoStateDto} to a {@link BentoState}.
      *
      * @param bentoStateDto the {@link BentoStateDto} to map.
@@ -260,15 +340,15 @@ public final class BentoStateMapper {
         final BentoStateBuilder builder =
                 new BentoStateBuilder(bentoStateDto.identifier);
 
-        if (bentoStateDto.rootBranches != null) {
-            for (final DockContainerRootBranchDto rootDto : bentoStateDto.rootBranches) {
-                builder.addRootBranchState(fromDto(rootDto));
+        if (bentoStateDto.identifiableStages != null) {
+            for (final IdentifiableStageDto dto : bentoStateDto.identifiableStages) {
+                builder.addIdentifiableStageState(fromDto(dto));
             }
         }
 
         if (bentoStateDto.dragDropStages != null) {
-            for (final DragDropStageDto stageDto : bentoStateDto.dragDropStages) {
-                builder.addDragDropStageState(fromDto(stageDto));
+            for (final DragDropStageDto dto : bentoStateDto.dragDropStages) {
+                builder.addDragDropStageState(fromDto(dto));
             }
         }
 
@@ -293,12 +373,14 @@ public final class BentoStateMapper {
         final DockContainerRootBranchStateBuilder builder =
                 new DockContainerRootBranchStateBuilder(id);
 
+        if (rootBranchDto.parentStage != null) {
+            final IdentifiableStageState parentIdentifiableStageState =
+                    fromDto(rootBranchDto.parentStage);
+            builder.setParentStage(parentIdentifiableStageState);
+        }
+
         builder.setOrientation(rootBranchDto.orientation)
                 .setPruneWhenEmpty(rootBranchDto.pruneWhenEmpty);
-
-        if (rootBranchDto.parentStage != null) {
-            builder.setParent(fromDto(rootBranchDto.parentStage));
-        }
 
         setDividerPositions(builder, rootBranchDto.dividerPositions);
 
@@ -316,6 +398,41 @@ public final class BentoStateMapper {
     }
 
     /**
+     * Maps a {@link IdentifiableStageDto} to a {@link IdentifiableStageState}.
+     *
+     * @param identifiableStageDto the {@link IdentifiableStageDto} to map.
+     * @return the {@link IdentifiableStageState} mapped from the {@link IdentifiableStageDto}.
+     */
+    public static @NotNull IdentifiableStageState fromDto(
+            final @NotNull IdentifiableStageDto identifiableStageDto
+    ) {
+        final StageStateBuilder builder = new StageStateBuilder(
+                identifiableStageDto.identifier
+        )
+                .setTitle(identifiableStageDto.title)
+                .setX(identifiableStageDto.x)
+                .setY(identifiableStageDto.y)
+                .setWidth(identifiableStageDto.width)
+                .setHeight(identifiableStageDto.height)
+                .setModality(identifiableStageDto.modality)
+                .setOpacity(identifiableStageDto.opacity)
+                .setIconified(identifiableStageDto.iconified)
+                .setFullScreen(identifiableStageDto.fullScreen)
+                .setMaximized(identifiableStageDto.maximized)
+                .setAlwaysOnTop(identifiableStageDto.alwaysOnTop)
+                .setResizable(identifiableStageDto.resizable)
+                .setShowing(identifiableStageDto.showing)
+                .setFocused(identifiableStageDto.focused);
+
+        for (final DockContainerRootBranchDto rootBranchDto :
+                identifiableStageDto.dockContainerRootBranches) {
+            builder.addRootBranchState(fromDto(rootBranchDto));
+        }
+
+        return builder.build();
+    }
+
+    /**
      * Maps a {@link DragDropStageDto} to a {@link DragDropStageState}.
      *
      * @param stageDto the {@link DragDropStageDto} to map.
@@ -326,6 +443,7 @@ public final class BentoStateMapper {
             final @NotNull DragDropStageDto stageDto
     ) {
         return new DragDropStageStateBuilder(
+                stageDto.identifier,
                 Boolean.TRUE.equals(stageDto.autoCloseWhenEmpty)
         )
                 .setTitle(stageDto.title)
@@ -333,10 +451,15 @@ public final class BentoStateMapper {
                 .setY(stageDto.y)
                 .setWidth(stageDto.width)
                 .setHeight(stageDto.height)
-                .setIsIconified(stageDto.iconified)
-                .setIsFullScreen(stageDto.fullScreen)
-                .setIsMaximized(stageDto.maximized)
                 .setModality(stageDto.modality)
+                .setOpacity(stageDto.opacity)
+                .setIconified(stageDto.iconified)
+                .setFullScreen(stageDto.fullScreen)
+                .setMaximized(stageDto.maximized)
+                .setAlwaysOnTop(stageDto.alwaysOnTop)
+                .setResizable(stageDto.resizable)
+                .setShowing(stageDto.showing)
+                .setFocused(stageDto.focused)
                 .setDockContainerRootBranchState(
                         fromDto(stageDto.dockContainerRootBranchDto)
                 )

@@ -5,9 +5,8 @@
 
 package software.coley.bentofx.persistence.api;
 
-import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
-import software.coley.bentofx.layout.container.DockContainerRootBranch;
+import software.coley.bentofx.persistence.api.storage.DockingLayout;
 
 import java.util.function.Supplier;
 
@@ -20,12 +19,12 @@ public interface LayoutRestorer {
 
     /**
      * Returns {@code true} if a stored layout exists; otherwise, returns {@code false}.
+     *
      * @return {@code true} if a stored layout exists; otherwise, returns {@code false}.
      */
     boolean doesLayoutExist();
 
-    DockContainerRootBranch restoreLayout(
-            final @NotNull Stage primaryStage,
-            final @NotNull Supplier<DockContainerRootBranch> defaultLayoutSupplier
+    @NotNull DockingLayout restoreLayout(
+            final @NotNull Supplier<DockingLayout> defaultLayoutSupplier
     );
 }

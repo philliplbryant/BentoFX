@@ -7,7 +7,6 @@ package software.coley.bentofx.persistence.api.provider;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 
@@ -20,7 +19,7 @@ import software.coley.bentofx.persistence.api.LayoutSaver;
 public interface LayoutPersistenceProvider {
 
     @NotNull LayoutSaver getLayoutSaver(
-            final @NotNull Bento bento,
+            final @NotNull BentoProvider bentoProvider,
             final @NotNull String layoutIdentifier
     );
 

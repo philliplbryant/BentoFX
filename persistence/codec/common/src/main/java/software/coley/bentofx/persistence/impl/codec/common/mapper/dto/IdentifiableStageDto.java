@@ -7,23 +7,25 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.*;
 import javafx.stage.Modality;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
+
 
 /**
- * Mappable Data Transfer Object representing the layout state of a
- * {@code DragDropStage}.
+ * Mappable Data Transfer Object representing the layout state of an
+ * {@code IdentifiableStage}.
  *
  * @author Phil Bryant
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DragDropStageDto {
+public class IdentifiableStageDto {
 
     @XmlAttribute
     public String identifier;
@@ -56,9 +58,8 @@ public class DragDropStageDto {
     @XmlAttribute
     public Boolean focused;
 
-    @XmlAttribute
-    public Boolean autoCloseWhenEmpty;
+    @XmlElementWrapper(name = ROOT_BRANCH_LIST_ELEMENT_NAME)
     @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
     @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
-    public DockContainerRootBranchDto dockContainerRootBranchDto;
+    public List<DockContainerRootBranchDto> dockContainerRootBranches = new ArrayList<>();
 }

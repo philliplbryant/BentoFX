@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.api.provider;
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.Bento;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -20,4 +21,10 @@ public interface BentoProvider {
      * @return the {@link Bento} with the given identifier.
      */
     @NotNull Optional<@NotNull Bento> getBento(String identifier);
+
+    /**
+     * @return a {@link Collection} of all {@link Bento} whose layouts are to be
+     * saved and restored.
+     */
+    @NotNull Collection<@NotNull Bento> getAllBentos();
 }

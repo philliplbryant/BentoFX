@@ -109,7 +109,7 @@ sequenceDiagram
       Restorer->>Restorer: addDockable / selectDockable
     end
     loop dragDropStageStates
-      Restorer->>Restorer: restoreDragDropStage(stageState)
+      Restorer->>Restorer: restoreDragDropStage(identifiableStageState)
     end
   end
 

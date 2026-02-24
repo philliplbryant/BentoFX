@@ -19,7 +19,6 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  *
  * @author Phil Bryant
  */
-@XmlRootElement(name = BENTO_ELEMENT_NAME)
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BentoStateDto {
@@ -27,10 +26,11 @@ public class BentoStateDto {
     @XmlAttribute
     public String identifier;
 
-    @XmlElementWrapper(name = ROOT_BRANCH_LIST_ELEMENT_NAME)
-    @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
-    @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
-    public List<DockContainerRootBranchDto> rootBranches = new ArrayList<>();
+
+    @XmlElementWrapper(name = IDENTIFIABLE_STAGE_LIST_ELEMENT_NAME)
+    @XmlElement(name = IDENTIFIABLE_STAGE_ELEMENT_NAME)
+    @JsonProperty(IDENTIFIABLE_STAGE_ELEMENT_NAME)
+    public List<IdentifiableStageDto> identifiableStages = new ArrayList<>();
 
     @XmlElementWrapper(name = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
     @XmlElement(name = DRAG_DROP_STAGE_ELEMENT_NAME)

@@ -94,11 +94,6 @@ public class Bento implements Identifiable {
         return identifier;
     }
 
-    @Override
-    public boolean matchesIdentity(@Nonnull Identifiable other) {
-        return this.identifier.equals(other.getIdentifier());
-    }
-
     /**
 	 * @return Bus for handling event firing and event listeners.
 	 */

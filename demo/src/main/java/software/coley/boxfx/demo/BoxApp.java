@@ -1,30 +1,35 @@
 package software.coley.boxfx.demo;
 
 import javafx.application.Application;
-import javafx.geometry.Orientation;
-import javafx.geometry.Side;
 import javafx.scene.Scene;
-import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.Bento;
-import software.coley.bentofx.building.DockBuilding;
-import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.layout.DockContainer;
-import software.coley.bentofx.layout.container.DockContainerBranch;
-import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
+import software.coley.bentofx.persistence.api.BentoLayout;
+import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
+import software.coley.bentofx.persistence.api.IdentifiableStageLayout;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.DockableState;
-import software.coley.bentofx.persistence.api.provider.*;
+import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.api.storage.DockingLayout;
+import software.coley.bentofx.persistence.api.storage.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.impl.provider.BentoLayoutPersistenceProvider;
 import software.coley.boxfx.demo.provider.*;
+import software.coley.boxfx.demo.ui.MainStage;
+import software.coley.boxfx.demo.ui.SecondDragDropStage;
+import software.coley.boxfx.demo.ui.SecondStage;
 
-import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
+import java.util.List;
+
+import static software.coley.bentofx.control.IdentifiableStage.getIdentifiableStage;
+import static software.coley.bentofx.persistence.impl.StageUtils.applyStageState;
 
 /**
  * JavaFX application that demonstrates using the BentoFX docking and docking
@@ -54,53 +59,57 @@ public class BoxApp extends Application {
     private final DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider =
             new BoxAppDockContainerLeafMenuFactoryProvider();
 
-    private final BentoProvider bentoProvider = new BoxAppBentoProvider();
-    private final Bento bento;
+    private final @NotNull BoxAppBentoProvider bentoProvider =
+            new BoxAppBentoProvider();
 
-    public BoxApp() {
-        this.bento = bentoProvider.getBento(BoxAppBentoProvider.IDENTIFIER)
-                .orElseGet(() -> {
-
-                            logger.warn(
-                                    "Could not find the Bento with identifier {}. " +
-                                            "Some docking features might not be available.",
-                                    BoxAppBentoProvider.IDENTIFIER
-                            );
-
-                            return new Bento();
-                        }
-                );
-    }
+    private MainStage mainStage;
+    private SecondStage secondStage;
+    private SecondDragDropStage secondDragDropStage;
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage primaryStage) {
 
-        stage.setWidth(1000);
-        stage.setHeight(700);
-        stage.getIcons().addAll(stageIconImageProvider.getStageIcons());
-        stage.setTitle("BentoFX Demo");
+        mainStage = new MainStage(
+                bentoProvider,
+                dockableStateProvider,
+                stageIconImageProvider,
+                dockContainerLeafMenuFactoryProvider,
+                this::saveDockingLayout
+        );
 
-        DockContainerRootBranch branchRoot = restoreBranch(stage);
+        secondStage = new SecondStage(
+                bentoProvider,
+                stageIconImageProvider
+        );
 
-        Scene scene = new Scene(branchRoot);
-        scene.getStylesheets().add("/bento.css");
-        stage.setScene(scene);
-        stage.setOnHidden(e -> System.exit(0));
-        // We need to save the docking layout on close request because the
-        // primary stage is (and all other windows are) no longer available
-        // after closed and, as such, will not be included when saving the
-        // docking layout.
-        stage.setOnCloseRequest(event -> saveDockingLayout());
+        secondDragDropStage = new SecondDragDropStage(
+                bentoProvider,
+                dockableStateProvider,
+                stageIconImageProvider
+        );
 
-        // We don't need to wait for dockables to be initialized so we can show
-        // all of our stages now.
-        // TODO BENTO-13: Use the Bento to show all stages
-        stage.show();
+        DockingLayout dockingLayout = getDockingLayout();
+        applyDockingLayout(dockingLayout);
+
+        // Ignore, but do not close, the primary stage. The application will
+        // terminate if all stages are closed, and the primary stage is not
+        // visible.
+        primaryStage.hide();
+
+        // TODO BENTO-13: Move this
+//        mainStage.centerOnScreen();
+        mainStage.show();
+        secondStage.show();
     }
 
-    private DockContainerRootBranch restoreBranch(final Stage stage) {
+    /**
+     * @return if a prior {@link DockingLayout} has been saved, restores and
+     * returns it. Otherwise, returns the default {@link DockingLayout}.
+     * @see #getDefaultDockingLayout()
+     */
+    private @NotNull DockingLayout getDockingLayout() {
 
-        DockContainerRootBranch branchRoot;
+        @NotNull DockingLayout dockingLayout;
 
         final LayoutRestorer layoutRestorer =
                 persistenceProvider.getLayoutRestorer(
@@ -111,172 +120,103 @@ public class BoxApp extends Application {
                         dockContainerLeafMenuFactoryProvider
                 );
 
-        // If a prior docking layout has been saved, restore it from the
-        // persisted state. Otherwise, use the default layout.
         if (layoutRestorer.doesLayoutExist()) {
 
-            branchRoot = layoutRestorer.restoreLayout(
-                    stage,
-                    this::getDefaultLayout
+            return layoutRestorer.restoreLayout(
+                    this::getDefaultDockingLayout
             );
 
         } else {
 
-            branchRoot = getDefaultLayout();
+            dockingLayout = getDefaultDockingLayout();
         }
 
-        return branchRoot;
+        return dockingLayout;
+    }
+
+    private void applyDockingLayout(
+            final @NotNull DockingLayout dockingLayout
+    ) {
+
+        for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
+
+            for (final IdentifiableStageLayout stageLayout :
+                    bentoLayout.getStageLayouts()) {
+
+                getIdentifiableStage(
+                        stageLayout.getIdentifier()
+                ).ifPresent(stage -> {
+
+                    // Add each root branch to the scene.
+                    // This application only has one root branch so just get
+                    // and add the first one to a new scene.
+                    final List<DockContainerRootBranch> rootBranches =
+                            stageLayout.getRootBranches();
+
+                    if (!rootBranches.isEmpty()) {
+                        final Scene scene =
+                                new Scene(rootBranches.getFirst());
+                        scene.getStylesheets().add("/bento.css");
+                        stage.setScene(scene);
+                    }
+
+                    // Wait for dockables to be initialized and the scene set
+                    // before applying the layout; otherwise, the layout might
+                    // be changed by the added controls.
+                    applyStageState(stageLayout.getStageState(), stage);
+                    stage.show();
+                });
+            }
+
+            for (final @NotNull DragDropStage dragDropStage :
+                    bentoLayout.getDragDropStages()) {
+                dragDropStage.show();
+            }
+        }
+
     }
 
     private void saveDockingLayout() {
-
         try {
-
             final LayoutSaver layoutSaver =
                     persistenceProvider.getLayoutSaver(
-                            bento,
+                            bentoProvider,
                             DEFAULT_LAYOUT_IDENTIFIER
                     );
 
             layoutSaver.saveLayout();
-
         } catch (BentoStateException e) {
-
             logger.warn("Could not save the docking layout.", e);
         }
     }
 
-    private DockContainerRootBranch getDefaultLayout() {
+    private DockingLayout getDefaultDockingLayout() {
 
-        final DockBuilding dockBuilding = bento.dockBuilding();
+        DockingLayoutBuilder dockingLayoutBuilder =
+                new DockingLayoutBuilder();
 
-        DockContainerRootBranch branchRoot = dockBuilding.root("root");
-        DockContainerBranch branchWorkspace = dockBuilding.branch("workspace");
-        DockContainerLeaf leafWorkspaceTools = dockBuilding.leaf("workspace-tools");
-        DockContainerLeaf leafWorkspaceHeaders = dockBuilding.leaf("workspace-headers");
-        DockContainerLeaf leafTools = dockBuilding.leaf("misc-tools");
-
-        branchWorkspace.setPruneWhenEmpty(false);
-        leafWorkspaceTools.setPruneWhenEmpty(false);
-        leafTools.setPruneWhenEmpty(false);
-        leafTools.setPruneWhenEmpty(false);
-
-        // Add dummy menus to each.
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafTools.getIdentifier()
-        ).ifPresent(leafTools::setMenuFactory);
-
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafWorkspaceHeaders.getIdentifier()
-        ).ifPresent(leafWorkspaceHeaders::setMenuFactory);
-
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
-                leafWorkspaceTools.getIdentifier()
-        ).ifPresent(leafWorkspaceTools::setMenuFactory);
-
-        // These leaves shouldn't auto-expand. They are intended to be a set size.
-        SplitPane.setResizableWithParent(leafTools, false);
-        SplitPane.setResizableWithParent(leafWorkspaceTools, false);
-
-        // Root: Workspace on top, tools on bottom
-        // Workspace: Explorer on left, primary editor tabs on right
-        branchRoot.setOrientation(Orientation.VERTICAL);
-        branchWorkspace.setOrientation(Orientation.HORIZONTAL);
-        branchRoot.addContainers(branchWorkspace, leafTools);
-        branchWorkspace.addContainers(leafWorkspaceTools, leafWorkspaceHeaders);
-
-        // Changing tool header sides to be aligned with application's far edges (to facilitate better collapsing UX)
-        leafWorkspaceTools.setSide(Side.LEFT);
-        leafTools.setSide(Side.BOTTOM);
-
-        // Tools shouldn't allow splitting (mirroring IntelliJ behavior)
-        leafWorkspaceTools.setCanSplit(false);
-        leafTools.setCanSplit(false);
-
-        // Primary editor space should not prune when empty
-        leafWorkspaceHeaders.setPruneWhenEmpty(false);
-
-        // Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the chain)
-        branchRoot.setContainerSizePx(leafTools, 200);
-        branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
-
-        // Make the bottom collapsed by default
-        branchRoot.setContainerCollapsed(leafTools, true);
-
-        // Add dockables to leafWorkspaceTools
-        addDockable(WORKSPACE_DOCKABLE_ID, leafWorkspaceTools);
-        addDockable(BOOKMARKS_DOCKABLE_ID, leafWorkspaceTools);
-        addDockable(MODIFICATIONS_DOCKABLE_ID, leafWorkspaceTools);
-
-        // Add dockables to leafTools
-        addDockable(LOGGING_DOCKABLE_ID, leafTools);
-        addDockable(TERMINAL_DOCKABLE_ID, leafTools);
-        addDockable(PROBLEMS_DOCKABLE_ID, leafTools);
-
-        // Add dockables to leafWorkspaceHeaders
-        addDockable(CLASS_1_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_2_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_3_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_4_DOCKABLE_ID, leafWorkspaceHeaders);
-        addDockable(CLASS_5_DOCKABLE_ID, leafWorkspaceHeaders);
-
-        return branchRoot;
-    }
-
-    /**
-     * Optionally adds the {@code Dockable} with the provided {@code dockableId}
-     * to the {@code DockContainer}. Logs a warning message when the
-     * {@code Dockable} cannot be resolved using the {@code dockableId}.
-     *
-     * @param dockableId the identifier for the {@code Dockable} to add.
-     * @param container  the {@code DockContainer} to which the {@code Dockable}
-     *                   should be added.
-     */
-    private void addDockable(
-            final @NotNull String dockableId,
-            final @NotNull DockContainer container
-    ) {
-        dockableStateProvider.resolveDockableState(dockableId)
-                .ifPresentOrElse(
-                        dockableState ->
-                                // Our application isn't doing anything with the
-                                // reconstructed Dockable. Just add it to the
-                                // container.
-                                container.addDockable(
-                                        createDockable(dockableState)
-                                ),
-                        () ->
-                                logger.warn(
-                                        "Could not add dockable {}.",
-                                        dockableId
-                                )
-                );
-    }
-
-    private @NotNull Dockable createDockable(
-            @NotNull DockableState dockableState
-    ) {
-        final DockBuilding dockBuilding = bento.dockBuilding();
-
-        final Dockable dockable =
-                dockBuilding.dockable(dockableState.getIdentifier());
-
-        dockableState.getDockableNode().ifPresent(
-                dockable::setNode
+        // Main Stage
+        BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
+                mainStage.getBento().getIdentifier()
         );
+        bentoLayoutBuilder.addStageLayout(mainStage.getLayout());
+        dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
 
-        dockableState.getTitle().ifPresent(
-                dockable::setTitle
+        // Second Stage
+        bentoLayoutBuilder = new BentoLayoutBuilder(
+                secondStage.getBento().getIdentifier()
         );
+        bentoLayoutBuilder.addStageLayout(secondStage.getLayout());
+        dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
 
-        dockableState.getDockableIconFactory().ifPresent(
-                dockable::setIconFactory
-        );
+        // Second DragDropStage
+        final @NotNull BentoLayout bentoLayout = new BentoLayoutBuilder(
+                secondDragDropStage.getBento().getIdentifier()
+        )
+                .addDragDropStage(secondDragDropStage)
+                .build();
+        dockingLayoutBuilder.addBentoLayout(bentoLayout);
 
-        dockableState.getDockableMenuFactory().ifPresent(
-                dockable::setContextMenuFactory
-        );
-
-        return dockable;
+        return dockingLayoutBuilder.build();
     }
 }

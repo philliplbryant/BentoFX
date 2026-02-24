@@ -20,8 +20,11 @@ import java.util.Optional;
  */
 public class DockContainerRootBranchState extends DockContainerBranchState {
 
+    private final @Nullable IdentifiableStageState parentStage;
+
     private DockContainerRootBranchState(
             final @NotNull String identifier,
+            final @Nullable IdentifiableStageState parentStage,
             final @Nullable Boolean pruneWhenEmpty,
             final @NotNull List<DockableState> childDockableStates,
             final @Nullable Orientation orientation,
@@ -30,30 +33,42 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             ) {
         super(
                 identifier,
-                null,
                 pruneWhenEmpty,
                 childDockableStates,
                 orientation,
                 dividerPositions,
                 childDockContainerStates
         );
+
+        this.parentStage = parentStage;
     }
 
-    @Override
-    public Optional<DragDropStageState> getParent() {
-        return Optional.empty();
+    public Optional<IdentifiableStageState> getParent() {
+        return Optional.ofNullable(parentStage);
     }
 
     public static class DockContainerRootBranchStateBuilder extends DockContainerBranchStateBuilder {
 
-        public DockContainerRootBranchStateBuilder(final @NotNull String identifier) {
+        private @Nullable IdentifiableStageState parentStage;
+
+        public DockContainerRootBranchStateBuilder(
+                final @NotNull String identifier
+        ) {
             super(identifier);
+        }
+
+        public DockContainerRootBranchStateBuilder setParentStage(
+                final @Nullable IdentifiableStageState parentStage
+        ) {
+            this.parentStage = parentStage;
+            return this;
         }
 
         @Override
         public @NotNull DockContainerRootBranchState build() {
             return new DockContainerRootBranchState(
                     identifier,
+                    parentStage,
                     pruneWhenEmpty,
                     childDockableStates,
                     orientation,

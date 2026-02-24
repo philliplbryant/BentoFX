@@ -36,7 +36,6 @@ public class DockContainerLeafState extends DockContainerState {
     @SuppressWarnings("java:S107")
     private DockContainerLeafState(
             final @NotNull String identifier,
-            final @Nullable DragDropStageState parent,
             final @Nullable Boolean doPruneWhenEmpty,
             final @NotNull List<DockableState> childDockableStates,
             final @Nullable Side side,
@@ -48,7 +47,6 @@ public class DockContainerLeafState extends DockContainerState {
             ) {
         super(
                 identifier,
-                parent,
                 doPruneWhenEmpty,
                 childDockableStates
         );
@@ -151,7 +149,6 @@ public class DockContainerLeafState extends DockContainerState {
 
             return new DockContainerLeafState(
                     identifier,
-                    parent,
                     pruneWhenEmpty,
                     childDockableStates,
                     side,

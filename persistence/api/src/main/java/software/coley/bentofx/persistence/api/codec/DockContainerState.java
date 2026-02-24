@@ -21,24 +21,19 @@ import static java.util.Objects.requireNonNull;
  */
 public class DockContainerState extends IdentifiableState {
 
-    @Nullable private final DragDropStageState parent;
-    @NotNull private final List<DockableState> childDockableStates;
-    @Nullable private final Boolean pruneWhenEmpty;
+    @NotNull
+    private final List<DockableState> childDockableStates;
+    @Nullable
+    private final Boolean pruneWhenEmpty;
 
     protected DockContainerState(
             final @NotNull String identifier,
-            final @Nullable DragDropStageState parent,
             final @Nullable Boolean pruneWhenEmpty,
             final @NotNull List<DockableState> childDockableStates
     ) {
         super(identifier);
-        this.parent = parent;
         this.childDockableStates = List.of(childDockableStates.toArray(new DockableState[0]));
         this.pruneWhenEmpty = pruneWhenEmpty;
-    }
-
-    public Optional<DragDropStageState> getParent() {
-        return Optional.ofNullable(parent);
     }
 
     public @NotNull List<@NotNull DockableState> getChildDockableStates() {
@@ -52,7 +47,6 @@ public class DockContainerState extends IdentifiableState {
     public static class DockContainerStateBuilder {
 
         protected final @NotNull String identifier;
-        protected @Nullable DragDropStageState parent;
         protected final @NotNull List<DockableState> childDockableStates = new ArrayList<>();
         protected @Nullable Boolean pruneWhenEmpty;
 
@@ -60,13 +54,6 @@ public class DockContainerState extends IdentifiableState {
                 final @NotNull String identifier
         ) {
             this.identifier = requireNonNull(identifier);
-        }
-
-        public @NotNull DockContainerStateBuilder setParent(
-                final @Nullable DragDropStageState parent
-        ) {
-            this.parent = parent;
-            return this;
         }
 
         public @NotNull DockContainerStateBuilder addChildDockableState(final @NotNull DockableState dockableState) {
@@ -82,7 +69,6 @@ public class DockContainerState extends IdentifiableState {
         public @NotNull DockContainerState build() {
             return new DockContainerState(
                     identifier,
-                    parent,
                     pruneWhenEmpty,
                     childDockableStates
             );

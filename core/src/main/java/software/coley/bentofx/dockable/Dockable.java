@@ -109,11 +109,6 @@ public class Dockable implements BentoBacked, Identifiable {
 		return identifier;
 	}
 
-	@Override
-	public boolean matchesIdentity(@Nonnull Identifiable other) {
-		return getIdentifier().equals(other.getIdentifier());
-	}
-
 	/**
 	 * @return Current title.
 	 */

@@ -36,7 +36,7 @@ public class DockContainerRootBranchDto {
 
     @XmlElement(name =  PARENT_STAGE_ELEMENT_NAME)
     @JsonProperty(PARENT_STAGE_ELEMENT_NAME)
-    public DragDropStageDto parentStage;
+    public IdentifiableStageDto parentStage;
 
     @XmlElementWrapper(name = DIVIDER_POSITION_LIST_ELEMENT_NAME)
     @XmlElement(name = DIVIDER_ELEMENT_NAME)

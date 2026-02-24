@@ -1,31 +1,19 @@
-/*******************************************************************************
- This is an unpublished work of SAIC.
- Copyright (c) 2026 SAIC. All Rights Reserved.
- ******************************************************************************/
-
 package software.coley.bentofx.persistence.api.codec;
 
 import javafx.stage.Modality;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * Represents the layout state of a {@code DragDropStage}.
- *
- * @author Phil Bryant
- */
-public class DragDropStageState extends StageState {
-    private final @NotNull Boolean isAutoClosedWhenEmpty;
-    private final @Nullable DockContainerRootBranchState dockContainerRootBranchState;
+public class IdentifiableStageState extends StageState {
 
-    // Ignore the number or constructor parameters; this is a read-only class
-    // whose member attributes must be set using the constructor.
-    @SuppressWarnings("java:S107")
-    private DragDropStageState(
+    private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
+
+    protected IdentifiableStageState(
             final @NotNull String identifier,
             final @Nullable String title,
             final @Nullable Double x,
@@ -41,8 +29,7 @@ public class DragDropStageState extends StageState {
             final @Nullable Boolean isResizable,
             final @Nullable Boolean isShowing,
             final @Nullable Boolean isFocused,
-            final @NotNull Boolean isAutoClosedWhenEmpty,
-            final @Nullable DockContainerRootBranchState dockContainerRootBranchState
+            final @NotNull List<DockContainerRootBranchState> rootBranchStates
     ) {
         super(
                 identifier,
@@ -59,25 +46,18 @@ public class DragDropStageState extends StageState {
                 isAlwaysOnTop,
                 isResizable,
                 isShowing,
-                isFocused
-        );
-        this.isAutoClosedWhenEmpty = requireNonNull(isAutoClosedWhenEmpty);
-        this.dockContainerRootBranchState = dockContainerRootBranchState;
+                isFocused);
+        this.rootBranchStates = rootBranchStates;
+
     }
 
-    public @NotNull Boolean isAutoClosedWhenEmpty() {
-        return isAutoClosedWhenEmpty;
+    public @NotNull List<@NotNull DockContainerRootBranchState> getRootBranchStates() {
+        return List.copyOf(rootBranchStates);
     }
 
-    public @NotNull Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
-        return Optional.ofNullable(dockContainerRootBranchState);
-    }
-
-    public static class DragDropStageStateBuilder {
+    public static class StageStateBuilder {
 
         private final @NotNull String identifier;
-        private final @NotNull Boolean isAutoClosedWhenEmpty;
-        private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
         private @Nullable String title;
         private @Nullable Double x;
         private @Nullable Double y;
@@ -92,123 +72,120 @@ public class DragDropStageState extends StageState {
         private @Nullable Boolean isResizable;
         private @Nullable Boolean isShowing;
         private @Nullable Boolean isFocused;
+        private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates =
+                new ArrayList<>();
 
-        public DragDropStageStateBuilder(
-                final @NotNull String identifier,
-                final @NotNull Boolean isAutoClosedWhenEmpty
-        ) {
+        public StageStateBuilder(final @NotNull String identifier) {
             this.identifier = requireNonNull(identifier);
-            this.isAutoClosedWhenEmpty =
-                    requireNonNull(isAutoClosedWhenEmpty);
         }
 
-        public @NotNull DragDropStageStateBuilder setDockContainerRootBranchState(
-                final @Nullable DockContainerRootBranchState dockContainerRootBranchState
-        ) {
-            this.dockContainerRootBranchState = dockContainerRootBranchState;
-            return this;
-        }
-
-        public @NotNull DragDropStageStateBuilder setTitle(
+        public @NotNull StageStateBuilder setTitle(
                 final String title
         ) {
             this.title = title;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setX(
+        public @NotNull StageStateBuilder setX(
                 final Double x
         ) {
             this.x = x;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setY(
+        public @NotNull StageStateBuilder setY(
                 final Double y
         ) {
             this.y = y;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setWidth(
+        public @NotNull StageStateBuilder setWidth(
                 final Double width
         ) {
             this.width = width;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setHeight(
+        public @NotNull StageStateBuilder setHeight(
                 final Double height
         ) {
             this.height = height;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setModality(
+        public @NotNull StageStateBuilder setModality(
                 final Modality modality
         ) {
             this.modality = modality;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setOpacity(
+        public @NotNull StageStateBuilder setOpacity(
                 final Double opacity
         ) {
             this.opacity = opacity;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setIconified(
+        public @NotNull StageStateBuilder setIconified(
                 final Boolean isIconified
         ) {
             this.isIconified = isIconified;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setFullScreen(
+        public @NotNull StageStateBuilder setFullScreen(
                 final Boolean isFullScreen
         ) {
             this.isFullScreen = isFullScreen;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setMaximized(
+        public @NotNull StageStateBuilder setMaximized(
                 final Boolean isMaximized
         ) {
             this.isMaximized = isMaximized;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setAlwaysOnTop(
+        public @NotNull StageStateBuilder setAlwaysOnTop(
                 final Boolean isAlwaysOnTop
         ) {
             this.isAlwaysOnTop = isAlwaysOnTop;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setResizable(
+        public @NotNull StageStateBuilder setResizable(
                 final Boolean isResizable
         ) {
             this.isResizable = isResizable;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setShowing(
+        public @NotNull StageStateBuilder setShowing(
                 final Boolean isShowing
         ) {
             this.isShowing = isShowing;
             return this;
         }
 
-        public @NotNull DragDropStageStateBuilder setFocused(
+        public @NotNull StageStateBuilder setFocused(
                 final Boolean isFocused
         ) {
             this.isFocused = isFocused;
             return this;
         }
 
-        public @NotNull DragDropStageState build() {
-            return new DragDropStageState(
+        public @NotNull StageStateBuilder addRootBranchState(
+                final @NotNull DockContainerRootBranchState rootBranchState
+        ) {
+            this.rootBranchStates.add(requireNonNull(rootBranchState));
+            return this;
+        }
+
+        public @NotNull IdentifiableStageState build() {
+            return new IdentifiableStageState(
                     identifier,
                     title,
                     x,
@@ -224,9 +201,8 @@ public class DragDropStageState extends StageState {
                     isResizable,
                     isShowing,
                     isFocused,
-                    isAutoClosedWhenEmpty,
-                    dockContainerRootBranchState
-            );
+                    rootBranchStates
+                    );
         }
     }
 }

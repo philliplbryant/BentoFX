@@ -1,10 +1,11 @@
 package software.coley.bentofx.control;
 
+import jakarta.annotation.Nonnull;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
-import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.building.StageBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
@@ -22,7 +23,8 @@ import static javafx.stage.WindowEvent.*;
  *
  * @author Matt Coley
  */
-public class DragDropStage extends Stage {
+public class DragDropStage extends IdentifiableStage {
+
     private final boolean autoCloseWhenEmpty;
     private WeakReference<Parent> content;
 
@@ -31,7 +33,22 @@ public class DragDropStage extends Stage {
      *                           See	{@link #isAutoCloseWhenEmpty()} for more details.
      */
     public DragDropStage(boolean autoCloseWhenEmpty) {
+        this(
+                DockBuilding.uid("cDragDropStage"),
+                autoCloseWhenEmpty
+        );
+    }
 
+    /**
+     * @param identifier         This objects identifier.
+     * @param autoCloseWhenEmpty Flag to determine if this stage should auto-close if its sole content is removed.
+     * @see #isAutoCloseWhenEmpty for more details.
+     */
+    public DragDropStage(
+            @Nonnull String identifier,
+            boolean autoCloseWhenEmpty
+    ) {
+        super(identifier);
         this.autoCloseWhenEmpty = autoCloseWhenEmpty;
 
         addEventFilter(

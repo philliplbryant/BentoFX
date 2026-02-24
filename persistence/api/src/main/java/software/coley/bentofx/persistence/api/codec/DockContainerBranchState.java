@@ -24,9 +24,8 @@ public class DockContainerBranchState extends DockContainerState {
     private final @NotNull Map<@NotNull Integer, @NotNull Double> dividerPositions;
     private final @NotNull List<DockContainerState> childDockContainerStates;
 
-    DockContainerBranchState(
+    protected DockContainerBranchState(
             final @NotNull String identifier,
-            final @Nullable DragDropStageState parent,
             final @Nullable Boolean pruneWhenEmpty,
             final @NotNull List<DockableState> childDockableStates,
             final @Nullable Orientation orientation,
@@ -35,7 +34,6 @@ public class DockContainerBranchState extends DockContainerState {
     ) {
         super(
                 identifier,
-                parent,
                 pruneWhenEmpty,
                 childDockableStates
         );
@@ -102,7 +100,6 @@ public class DockContainerBranchState extends DockContainerState {
         public @NotNull DockContainerBranchState build() {
             return new DockContainerBranchState(
                     identifier,
-                    parent,
                     pruneWhenEmpty,
                     childDockableStates,
                     orientation,

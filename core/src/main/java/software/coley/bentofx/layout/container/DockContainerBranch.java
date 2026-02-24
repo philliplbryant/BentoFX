@@ -10,7 +10,6 @@ import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import software.coley.bentofx.Bento;
-import software.coley.bentofx.Identifiable;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
@@ -505,11 +504,6 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	@Override
 	public String getIdentifier() {
 		return identifier;
-	}
-
-	@Override
-	public boolean matchesIdentity(@Nonnull Identifiable other) {
-		return identifier.equals(other.getIdentifier());
 	}
 
 	@Override

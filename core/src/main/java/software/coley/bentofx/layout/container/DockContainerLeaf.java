@@ -14,7 +14,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import software.coley.bentofx.Bento;
-import software.coley.bentofx.Identifiable;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.control.HeaderPane;
 import software.coley.bentofx.control.canvas.PixelCanvas;
@@ -546,11 +545,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	@Override
 	public String getIdentifier() {
 		return identifier;
-	}
-
-	@Override
-	public boolean matchesIdentity(@Nonnull Identifiable other) {
-		return identifier.equals(other.getIdentifier());
 	}
 
 	@Override

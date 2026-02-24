@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -18,43 +17,29 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Phil Bryant
  */
-public class BentoState {
+public class BentoState extends IdentifiableState {
 
-    private final @NotNull String identifier;
-
-    private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
+    private final @NotNull List<@NotNull IdentifiableStageState> identifiableStageStates;
 
     private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates;
 
     private BentoState(
             final @NotNull String identifier,
-            final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates,
+            final @NotNull List<@NotNull IdentifiableStageState> identifiableStageStates,
             final @NotNull List<@NotNull DragDropStageState> dragDropStageStates
     ) {
 
-        this.identifier = identifier;
-
-        this.rootBranchStates =
-                List.of(rootBranchStates.toArray(
-                        new DockContainerRootBranchState[0])
-                );
-
-        this.dragDropStageStates =
-                List.of(dragDropStageStates.toArray(
-                        new DragDropStageState[0])
-                );
+        super(identifier);
+        this.identifiableStageStates = requireNonNull(identifiableStageStates);
+        this.dragDropStageStates = requireNonNull(dragDropStageStates);
     }
 
-    public @NotNull String getIdentifier() {
-        return identifier;
+    public @NotNull List<@NotNull IdentifiableStageState> getIdentifiableStageStates() {
+        return List.copyOf(identifiableStageStates);
     }
 
-    public @NotNull Set<@NotNull DockContainerRootBranchState> getRootBranchStates() {
-        return Set.copyOf(rootBranchStates);
-    }
-
-    public @NotNull Set<@NotNull DragDropStageState> getDragDropStageStates() {
-        return Set.copyOf(dragDropStageStates);
+    public @NotNull List<@NotNull DragDropStageState> getDragDropStageStates() {
+        return List.copyOf(dragDropStageStates);
     }
 
     public static class BentoStateBuilder {
@@ -64,7 +49,7 @@ public class BentoState {
         private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates =
                 new ArrayList<>();
 
-        private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates =
+        private final @NotNull List<@NotNull IdentifiableStageState> identifiableIdentifiableStageStates =
                 new ArrayList<>();
 
         public BentoStateBuilder(final @NotNull String identifier) {
@@ -80,11 +65,11 @@ public class BentoState {
             return this;
         }
 
-        public @NotNull BentoStateBuilder addRootBranchState(
-                final @NotNull DockContainerRootBranchState... rootBranchState
+        public @NotNull BentoStateBuilder addIdentifiableStageState(
+                final @NotNull IdentifiableStageState... identifiableStageStates
         ) {
-            this.rootBranchStates.addAll(
-                    List.of(requireNonNull(rootBranchState))
+            this.identifiableIdentifiableStageStates.addAll(
+                    List.of(requireNonNull(identifiableStageStates))
             );
             return this;
         }
@@ -92,7 +77,7 @@ public class BentoState {
         public @NotNull BentoState build() {
             return new BentoState(
                     identifier,
-                    rootBranchStates,
+                    identifiableIdentifiableStageStates,
                     dragDropStageStates
             );
         }

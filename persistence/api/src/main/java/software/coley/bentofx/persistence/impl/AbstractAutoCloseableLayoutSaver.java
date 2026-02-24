@@ -9,6 +9,7 @@ import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.event.DockEventListener;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
+import software.coley.bentofx.persistence.api.provider.BentoProvider;
 
 import java.lang.ref.Cleaner;
 import java.util.Objects;
@@ -50,10 +51,12 @@ public abstract class AbstractAutoCloseableLayoutSaver
             TimeUnit.MINUTES;
 
     /**
-     * The {@link Bento} whose {@link DockEvent}s will be used to determine
-     * whether the docking layout should be saved.
+     * The {@link BentoProvider} containing the {@link Bento} instances whose
+     * {@link DockEvent}s will be used to determine whether the docking layout
+     * should be saved.
      */
-    protected final @NotNull Bento bento;
+    protected final @NotNull BentoProvider bentoProvider;
+
 
     /**
      * Constructs an {@code AbstractAutoCloseableLayoutSaver} and listens for
@@ -61,12 +64,16 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * determine whether the docking layout should be saved at scheduled
      * intervals and/or when exiting a try-with-resources block.
      *
-     * @param bento the {@link Bento} whose {@link DockEvent}s will be used to
-     *              determine whether the docking layout should be saved.
+     * @param bentoProvider The {@link BentoProvider} containing the
+     *                      {@link Bento} instances whose {@link DockEvent}s
+     *                      will be used to determine whether the docking layout
+     *                      should be saved.
      */
-    protected AbstractAutoCloseableLayoutSaver(final @NotNull Bento bento) {
+    protected AbstractAutoCloseableLayoutSaver(
+            final @NotNull BentoProvider bentoProvider
+    ) {
 
-        this.bento = Objects.requireNonNull(bento);
+        this.bentoProvider = Objects.requireNonNull(bentoProvider);
         this.cleanable = CLEANER.register(
                 this,
                 new RunnableResource(this::autoSave)
@@ -112,7 +119,9 @@ public abstract class AbstractAutoCloseableLayoutSaver
             );
         }
 
-        bento.events().addEventListener(this);
+        for(Bento bento : bentoProvider.getAllBentos()) {
+            bento.events().addEventListener(this);
+        }
     }
 
     /**
@@ -129,7 +138,9 @@ public abstract class AbstractAutoCloseableLayoutSaver
             scheduler = null;
         }
 
-        bento.events().removeEventListener(this);
+        for(Bento bento : bentoProvider.getAllBentos()) {
+            bento.events().removeEventListener(this);
+        }
     }
 
     @Override
