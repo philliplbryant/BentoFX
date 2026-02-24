@@ -153,14 +153,14 @@ tasks {
         // Name JARs using full project name, based on the project path.
         // Otherwise, we might get JARs with the same names that will collide
         // when aggregated by the installer task.
-        val projectJarName =
-            "${project.path}.jar"
+        val jarBaseName =
+            "${project.path}"
                 // Delete the leading ':'
                 .substring(1)
                 // Replace the remaining ':' with '.'
                 .replace(':', '.')
 
-        archiveBaseName.set(projectJarName)
+        archiveBaseName.set(jarBaseName)
     }
 
     withType<JavaCompile>().configureEach {
