@@ -96,8 +96,6 @@ public class BoxApp extends Application {
         // visible.
         primaryStage.hide();
 
-        // TODO BENTO-13: Move this
-//        mainStage.centerOnScreen();
         mainStage.show();
         secondStage.show();
     }
@@ -196,6 +194,7 @@ public class BoxApp extends Application {
                 new DockingLayoutBuilder();
 
         // Main Stage
+        mainStage.centerOnScreen();
         BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
                 mainStage.getBento().getIdentifier()
         );

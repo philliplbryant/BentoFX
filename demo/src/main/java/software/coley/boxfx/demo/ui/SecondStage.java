@@ -43,7 +43,6 @@ public class SecondStage extends PersistableStage {
     @Override
     public @NotNull IdentifiableStageLayout getLayout() {
         return new IdentifiableStageLayout(
-                getIdentifier(),
                 getStageStateBuilder(this).build(),
                 rootBranches
         );

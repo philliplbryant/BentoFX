@@ -209,7 +209,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         }
 
         return new IdentifiableStageLayout(
-                stageState.getIdentifier(),
                 stageState,
                 rootBranches
         );
@@ -425,16 +424,25 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch.setContainerSizePx(leaf, size)
         );
 
-        // FIXME BENTO-13: isCollapsed getting set but the leaf isn't collapsing
-        //  What is the order in which Dockables should be added and
-        //  setContainerCollapsed should be called?
+        // FIXME BENTO-13: Reverse the order in which docking components are
+        //  being restored (start with leaves, then branches, the, root
+        //  branches). isCollapsed is getting set but the leaf isn't collapsing
+        //  because collapsing can only occur if there is a splitter between two
+        //  or more child containers, and we must create the DockContainer and
+        //  add the leaf to it for that to happen.
         state.isCollapsed().ifPresent(isCollapsed -> {
                     logger.trace(
                             "Setting leaf {} collapsed to {}",
                             leaf.getIdentifier(),
                             isCollapsed
                     );
-                    rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                    final boolean wasCollapsed =
+                            rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                    logger.trace(
+                            "Leaf {} {} collapsed.",
+                            leaf.getIdentifier(),
+                            wasCollapsed ? "WAS" : "was NOT"
+                    );
                 }
         );
 

@@ -22,12 +22,12 @@ import software.coley.bentofx.persistence.api.PersistableStage;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.StageUtils;
 import software.coley.boxfx.demo.provider.BoxAppBentoProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static software.coley.bentofx.persistence.impl.StageUtils.getStageStateBuilder;
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
 
 public class MainStage extends PersistableStage {
@@ -64,8 +64,7 @@ public class MainStage extends PersistableStage {
     @Override
     public @NotNull IdentifiableStageLayout getLayout() {
         return new IdentifiableStageLayout(
-                getIdentifier(),
-                StageUtils.getStageStateBuilder(this).build(),
+                getStageStateBuilder(this).build(),
                 rootBranches
         );
     }
@@ -164,13 +163,14 @@ public class MainStage extends PersistableStage {
         addDockable(bento, CLASS_4_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
         addDockable(bento, CLASS_5_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
 
+        rootBranches.add(branchRoot);
+
+        setTitle("BentoFX Demo");
         setWidth(1000);
         setHeight(700);
-        centerOnScreen();
         getIcons().addAll(
                 stageIconImageProvider.getStageIcons()
         );
-        setTitle("BentoFX Demo");
         // We need to save the docking layout on close request
         // because the stage is (and all other windows are)
         // no longer available after they are closed and, as such,
@@ -179,8 +179,6 @@ public class MainStage extends PersistableStage {
                 onCloseRequestRunnable.run()
         );
         setOnHidden(e -> System.exit(0));
-
-        rootBranches.add(branchRoot);
     }
 
     private void handleDockableClosing(@NotNull DockEvent.DockableClosing closingEvent) {

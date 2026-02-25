@@ -79,11 +79,11 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             for (final IdentifiableStage stage : getAllIdentifiableStages()) {
 
                 // TODO BENTO-13: File an issue with the BentoFX project to
-                //  change this:
-                // We only want add the stages for this Bento. Unfortunately,
-                // DragDropStage doesn't track the Bento used to create it,
-                // changes required to do so would make DragDropStage backward
-                // *IN*compatible.
+                //  change this? We only want add the stages for this Bento
+                //  but DragDropStage doesn't track the Bento used to create it
+                //  and changes required to do so would make DragDropStage
+                //  backward *IN*compatible (likely require using a non-default
+                //  constructor to inject the Bento).
 
                 switch (Objects.requireNonNull(stage)) {
                     case DragDropStage dragDropStage -> saveDragDropStage(
