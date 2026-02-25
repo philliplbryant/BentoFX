@@ -130,11 +130,12 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                     );
                 }
 
-                // Restore secondary stages (root branches that have parent stage state)
+                // Restore DragDropStages
                 for (final DragDropStageState dragDropStageState :
                         bentoState.getDragDropStageStates()) {
                     bentoLayoutBuilder.addDragDropStage(
                             restoreDragDropStage(
+                                    bento,
                                     dockBuilding,
                                     dragDropStageState
                             )
@@ -215,11 +216,14 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @NotNull DragDropStage restoreDragDropStage(
+            final @NotNull Bento bento,
             final @NotNull DockBuilding dockBuilding,
             final @NotNull DragDropStageState stageState
     ) {
 
         final DragDropStage dragDropStage = new DragDropStage(
+                bento,
+                stageState.getIdentifier(),
                 stageState.isAutoClosedWhenEmpty()
         );
 

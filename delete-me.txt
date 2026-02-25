@@ -1,0 +1,33 @@
+        <dragDropStage alwaysOnTop="false" autoCloseWhenEmpty="true" fullScreen="false" height="175.0" iconified="false" identifier="second-drag-drop-stage" maximized="false" modality="NONE" opacity="1.0" resizable="true" showing="false" title="Second DragDropStage" width="325.0" x="-325.0" y="175.0">
+          <rootBranch identifier="second-root-branch" orientation="HORIZONTAL" pruneWhenEmpty="true">
+            <dividerPositions/>
+            <branches/>
+            <leaf identifier="second-leaf" isCanSplit="true" isCollapsed="false" isResizableWithParent="true" pruneWhenEmpty="true" selectedDockableIdentifier="second-dockable" side="TOP" uncollapsedSizePx="0.0">
+              <dockables>
+                <dockable identifier="second-dockable"/>
+              </dockables>
+            </leaf>
+          </rootBranch>
+        </dragDropStage>
+        <dragDropStage alwaysOnTop="false" autoCloseWhenEmpty="true" fullScreen="false" height="175.0" iconified="false" identifier="cDragDropStage:XELJIMQH" maximized="false" modality="NONE" opacity="1.0" resizable="true" showing="false" title="Second DragDropStage" width="325.0" x="-325.0" y="175.0">
+          <rootBranch identifier="second-root-branch" orientation="HORIZONTAL" pruneWhenEmpty="true">
+            <dividerPositions/>
+            <branches/>
+            <leaf identifier="second-leaf" isCanSplit="true" isCollapsed="false" isResizableWithParent="true" pruneWhenEmpty="true" selectedDockableIdentifier="second-dockable" side="TOP" uncollapsedSizePx="137.5">
+              <dockables>
+                <dockable identifier="second-dockable"/>
+              </dockables>
+            </leaf>
+          </rootBranch>
+        </dragDropStage>
+``        <dragDropStage alwaysOnTop="false" autoCloseWhenEmpty="true" fullScreen="false" height="175.0" iconified="false" identifier="cDragDropStage:RDLUGWIJ" maximized="false" modality="NONE" opacity="1.0" resizable="true" showing="false" title="Second DragDropStage" width="325.0" x="-325.0" y="175.0">
+          <rootBranch identifier="second-root-branch" orientation="HORIZONTAL" pruneWhenEmpty="true">
+            <dividerPositions/>
+            <branches/>
+            <leaf identifier="second-leaf" isCanSplit="true" isCollapsed="false" isResizableWithParent="true" pruneWhenEmpty="true" selectedDockableIdentifier="second-dockable" side="TOP" uncollapsedSizePx="137.5">
+              <dockables>
+                <dockable identifier="second-dockable"/>
+              </dockables>
+            </leaf>
+          </rootBranch>
+        </dragDropStage>

@@ -1,6 +1,6 @@
 package software.coley.bentofx.dockable;
 
-import jakarta.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.path.DockablePath;
 
 /**
@@ -15,5 +15,5 @@ public interface DockableSelectListener {
 	 * @param dockable
 	 * 		Selected dockable.
 	 */
-	void onSelect(@Nonnull DockablePath path, @Nonnull Dockable dockable);
+	void onSelect(@NotNull DockablePath path, @NotNull Dockable dockable);
 }

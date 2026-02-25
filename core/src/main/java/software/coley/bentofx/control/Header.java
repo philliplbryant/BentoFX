@@ -1,7 +1,5 @@
 package software.coley.bentofx.control;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.beans.property.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -22,6 +20,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
@@ -63,7 +63,7 @@ public class Header extends Region {
 	 * @param parentPane
 	 * 		Parent header pane.
 	 */
-	public Header(@Nonnull Dockable dockable, @Nonnull HeaderPane parentPane) {
+	public Header(@NotNull Dockable dockable, @NotNull HeaderPane parentPane) {
 		this.parentPane = parentPane;
 		this.dockable = dockable;
 
@@ -180,7 +180,7 @@ public class Header extends Region {
 	 *
 	 * @return This.
 	 */
-	@Nonnull
+	@NotNull
 	public Header withDragDrop() {
 		Bento bento = dockable.getBento();
 
@@ -369,7 +369,7 @@ public class Header extends Region {
 	 * @param header
 	 * 		Some other header to draw as a ghost.
 	 */
-	private void enableInsertionGhost(@Nonnull Header header) {
+	private void enableInsertionGhost(@NotNull Header header) {
 		grid.setMouseTransparent(true);
 		grid.setManaged(false);
 		Orientation ourOrientation = BentoUtils.sideToOrientation(getSide());
@@ -410,7 +410,7 @@ public class Header extends Region {
 	/**
 	 * @return Wrapped dockable.
 	 */
-	@Nonnull
+	@NotNull
 	public Dockable getDockable() {
 		return dockable;
 	}

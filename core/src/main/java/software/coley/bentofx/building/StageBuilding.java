@@ -1,11 +1,11 @@
 package software.coley.bentofx.building;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
@@ -17,15 +17,17 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
  * Builders for {@link DragDropStage}.
  */
 public class StageBuilding {
-	private static final StageFactory DEFAULT_STAGE_FACTORY = sourceStage -> new DragDropStage(true);
-	private static final SceneFactory DEFAULT_SCENE_FACTORY = (sourceScene, content, width, height) -> new Scene(content, width, height);
+	private final StageFactory DEFAULT_STAGE_FACTORY;
+	private static  final SceneFactory DEFAULT_SCENE_FACTORY = (sourceScene, content, width, height) -> new Scene(content, width, height);
 	private final Bento bento;
-	private StageFactory stageFactory = DEFAULT_STAGE_FACTORY;
+	private StageFactory stageFactory;
 	private SceneFactory sceneFactory = DEFAULT_SCENE_FACTORY;
 
-	public StageBuilding(@Nonnull Bento bento) {
+	public StageBuilding(@NotNull Bento bento) {
 		this.bento = bento;
-	}
+        DEFAULT_STAGE_FACTORY = sourceStage -> new DragDropStage(bento, true);
+        stageFactory = DEFAULT_STAGE_FACTORY;
+    }
 
 	/**
 	 * Create a new stage for the given dockable.,
@@ -39,8 +41,8 @@ public class StageBuilding {
 	 *
 	 * @return Newly created stage.
 	 */
-	@Nonnull
-	public DragDropStage newStageForDockable(@Nonnull Scene sourceScene, @Nonnull DockContainer source, @Nonnull Dockable dockable) {
+	@NotNull
+	public DragDropStage newStageForDockable(@NotNull Scene sourceScene, @NotNull DockContainer source, @NotNull Dockable dockable) {
 		Region sourceRegion = source.asRegion();
 		double width = sourceRegion.getWidth();
 		double height = sourceRegion.getHeight();
@@ -61,8 +63,8 @@ public class StageBuilding {
 	 *
 	 * @return Newly created stage.
 	 */
-	@Nonnull
-	public DragDropStage newStageForDockable(@Nullable Scene sourceScene, @Nonnull Dockable dockable, double width, double height) {
+	@NotNull
+	public DragDropStage newStageForDockable(@Nullable Scene sourceScene, @NotNull Dockable dockable, double width, double height) {
 		DockBuilding builder = bento.dockBuilding();
 		DockContainerRootBranch root = builder.root();
 		DockContainerLeaf leaf = builder.leaf();
@@ -87,11 +89,11 @@ public class StageBuilding {
 	 *
 	 * @return Newly created stage.
 	 */
-	@Nonnull
+	@NotNull
 	public DragDropStage newStageForDockable(@Nullable Scene sourceScene,
-	                                         @Nonnull DockContainerRootBranch root,
-	                                         @Nonnull DockContainerLeaf leaf,
-	                                         @Nonnull Dockable dockable,
+	                                         @NotNull DockContainerRootBranch root,
+	                                         @NotNull DockContainerLeaf leaf,
+	                                         @NotNull Dockable dockable,
 	                                         double width, double height) {
 		// Sanity check, leaf shouldn't have an existing parent.
 		if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
@@ -130,10 +132,10 @@ public class StageBuilding {
 	 * @param sourceIsOwner
 	 *        {@code true} to invoke {@link Stage#initOwner(Window)}, where the owner is the source stage.
 	 */
-	protected void initializeFromSource(@Nonnull Scene sourceScene,
-	                                    @Nonnull Scene newScene,
+	protected void initializeFromSource(@NotNull Scene sourceScene,
+	                                    @NotNull Scene newScene,
 	                                    @Nullable Stage sourceStage,
-	                                    @Nonnull DragDropStage newStage,
+	                                    @NotNull DragDropStage newStage,
 	                                    boolean sourceIsOwner) {
 		// Copy stylesheets.
 		newScene.setUserAgentStylesheet(sourceScene.getUserAgentStylesheet());

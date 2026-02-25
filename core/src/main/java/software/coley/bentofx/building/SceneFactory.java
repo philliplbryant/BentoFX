@@ -1,9 +1,9 @@
 package software.coley.bentofx.building;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.control.DragDropStage;
 
 /**
@@ -24,6 +24,6 @@ public interface SceneFactory {
 	 *
 	 * @return Newly created scene.
 	 */
-	@Nonnull
-	Scene newScene(@Nullable Scene sourceScene, @Nonnull Region content, double width, double height);
+	@NotNull
+	Scene newScene(@Nullable Scene sourceScene, @NotNull Region content, double width, double height);
 }

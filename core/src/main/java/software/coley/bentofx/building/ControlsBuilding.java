@@ -1,9 +1,9 @@
 package software.coley.bentofx.building;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.control.ContentWrapper;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.control.HeaderPane;
@@ -32,7 +32,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	/**
 	 * @return Factory for creating {@link HeaderPane}.
 	 */
-	@Nonnull
+	@NotNull
 	public HeaderPaneFactory getHeaderPaneFactory() {
 		return headerPaneFactory;
 	}
@@ -51,7 +51,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	/**
 	 * @return Factory for creating {@link Headers}.
 	 */
-	@Nonnull
+	@NotNull
 	public HeadersFactory getHeadersFactory() {
 		return headersFactory;
 	}
@@ -70,7 +70,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	/**
 	 * @return Factory for creating {@link Header}.
 	 */
-	@Nonnull
+	@NotNull
 	public HeaderFactory getHeaderFactory() {
 		return headerFactory;
 	}
@@ -89,7 +89,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	/**
 	 * @return Factory for creating {@link ContentWrapper}.
 	 */
-	@Nonnull
+	@NotNull
 	public ContentWrapperFactory getContentWrapperFactory() {
 		return contentWrapperFactory;
 	}
@@ -108,7 +108,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	/**
 	 * @return Factory for creating {@link PixelCanvas}.
 	 */
-	@Nonnull
+	@NotNull
 	public CanvasFactory getCanvasFactory() {
 		return canvasFactory;
 	}
@@ -124,33 +124,33 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 		this.canvasFactory = canvasFactory;
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public HeaderPane newHeaderPane(@Nonnull DockContainerLeaf container) {
+	public HeaderPane newHeaderPane(@NotNull DockContainerLeaf container) {
 		return headerPaneFactory.newHeaderPane(container);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public Headers newHeaders(@Nonnull DockContainerLeaf container, @Nonnull Orientation orientation, @Nonnull Side side) {
+	public Headers newHeaders(@NotNull DockContainerLeaf container, @NotNull Orientation orientation, @NotNull Side side) {
 		return headersFactory.newHeaders(container, orientation, side);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public Header newHeader(@Nonnull Dockable dockable, @Nonnull HeaderPane parentPane) {
+	public Header newHeader(@NotNull Dockable dockable, @NotNull HeaderPane parentPane) {
 		return headerFactory.newHeader(dockable, parentPane);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public ContentWrapper newContentWrapper(@Nonnull DockContainerLeaf container) {
+	public ContentWrapper newContentWrapper(@NotNull DockContainerLeaf container) {
 		return contentWrapperFactory.newContentWrapper(container);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public PixelCanvas newCanvas(@Nonnull DockContainerLeaf container) {
+	public PixelCanvas newCanvas(@NotNull DockContainerLeaf container) {
 		return canvasFactory.newCanvas(container);
 	}
 }

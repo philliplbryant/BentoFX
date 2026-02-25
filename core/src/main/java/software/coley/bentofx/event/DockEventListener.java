@@ -1,6 +1,6 @@
 package software.coley.bentofx.event;
 
-import jakarta.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Listener invoked by the firing of any {@link DockEvent}.
@@ -12,5 +12,5 @@ public interface DockEventListener {
 	 * @param event
 	 * 		Event fired.
 	 */
-	void onDockEvent(@Nonnull DockEvent event);
+	void onDockEvent(@NotNull DockEvent event);
 }

@@ -1,6 +1,5 @@
 package software.coley.bentofx.control;
 
-import jakarta.annotation.Nonnull;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -11,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A basic pane that lays out children in a single line.
@@ -30,7 +30,7 @@ public class LinearItemPane extends Pane {
 	 * @param orientation
 	 * 		Which axis to layout children on.
 	 */
-	public LinearItemPane(@Nonnull Orientation orientation) {
+	public LinearItemPane(@NotNull Orientation orientation) {
 		this.orientation = orientation;
 
 		// When the child to keep in view changes, update the layout.
@@ -43,7 +43,7 @@ public class LinearItemPane extends Pane {
 	/**
 	 * @return Orientation of this linear pane.
 	 */
-	@Nonnull
+	@NotNull
 	public Orientation getOrientation() {
 		return orientation;
 	}
@@ -52,7 +52,7 @@ public class LinearItemPane extends Pane {
 	 * @return {@code true} when children overflow beyond the visible bounds of this pane.
 	 * {@code false} when all children are visible in-bounds.
 	 */
-	@Nonnull
+	@NotNull
 	public BooleanProperty overflowingProperty() {
 		return overflowing;
 	}
@@ -60,7 +60,7 @@ public class LinearItemPane extends Pane {
 	/**
 	 * @return A child to keep in view.
 	 */
-	@Nonnull
+	@NotNull
 	public ObjectProperty<Node> keepInViewProperty() {
 		return keepInView;
 	}
@@ -71,7 +71,7 @@ public class LinearItemPane extends Pane {
 	 *
 	 * @return {@code true} to fit child widths/height to the dimensions of this pane on the perpendicular axis.
 	 */
-	@Nonnull
+	@NotNull
 	public BooleanProperty fitChildrenToPerpendicularProperty() {
 		return fitChildrenToPerpendicular;
 	}
@@ -82,7 +82,7 @@ public class LinearItemPane extends Pane {
 	 * @param node
 	 * 		Child to add.
 	 */
-	public void add(@Nonnull Node node) {
+	public void add(@NotNull Node node) {
 		getChildren().add(node);
 	}
 
@@ -201,7 +201,7 @@ public class LinearItemPane extends Pane {
 		overflowing.set(overflow);
 	}
 
-	protected double computeChildPerpendicularSize(@Nonnull Bounds childBounds, @Nonnull Orientation orientation) {
+	protected double computeChildPerpendicularSize(@NotNull Bounds childBounds, @NotNull Orientation orientation) {
 		if (orientation == Orientation.HORIZONTAL) {
 			return Math.max(fitChildrenToPerpendicular.get() ? getHeight() : childBounds.getHeight(), MIN_PERPENDICULAR);
 		} else {

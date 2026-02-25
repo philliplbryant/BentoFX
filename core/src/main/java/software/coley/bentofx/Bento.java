@@ -1,8 +1,8 @@
 package software.coley.bentofx;
 
-import jakarta.annotation.Nonnull;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.building.ControlsBuilding;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.building.PlaceholderBuilding;
@@ -24,7 +24,7 @@ import software.coley.bentofx.search.SearchHandler;
  */
 public class Bento implements Identifiable {
 
-    private final @Nonnull String identifier;
+    private final @NotNull String identifier;
 	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
 	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
 	private final EventBus eventBus = newEventBus();
@@ -40,46 +40,46 @@ public class Bento implements Identifiable {
         identifier = DockBuilding.uid("bento");
     }
 
-    public Bento(final @Nonnull String identifier) {
+    public Bento(final @NotNull String identifier) {
         this.identifier = identifier;
     }
 
-	@Nonnull
+	@NotNull
 	protected EventBus newEventBus() {
 		return new EventBus();
 	}
 
-	@Nonnull
+	@NotNull
 	protected SearchHandler newSearchHandler() {
 		return new SearchHandler(this);
 	}
 
-	@Nonnull
+	@NotNull
 	protected StageBuilding newStageBuilding() {
 		return new StageBuilding(this);
 	}
 
-	@Nonnull
+	@NotNull
 	protected ControlsBuilding newControlsBuilding() {
 		return new ControlsBuilding();
 	}
 
-	@Nonnull
+	@NotNull
 	protected DockBuilding newDockBuilding() {
 		return new DockBuilding(this);
 	}
 
-	@Nonnull
+	@NotNull
 	protected PlaceholderBuilding newPlaceholderBuilding() {
 		return new PlaceholderBuilding();
 	}
 
-	@Nonnull
+	@NotNull
 	protected DockableDragDropBehavior newDragDropBehavior() {
 		return new DockableDragDropBehavior() {};
 	}
 
-	@Nonnull
+	@NotNull
 	protected DockableClickBehavior newClickBehavior() {
 		return new DockableClickBehavior() {};
 	}
@@ -89,7 +89,7 @@ public class Bento implements Identifiable {
      * identifier is not guaranteed to be unique.
      */
     @Override
-    @Nonnull
+    @NotNull
     public String getIdentifier() {
         return identifier;
     }
@@ -97,7 +97,7 @@ public class Bento implements Identifiable {
     /**
 	 * @return Bus for handling event firing and event listeners.
 	 */
-	@Nonnull
+	@NotNull
 	public EventBus events() {
 		return eventBus;
 	}
@@ -105,7 +105,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Search operations.
 	 */
-	@Nonnull
+	@NotNull
 	public SearchHandler search() {
 		return searchHandler;
 	}
@@ -113,7 +113,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for {@link DragDropStage}.
 	 */
-	@Nonnull
+	@NotNull
 	public StageBuilding stageBuilding() {
 		return stageBuilding;
 	}
@@ -121,7 +121,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for various bento UI controls.
 	 */
-	@Nonnull
+	@NotNull
 	public ControlsBuilding controlsBuilding() {
 		return controlsBuilding;
 	}
@@ -129,7 +129,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for {@link DockContainer} and {@link Dockable}.
 	 */
-	@Nonnull
+	@NotNull
 	public DockBuilding dockBuilding() {
 		return dockBuilding;
 	}
@@ -137,7 +137,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for placeholder content.
 	 */
-	@Nonnull
+	@NotNull
 	public PlaceholderBuilding placeholderBuilding() {
 		return placeholderBuilding;
 	}
@@ -145,7 +145,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Behavior implementation for drag-drop operations.
 	 */
-	@Nonnull
+	@NotNull
 	public DockableDragDropBehavior getDragDropBehavior() {
 		return dragDropBehavior;
 	}
@@ -153,7 +153,7 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Behavior implementation for click operations.
 	 */
-	@Nonnull
+	@NotNull
 	public DockableClickBehavior getClickBehavior() {
 		return clickBehavior;
 	}
@@ -164,7 +164,7 @@ public class Bento implements Identifiable {
 	 * @see #registerRoot(DockContainerRootBranch)
 	 * @see #unregisterRoot(DockContainerRootBranch)
 	 */
-	@Nonnull
+	@NotNull
 	public ObservableList<DockContainerRootBranch> getRootContainers() {
 		return rootContainersView;
 	}
@@ -175,7 +175,7 @@ public class Bento implements Identifiable {
 	 *
 	 * @return {@code true} when registered.
 	 */
-	public boolean registerRoot(@Nonnull DockContainerRootBranch container) {
+	public boolean registerRoot(@NotNull DockContainerRootBranch container) {
 		if (!rootContainers.contains(container)) {
 			rootContainers.add(container);
 			eventBus.fire(new DockEvent.RootContainerAdded(container));
@@ -190,7 +190,7 @@ public class Bento implements Identifiable {
 	 *
 	 * @return {@code true} when unregistered.
 	 */
-	public boolean unregisterRoot(@Nonnull DockContainerRootBranch container) {
+	public boolean unregisterRoot(@NotNull DockContainerRootBranch container) {
 		if (rootContainers.remove(container)) {
 			eventBus.fire(new DockEvent.RootContainerRemoved(container));
 			return true;

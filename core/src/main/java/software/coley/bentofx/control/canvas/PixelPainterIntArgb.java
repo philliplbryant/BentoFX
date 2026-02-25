@@ -1,8 +1,8 @@
 package software.coley.bentofx.control.canvas;
 
-import jakarta.annotation.Nonnull;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelWriter;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -43,7 +43,7 @@ public class PixelPainterIntArgb implements PixelPainter<IntBuffer> {
 	}
 
 	@Override
-	public void commit(@Nonnull PixelWriter pixelWriter) {
+	public void commit(@NotNull PixelWriter pixelWriter) {
 		pixelWriter.setPixels(
 				0,
 				0,
@@ -72,7 +72,7 @@ public class PixelPainterIntArgb implements PixelPainter<IntBuffer> {
 	}
 
 	@Override
-	public void drawImage(int x, int y, @Nonnull ArgbSource source) {
+	public void drawImage(int x, int y, @NotNull ArgbSource source) {
 		int sourceWidth = source.getWidth();
 		int sourceHeight = source.getHeight();
 		int[] argb = source.getArgb();
@@ -89,7 +89,7 @@ public class PixelPainterIntArgb implements PixelPainter<IntBuffer> {
 	}
 
 	@Override
-	public void drawImage(int x, int y, int sx, int sy, int sw, int sh, @Nonnull ArgbSource source) {
+	public void drawImage(int x, int y, int sx, int sy, int sw, int sh, @NotNull ArgbSource source) {
 		int[] argb = source.getArgb(sx, sy, sw, sh);
 		if (argb == null)
 			return;
@@ -117,13 +117,13 @@ public class PixelPainterIntArgb implements PixelPainter<IntBuffer> {
 		Arrays.fill(drawBuffer.array(), 0, drawBufferCapacity(), 0);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public IntBuffer getBuffer() {
 		return drawBuffer;
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public PixelFormat<IntBuffer> getPixelFormat() {
 		return PixelFormat.getIntArgbInstance();

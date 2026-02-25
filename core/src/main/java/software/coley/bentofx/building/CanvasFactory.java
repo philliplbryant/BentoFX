@@ -1,6 +1,6 @@
 package software.coley.bentofx.building;
 
-import jakarta.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.control.canvas.PixelCanvas;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 
@@ -16,6 +16,6 @@ public interface CanvasFactory {
 	 *
 	 * @return New canvas.
 	 */
-	@Nonnull
-	PixelCanvas newCanvas(@Nonnull DockContainerLeaf container);
+	@NotNull
+	PixelCanvas newCanvas(@NotNull DockContainerLeaf container);
 }

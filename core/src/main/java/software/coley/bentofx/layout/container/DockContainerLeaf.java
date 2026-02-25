@@ -1,7 +1,5 @@
 package software.coley.bentofx.layout.container;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
@@ -13,6 +11,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.control.HeaderPane;
@@ -55,7 +55,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @param identifier
 	 * 		This container's identifier.
 	 */
-	public DockContainerLeaf(@Nonnull Bento bento, @Nonnull String identifier) {
+	public DockContainerLeaf(@NotNull Bento bento, @NotNull String identifier) {
 		this.bento = bento;
 		this.identifier = identifier;
 		this.headerPane = bento.controlsBuilding().newHeaderPane(this);
@@ -81,14 +81,14 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	@Override
-	public void setParentContainer(@Nonnull DockContainerBranch parent) {
+	public void setParentContainer(@NotNull DockContainerBranch parent) {
 		DockContainerBranch priorParent = this.parent;
 		this.parent = parent;
 		bento.events().fire(new DockEvent.ContainerParentChanged(this, priorParent, parent));
 	}
 
 	@Override
-	public void removeAsParentContainer(@Nonnull DockContainerBranch parent) {
+	public void removeAsParentContainer(@NotNull DockContainerBranch parent) {
 		if (this.parent == parent) {
 			DockContainerBranch priorParent = this.parent;
 			this.parent = null;
@@ -97,7 +97,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	@Override
-	public boolean visit(@Nonnull SearchVisitor visitor) {
+	public boolean visit(@NotNull SearchVisitor visitor) {
 		if (visitor.visitLeaf(this)) {
             for (Dockable dockable : dockables) {
                 if (!visitor.visitDockable(dockable)) return false;
@@ -106,7 +106,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		return true;
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public ObservableList<Dockable> getDockables() {
 		return dockablesView;
@@ -117,7 +117,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		return selectedDockable.get();
 	}
 
-	@Nonnull
+	@NotNull
 	public ObservableObjectValue<Dockable> selectedDockableProperty() {
 		return selectedDockable;
 	}
@@ -150,12 +150,12 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	@Override
-	public boolean addDockable(@Nonnull Dockable dockable) {
+	public boolean addDockable(@NotNull Dockable dockable) {
 		return addDockable(dockables.size(), dockable);
 	}
 
 	@Override
-	public boolean addDockable(int index, @Nonnull Dockable dockable) {
+	public boolean addDockable(int index, @NotNull Dockable dockable) {
 		// Containment check
 		if (dockables.contains(dockable)) return false;
 
@@ -176,7 +176,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	@Override
-	public boolean removeDockable(@Nonnull Dockable dockable) {
+	public boolean removeDockable(@NotNull Dockable dockable) {
 		int i = dockables.indexOf(dockable);
 
 		// Update dockable model
@@ -208,7 +208,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	@Override
-	public boolean closeDockable(@Nonnull Dockable dockable) {
+	public boolean closeDockable(@NotNull Dockable dockable) {
 		if (dockable.isClosable() && dockables.contains(dockable)) {
 			dockable.fireCloseListeners();
 
@@ -233,7 +233,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 *
 	 * @return {@code true} when this container can receive the dockable.
 	 */
-	public boolean canReceiveDockable(@Nonnull Dockable dockable, @Nullable Side receivedSide) {
+	public boolean canReceiveDockable(@NotNull Dockable dockable, @Nullable Side receivedSide) {
 		// Must not already have the given dockable if not splitting.
 		if (receivedSide == null && dockables.contains(dockable)) return false;
 
@@ -258,7 +258,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @param target
 	 * 		Region to draw as an overlay on this container's canvas.
 	 */
-	public void drawCanvasHint(@Nonnull Region target) {
+	public void drawCanvasHint(@NotNull Region target) {
 		drawCanvasHint(target, null);
 	}
 
@@ -268,7 +268,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @param side
 	 * 		Side of the region to draw, or {@code null} for the full region.
 	 */
-	public void drawCanvasHint(@Nonnull Region target, @Nullable Side side) {
+	public void drawCanvasHint(@NotNull Region target, @Nullable Side side) {
 		// Compute xy offset when 'target' is not a direct child of this view.
 		double ox = 0;
 		double oy = 0;
@@ -312,7 +312,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Overlay canvas.
 	 */
-	@Nonnull
+	@NotNull
 	public PixelCanvas getCanvas() {
 		return canvas;
 	}
@@ -415,7 +415,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @return Associated header within this container that represents the given dockable.
 	 */
 	@Nullable
-	public Header getHeader(@Nonnull Dockable dockable) {
+	public Header getHeader(@NotNull Dockable dockable) {
 		return headerPane.getHeader(dockable);
 	}
 
@@ -440,7 +440,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return {@link Header} display side property.
 	 */
-	@Nonnull
+	@NotNull
 	public ObjectProperty<Side> sideProperty() {
 		return side;
 	}
@@ -463,7 +463,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @see Side#isHorizontal()
 	 * @see Side#isVertical()
 	 */
-	@Nonnull
+	@NotNull
 	public ObservableValue<Orientation> orientationProperty() {
 		return orientation;
 	}
@@ -471,7 +471,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Collapsed state property.
 	 */
-	@Nonnull
+	@NotNull
 	public BooleanProperty collapsedProperty() {
 		return collapsed;
 	}
@@ -496,7 +496,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Menu factory property.
 	 */
-	@Nonnull
+	@NotNull
 	public ObjectProperty<DockContainerLeafMenuFactory> menuFactoryProperty() {
 		return menuFactory;
 	}
@@ -521,7 +521,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Splittable property.
 	 */
-	@Nonnull
+	@NotNull
 	public BooleanProperty canSplitProperty() {
 		if (canSplit == null) canSplit = new SimpleBooleanProperty(true);
 		return canSplit;
@@ -535,13 +535,13 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		canSplitProperty().set(canSplit);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public Bento getBento() {
 		return bento;
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public String getIdentifier() {
 		return identifier;

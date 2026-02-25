@@ -1,7 +1,7 @@
 package software.coley.bentofx.search;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.dockable.Dockable;
 
 import java.util.function.Predicate;
@@ -19,12 +19,12 @@ public class DockableVisitor implements SearchVisitor {
 	 * @param matcher
 	 * 		Dockable predicate.
 	 */
-	public DockableVisitor(@Nonnull Predicate<Dockable> matcher) {
+	public DockableVisitor(@NotNull Predicate<Dockable> matcher) {
 		this.matcher = matcher;
 	}
 
 	@Override
-	public boolean visitDockable(@Nonnull Dockable dockable) {
+	public boolean visitDockable(@NotNull Dockable dockable) {
 		if (matcher.test(dockable)) {
 			// Match found, stop visiting.
 			result = dockable;

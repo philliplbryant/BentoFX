@@ -1,6 +1,6 @@
 package software.coley.bentofx.search;
 
-import jakarta.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
@@ -18,7 +18,7 @@ public interface SearchVisitor {
 	 *
 	 * @return {@code true} to continue visitation.
 	 */
-	default boolean visitBranch(@Nonnull DockContainerBranch container) {
+	default boolean visitBranch(@NotNull DockContainerBranch container) {
 		return true;
 	}
 
@@ -28,7 +28,7 @@ public interface SearchVisitor {
 	 *
 	 * @return {@code true} to continue visitation.
 	 */
-	default boolean visitLeaf(@Nonnull DockContainerLeaf container) {
+	default boolean visitLeaf(@NotNull DockContainerLeaf container) {
 		return true;
 	}
 
@@ -38,7 +38,7 @@ public interface SearchVisitor {
 	 *
 	 * @return {@code true} to continue visitation.
 	 */
-	default boolean visitDockable(@Nonnull Dockable dockable) {
+	default boolean visitDockable(@NotNull Dockable dockable) {
 		return true;
 	}
 }

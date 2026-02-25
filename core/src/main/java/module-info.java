@@ -10,7 +10,7 @@ open module bento.fx {
 
     requires static transitive javafx.controls;
 
-    requires static jakarta.annotation;
+    requires static org.jetbrains.annotations;
 
 	exports software.coley.bentofx;
 	exports software.coley.bentofx.building;

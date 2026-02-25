@@ -1,8 +1,8 @@
 package software.coley.bentofx.control;
 
-import jakarta.annotation.Nonnull;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.Identifiable;
 
 import java.lang.ref.WeakReference;
@@ -14,7 +14,7 @@ public class IdentifiableStage extends Stage implements Identifiable {
     private static final Map<String, WeakReference<IdentifiableStage>> ALL_STAGES =
             new HashMap<>();
 
-    private final @Nonnull String identifier;
+    private final @NotNull String identifier;
 
     public static Optional<IdentifiableStage> getIdentifiableStage(String id) {
         final WeakReference<IdentifiableStage> weakReference = ALL_STAGES.get(id);
@@ -23,7 +23,7 @@ public class IdentifiableStage extends Stage implements Identifiable {
                 Optional.ofNullable(weakReference.get());
     }
 
-    public static @Nonnull List<IdentifiableStage> getAllIdentifiableStages() {
+    public static @NotNull List<IdentifiableStage> getAllIdentifiableStages() {
         return ALL_STAGES.values().stream()
                 .map(WeakReference::get)
                 // Filter out null (GC'd references)
@@ -36,11 +36,11 @@ public class IdentifiableStage extends Stage implements Identifiable {
                 ));
     }
 
-    public IdentifiableStage(@Nonnull String identifier) {
+    public IdentifiableStage(@NotNull String identifier) {
         this(identifier, StageStyle.DECORATED);
     }
 
-    public IdentifiableStage(@Nonnull String identifier, StageStyle stageStyle) {
+    public IdentifiableStage(@NotNull String identifier, StageStyle stageStyle) {
         super(stageStyle);
         this.identifier = identifier;
 
@@ -51,7 +51,7 @@ public class IdentifiableStage extends Stage implements Identifiable {
     }
 
     @Override
-    public @Nonnull String getIdentifier() {
+    public @NotNull String getIdentifier() {
         return identifier;
     }
 }

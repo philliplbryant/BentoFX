@@ -23,28 +23,25 @@ public class SecondDragDropStage extends DragDropStage {
     private static final Logger logger =
             LoggerFactory.getLogger(SecondDragDropStage.class);
 
-    private final @NotNull Bento bento =
-            new Bento("second-drag-drop-stage-bento");
-
     public SecondDragDropStage(
             final @NotNull BoxAppBentoProvider bentoProvider,
             final @NotNull DockableStateProvider dockableStateProvider,
             final @NotNull StageIconImageProvider stageIconImageProvider
     ) {
-        super("second-drag-drop-stage", true);
-        bentoProvider.addBento(bento);
+        super(
+                new Bento("second-drag-drop-stage-bento"),
+                "second-drag-drop-stage",
+                true)
+        ;
+        bentoProvider.addBento(getBento());
         init(dockableStateProvider, stageIconImageProvider);
-    }
-
-    public @NotNull Bento getBento() {
-        return bento;
     }
 
     private void init(
             final @NotNull DockableStateProvider dockableStateProvider,
             final @NotNull StageIconImageProvider stageIconImageProvider
     ) {
-        final DockContainerLeaf leaf = bento.dockBuilding().leaf(
+        final DockContainerLeaf leaf = getBento().dockBuilding().leaf(
                 "second-leaf"
         );
 
@@ -52,18 +49,18 @@ public class SecondDragDropStage extends DragDropStage {
                 SECOND_DOCKABLE_ID
         ).ifPresentOrElse(
                 dockableState ->
-                        leaf.addDockable(createDockable(bento, dockableState)),
+                        leaf.addDockable(createDockable(getBento(), dockableState)),
                 () ->
                         logger.warn(
                                 "Could not create DockableState for {} using " +
                                         "bento {}",
                                 SECOND_DOCKABLE_ID,
-                                bento
+                                getBento()
                         )
         );
 
         final DockContainerRootBranch rootBranch = new DockContainerRootBranch(
-                bento,
+                getBento(),
                 "second-root-branch"
         );
         rootBranch.addContainer(leaf);

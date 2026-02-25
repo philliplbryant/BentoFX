@@ -1,8 +1,8 @@
 package software.coley.bentofx.building;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.control.DragDropStage;
 
 /**
@@ -17,6 +17,6 @@ public interface StageFactory {
 	 *
 	 * @return Newly created stage.
 	 */
-	@Nonnull
+	@NotNull
 	DragDropStage newStage(@Nullable Stage sourceStage);
 }

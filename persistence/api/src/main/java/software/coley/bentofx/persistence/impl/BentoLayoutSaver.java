@@ -78,13 +78,6 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
             for (final IdentifiableStage stage : getAllIdentifiableStages()) {
 
-                // TODO BENTO-13: File an issue with the BentoFX project to
-                //  change this? We only want add the stages for this Bento
-                //  but DragDropStage doesn't track the Bento used to create it
-                //  and changes required to do so would make DragDropStage
-                //  backward *IN*compatible (likely require using a non-default
-                //  constructor to inject the Bento).
-
                 switch (Objects.requireNonNull(stage)) {
                     case DragDropStage dragDropStage -> saveDragDropStage(
                             dragDropStage,
@@ -118,55 +111,51 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             Bento bento,
             BentoStateBuilder bentoStateBuilder
     ) {
-        final @Nullable DockContainerRootBranch rootBranch =
-                getDockContainerRootBranch(bento, dragDropStage);
+        // Only add the DragDropStages for the specified Bento
+        if (Objects.equals(
+                dragDropStage.getBento().getIdentifier(),
+                bento.getIdentifier()
+        )) {
+            final @Nullable DockContainerRootBranch rootBranch =
+                    getDockContainerRootBranch(bento, dragDropStage);
 
-        final @Nullable Bento rootBranchBento =
-                rootBranch == null
-                        ? null :
-                        rootBranch.getBento();
+            final @Nullable Bento rootBranchBento =
+                    rootBranch == null
+                            ? null :
+                            rootBranch.getBento();
 
-        // We only want save the DragDropStage for the specified Bento.
-        // Unfortunately, the DragDropStage class doesn't track the Bento used
-        // to create it and changes required to do so would make DragDropStage
-        // backward *IN*compatible. So we have to get the DockContainerRootBranch
-        // and assume the Bento that was used to create it is the same as the
-        // one used to create the DragDropStage.
+            if (rootBranchBento != null) {
 
-        if (rootBranchBento != null &&
-                bento.getIdentifier().equals(
-                        rootBranchBento.getIdentifier()
-                )) {
+                DockContainerRootBranchState rootBranchState =
+                        getRootBranchState(rootBranch);
 
-            DockContainerRootBranchState rootBranchState =
-                    getRootBranchState(rootBranch);
+                if (rootBranchState != null) {
 
-            if (rootBranchState != null) {
-
-                bentoStateBuilder.addDragDropStageState(
-                        new DragDropStageStateBuilder(
-                                dragDropStage.getIdentifier(),
-                                dragDropStage.isAutoCloseWhenEmpty()
-                        )
-                                .setTitle(dragDropStage.getTitle())
-                                .setX(dragDropStage.getX())
-                                .setY(dragDropStage.getY())
-                                .setWidth(dragDropStage.getWidth())
-                                .setHeight(dragDropStage.getHeight())
-                                .setModality(dragDropStage.getModality())
-                                .setOpacity(dragDropStage.getOpacity())
-                                .setIconified(dragDropStage.isIconified())
-                                .setFullScreen(dragDropStage.isFullScreen())
-                                .setMaximized(dragDropStage.isMaximized())
-                                .setAlwaysOnTop(dragDropStage.isAlwaysOnTop())
-                                .setResizable(dragDropStage.isResizable())
-                                .setShowing(dragDropStage.isShowing())
-                                .setFocused(dragDropStage.isFocused())
-                                .setDockContainerRootBranchState(
-                                        rootBranchState
-                                )
-                                .build()
-                );
+                    bentoStateBuilder.addDragDropStageState(
+                            new DragDropStageStateBuilder(
+                                    dragDropStage.getIdentifier(),
+                                    dragDropStage.isAutoCloseWhenEmpty()
+                            )
+                                    .setTitle(dragDropStage.getTitle())
+                                    .setX(dragDropStage.getX())
+                                    .setY(dragDropStage.getY())
+                                    .setWidth(dragDropStage.getWidth())
+                                    .setHeight(dragDropStage.getHeight())
+                                    .setModality(dragDropStage.getModality())
+                                    .setOpacity(dragDropStage.getOpacity())
+                                    .setIconified(dragDropStage.isIconified())
+                                    .setFullScreen(dragDropStage.isFullScreen())
+                                    .setMaximized(dragDropStage.isMaximized())
+                                    .setAlwaysOnTop(dragDropStage.isAlwaysOnTop())
+                                    .setResizable(dragDropStage.isResizable())
+                                    .setShowing(dragDropStage.isShowing())
+                                    .setFocused(dragDropStage.isFocused())
+                                    .setDockContainerRootBranchState(
+                                            rootBranchState
+                                    )
+                                    .build()
+                    );
+                }
             }
         }
     }

@@ -1,12 +1,12 @@
 package software.coley.bentofx.util;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.dockable.Dockable;
@@ -40,8 +40,8 @@ public class DragUtils {
 	 * @see #extractIdentifier(Dragboard)
 	 * @see #extractDragGroup(Dragboard)
 	 */
-	@Nonnull
-	public static Map<DataFormat, Object> content(@Nonnull Dockable dockable) {
+	@NotNull
+	public static Map<DataFormat, Object> content(@NotNull Dockable dockable) {
 		return content(dockable, null);
 	}
 
@@ -59,8 +59,8 @@ public class DragUtils {
 	 * @see #extractDragGroup(Dragboard)
 	 * @see #extractDropTargetType(Dragboard)
 	 */
-	@Nonnull
-	public static Map<DataFormat, Object> content(@Nonnull Dockable dockable, @Nullable DragDropTarget target) {
+	@NotNull
+	public static Map<DataFormat, Object> content(@NotNull Dockable dockable, @Nullable DragDropTarget target) {
 		ClipboardContent content = new ClipboardContent();
 		String format = PREFIX + dockable.getDragGroupMask() + ";" + dockable.getIdentifier();
 		if (target != null)
@@ -79,7 +79,7 @@ public class DragUtils {
 	 * @param target
 	 * 		The completed drag-drop type for a completed operation
 	 */
-	public static void completeDnd(@Nonnull DragEvent event, @Nonnull Dockable dockable, @Nonnull DragDropTarget target) {
+	public static void completeDnd(@NotNull DragEvent event, @NotNull Dockable dockable, @NotNull DragDropTarget target) {
 		event.getDragboard().setContent(content(dockable, target));
 		event.consume();
 	}
@@ -94,7 +94,7 @@ public class DragUtils {
 	 * @see #content(Dockable)
 	 */
 	@Nullable
-	public static String extractIdentifier(@Nonnull Dragboard dragboard) {
+	public static String extractIdentifier(@NotNull Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
 		String[] parts = dragboard.getString().split(";");
@@ -113,7 +113,7 @@ public class DragUtils {
 	 * @see #content(Dockable)
 	 */
 	@Nullable
-	public static Integer extractDragGroup(@Nonnull Dragboard dragboard) {
+	public static Integer extractDragGroup(@NotNull Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
 		String[] parts = dragboard.getString().split(";");
@@ -136,7 +136,7 @@ public class DragUtils {
 	 * @see #content(Dockable, DragDropTarget)
 	 */
 	@Nullable
-	public static DragDropTarget extractDropTargetType(@Nonnull Dragboard dragboard) {
+	public static DragDropTarget extractDropTargetType(@NotNull Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
 		String[] parts = dragboard.getString().split(";");
@@ -162,7 +162,7 @@ public class DragUtils {
 	 * @return The {@link Header} that initiated this drag gesture.
 	 */
 	@Nullable
-	public static Header getHeader(@Nonnull Bento bento, @Nonnull DragEvent event) {
+	public static Header getHeader(@NotNull Bento bento, @NotNull DragEvent event) {
 		// Ideally the header is just known to the event.
 		Object source = event.getGestureSource();
 		if (source instanceof Header headerSource)

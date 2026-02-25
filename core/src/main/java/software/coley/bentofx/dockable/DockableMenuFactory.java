@@ -1,8 +1,8 @@
 package software.coley.bentofx.dockable;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.scene.control.ContextMenu;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Factory to create a {@link ContextMenu} for some given {@link Dockable}.
@@ -17,5 +17,5 @@ public interface DockableMenuFactory {
 	 * @return Context menu for the dockable.
 	 */
 	@Nullable
-	ContextMenu build(@Nonnull Dockable dockable);
+	ContextMenu build(@NotNull Dockable dockable);
 }

@@ -1,9 +1,9 @@
 package software.coley.bentofx.dockable;
 
-import jakarta.annotation.Nonnull;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 
@@ -25,10 +25,10 @@ public interface DockableClickBehavior {
 	 * @param e
 	 * 		The click event.
 	 */
-	default void onMouseClick(@Nonnull DockContainerLeaf container,
-	                          @Nonnull Dockable dockable,
-	                          @Nonnull Header header,
-	                          @Nonnull MouseEvent e) {
+	default void onMouseClick(@NotNull DockContainerLeaf container,
+	                          @NotNull Dockable dockable,
+	                          @NotNull Header header,
+	                          @NotNull MouseEvent e) {
 		// Primary click --> select dockable if not selected, otherwise toggle collapsed state.
 		if (e.getButton() == MouseButton.PRIMARY) {
 			if (container.getSelectedDockable() == dockable || container.isCollapsed()) {

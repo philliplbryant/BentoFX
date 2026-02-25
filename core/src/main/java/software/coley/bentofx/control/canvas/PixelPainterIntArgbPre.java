@@ -1,7 +1,7 @@
 package software.coley.bentofx.control.canvas;
 
-import jakarta.annotation.Nonnull;
 import javafx.scene.image.PixelFormat;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.IntBuffer;
 
@@ -21,7 +21,7 @@ public class PixelPainterIntArgbPre extends PixelPainterIntArgb {
 		super.setColor(x, y, argbToArgbPre(color));
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public PixelFormat<IntBuffer> getPixelFormat() {
 		return PixelFormat.getIntArgbPreInstance();

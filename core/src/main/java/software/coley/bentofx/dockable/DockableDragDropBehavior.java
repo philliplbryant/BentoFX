@@ -1,8 +1,8 @@
 package software.coley.bentofx.dockable;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import javafx.geometry.Side;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 
 /**
@@ -40,9 +40,9 @@ public interface DockableDragDropBehavior {
 	 *
 	 * @return {@code true} when this container can receive the dockable.
 	 */
-	default boolean canReceiveDockable(@Nonnull DockContainerLeaf targetContainer,
+	default boolean canReceiveDockable(@NotNull DockContainerLeaf targetContainer,
 	                                   @Nullable Side targetSide,
-	                                   @Nonnull Dockable dockable) {
+	                                   @NotNull Dockable dockable) {
 		// The incoming dockable must have a compatible group.
 		return targetContainer.getDockables().stream()
 				.anyMatch(d -> d.getDragGroupMask() == dockable.getDragGroupMask());

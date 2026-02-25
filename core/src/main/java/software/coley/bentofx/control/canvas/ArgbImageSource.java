@@ -1,8 +1,8 @@
 package software.coley.bentofx.control.canvas;
 
-import jakarta.annotation.Nonnull;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelFormat;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ public class ArgbImageSource implements ArgbSource {
 	 * @param image
 	 * 		Wrapped image.
 	 */
-	public ArgbImageSource(@Nonnull Image image) {
+	public ArgbImageSource(@NotNull Image image) {
 		this.image = image;
 	}
 
@@ -58,9 +58,8 @@ public class ArgbImageSource implements ArgbSource {
 		}
 	}
 
-	@Nonnull
 	@Override
-	public int[] getArgb() {
+	public int @NotNull[] getArgb() {
 		// We will likely be using this a bit, so it makes sense to cache the result.
 		if (fullArgbCache == null)
 			fullArgbCache = ArgbSource.super.getArgb();

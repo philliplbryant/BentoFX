@@ -1,6 +1,6 @@
 package software.coley.bentofx;
 
-import jakarta.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Outline of an <i>(ideally uniquely)</i> identifiable object.
@@ -11,7 +11,7 @@ public interface Identifiable {
 	/**
 	 * @return This objects identifier.
 	 */
-	@Nonnull
+	@NotNull
 	String getIdentifier();
 
 	/**
@@ -20,7 +20,7 @@ public interface Identifiable {
 	 *
 	 * @return {@code true} when the other object has the same identifier.
 	 */
-    default boolean matchesIdentity(@Nonnull Identifiable other) {
+    default boolean matchesIdentity(@NotNull Identifiable other) {
         return this.getIdentifier().equals(other.getIdentifier());
     }
 }

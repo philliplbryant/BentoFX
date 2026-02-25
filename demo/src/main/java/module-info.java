@@ -16,7 +16,6 @@ module bento.fx.demo {
     requires javafx.controls;
     requires org.slf4j;
 
-    requires static jakarta.annotation;
     requires static org.jetbrains.annotations;
 
     // This must be exported for the JavaFX launcher to access the
