@@ -17,18 +17,13 @@ public class Runner {
 
     // Using standard outputs when errors occur during logging initializing.
     @SuppressWarnings("java:S106")
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
         // Initialize java.util.logging
-        try (
-                InputStream inputStream =
-                        BoxApp.class.getResourceAsStream(
-                                "/" + LOGGING_PROPERTIES
-                        )
-        ) {
-
+        try (InputStream inputStream = BoxApp.class.getResourceAsStream(
+                "/" + LOGGING_PROPERTIES
+        )) {
             if (inputStream != null) {
-
                 LogManager.getLogManager().readConfiguration(inputStream);
             } else {
                 System.err.println(
@@ -37,11 +32,10 @@ public class Runner {
                 );
             }
         } catch (Exception e) {
-
             e.printStackTrace(System.err);
         }
 
         // Launch the application
-		Application.launch(BoxApp.class, args);
-	}
+        Application.launch(BoxApp.class, args);
+    }
 }

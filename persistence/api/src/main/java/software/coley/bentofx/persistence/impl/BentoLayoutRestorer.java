@@ -202,7 +202,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         final @NotNull List<@NotNull DockContainerRootBranch> rootBranches =
                 new ArrayList<>();
 
-        for(DockContainerRootBranchState rootBranchState :
+        for (DockContainerRootBranchState rootBranchState :
                 stageState.getRootBranchStates()) {
             rootBranches.add(
                     restoreRootBranchContainer(dockBuilding, rootBranchState)
@@ -396,27 +396,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         final String selectedId =
                 state.getSelectedDockableIdentifier().orElse(null);
 
-        for (final DockableState dockableState : state.getChildDockableStates()) {
-
-            final String dockableId = dockableState.getIdentifier();
-
-            final Dockable dockable = restoreDockable(
-                    dockBuilding,
-                    dockableId
-            );
-
-            if (dockable != null) {
-
-                leaf.addDockable(dockable);
-                if (dockableId.equals(selectedId)) {
-                    leaf.selectDockable(dockable);
-                }
-            } else {
-
-                logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
-            }
-        }
-
         state.isResizableWithParent().ifPresent(isResizableWithParent ->
                 SplitPane.setResizableWithParent(
                         leaf,
@@ -449,6 +428,27 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                     );
                 }
         );
+
+        for (final DockableState dockableState : state.getChildDockableStates()) {
+
+            final String dockableId = dockableState.getIdentifier();
+
+            final Dockable dockable = restoreDockable(
+                    dockBuilding,
+                    dockableId
+            );
+
+            if (dockable != null) {
+
+                leaf.addDockable(dockable);
+                if (dockableId.equals(selectedId)) {
+                    leaf.selectDockable(dockable);
+                }
+            } else {
+
+                logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
+            }
+        }
 
         return leaf;
     }

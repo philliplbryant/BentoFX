@@ -47,8 +47,8 @@ public class MainStage extends PersistableStage {
             final @NotNull Runnable onCloseRequestRunnable
     ) {
         super("main-stage");
-        bentoProvider.addBento(bento);
-        init(
+        initBento(bentoProvider);
+        initUi(
                 dockableStateProvider,
                 stageIconImageProvider,
                 dockContainerLeafMenuFactoryProvider,
@@ -69,13 +69,7 @@ public class MainStage extends PersistableStage {
         );
     }
 
-    private void init(
-            final @NotNull DockableStateProvider dockableStateProvider,
-            final @NotNull StageIconImageProvider stageIconImageProvider,
-            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
-            final @NotNull Runnable onCloseRequestRunnable
-    ) {
-
+    private void initBento(final @NotNull BoxAppBentoProvider bentoProvider) {
         bento.placeholderBuilding().setDockablePlaceholderFactory(dockable ->
                 new Label("Empty Dockable")
         );
@@ -88,6 +82,16 @@ public class MainStage extends PersistableStage {
             if (event instanceof DockEvent.DockableClosing closingEvent)
                 handleDockableClosing(closingEvent);
         });
+
+        bentoProvider.addBento(bento);
+    }
+
+    private void initUi(
+            final @NotNull DockableStateProvider dockableStateProvider,
+            final @NotNull StageIconImageProvider stageIconImageProvider,
+            final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
+            final @NotNull Runnable onCloseRequestRunnable
+    ) {
 
         final DockBuilding dockBuilding = bento.dockBuilding();
 
