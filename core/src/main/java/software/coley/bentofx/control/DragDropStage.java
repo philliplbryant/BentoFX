@@ -30,6 +30,8 @@ public class DragDropStage extends IdentifiableStage {
     private final boolean autoCloseWhenEmpty;
     private WeakReference<Parent> content;
 
+    // TODO BENTO-13: Remove requirement to pass Bento into constructor
+
     /**
      * @param autoCloseWhenEmpty Flag to determine if this stage should auto-close if its sole content is removed.
      *                           See	{@link #isAutoCloseWhenEmpty()} for more details.

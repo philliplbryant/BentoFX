@@ -21,6 +21,7 @@ import software.coley.bentofx.search.SearchHandler;
  * Top level controller for docking operations.
  *
  * @author Matt Coley
+ * @author Phil Bryant
  */
 public class Bento implements Identifiable {
 
@@ -37,7 +38,7 @@ public class Bento implements Identifiable {
 	private final DockableClickBehavior clickBehavior = newClickBehavior();
 
     public Bento() {
-        identifier = DockBuilding.uid("bento");
+        identifier = DockBuilding.uid("cBento");
     }
 
     public Bento(final @NotNull String identifier) {

@@ -8,20 +8,20 @@ import java.util.*;
 
 public class BoxAppBentoProvider implements BentoProvider {
 
-    private final Map<@NotNull String, @NotNull Bento> BENTO_MAP =
+    private final Map<@NotNull String, @NotNull Bento> bentoMap =
             new HashMap<>();
 
     public void addBento(final @NotNull Bento bento) {
-        BENTO_MAP.put(bento.getIdentifier(), bento);
+        bentoMap.put(bento.getIdentifier(), bento);
     }
 
     @Override
     public @NotNull Optional<@NotNull Bento> getBento(@NotNull String identifier) {
-        return Optional.ofNullable(BENTO_MAP.get(identifier));
+        return Optional.ofNullable(bentoMap.get(identifier));
     }
 
     @Override
     public @NotNull Collection<@NotNull Bento> getAllBentos() {
-        return new ArrayList<>(BENTO_MAP.values());
+        return new ArrayList<>(bentoMap.values());
     }
 }

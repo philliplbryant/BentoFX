@@ -32,7 +32,7 @@ public class DockBuilding {
 	 */
 	@NotNull
 	public Dockable dockable() {
-		return dockable(uid("dockable"));
+		return dockable(uid("cDockable"));
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class DockBuilding {
 	 */
 	@NotNull
 	public DockContainerRootBranch root() {
-		return root(uid("croot"));
+		return root(uid("cRoot"));
 	}
 
 
@@ -77,7 +77,7 @@ public class DockBuilding {
 	 */
 	@NotNull
 	public DockContainerBranch branch() {
-		return branch(uid("cbranch"));
+		return branch(uid("cBranch"));
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class DockBuilding {
 	 */
 	@NotNull
 	public DockContainerLeaf leaf() {
-		return leaf(uid("cleaf"));
+		return leaf(uid("cLeaf"));
 	}
 
 	/**

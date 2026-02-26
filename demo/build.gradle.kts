@@ -21,6 +21,9 @@ application {
     )
 }
 
+// FIXME BENTO-13: The Gradle `run` task fails with "Error: --add-modules
+//  requires modules to be specified" (IntelliJ run configuration still works).
+
 dependencies {
 
     implementation(projects.core)
@@ -42,10 +45,19 @@ dependencies {
 }
 
 tasks {
-    named<JavaExec>("run").configure {
-        notCompatibleWithConfigurationCache(
-            "This task relies on Task.extensions, which is only " +
-                    "available during the configuration phase."
-        )
+
+    /**
+     * A JavaExec task is created by IntelliJ and is called when executing
+     * application run configurations.
+     */
+    withType<JavaExec>().configureEach {
+
+        if (name == "run" || name.endsWith("main()")) {
+
+            notCompatibleWithConfigurationCache(
+                "This task relies on Task.extensions, which is only " +
+                        "available during the configuration phase."
+            )
+        }
     }
 }

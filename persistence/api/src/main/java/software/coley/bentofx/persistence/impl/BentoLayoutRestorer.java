@@ -407,28 +407,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch.setContainerSizePx(leaf, size)
         );
 
-        // FIXME BENTO-13: Reverse the order in which docking components are
-        //  being restored (start with leaves, then branches, the, root
-        //  branches). isCollapsed is getting set but the leaf isn't collapsing
-        //  because collapsing can only occur if there is a splitter between two
-        //  or more child containers, and we must create the DockContainer and
-        //  add the leaf to it for that to happen.
-        state.isCollapsed().ifPresent(isCollapsed -> {
-                    logger.trace(
-                            "Setting leaf {} collapsed to {}",
-                            leaf.getIdentifier(),
-                            isCollapsed
-                    );
-                    final boolean wasCollapsed =
-                            rootBranch.setContainerCollapsed(leaf, isCollapsed);
-                    logger.trace(
-                            "Leaf {} {} collapsed.",
-                            leaf.getIdentifier(),
-                            wasCollapsed ? "WAS" : "was NOT"
-                    );
-                }
-        );
-
         for (final DockableState dockableState : state.getChildDockableStates()) {
 
             final String dockableId = dockableState.getIdentifier();
@@ -449,6 +427,29 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
             }
         }
+
+        // FIXME BENTO-13: Even though isCollapsed is getting set, the leaf
+        //  isn't collapsing. According to notes in
+        //  DockContainerBranch#setContainerCollapsed, collapsing can only occur
+        //  if there is a splitter between two or more child containers. We've
+        //  already created the rootBranch DockContainer added the Dockable to
+        //  the leaf. Restoring the docking components in the same order as
+        //  specified in MainStage doesn't seem to help either.
+        state.isCollapsed().ifPresent(isCollapsed -> {
+                    logger.trace(
+                            "Setting leaf {} collapsed to {}",
+                            leaf.getIdentifier(),
+                            isCollapsed
+                    );
+                    final boolean wasCollapsed =
+                            rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                    logger.trace(
+                            "Leaf {} {} collapsed.",
+                            leaf.getIdentifier(),
+                            wasCollapsed ? "WAS" : "was NOT"
+                    );
+                }
+        );
 
         return leaf;
     }

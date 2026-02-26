@@ -33,7 +33,7 @@ public class DockableState extends IdentifiableState {
     private final @Nullable Consumer<Dockable> dockableConsumer;
 
     // This is a read-only class whose attributes are set using the constructor.
-    @SuppressWarnings("S107")
+    @SuppressWarnings("java:S107")
     private DockableState(
             final @NotNull String identifier,
             final @Nullable Node dockableNode,

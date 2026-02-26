@@ -13,6 +13,8 @@ public class IdentifiableStageState extends StageState {
 
     private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
 
+    // This is a read-only class whose attributes are set using the constructor.
+    @SuppressWarnings("java:S107")
     protected IdentifiableStageState(
             final @NotNull String identifier,
             final @Nullable String title,

@@ -126,7 +126,7 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
             if (rootBranchBento != null) {
 
-                DockContainerRootBranchState rootBranchState =
+                final @Nullable DockContainerRootBranchState rootBranchState =
                         getRootBranchState(rootBranch);
 
                 if (rootBranchState != null) {

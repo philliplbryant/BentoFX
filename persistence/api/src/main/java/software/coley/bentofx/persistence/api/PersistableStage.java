@@ -9,7 +9,7 @@ import software.coley.bentofx.persistence.api.codec.DockableState;
 
 public abstract class PersistableStage extends IdentifiableStage {
 
-    public PersistableStage(final @NotNull String identifier) {
+    protected PersistableStage(final @NotNull String identifier) {
         super(identifier);
     }
     public abstract @NotNull IdentifiableStageLayout getLayout();

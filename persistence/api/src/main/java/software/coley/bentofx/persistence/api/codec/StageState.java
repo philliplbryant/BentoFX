@@ -23,6 +23,8 @@ public class StageState extends IdentifiableState {
     private final @Nullable Boolean isShowing;
     private final @Nullable Boolean isFocused;
 
+    // This is a read-only class whose attributes are set using the constructor.
+    @SuppressWarnings("java:S107")
     protected StageState(
             @NotNull String identifier,
             final @Nullable String title,

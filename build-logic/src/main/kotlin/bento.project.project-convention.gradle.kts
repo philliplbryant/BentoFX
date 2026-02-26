@@ -11,7 +11,6 @@ import software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 import software.coley.gradle.lifecycle.TestLifecycle.getTestReportMode
 import software.coley.gradle.lifecycle.TestReportMode
 import software.coley.gradle.lifecycle.TestReportMode.ALL
-import software.coley.gradle.project.ProjectConstants.JAVA_VERSION
 
 plugins {
     `java-library`
@@ -33,12 +32,14 @@ version = property("software.coley.bentofx.version") as String
 // Using version catalog API instead.
 val versionCatalog: VersionCatalog = versionCatalogs.named("libs")
 
+// Get the Java JDK version specified in libs.versions.toml
+val jdkVersionName = "java-jdk"
+val jdkVersion: String = versionCatalog.findVersion(jdkVersionName).get().requiredVersion
+
 // Accommodate all the different ways Gradle and its plugins take the Java
 // version...
-val javaMajorVersionAsInt: Int = JAVA_VERSION.majorVersion.toInt()
-val javaLanguageVersion: JavaLanguageVersion =
-    JavaLanguageVersion.of(JAVA_VERSION.toString())
-val jvmTargetVersion: JavaVersion = JAVA_VERSION
+val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
+val javaMajorVersionAsInt: Int = javaLanguageVersion.asInt()
 
 val csvCodeCoverageRequired = false
 val htmlCodeCoverageRequired = false
@@ -154,7 +155,7 @@ tasks {
         // Otherwise, we might get JARs with the same names that will collide
         // when aggregated by the installer task.
         val jarBaseName =
-            "${project.path}"
+            project.path
                 // Delete the leading ':'
                 .substring(1)
                 // Replace the remaining ':' with '.'
