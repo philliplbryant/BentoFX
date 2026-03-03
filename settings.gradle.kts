@@ -44,4 +44,5 @@ include(":persistence:codec:xml")
 include(":persistence:storage:file")
 include(":persistence:storage:db:h2")
 
-include("demo")
+include(":demos:basic-demo")
+include(":demos:persistence-demo")

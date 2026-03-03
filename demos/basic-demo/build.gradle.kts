@@ -1,0 +1,54 @@
+/*******************************************************************************
+This is an unpublished work of SAIC.
+Copyright (c) 2025 SAIC. All Rights Reserved.
+ ******************************************************************************/
+
+plugins {
+
+    id("bento.project.project-convention")
+    id("application")
+    alias(libs.plugins.javafx.gradlePlugin)
+}
+
+description = "Basic BentoFX Demo"
+
+application {
+    applicationName = description ?: name
+    mainClass = "software.coley.boxfx.demo.basic.Runner"
+    applicationDefaultJvmArgs += listOf(
+        "-Xms256m",
+        "-Xmx1024m",
+    )
+}
+
+// FIXME BENTO-13: The Gradle `run` task fails with "Error: --add-modules
+//  requires modules to be specified" (IntelliJ run configuration still works).
+
+dependencies {
+
+    implementation(projects.core)
+
+    implementation(libs.javafx.base)
+    implementation(libs.javafx.controls)
+    implementation(libs.javafx.graphics)
+
+    compileOnly(libs.jetbrains.annotations)
+}
+
+tasks {
+
+    /**
+     * A JavaExec task is created by IntelliJ and is called when executing
+     * application run configurations.
+     */
+    withType<JavaExec>().configureEach {
+
+        if (name == "run" || name.endsWith("main()")) {
+
+            notCompatibleWithConfigurationCache(
+                "This task relies on Task.extensions, which is only " +
+                        "available during the configuration phase."
+            )
+        }
+    }
+}
