@@ -10,10 +10,11 @@ plugins {
     alias(libs.plugins.javafx.gradlePlugin)
 }
 
-description = "Basic BentoFX Demo"
+description = "BentoFX Persistence Demo"
 
 application {
     applicationName = description ?: name
+    mainModule = "bento.fx.demo.persistence"
     mainClass = "software.coley.boxfx.demo.persistence.Runner"
     applicationDefaultJvmArgs += listOf(
         "-Xms256m",
@@ -21,8 +22,11 @@ application {
     )
 }
 
-// FIXME BENTO-13: The Gradle `run` task fails with "Error: --add-modules
-//  requires modules to be specified" (IntelliJ run configuration still works).
+javafx {
+    modules = listOf(
+        "javafx.controls",
+    )
+}
 
 dependencies {
 
@@ -42,22 +46,4 @@ dependencies {
 //    runtimeOnly(projects.persistence.storage.db.h2)
     runtimeOnly(projects.persistence.storage.file)
     runtimeOnly(libs.slf4j.jdk14)
-}
-
-tasks {
-
-    /**
-     * A JavaExec task is created by IntelliJ and is called when executing
-     * application run configurations.
-     */
-    withType<JavaExec>().configureEach {
-
-        if (name == "run" || name.endsWith("main()")) {
-
-            notCompatibleWithConfigurationCache(
-                "This task relies on Task.extensions, which is only " +
-                        "available during the configuration phase."
-            )
-        }
-    }
 }
