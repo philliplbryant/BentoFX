@@ -68,19 +68,18 @@ public class MainStage extends Stage {
     public void restoreLayout(final @NotNull BentoLayout bentoLayout) {
 
         // This stage should only have one root branch
-        final @NotNull List<@NotNull DockContainerRootBranch> rootBranches =
+        final @NotNull List<@NotNull DockContainerRootBranch> bentoRootBranches =
                 bentoLayout.getRootBranches();
 
-        if(rootBranches.size() != 1) {
+        if(bentoRootBranches.size() != 1) {
             logger.error(
                     "The MainStage should have one root branch but {} " +
                             "were found.",
-                    rootBranches.size()
+                    bentoRootBranches.size()
             );
         } else {
-            // TODO BENTO-13: Restore the stage layout
             final Scene scene =
-                    new Scene(rootBranches.getFirst());
+                    new Scene(bentoRootBranches.getFirst());
             scene.getStylesheets().add("/bento.css");
             setScene(scene);
             show();

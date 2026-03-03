@@ -86,25 +86,23 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
                     final @NotNull Parent parent =
                             dragDropStage.getScene().getRoot();
 
-                    if(parent instanceof final DockContainerRootBranch rootBranch) {
+                    if (parent instanceof final DockContainerRootBranch rootBranch &&
+                            bento.matchesIdentity(rootBranch.getBento())) {
 
-                        if(bento.matchesIdentity(rootBranch.getBento())) {
+                        // Remove the DragDropStage root branch from the
+                        // list of all root branches
+                        nonDragDropStageRootBranches.remove(rootBranch);
 
-                            // Remove the DragDropStage root branch from the
-                            // list of all root branches
-                            nonDragDropStageRootBranches.remove(rootBranch);
-
-                            saveDragDropStage(
-                                    dragDropStage,
-                                    bentoStateBuilder
-                            );
-                        }
+                        saveDragDropStage(
+                                dragDropStage,
+                                bentoStateBuilder
+                        );
                     }
                 }
             }
 
             // Save the remaining root branches
-            for(final @NotNull DockContainerRootBranch rootBranch :
+            for (final @NotNull DockContainerRootBranch rootBranch :
                     nonDragDropStageRootBranches) {
                 bentoStateBuilder.addRootBranchState(
                         getRootBranchState(rootBranch)
@@ -131,7 +129,7 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         // A DragDropStage can only have one rootBranch
         final @Nullable DockContainerRootBranch rootBranch =
                 getDockContainerRootBranch(dragDropStage);
-        if(rootBranch == null) {
+        if (rootBranch == null) {
             logger.debug("Ignoring unknown root branch {}", dragDropStage);
         } else {
             final @NotNull DockContainerRootBranchState rootBranchState =
@@ -167,11 +165,11 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             final @NotNull DragDropStage stage
     ) {
         final Parent parent = stage.getScene().getRoot();
-        if(parent instanceof final DockContainerRootBranch rootBranch) {
+        if (parent instanceof final DockContainerRootBranch rootBranch) {
             return rootBranch;
         } else {
-                logger.debug("Ignoring unknown parent {}", parent);
-                return null;
+            logger.debug("Ignoring unknown parent {}", parent);
+            return null;
         }
     }
 

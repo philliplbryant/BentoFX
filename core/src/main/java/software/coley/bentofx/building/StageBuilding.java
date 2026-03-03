@@ -1,16 +1,20 @@
 package software.coley.bentofx.building;
 
+import javafx.geometry.Point2D;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import javafx.scene.robot.Robot;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
+import software.coley.bentofx.control.Header;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 
 /**
@@ -40,11 +44,13 @@ public class StageBuilding {
 	 * @return Newly created stage.
 	 */
 	@NotNull
-	public DragDropStage newStageForDockable(@NotNull Scene sourceScene, @NotNull DockContainer source, @NotNull Dockable dockable) {
+	public DragDropStage newStageForDockable(@NotNull Scene sourceScene, @NotNull DockContainerLeaf source, @NotNull Dockable dockable) {
 		Region sourceRegion = source.asRegion();
 		double width = sourceRegion.getWidth();
 		double height = sourceRegion.getHeight();
-		return newStageForDockable(sourceScene, dockable, width, height);
+        final DockContainerLeafMenuFactory leafMenuFactory = source.getMenuFactory();
+        final Side side = source.getSide();
+		return newStageForDockable(sourceScene, dockable, width, height, leafMenuFactory, side);
 	}
 
 	/**
@@ -58,18 +64,54 @@ public class StageBuilding {
 	 * 		Preferred stage width.
 	 * @param height
 	 * 		Preferred stage height.
-	 *
+	 * @param leafMenuFactory
+     *       DockContainerLeafMenuFactory for creating leaf menus
+     * @param side
+     *       Side of this container to place {@link Header} displays on.
+     *       {@code null} to not display any headers.
+     *
 	 * @return Newly created stage.
 	 */
 	@NotNull
-	public DragDropStage newStageForDockable(@Nullable Scene sourceScene, @NotNull Dockable dockable, double width, double height) {
+	public DragDropStage newStageForDockable(
+            @Nullable Scene sourceScene,
+            @NotNull Dockable dockable,
+            double width,
+            double height,
+            @Nullable DockContainerLeafMenuFactory leafMenuFactory,
+            @Nullable Side side
+    ) {
 		DockBuilding builder = bento.dockBuilding();
 		DockContainerRootBranch root = builder.root();
 		DockContainerLeaf leaf = builder.leaf();
+        leaf.setMenuFactory(leafMenuFactory);
+        leaf.setSide(side);
 		return newStageForDockable(sourceScene, root, leaf, dockable, width, height);
 	}
 
-	/**
+    /**
+     * Create a new stage for the given dockable.,
+     *
+     * @param sourceScene
+     * 		Original scene to copy state from.
+     * @param dockable
+     * 		Dockable to place into the newly created stage.
+     * @param width
+     * 		Preferred stage width.
+     * @param height
+     * 		Preferred stage height.
+     *
+     * @return Newly created stage.
+     */
+    @NotNull
+    public DragDropStage newStageForDockable(@Nullable Scene sourceScene, @NotNull Dockable dockable, double width, double height) {
+        DockBuilding builder = bento.dockBuilding();
+        DockContainerRootBranch root = builder.root();
+        DockContainerLeaf leaf = builder.leaf();
+        return newStageForDockable(sourceScene, root, leaf, dockable, width, height);
+    }
+
+    /**
 	 * Create a new stage for the given dockable.,
 	 *
 	 * @param sourceScene
@@ -92,28 +134,74 @@ public class StageBuilding {
 	                                         @NotNull DockContainerRootBranch root,
 	                                         @NotNull DockContainerLeaf leaf,
 	                                         @NotNull Dockable dockable,
-	                                         double width, double height) {
-		// Sanity check, leaf shouldn't have an existing parent.
-		if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
-			leaf.removeFromParent();
-
-		// Add the leaf to the given root, and the dockable to the leaf.
-		root.addContainer(leaf);
-		leaf.addDockable(dockable);
-
-		// Create new stage/scene for the dockable to spawn in.
-		Region region = root.asRegion();
-		Stage sourceStage = sourceScene == null ? null : (Stage) sourceScene.getWindow();
-		DragDropStage stage = stageFactory.newStage(sourceStage);
-		Scene scene = sceneFactory.newScene(sourceScene, region, width, height);
-		stage.setScene(scene);
-
-		// Copy properties from the source scene/stage.
-		if (sourceScene != null)
-			initializeFromSource(sourceScene, scene, sourceStage, stage, true);
-
-		return stage;
+	                                         double width,
+                                             double height
+    ) {
+		return newStageForDockable(sourceScene, root, leaf, dockable, width, height, false, true);
 	}
+
+    /**
+     * Create a new stage for the given dockable.,
+     *
+     * @param sourceScene
+     * 		Original scene to copy state from.
+     * @param root
+     * 		Newly created root branch to place into the resulting stage.
+     * @param leaf
+     * 		Newly created leaf container to place the dockable into.
+     * @param dockable
+     * 		Dockable to place into the newly created stage.
+     * @param width
+     * 		Preferred stage width.
+     * @param height
+     * 		Preferred stage height.
+     * @param sourceIsOwner
+     *      {@code true} to invoke {@link Stage#initOwner(Window)}, where the
+     *      owner is the source stage.
+     * @param applyMousePosition
+     *      {@code true} to set the stage's X and Y positions to the position of
+     *      the mouse when the new stage is created.
+     *
+     * @return Newly created stage.
+     */
+    @NotNull
+    public DragDropStage newStageForDockable(@Nullable Scene sourceScene,
+                                             @NotNull DockContainerRootBranch root,
+                                             @NotNull DockContainerLeaf leaf,
+                                             @NotNull Dockable dockable,
+                                             double width,
+                                             double height,
+                                             boolean sourceIsOwner,
+                                             boolean applyMousePosition
+    ) {
+        // Sanity check, leaf shouldn't have an existing parent.
+        if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
+            leaf.removeFromParent();
+
+        // Add the leaf to the given root, and the dockable to the leaf.
+        root.addContainer(leaf);
+        leaf.addDockable(dockable);
+
+        // Create new stage/scene for the dockable to spawn in.
+        Region region = root.asRegion();
+        Stage sourceStage = sourceScene == null ? null : (Stage) sourceScene.getWindow();
+        DragDropStage stage = stageFactory.newStage(sourceStage);
+        Scene scene = sceneFactory.newScene(sourceScene, region, width, height);
+        stage.setScene(scene);
+
+        // Copy properties from the source scene/stage.
+        if (sourceScene != null)
+            initializeFromSource(sourceScene, scene, sourceStage, stage, sourceIsOwner);
+
+        if(applyMousePosition) {
+            final Robot robot = new Robot();
+            final Point2D mousePosition = robot.getMousePosition();
+            stage.setX(mousePosition.getX());
+            stage.setY(mousePosition.getY());
+        }
+
+        return stage;
+    }
 
 	/**
 	 * Copy attributes from the source scene/stage housing a dockable

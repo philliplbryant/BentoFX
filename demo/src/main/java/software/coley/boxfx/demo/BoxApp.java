@@ -85,10 +85,10 @@ public class BoxApp extends Application {
         DockingLayout dockingLayout = getDockingLayout();
         applyDockingLayout(dockingLayout);
 
-        // Ignore, but do not close, the primary stage. Do not hide the primary
-        // stage until after layouts to the other stages have been applied;
-        // otherwise, the application may terminate (the default behavior when
-        // all stages are closed, and the primary stage is not visible).
+        // Do not hide the primary stage until after layouts to the other stages
+        // have been applied; otherwise, the application may terminate (which is
+        // the default behavior when all stages are closed, and the primary
+        // stage is not visible).
         primaryStage.hide();
     }
 
