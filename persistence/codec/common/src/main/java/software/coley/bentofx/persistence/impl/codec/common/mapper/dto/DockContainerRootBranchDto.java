@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.*;
 import javafx.geometry.Orientation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,24 +30,25 @@ public class DockContainerRootBranchDto {
     public String identifier;
 
     @XmlAttribute
+    public String bentoIdentifier;
+
+    @XmlAttribute
     public Boolean pruneWhenEmpty;
 
     @XmlAttribute
     public Orientation orientation;
 
-    @XmlElement(name =  PARENT_STAGE_ELEMENT_NAME)
-    @JsonProperty(PARENT_STAGE_ELEMENT_NAME)
-    public IdentifiableStageDto parentStage;
-
     @XmlElementWrapper(name = DIVIDER_POSITION_LIST_ELEMENT_NAME)
     @XmlElement(name = DIVIDER_ELEMENT_NAME)
     @JsonProperty(DIVIDER_ELEMENT_NAME)
-    public List<DividerPositionDto> dividerPositions = new ArrayList<>();
+    public final @NotNull List<@NotNull DividerPositionDto> dividerPositions =
+            new ArrayList<>();
 
     @XmlElementWrapper(name = BRANCH_LIST_ELEMENT_NAME)
     @XmlElement(name = BRANCH_ELEMENT_NAME)
     @JsonProperty(BRANCH_ELEMENT_NAME)
-    public List<DockContainerBranchDto> branches = new ArrayList<>();
+    public final @NotNull List<@NotNull DockContainerBranchDto> branches =
+            new ArrayList<>();
 
     @XmlElement(name = LEAF_ELEMENT_NAME)
     @JsonProperty(LEAF_ELEMENT_NAME)

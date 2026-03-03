@@ -20,7 +20,6 @@ import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
-import software.coley.bentofx.persistence.api.IdentifiableStageLayout;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.*;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
@@ -33,7 +32,10 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,7 +43,6 @@ import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static software.coley.bentofx.persistence.impl.StageUtils.applyStageState;
 
 /**
  * Restores JavaFX stage layouts from a persisted {@link BentoState}.
@@ -98,21 +99,24 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
             for (BentoState bentoState : bentoStateList) {
 
-                final String bentoId = bentoState.getIdentifier();
+                final String bentoIdentifier = bentoState.getIdentifier();
 
                 final BentoLayoutBuilder bentoLayoutBuilder =
-                        new BentoLayoutBuilder(bentoId);
+                        new BentoLayoutBuilder(bentoIdentifier);
 
                 // All Bentos are not created equal - it's possible the client
                 // application extended the Bento class or otherwise customized
                 // its functionality, and used the custom Bento when creating
-                // the layout that is being restored.
-                final Bento bento = bentoProvider.getBento(bentoId)
+                // the layout that is being restored. Get the Bento for the
+                // bento identifier.
+                final @NotNull Bento bento = bentoProvider.getBento(bentoIdentifier)
                         .orElseGet(() -> {
                                     logger.warn(
-                                            "Could not find the Bento with identifier {}. " +
-                                                    "Some docking features might not be available.",
-                                            bentoId
+                                            "Could not find the Bento with " +
+                                                    "identifier {}. Some " +
+                                                    "docking features might " +
+                                                    "not be available.",
+                                            bentoIdentifier
                                     );
                                     return new Bento();
                                 }
@@ -120,12 +124,12 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
                 final DockBuilding dockBuilding = bento.dockBuilding();
 
-                for (final IdentifiableStageState identifiableStageState :
-                        bentoState.getIdentifiableStageStates()) {
-                    bentoLayoutBuilder.addStageLayout(
-                            restoreIdentifiableStageLayout(
+                for (final DockContainerRootBranchState rootBranchState :
+                        bentoState.getRootBranchStates()) {
+                    bentoLayoutBuilder.addRootBranch(
+                            restoreRootBranchContainer(
                                     dockBuilding,
-                                    identifiableStageState
+                                    rootBranchState
                             )
                     );
                 }
@@ -135,7 +139,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                         bentoState.getDragDropStageStates()) {
                     bentoLayoutBuilder.addDragDropStage(
                             restoreDragDropStage(
-                                    bento,
                                     dockBuilding,
                                     dragDropStageState
                             )
@@ -195,35 +198,12 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private @NotNull IdentifiableStageLayout restoreIdentifiableStageLayout(
-            final @NotNull DockBuilding dockBuilding,
-            final @NotNull IdentifiableStageState stageState
-    ) {
-        final @NotNull List<@NotNull DockContainerRootBranch> rootBranches =
-                new ArrayList<>();
-
-        for (DockContainerRootBranchState rootBranchState :
-                stageState.getRootBranchStates()) {
-            rootBranches.add(
-                    restoreRootBranchContainer(dockBuilding, rootBranchState)
-            );
-        }
-
-        return new IdentifiableStageLayout(
-                stageState,
-                rootBranches
-        );
-    }
-
     private @NotNull DragDropStage restoreDragDropStage(
-            final @NotNull Bento bento,
             final @NotNull DockBuilding dockBuilding,
             final @NotNull DragDropStageState stageState
     ) {
 
         final DragDropStage dragDropStage = new DragDropStage(
-                bento,
-                stageState.getIdentifier(),
                 stageState.isAutoClosedWhenEmpty()
         );
 
@@ -241,10 +221,27 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         );
 
         if (stageIconImageProvider != null) {
-            dragDropStage.getIcons().addAll(stageIconImageProvider.getStageIcons());
+            dragDropStage.getIcons().addAll(
+                    stageIconImageProvider.getStageIcons()
+            );
         }
 
-        applyStageState(stageState, dragDropStage);
+        // Apply the stage state to the DragDropStage
+        stageState.getTitle().ifPresent(dragDropStage::setTitle);
+        stageState.getX().ifPresent(dragDropStage::setX);
+        stageState.getY().ifPresent(dragDropStage::setY);
+        stageState.getWidth().ifPresent(dragDropStage::setWidth);
+        stageState.getHeight().ifPresent(dragDropStage::setHeight);
+        stageState.getOpacity().ifPresent(dragDropStage::setOpacity);
+        stageState.isIconified().ifPresent(dragDropStage::setIconified);
+        stageState.isFullScreen().ifPresent(dragDropStage::setFullScreen);
+        stageState.isMaximized().ifPresent(dragDropStage::setMaximized);
+        stageState.isAlwaysOnTop().ifPresent(dragDropStage::setAlwaysOnTop);
+        stageState.isResizable().ifPresent(dragDropStage::setResizable);
+        stageState.isFocused()
+                .filter(Boolean::booleanValue)
+                .ifPresent(ignored -> dragDropStage.requestFocus());
+        stageState.getModality().ifPresent(dragDropStage::initModality);
 
         return dragDropStage;
     }
@@ -272,9 +269,11 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             );
         }
 
-        for (final DockContainerState childState : rootBranchState.getChildDockContainerStates()) {
+        for (final DockContainerState childState :
+                rootBranchState.getChildDockContainerStates()) {
 
-            final DockContainer dockContainer = restoreDockContainer(rootBranch, childState);
+            final DockContainer dockContainer =
+                    restoreDockContainer(rootBranch, childState);
 
             if (dockContainer != null) {
 
@@ -282,7 +281,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             }
         }
 
-        for (final DockableState dockableState : rootBranchState.getChildDockableStates()) {
+        for (final DockableState dockableState :
+                rootBranchState.getChildDockableStates()) {
 
             final Dockable dockable =
                     restoreDockable(
@@ -314,7 +314,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             }
             default -> {
 
-                logger.warn("Unknown DockContainerState type: {}", state.getClass());
+                logger.warn(
+                        "Unknown DockContainerState type: {}",
+                        state.getClass()
+                );
                 return null;
             }
         }
@@ -407,7 +410,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch.setContainerSizePx(leaf, size)
         );
 
-        for (final DockableState dockableState : state.getChildDockableStates()) {
+        for (final DockableState dockableState :
+                state.getChildDockableStates()) {
 
             final String dockableId = dockableState.getIdentifier();
 
@@ -424,7 +428,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 }
             } else {
 
-                logger.warn("Dockable with ID '{}' could not be acquired.", dockableId);
+                logger.warn(
+                        "Dockable with ID '{}' could not be acquired.",
+                        dockableId
+                );
             }
         }
 
@@ -432,9 +439,9 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         //  isn't collapsing. According to notes in
         //  DockContainerBranch#setContainerCollapsed, collapsing can only occur
         //  if there is a splitter between two or more child containers. We've
-        //  already created the rootBranch DockContainer added the Dockable to
-        //  the leaf. Restoring the docking components in the same order as
-        //  specified in MainStage doesn't seem to help either.
+        //  already created the rootBranch DockContainer and added the Dockable
+        //  to the leaf. Restoring the docking components in the same order as
+        //  specified in the initial layout doesn't seem to help either.
         state.isCollapsed().ifPresent(isCollapsed -> {
                     logger.trace(
                             "Setting leaf {} collapsed to {}",
@@ -442,7 +449,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                             isCollapsed
                     );
                     final boolean wasCollapsed =
-                            rootBranch.setContainerCollapsed(leaf, isCollapsed);
+                            rootBranch.setContainerCollapsed(
+                                    leaf,
+                                    isCollapsed
+                            );
                     logger.trace(
                             "Leaf {} {} collapsed.",
                             leaf.getIdentifier(),
@@ -462,7 +472,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         final @NotNull Optional<DockableState> optionalDockableProvider =
                 dockableStateProvider.resolveDockableState(dockableIdentifier);
 
-        final @Nullable DockableState dockableState = optionalDockableProvider.orElse(null);
+        final @Nullable DockableState dockableState =
+                optionalDockableProvider.orElse(null);
 
         Dockable dockable;
 

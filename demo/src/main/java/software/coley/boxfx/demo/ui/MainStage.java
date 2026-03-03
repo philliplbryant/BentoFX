@@ -2,23 +2,25 @@ package software.coley.boxfx.demo.ui;
 
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
+import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.IdentifiableStageLayout;
-import software.coley.bentofx.persistence.api.PersistableStage;
+import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
@@ -27,10 +29,10 @@ import software.coley.boxfx.demo.provider.BoxAppBentoProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-import static software.coley.bentofx.persistence.impl.StageUtils.getStageStateBuilder;
 import static software.coley.boxfx.demo.provider.BoxAppDockableStateProvider.*;
+import static software.coley.boxfx.demo.ui.DockableUtils.createDockable;
 
-public class MainStage extends PersistableStage {
+public class MainStage extends Stage {
 
     private static final Logger logger =
             LoggerFactory.getLogger(MainStage.class);
@@ -46,7 +48,6 @@ public class MainStage extends PersistableStage {
             final @NotNull DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider,
             final @NotNull Runnable onCloseRequestRunnable
     ) {
-        super("main-stage");
         initBento(bentoProvider);
         initUi(
                 dockableStateProvider,
@@ -56,17 +57,39 @@ public class MainStage extends PersistableStage {
         );
     }
 
-    @Override
     public @NotNull Bento getBento() {
         return bento;
     }
 
-    @Override
-    public @NotNull IdentifiableStageLayout getLayout() {
-        return new IdentifiableStageLayout(
-                getStageStateBuilder(this).build(),
-                rootBranches
-        );
+    public @NotNull List<@NotNull DockContainerRootBranch> getRootBranches() {
+        return rootBranches;
+    }
+
+    public void restoreLayout(final @NotNull BentoLayout bentoLayout) {
+
+        // This stage should only have one root branch
+        final @NotNull List<@NotNull DockContainerRootBranch> rootBranches =
+                bentoLayout.getRootBranches();
+
+        if(rootBranches.size() != 1) {
+            logger.error(
+                    "The MainStage should have one root branch but {} " +
+                            "were found.",
+                    rootBranches.size()
+            );
+        } else {
+            // TODO BENTO-13: Restore the stage layout
+            final Scene scene =
+                    new Scene(rootBranches.getFirst());
+            scene.getStylesheets().add("/bento.css");
+            setScene(scene);
+            show();
+        }
+
+        for (final @NotNull DragDropStage dragDropStage :
+                bentoLayout.getDragDropStages()) {
+            dragDropStage.show();
+        }
     }
 
     private void initBento(final @NotNull BoxAppBentoProvider bentoProvider) {
@@ -175,6 +198,7 @@ public class MainStage extends PersistableStage {
         getIcons().addAll(
                 stageIconImageProvider.getStageIcons()
         );
+        centerOnScreen();
         // We need to save the docking layout on close request
         // because the stage is (and all other windows are)
         // no longer available after they are closed and, as such,

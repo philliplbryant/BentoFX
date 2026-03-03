@@ -26,8 +26,6 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public class DragDropStageDto {
 
     @XmlAttribute
-    public String identifier;
-    @XmlAttribute
     public String title;
     @XmlAttribute
     public Double x;

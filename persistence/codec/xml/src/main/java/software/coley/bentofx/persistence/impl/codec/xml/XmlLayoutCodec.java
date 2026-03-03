@@ -15,7 +15,7 @@ import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateListDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -41,7 +41,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
     public XmlLayoutCodec() {
         try {
-            this.context = JAXBContext.newInstance(BentoStateListDto.class);
+            this.context = JAXBContext.newInstance(DockingLayoutDto.class);
         } catch (final JAXBException e) {
             throw new IllegalStateException("Failed to initialize JAXBContext", e);
         }
@@ -62,7 +62,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
             final Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
-            final BentoStateListDto dto = BentoStateMapper.toDto(bentoStateList);
+            final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStateList);
 
             // Marshal to DOM for better "pretty printing"
             final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -97,7 +97,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
         try {
             final Unmarshaller unmarshaller = context.createUnmarshaller();
             final Object obj = unmarshaller.unmarshal(inputStream);
-            if (!(obj instanceof final BentoStateListDto dto)) {
+            if (!(obj instanceof final DockingLayoutDto dto)) {
                 throw new BentoStateException("Unexpected JAXB root type: " + obj);
             }
             return BentoStateMapper.fromDto(dto);

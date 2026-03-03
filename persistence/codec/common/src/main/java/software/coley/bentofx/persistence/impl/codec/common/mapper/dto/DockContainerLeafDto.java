@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.xml.bind.annotation.*;
 import javafx.geometry.Side;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,26 +28,21 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonTypeName(LEAF_ELEMENT_NAME)
 public class DockContainerLeafDto extends DockContainerDto {
 
-    @XmlAttribute
-    public String selectedDockableIdentifier;
-
-    @XmlAttribute
-    public Side side;
-
-    @XmlAttribute
-    public Boolean isResizableWithParent;
-
-    @XmlAttribute
-    public Boolean isCanSplit;
-
-    @XmlAttribute
-    public Double uncollapsedSizePx;
-
-    @XmlAttribute
-    public Boolean isCollapsed;
-
     @XmlElementWrapper(name = DOCKABLE_LIST_ELEMENT_NAME)
     @XmlElement(name = DOCKABLE_ELEMENT_NAME)
     @JsonProperty(DOCKABLE_ELEMENT_NAME)
-    public List<DockableDto> dockables = new ArrayList<>();
+    public final @NotNull List<@NotNull DockableDto> dockables =
+            new ArrayList<>();
+    @XmlAttribute
+    public String selectedDockableIdentifier;
+    @XmlAttribute
+    public Side side;
+    @XmlAttribute
+    public Boolean isResizableWithParent;
+    @XmlAttribute
+    public Boolean isCanSplit;
+    @XmlAttribute
+    public Double uncollapsedSizePx;
+    @XmlAttribute
+    public Boolean isCollapsed;
 }

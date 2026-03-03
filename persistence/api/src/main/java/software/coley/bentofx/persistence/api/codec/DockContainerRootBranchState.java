@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Represents the layout state of a {@code DockContainerRootBranch}.
@@ -20,11 +19,8 @@ import java.util.Optional;
  */
 public class DockContainerRootBranchState extends DockContainerBranchState {
 
-    private final @Nullable IdentifiableStageState parentStage;
-
     private DockContainerRootBranchState(
             final @NotNull String identifier,
-            final @Nullable IdentifiableStageState parentStage,
             final @Nullable Boolean pruneWhenEmpty,
             final @NotNull List<DockableState> childDockableStates,
             final @Nullable Orientation orientation,
@@ -39,17 +35,9 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
                 dividerPositions,
                 childDockContainerStates
         );
-
-        this.parentStage = parentStage;
-    }
-
-    public Optional<IdentifiableStageState> getParent() {
-        return Optional.ofNullable(parentStage);
     }
 
     public static class DockContainerRootBranchStateBuilder extends DockContainerBranchStateBuilder {
-
-        private @Nullable IdentifiableStageState parentStage;
 
         public DockContainerRootBranchStateBuilder(
                 final @NotNull String identifier
@@ -57,18 +45,10 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             super(identifier);
         }
 
-        public DockContainerRootBranchStateBuilder setParentStage(
-                final @Nullable IdentifiableStageState parentStage
-        ) {
-            this.parentStage = parentStage;
-            return this;
-        }
-
         @Override
         public @NotNull DockContainerRootBranchState build() {
             return new DockContainerRootBranchState(
                     identifier,
-                    parentStage,
                     pruneWhenEmpty,
                     childDockableStates,
                     orientation,

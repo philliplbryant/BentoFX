@@ -8,6 +8,7 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +27,15 @@ public class BentoStateDto {
     @XmlAttribute
     public String identifier;
 
-
-    @XmlElementWrapper(name = IDENTIFIABLE_STAGE_LIST_ELEMENT_NAME)
-    @XmlElement(name = IDENTIFIABLE_STAGE_ELEMENT_NAME)
-    @JsonProperty(IDENTIFIABLE_STAGE_ELEMENT_NAME)
-    public List<IdentifiableStageDto> identifiableStages = new ArrayList<>();
+    @XmlElementWrapper(name = ROOT_BRANCH_LIST_ELEMENT_NAME)
+    @XmlElement(name = ROOT_BRANCH_ELEMENT_NAME)
+    @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
+    public final @NotNull List<@NotNull DockContainerRootBranchDto> rootBranches =
+            new ArrayList<>();
 
     @XmlElementWrapper(name = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
     @XmlElement(name = DRAG_DROP_STAGE_ELEMENT_NAME)
     @JsonProperty(DRAG_DROP_STAGE_ELEMENT_NAME)
-    public List<DragDropStageDto> dragDropStages = new ArrayList<>();
+    public final @NotNull List<@NotNull DragDropStageDto> dragDropStages =
+            new ArrayList<>();
 }

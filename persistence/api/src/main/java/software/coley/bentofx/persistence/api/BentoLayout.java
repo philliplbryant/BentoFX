@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.api;
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.Identifiable;
 import software.coley.bentofx.control.DragDropStage;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,16 +12,16 @@ import java.util.Objects;
 public class BentoLayout implements Identifiable {
 
     private final @NotNull String identifier;
-    private final @NotNull List<@NotNull IdentifiableStageLayout> stageLayouts;
+    private final @NotNull List<@NotNull DockContainerRootBranch> rootBranches;
     private final @NotNull List<@NotNull DragDropStage> dragDropStages;
 
     private BentoLayout(
             final @NotNull String identifier,
-            final @NotNull List<@NotNull IdentifiableStageLayout> stageLayouts,
+            final @NotNull List<@NotNull DockContainerRootBranch> rootBranches,
             final @NotNull List<@NotNull DragDropStage> dragDropStages
     ) {
         this.identifier = Objects.requireNonNull(identifier);
-        this.stageLayouts = Objects.requireNonNull(stageLayouts);
+        this.rootBranches = Objects.requireNonNull(rootBranches);
         this.dragDropStages = Objects.requireNonNull(dragDropStages);
     }
 
@@ -29,8 +30,8 @@ public class BentoLayout implements Identifiable {
         return identifier;
     }
 
-    public @NotNull List<@NotNull IdentifiableStageLayout> getStageLayouts() {
-        return List.copyOf(stageLayouts);
+    public @NotNull List<@NotNull DockContainerRootBranch> getRootBranches() {
+        return List.copyOf(rootBranches);
     }
 
     public @NotNull List<@NotNull DragDropStage> getDragDropStages() {
@@ -40,7 +41,7 @@ public class BentoLayout implements Identifiable {
     public static class BentoLayoutBuilder {
 
         private final @NotNull String bentoId;
-        private final @NotNull List<@NotNull IdentifiableStageLayout> stageLayouts =
+        private final @NotNull List<@NotNull DockContainerRootBranch> rootBranches =
                 new ArrayList<>();
         private final @NotNull List<@NotNull DragDropStage> dragDropStages =
                 new ArrayList<>();
@@ -49,10 +50,10 @@ public class BentoLayout implements Identifiable {
             this.bentoId = Objects.requireNonNull(bentoId);
         }
 
-        public BentoLayoutBuilder addStageLayout(
-                final @NotNull IdentifiableStageLayout stageLayout
+        public BentoLayoutBuilder addRootBranch(
+                final @NotNull DockContainerRootBranch rootBranch
         ) {
-            stageLayouts.add(Objects.requireNonNull(stageLayout));
+            rootBranches.add(Objects.requireNonNull(rootBranch));
             return this;
         }
 
@@ -66,7 +67,7 @@ public class BentoLayout implements Identifiable {
         public BentoLayout build() {
             return new BentoLayout(
                     bentoId,
-                    stageLayouts,
+                    rootBranches,
                     dragDropStages
             );
         }

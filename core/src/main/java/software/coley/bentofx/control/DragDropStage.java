@@ -3,10 +3,8 @@ package software.coley.bentofx.control;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.jetbrains.annotations.NotNull;
-import software.coley.bentofx.Bento;
-import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.building.StageBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
@@ -24,38 +22,18 @@ import static javafx.stage.WindowEvent.*;
  *
  * @author Matt Coley
  */
-public class DragDropStage extends IdentifiableStage {
+public class DragDropStage extends Stage {
 
-    private final @NotNull Bento bento;
     private final boolean autoCloseWhenEmpty;
     private WeakReference<Parent> content;
 
-    // TODO BENTO-13: Remove requirement to pass Bento into constructor
-
     /**
-     * @param autoCloseWhenEmpty Flag to determine if this stage should auto-close if its sole content is removed.
-     *                           See	{@link #isAutoCloseWhenEmpty()} for more details.
-     */
-    public DragDropStage(final @NotNull Bento bento, boolean autoCloseWhenEmpty) {
-        this(
-                bento,
-                DockBuilding.uid("cDragDropStage"),
-                autoCloseWhenEmpty
-        );
-    }
-
-    /**
-     * @param identifier         This objects identifier.
      * @param autoCloseWhenEmpty Flag to determine if this stage should auto-close if its sole content is removed.
      * @see #isAutoCloseWhenEmpty for more details.
      */
     public DragDropStage(
-            @NotNull final Bento bento,
-            @NotNull String identifier,
             boolean autoCloseWhenEmpty
     ) {
-        super(identifier);
-        this.bento = bento;
         this.autoCloseWhenEmpty = autoCloseWhenEmpty;
 
         addEventFilter(
@@ -72,10 +50,6 @@ public class DragDropStage extends IdentifiableStage {
                 WINDOW_SHOWN,
                 this::onWindowShown
         );
-    }
-
-    public @NotNull Bento getBento() {
-        return bento;
     }
 
     /**

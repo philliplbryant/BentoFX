@@ -18,7 +18,22 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Phil Bryant
  */
-public class DragDropStageState extends StageState {
+public class DragDropStageState {
+
+    private final @Nullable String title;
+    private final @Nullable Double x;
+    private final @Nullable Double y;
+    private final @Nullable Double width;
+    private final @Nullable Double height;
+    private final @Nullable Modality modality;
+    private final @Nullable Double opacity;
+    private final @Nullable Boolean isIconified;
+    private final @Nullable Boolean isFullScreen;
+    private final @Nullable Boolean isMaximized;
+    private final @Nullable Boolean isAlwaysOnTop;
+    private final @Nullable Boolean isResizable;
+    private final @Nullable Boolean isShowing;
+    private final @Nullable Boolean isFocused;
     private final @NotNull Boolean isAutoClosedWhenEmpty;
     private final @Nullable DockContainerRootBranchState dockContainerRootBranchState;
 
@@ -26,7 +41,6 @@ public class DragDropStageState extends StageState {
     // whose member attributes must be set using the constructor.
     @SuppressWarnings("java:S107")
     private DragDropStageState(
-            final @NotNull String identifier,
             final @Nullable String title,
             final @Nullable Double x,
             final @Nullable Double y,
@@ -44,25 +58,77 @@ public class DragDropStageState extends StageState {
             final @NotNull Boolean isAutoClosedWhenEmpty,
             final @Nullable DockContainerRootBranchState dockContainerRootBranchState
     ) {
-        super(
-                identifier,
-                title,
-                x,
-                y,
-                width,
-                height,
-                modality,
-                opacity,
-                isIconified,
-                isFullScreen,
-                isMaximized,
-                isAlwaysOnTop,
-                isResizable,
-                isShowing,
-                isFocused
-        );
+        this.title = title;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.modality = modality;
+        this.opacity = opacity;
+        this.isIconified = isIconified;
+        this.isFullScreen = isFullScreen;
+        this.isMaximized = isMaximized;
+        this.isAlwaysOnTop = isAlwaysOnTop;
+        this.isResizable = isResizable;
+        this.isShowing = isShowing;
+        this.isFocused = isFocused;
         this.isAutoClosedWhenEmpty = requireNonNull(isAutoClosedWhenEmpty);
         this.dockContainerRootBranchState = dockContainerRootBranchState;
+    }
+
+    public @NotNull Optional<String> getTitle() {
+        return Optional.ofNullable(title);
+    }
+
+    public @NotNull Optional<Double> getX() {
+        return Optional.ofNullable(x);
+    }
+
+    public @NotNull Optional<Double> getY() {
+        return Optional.ofNullable(y);
+    }
+
+    public @NotNull Optional<Double> getWidth() {
+        return Optional.ofNullable(width);
+    }
+
+    public @NotNull Optional<Double> getHeight() {
+        return Optional.ofNullable(height);
+    }
+
+    public @NotNull Optional<Modality> getModality() {
+        return Optional.ofNullable(modality);
+    }
+
+    public @NotNull Optional<Double> getOpacity() {
+        return Optional.ofNullable(opacity);
+    }
+
+    public @NotNull Optional<Boolean> isIconified() {
+        return Optional.ofNullable(isIconified);
+    }
+
+    public @NotNull Optional<Boolean> isFullScreen() {
+        return Optional.ofNullable(isFullScreen);
+    }
+    public @NotNull Optional<Boolean> isMaximized() {
+        return Optional.ofNullable(isMaximized);
+    }
+
+    public @NotNull Optional<Boolean> isAlwaysOnTop() {
+        return Optional.ofNullable(isAlwaysOnTop);
+    }
+
+    public @NotNull Optional<Boolean> isResizable() {
+        return Optional.ofNullable(isResizable);
+    }
+
+    public @NotNull Optional<Boolean> isShowing() {
+        return Optional.ofNullable(isShowing);
+    }
+
+    public @NotNull Optional<Boolean> isFocused() {
+        return Optional.ofNullable(isFocused);
     }
 
     public @NotNull Boolean isAutoClosedWhenEmpty() {
@@ -75,7 +141,6 @@ public class DragDropStageState extends StageState {
 
     public static class DragDropStageStateBuilder {
 
-        private final @NotNull String identifier;
         private final @NotNull Boolean isAutoClosedWhenEmpty;
         private @Nullable DockContainerRootBranchState dockContainerRootBranchState;
         private @Nullable String title;
@@ -94,10 +159,8 @@ public class DragDropStageState extends StageState {
         private @Nullable Boolean isFocused;
 
         public DragDropStageStateBuilder(
-                final @NotNull String identifier,
                 final @NotNull Boolean isAutoClosedWhenEmpty
         ) {
-            this.identifier = requireNonNull(identifier);
             this.isAutoClosedWhenEmpty =
                     requireNonNull(isAutoClosedWhenEmpty);
         }
@@ -209,7 +272,6 @@ public class DragDropStageState extends StageState {
 
         public @NotNull DragDropStageState build() {
             return new DragDropStageState(
-                    identifier,
                     title,
                     x,
                     y,

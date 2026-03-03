@@ -1,16 +1,15 @@
 package software.coley.boxfx.demo;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.control.DragDropStage;
+import software.coley.bentofx.Bento;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
-import software.coley.bentofx.persistence.api.IdentifiableStageLayout;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
@@ -25,11 +24,6 @@ import software.coley.boxfx.demo.provider.*;
 import software.coley.boxfx.demo.ui.MainStage;
 import software.coley.boxfx.demo.ui.SecondDragDropStage;
 import software.coley.boxfx.demo.ui.SecondStage;
-
-import java.util.List;
-
-import static software.coley.bentofx.control.IdentifiableStage.getIdentifiableStage;
-import static software.coley.bentofx.persistence.impl.StageUtils.applyStageState;
 
 /**
  * JavaFX application that demonstrates using the BentoFX docking and docking
@@ -91,13 +85,11 @@ public class BoxApp extends Application {
         DockingLayout dockingLayout = getDockingLayout();
         applyDockingLayout(dockingLayout);
 
-        // Ignore, but do not close, the primary stage. The application will
-        // terminate if all stages are closed, and the primary stage is not
-        // visible.
+        // Ignore, but do not close, the primary stage. Do not hide the primary
+        // stage until after layouts to the other stages have been applied;
+        // otherwise, the application may terminate (the default behavior when
+        // all stages are closed, and the primary stage is not visible).
         primaryStage.hide();
-
-        mainStage.show();
-        secondStage.show();
     }
 
     /**
@@ -136,42 +128,29 @@ public class BoxApp extends Application {
             final @NotNull DockingLayout dockingLayout
     ) {
 
-        for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
+        for (final @NotNull BentoLayout bentoLayout :
+                dockingLayout.getBentoLayouts()) {
 
-            for (final IdentifiableStageLayout stageLayout :
-                    bentoLayout.getStageLayouts()) {
+            if(bentoLayout.matchesIdentity(mainStage.getBento())) {
 
-                getIdentifiableStage(
-                        stageLayout.getIdentifier()
-                ).ifPresent(stage -> {
+                mainStage.restoreLayout(bentoLayout);
 
-                    // Add each root branch to the scene.
-                    // This application only has one root branch so just get
-                    // and add the first one to a new scene.
-                    final List<DockContainerRootBranch> rootBranches =
-                            stageLayout.getRootBranches();
+            } else if(bentoLayout.matchesIdentity(secondStage.getBento())) {
 
-                    if (!rootBranches.isEmpty()) {
-                        final Scene scene =
-                                new Scene(rootBranches.getFirst());
-                        scene.getStylesheets().add("/bento.css");
-                        stage.setScene(scene);
-                    }
+                secondStage.restoreLayout(bentoLayout);
 
-                    // Wait for dockables to be initialized and the scene set
-                    // before applying the layout; otherwise, the layout might
-                    // be changed by the added controls.
-                    applyStageState(stageLayout.getStageState(), stage);
-                    stage.show();
-                });
-            }
+            } else if (bentoLayout.matchesIdentity(secondDragDropStage.getBento())) {
 
-            for (final @NotNull DragDropStage dragDropStage :
-                    bentoLayout.getDragDropStages()) {
-                dragDropStage.show();
+                secondDragDropStage.restoreLayout(bentoLayout);
+
+            } else {
+
+                logger.warn(
+                        "Unknown BentoLayout identifier: {}",
+                        bentoLayout.getIdentifier()
+                );
             }
         }
-
     }
 
     private void saveDockingLayout() {
@@ -194,27 +173,32 @@ public class BoxApp extends Application {
                 new DockingLayoutBuilder();
 
         // Main Stage
-        mainStage.centerOnScreen();
+        final Bento mainStageBento = mainStage.getBento();
         BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
-                mainStage.getBento().getIdentifier()
+                mainStageBento.getIdentifier()
         );
-        bentoLayoutBuilder.addStageLayout(mainStage.getLayout());
+        for (final @NotNull DockContainerRootBranch rootBranch :
+                mainStage.getRootBranches()) {
+            bentoLayoutBuilder.addRootBranch(rootBranch);
+        }
         dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
 
-        // Second Stage
-        bentoLayoutBuilder = new BentoLayoutBuilder(
-                secondStage.getBento().getIdentifier()
-        );
-        bentoLayoutBuilder.addStageLayout(secondStage.getLayout());
+        // Second Stage (has no docking controls)
+        final Bento secondStageBento = secondStage.getBento();
+        bentoLayoutBuilder =
+                new BentoLayoutBuilder(secondStageBento.getIdentifier());
         dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
 
         // Second DragDropStage
-        final @NotNull BentoLayout bentoLayout = new BentoLayoutBuilder(
-                secondDragDropStage.getBento().getIdentifier()
-        )
-                .addDragDropStage(secondDragDropStage)
-                .build();
-        dockingLayoutBuilder.addBentoLayout(bentoLayout);
+        final Parent parent = secondDragDropStage.getScene().getRoot();
+        if (parent instanceof final DockContainerRootBranch rootBranch) {
+            final @NotNull BentoLayout bentoLayout = new BentoLayoutBuilder(
+                    rootBranch.getBento().getIdentifier()
+            )
+                    .addDragDropStage(secondDragDropStage)
+                    .build();
+            dockingLayoutBuilder.addBentoLayout(bentoLayout);
+        }
 
         return dockingLayoutBuilder.build();
     }

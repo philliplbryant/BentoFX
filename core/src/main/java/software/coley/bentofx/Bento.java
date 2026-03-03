@@ -17,6 +17,8 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.search.SearchHandler;
 
+import java.util.Objects;
+
 /**
  * Top level controller for docking operations.
  *
@@ -26,62 +28,57 @@ import software.coley.bentofx.search.SearchHandler;
 public class Bento implements Identifiable {
 
     private final @NotNull String identifier;
-	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
-	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
-	private final EventBus eventBus = newEventBus();
-	private final SearchHandler searchHandler = newSearchHandler();
-	private final StageBuilding stageBuilding = newStageBuilding();
-	private final ControlsBuilding controlsBuilding = newControlsBuilding();
-	private final DockBuilding dockBuilding = newDockBuilding();
-	private final PlaceholderBuilding placeholderBuilding = newPlaceholderBuilding();
-	private final DockableDragDropBehavior dragDropBehavior = newDragDropBehavior();
-	private final DockableClickBehavior clickBehavior = newClickBehavior();
+	private final @NotNull ObservableList<@NotNull DockContainerRootBranch> rootContainers =
+            FXCollections.observableArrayList();
+	private final @NotNull ObservableList<@NotNull DockContainerRootBranch> rootContainersView =
+            FXCollections.unmodifiableObservableList(rootContainers);
+	private final @NotNull EventBus eventBus = newEventBus();
+	private final @NotNull SearchHandler searchHandler = newSearchHandler();
+	private final @NotNull StageBuilding stageBuilding = newStageBuilding();
+	private final @NotNull ControlsBuilding controlsBuilding = newControlsBuilding();
+	private final @NotNull DockBuilding dockBuilding = newDockBuilding();
+	private final @NotNull PlaceholderBuilding placeholderBuilding = newPlaceholderBuilding();
+	private final @NotNull DockableDragDropBehavior dragDropBehavior = newDragDropBehavior();
+	private final @NotNull DockableClickBehavior clickBehavior = newClickBehavior();
 
     public Bento() {
         identifier = DockBuilding.uid("cBento");
     }
 
     public Bento(final @NotNull String identifier) {
+        Objects.requireNonNull(identifier);
         this.identifier = identifier;
     }
 
-	@NotNull
-	protected EventBus newEventBus() {
+	protected @NotNull EventBus newEventBus() {
 		return new EventBus();
 	}
 
-	@NotNull
-	protected SearchHandler newSearchHandler() {
+	protected @NotNull SearchHandler newSearchHandler() {
 		return new SearchHandler(this);
 	}
 
-	@NotNull
-	protected StageBuilding newStageBuilding() {
+	protected @NotNull StageBuilding newStageBuilding() {
 		return new StageBuilding(this);
 	}
 
-	@NotNull
-	protected ControlsBuilding newControlsBuilding() {
+	protected @NotNull ControlsBuilding newControlsBuilding() {
 		return new ControlsBuilding();
 	}
 
-	@NotNull
-	protected DockBuilding newDockBuilding() {
+	protected @NotNull DockBuilding newDockBuilding() {
 		return new DockBuilding(this);
 	}
 
-	@NotNull
-	protected PlaceholderBuilding newPlaceholderBuilding() {
+	protected @NotNull PlaceholderBuilding newPlaceholderBuilding() {
 		return new PlaceholderBuilding();
 	}
 
-	@NotNull
-	protected DockableDragDropBehavior newDragDropBehavior() {
+	protected @NotNull DockableDragDropBehavior newDragDropBehavior() {
 		return new DockableDragDropBehavior() {};
 	}
 
-	@NotNull
-	protected DockableClickBehavior newClickBehavior() {
+	protected @NotNull DockableClickBehavior newClickBehavior() {
 		return new DockableClickBehavior() {};
 	}
 
@@ -90,72 +87,63 @@ public class Bento implements Identifiable {
      * identifier is not guaranteed to be unique.
      */
     @Override
-    @NotNull
-    public String getIdentifier() {
+    public @NotNull String getIdentifier() {
         return identifier;
     }
 
     /**
 	 * @return Bus for handling event firing and event listeners.
 	 */
-	@NotNull
-	public EventBus events() {
+	public @NotNull EventBus events() {
 		return eventBus;
 	}
 
 	/**
 	 * @return Search operations.
 	 */
-	@NotNull
-	public SearchHandler search() {
+	public @NotNull SearchHandler search() {
 		return searchHandler;
 	}
 
 	/**
 	 * @return Builders for {@link DragDropStage}.
 	 */
-	@NotNull
-	public StageBuilding stageBuilding() {
+	public @NotNull StageBuilding stageBuilding() {
 		return stageBuilding;
 	}
 
 	/**
 	 * @return Builders for various bento UI controls.
 	 */
-	@NotNull
-	public ControlsBuilding controlsBuilding() {
+	public @NotNull ControlsBuilding controlsBuilding() {
 		return controlsBuilding;
 	}
 
 	/**
 	 * @return Builders for {@link DockContainer} and {@link Dockable}.
 	 */
-	@NotNull
-	public DockBuilding dockBuilding() {
+	public @NotNull DockBuilding dockBuilding() {
 		return dockBuilding;
 	}
 
 	/**
 	 * @return Builders for placeholder content.
 	 */
-	@NotNull
-	public PlaceholderBuilding placeholderBuilding() {
+	public @NotNull PlaceholderBuilding placeholderBuilding() {
 		return placeholderBuilding;
 	}
 
 	/**
 	 * @return Behavior implementation for drag-drop operations.
 	 */
-	@NotNull
-	public DockableDragDropBehavior getDragDropBehavior() {
+	public @NotNull DockableDragDropBehavior getDragDropBehavior() {
 		return dragDropBehavior;
 	}
 
 	/**
 	 * @return Behavior implementation for click operations.
 	 */
-	@NotNull
-	public DockableClickBehavior getClickBehavior() {
+	public @NotNull DockableClickBehavior getClickBehavior() {
 		return clickBehavior;
 	}
 
@@ -165,8 +153,7 @@ public class Bento implements Identifiable {
 	 * @see #registerRoot(DockContainerRootBranch)
 	 * @see #unregisterRoot(DockContainerRootBranch)
 	 */
-	@NotNull
-	public ObservableList<DockContainerRootBranch> getRootContainers() {
+	public @NotNull ObservableList<@NotNull DockContainerRootBranch> getRootContainers() {
 		return rootContainersView;
 	}
 

@@ -11,7 +11,7 @@ import software.coley.bentofx.persistence.api.codec.BentoState;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateListDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
         try {
 
-            final BentoStateListDto bentoStateDto = BentoStateMapper.toDto(states);
+            final DockingLayoutDto bentoStateDto = BentoStateMapper.toDto(states);
             mapper.writeValue(outputStream, bentoStateDto);
         } catch (final Exception e) {
 
@@ -66,13 +66,13 @@ public final class JsonLayoutCodec implements LayoutCodec {
             @NotNull final InputStream inputStream
     ) throws BentoStateException {
         try {
-            final BentoStateListDto bentoStateListDto =
+            final DockingLayoutDto dockingLayoutDto =
                     mapper.readValue(
                             inputStream,
-                            BentoStateListDto.class
+                            DockingLayoutDto.class
                     );
 
-            return BentoStateMapper.fromDto(bentoStateListDto);
+            return BentoStateMapper.fromDto(dockingLayoutDto);
         } catch (final IOException e) {
 
             throw new BentoStateException(

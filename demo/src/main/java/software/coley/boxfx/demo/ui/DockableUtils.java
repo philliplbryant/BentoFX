@@ -1,20 +1,15 @@
-package software.coley.bentofx.persistence.api;
+package software.coley.boxfx.demo.ui;
 
 import org.jetbrains.annotations.NotNull;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
-import software.coley.bentofx.control.IdentifiableStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.persistence.api.codec.DockableState;
 
-public abstract class PersistableStage extends IdentifiableStage {
-
-    protected PersistableStage(final @NotNull String identifier) {
-        super(identifier);
+public class DockableUtils {
+    private DockableUtils() {
+        throw new IllegalStateException("Utility class");
     }
-    public abstract @NotNull IdentifiableStageLayout getLayout();
-
-    public abstract @NotNull Bento getBento();
 
     public static @NotNull Dockable createDockable(
             final @NotNull Bento bento,

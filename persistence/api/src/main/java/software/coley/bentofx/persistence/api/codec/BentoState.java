@@ -19,23 +19,23 @@ import static java.util.Objects.requireNonNull;
  */
 public class BentoState extends IdentifiableState {
 
-    private final @NotNull List<@NotNull IdentifiableStageState> identifiableStageStates;
+    private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates;
 
     private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates;
 
     private BentoState(
             final @NotNull String identifier,
-            final @NotNull List<@NotNull IdentifiableStageState> identifiableStageStates,
+            final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates,
             final @NotNull List<@NotNull DragDropStageState> dragDropStageStates
     ) {
 
         super(identifier);
-        this.identifiableStageStates = requireNonNull(identifiableStageStates);
+        this.rootBranchStates = requireNonNull(rootBranchStates);
         this.dragDropStageStates = requireNonNull(dragDropStageStates);
     }
 
-    public @NotNull List<@NotNull IdentifiableStageState> getIdentifiableStageStates() {
-        return List.copyOf(identifiableStageStates);
+    public @NotNull List<@NotNull DockContainerRootBranchState> getRootBranchStates() {
+        return List.copyOf(rootBranchStates);
     }
 
     public @NotNull List<@NotNull DragDropStageState> getDragDropStageStates() {
@@ -46,14 +46,23 @@ public class BentoState extends IdentifiableState {
 
         private final @NotNull String identifier;
 
-        private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates =
+        private final @NotNull List<@NotNull DockContainerRootBranchState> rootBranchStates =
                 new ArrayList<>();
 
-        private final @NotNull List<@NotNull IdentifiableStageState> identifiableIdentifiableStageStates =
+        private final @NotNull List<@NotNull DragDropStageState> dragDropStageStates =
                 new ArrayList<>();
 
         public BentoStateBuilder(final @NotNull String identifier) {
             this.identifier = identifier;
+        }
+
+        public @NotNull BentoStateBuilder addRootBranchState(
+                final @NotNull DockContainerRootBranchState... rootBranchStates
+        ) {
+            this.rootBranchStates.addAll(
+                    List.of(requireNonNull(rootBranchStates))
+            );
+            return this;
         }
 
         public @NotNull BentoStateBuilder addDragDropStageState(
@@ -65,19 +74,10 @@ public class BentoState extends IdentifiableState {
             return this;
         }
 
-        public @NotNull BentoStateBuilder addIdentifiableStageState(
-                final @NotNull IdentifiableStageState... identifiableStageStates
-        ) {
-            this.identifiableIdentifiableStageStates.addAll(
-                    List.of(requireNonNull(identifiableStageStates))
-            );
-            return this;
-        }
-
         public @NotNull BentoState build() {
             return new BentoState(
                     identifier,
-                    identifiableIdentifiableStageStates,
+                    rootBranchStates,
                     dragDropStageStates
             );
         }
