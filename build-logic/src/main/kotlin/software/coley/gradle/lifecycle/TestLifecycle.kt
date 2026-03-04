@@ -5,22 +5,13 @@ Copyright (c) 2023 SAIC. All Rights Reserved.
 
 package software.coley.gradle.lifecycle
 
-import software.coley.gradle.lifecycle.TestReportMode.ALL
-import software.coley.gradle.lifecycle.TestReportMode.CI
-import software.coley.gradle.lifecycle.TestReportMode.DEV
-import software.coley.gradle.lifecycle.TestReportMode.OFF
 import org.gradle.api.Project
+import software.coley.gradle.lifecycle.TestReportMode.*
 
 /**
  * Constants for test lifecycle tasks.
  */
 object TestLifecycle {
-
-    const val CHECK_LEGACY_TASK_NAME = "checkLegacy"
-    const val CHECK_INTEGRATION_TASK_NAME = "checkIntegration"
-    const val CHECK_FUNCTIONAL_TASK_NAME = "checkFunctional"
-    const val CHECK_LOAD_TASK_NAME = "checkLoad"
-    const val CHECK_ALL_TASK_NAME = "checkAll"
 
     fun enableJacoco(project: Project): Boolean {
         val collectCoverage = project.findProperty("collectCoverage") as String?

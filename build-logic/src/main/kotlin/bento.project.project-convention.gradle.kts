@@ -19,12 +19,11 @@ plugins {
     id("com.autonomousapps.dependency-analysis")
     id("org.gradlex.jvm-dependency-conflict-detection")
     id("org.gradlex.jvm-dependency-conflict-resolution")
-    id("org.jreleaser")
 }
 
 // These properties are defined in gradle.properties
-group = property("software.coley.bentofx.group") as String
-version = property("software.coley.bentofx.version") as String
+group = property("group") as String
+version = property("version") as String
 
 // Version catalog type-safe accessors not available in
 // precompiled script plugins:

@@ -6,13 +6,7 @@ Copyright (c) 2026 SAIC. All Rights Reserved.
 plugins {
     id("bento.project.project-convention")
     `maven-publish`
-    signing
-    id("org.jreleaser")
 }
-
-// TODO BENTO-13: Enable JAR signing
-
-// TODO BENTO-13: Use publishing information specified by Col-E
 
 publishing {
     publications {
@@ -57,11 +51,6 @@ publishing {
 
     repositories {
 
-//        mavenLocal()
-//        maven {
-//            url = layout.buildDirectory.dir('staging-deploy')
-//        }
-
         val nexusUsername: String =
             findProperty("nexusUsername")?.toString() ?: System.getenv("NEXUS_USERNAME") ?: ""
 
@@ -81,45 +70,4 @@ publishing {
             }
         }
     }
-
-//jreleaser {
-//    signing {
-//        pgp {
-//            setActive("RELEASE")
-//            armored = true
-//        }
-//    }
-//    release {
-//        // TODO: This doesn't auto-publish github releases and the
-//        //  'distribution' block also isn't a viable alternative. Need to look
-//        //  into why it doesn't work. Probably related to the project's
-//        //  "alternative" artifact model...
-//        github {
-//            tagName = project.version.toString()
-//            changelog {
-//                setFormatted("ALWAYS")
-//                preset = "conventional-commits"
-//                contributors {
-//                    format =
-//                        "- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}"
-//                }
-//            }
-//        }
-//    }
-//    deploy {
-//        maven {
-//            mavenCentral {
-//                create("sonatype") {
-//                    setActive("RELEASE")
-//                    url = "https://central.sonatype.com/api/v1/publisher"
-//                    applyMavenCentralRules = true
-//                    stagingRepository(
-//                        layout.buildDirectory.dir("staging-deploy")
-//                            .get().asFile.path
-//                    )
-//                }
-//            }
-//        }
-//    }
-
 }
