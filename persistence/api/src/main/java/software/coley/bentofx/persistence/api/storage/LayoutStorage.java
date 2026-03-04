@@ -17,7 +17,8 @@ import java.io.OutputStream;
  */
 public interface LayoutStorage {
 
-    // TODO BENTO-13: Add a method to return a list of saved layouts?
+    // TODO BENTO-13: Enable saving/restoring multiple layouts (add a method
+    //  that returns a list of saved layouts)
 
     /**
      * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.

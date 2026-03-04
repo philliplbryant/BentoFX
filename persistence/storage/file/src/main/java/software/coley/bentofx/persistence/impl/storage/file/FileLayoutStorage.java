@@ -23,9 +23,6 @@ import java.util.Objects;
  */
 public class FileLayoutStorage implements LayoutStorage {
 
-// TODO BENTO-13: Modify this to use a directory and create and return
-//  Optional<LayoutInfo> with a list of layout files.
-
     private final File file;
 
     /**

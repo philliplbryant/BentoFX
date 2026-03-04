@@ -439,26 +439,12 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         //  isn't collapsing. According to notes in
         //  DockContainerBranch#setContainerCollapsed, collapsing can only occur
         //  if there is a splitter between two or more child containers. We've
-        //  already created the rootBranch DockContainer and added the Dockable
-        //  to the leaf. Restoring the docking components in the same order as
-        //  specified in the initial layout doesn't seem to help either.
-        state.isCollapsed().ifPresent(isCollapsed -> {
-                    logger.trace(
-                            "Setting leaf {} collapsed to {}",
-                            leaf.getIdentifier(),
-                            isCollapsed
-                    );
-                    final boolean wasCollapsed =
-                            rootBranch.setContainerCollapsed(
-                                    leaf,
-                                    isCollapsed
-                            );
-                    logger.trace(
-                            "Leaf {} {} collapsed.",
-                            leaf.getIdentifier(),
-                            wasCollapsed ? "WAS" : "was NOT"
-                    );
-                }
+        //  already created the rootBranch DockContainerBranch and added the
+        //  Dockable to the leaf, which should create the splitter. Restoring
+        //  the docking components in the same order as specified in the initial
+        //  layout doesn't seem to help either.
+        state.isCollapsed().ifPresent(isCollapsed ->
+                rootBranch.setContainerCollapsed(leaf, isCollapsed)
         );
 
         return leaf;
