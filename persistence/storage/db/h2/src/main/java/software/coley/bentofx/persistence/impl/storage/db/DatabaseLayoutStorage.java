@@ -68,7 +68,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 
         try (final EntityManager em = emf.createEntityManager()) {
 
-            logger.debug(
+            logger.trace(
                     "Creating input stream using layout {} and codec {}.",
                     layoutIdentifier,
                     codecIdentifier

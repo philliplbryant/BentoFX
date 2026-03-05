@@ -31,6 +31,12 @@ dependencies {
         }
     }
 
+    api(platform(libs.junit.bom)) {
+        version {
+            strictly(libs.versions.junit.get())
+        }
+    }
+
     constraints {
 
         /*

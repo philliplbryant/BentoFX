@@ -8,21 +8,21 @@
 # See also '<root>\platform\build.gradle' for additoinal version definitions
 # via BOM dependency declarations and version constraint usages.
 
-assertj = "3.27.6"
-byte-buddy = "1.18.4"
-controlsfx = "11.0.3"
-dependency-analysis-gradle-plugin = "3.5.1"
+assertj = "3.27.7"
+byte-buddy = "1.18.5"
+controlsfx = "11.2.3"
+dependency-analysis-gradle-plugin = "3.6.0"
 h2 = "2.4.240"
-hibernate = "7.2.0.Final"
-hibernate-hikari-cp = "7.3.0.CR1"
+hibernate = "7.2.6.Final"
+hibernate-hikari-cp = "7.2.6.Final"
 hibernate-validator = "9.1.0.Final"
-jackson = "2.20.1"
+jackson = "2.21.1"
 # `jacoco` is used in project-convention.gradle.kts
 jacoco = "0.8.14"
 jakarta-annotation = "3.0.0"
 jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"
-jakarta-inject = "2.0.1.MR"
+jakarta-inject = "2.0.1"
 jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
 jakarta-xml = "4.0.5"
@@ -31,17 +31,15 @@ java-jdk = "21"
 javafx = "23.0.2"
 javafx-gradlePlugin = "0.1.0"
 jaxb-runtime = "4.0.6"
-jboss = "3.6.2.Final"
-jetbrains-annotations = "26.0.2-1"
+jetbrains-annotations = "26.1.0"
 jreleaser-gradlePlugin = "1.23.0"
-junit = "5.14.1"
+junit = "6.0.3"
 jvmDependencyConflict-gradlePlugin = "2.5"
-jvmDownGrader-gradlePlugin = "1.3.4"
 slf4j = "2.0.17"
 testfx = "4.0.18"
-testfx-monocle = "jdk-12.0.1+2"
+testfx-monocle = "21.0.2"
 versionsCheck-gradlePlugin = "0.53.0"
-zaxxer-hikari-cp = "5.1.0"
+zaxxer-hikari-cp = "7.0.2"
 
 [libraries]
 
@@ -57,6 +55,7 @@ version.ref = "assertj"
 module = "net.bytebuddy:byte-buddy"
 version.ref = "byte-buddy"
 
+# TODO BENTO-13: Is this needed?
 [libraries.controlsfx]
 module = "org.controlsfx:controlsfx"
 version.ref = "controlsfx"
@@ -135,10 +134,6 @@ version.ref = "javafx"
 module = "org.openjfx:javafx-graphics"
 version.ref = "javafx"
 
-[libraries.jboss-logging]
-module = "org.jboss.logging:jboss-logging"
-version.ref = "jboss"
-
 [libraries.jetbrains-annotations]
 module = "org.jetbrains:annotations"
 version.ref = "jetbrains-annotations"
@@ -201,10 +196,6 @@ version.ref = "dependency-analysis-gradle-plugin"
 [plugins.javafx-gradlePlugin]
 id = "org.openjfx.javafxplugin"
 version.ref = "javafx-gradlePlugin"
-
-[plugins.jvmDownGrader-gradlePlugin]
-id = "xyz.wagyourtail.jvmdowngrader"
-version.ref = "jvmDownGrader-gradlePlugin"
 
 [plugins.jvmDependencyConflict-detection-gradlePlugin]
 id = "org.gradlex.jvm-dependency-conflict-detection"
