@@ -138,6 +138,10 @@ tasks {
 
     named<JReleaserFullReleaseTask>("jreleaserFullRelease").configure {
 
+        notCompatibleWithConfigurationCache(
+            jreleaserConfigCacheIncompatibilityReason
+        )
+
         dependsOn(subprojects.mapNotNull { subproject ->
             subproject.tasks.matching {
                 it.name == "build"
