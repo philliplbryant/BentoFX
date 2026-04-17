@@ -1,5 +1,5 @@
 plugins {
-    id libs.plugins.javafx.gradlePlugin.get()
+    id 'java-library'
 }
 
 description = 'BentoFX Persistence for JSON'

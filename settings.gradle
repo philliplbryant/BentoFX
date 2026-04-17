@@ -14,7 +14,7 @@ include 'demos:basic'
 //include 'demos:persistence'
 
 include 'persistence:api'
-//include 'persistence:codec:common'
+include 'persistence:codec:common'
 //include 'persistence:codec:json'
 //include 'persistence:codec:xml'
 //include 'persistence:storage:file'
