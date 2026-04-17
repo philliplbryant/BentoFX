@@ -17,12 +17,16 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.search.SearchHandler;
 
+import java.util.Objects;
+
 /**
  * Top level controller for docking operations.
  *
  * @author Matt Coley
  */
-public class Bento {
+public class Bento implements Identifiable {
+
+    private final @NonNull String identifier;
 	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
 	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
 	private final EventBus eventBus = newEventBus();
@@ -33,6 +37,15 @@ public class Bento {
 	private final PlaceholderBuilding placeholderBuilding = newPlaceholderBuilding();
 	private final DockableDragDropBehavior dragDropBehavior = newDragDropBehavior();
 	private final DockableClickBehavior clickBehavior = newClickBehavior();
+
+    public Bento() {
+        identifier = DockBuilding.uid("cbento");
+    }
+
+    public Bento(final @NonNull String identifier) {
+        Objects.requireNonNull(identifier);
+        this.identifier = identifier;
+    }
 
 	@NonNull
 	protected EventBus newEventBus() {
@@ -74,7 +87,16 @@ public class Bento {
 		return new DockableClickBehavior() {};
 	}
 
-	/**
+    /**
+     * @return the identifier specified when creating this {@code Bento}. This
+     * identifier is not guaranteed to be unique.
+     */
+    @Override
+    public @NonNull String getIdentifier() {
+        return identifier;
+    }
+
+    /**
 	 * @return Bus for handling event firing and event listeners.
 	 */
 	@NonNull

@@ -1,0 +1,27 @@
+package software.coley.bentofx.persistence.impl.storage.db;
+
+import jakarta.persistence.*;
+
+import java.time.Instant;
+
+/**
+ * Represents a row in a table in a relational database for storing Bento
+ * layouts.
+ *
+ * @author Phil Bryant
+ */
+@Entity
+@Table(name = "docking_layout")
+public class DockingLayoutEntity {
+
+    @EmbeddedId
+    public DockingLayoutEntityCompositeKey key;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "payload", nullable = false)
+    public byte[] payload = new byte[0];
+
+    @Column(name = "updated_at", nullable = false)
+    public Instant updatedAt = Instant.EPOCH;
+}

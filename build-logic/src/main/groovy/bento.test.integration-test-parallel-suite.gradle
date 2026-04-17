@@ -1,0 +1,76 @@
+import software.coley.gradle.conventions.test.TestSuites
+import software.coley.gradle.lifecycle.BuildLifecycle
+import software.coley.gradle.lifecycle.TestLifecycle
+
+plugins {
+    id 'bento.project.build-lifecycle'
+    id 'bento.test.test-lifecycle'
+    id 'jacoco'
+    id 'jvm-test-suite'
+}
+
+def testSuiteName = TestSuites.INTEGRATION_TEST_PARALLEL
+def testSuiteDirName = 'itp'
+def testSuiteTestSuffix = 'ITP'
+
+testing {
+    suites {
+        register(testSuiteName, JvmTestSuite) {
+            dependencies {
+                implementation project()
+            }
+
+            sources {
+                java {
+                    setSrcDirs(["src/${testSuiteDirName}/java"])
+                }
+                resources {
+                    setSrcDirs(["src/${testSuiteDirName}/resources"])
+                }
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        filter {
+                            includeTestsMatching "*${testSuiteTestSuffix}"
+                            includeTestsMatching "*${testSuiteTestSuffix}\$*"
+                            failOnNoMatchingTests = false
+                        }
+                        maxHeapSize = '2g'
+                        maxParallelForks = Math.max((Runtime.runtime.availableProcessors() / 2) as int, 1)
+                        modularity.inferModulePath.set(false)
+                        jvmArgs = (jvmArgs ?: []).findAll { !it.contains('--module-path') }
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks {
+    def integrationTestParallel = testing.suites.named(testSuiteName)
+    def jacocoTestReport = named('jacocoTestReport')
+
+    jacocoTestReport.configure {
+        shouldRunAfter(integrationTestParallel)
+    }
+
+    named(TestSuites.INTEGRATION_TEST_PARALLEL, Test) {
+        def suiteSourceSet = sourceSets.named(testSuiteName).get()
+        testClassesDirs = suiteSourceSet.output.classesDirs
+        classpath = suiteSourceSet.runtimeClasspath
+        modularity.inferModulePath.set(false)
+    }
+
+    named(BuildLifecycle.ALL_CLASSES_TASK_NAME) {
+        dependsOn named('integrationTestParallelClasses')
+    }
+
+    named(TestLifecycle.CHECK_INTEGRATION_TASK_NAME) {
+        dependsOn(integrationTestParallel)
+        if (TestLifecycle.enableJacoco(providers).get()) {
+            dependsOn(jacocoTestReport)
+        }
+    }
+}

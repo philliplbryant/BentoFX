@@ -1,0 +1,78 @@
+import software.coley.gradle.buildservice.SimpleBuildService
+import software.coley.gradle.conventions.test.TestSuites
+import software.coley.gradle.lifecycle.BuildLifecycle
+import software.coley.gradle.lifecycle.TestLifecycle
+
+plugins {
+    id 'bento.project.build-lifecycle'
+    id 'bento.test.test-lifecycle'
+    id 'jacoco'
+    id 'jvm-test-suite'
+}
+
+def nonParallelBuildService =
+        gradle.sharedServices.registerIfAbsent('nonParallelBuildService', SimpleBuildService) {
+            maxParallelUsages = 1
+        }
+
+def testSuiteName = TestSuites.INTEGRATION_TEST
+def testSuiteDirName = 'it'
+def testSuiteTestSuffix = 'IT'
+
+testing {
+    suites {
+        register(testSuiteName, JvmTestSuite) {
+            dependencies {
+                implementation project()
+            }
+
+            sources {
+                java {
+                    setSrcDirs(["src/${testSuiteDirName}/java"])
+                }
+                resources {
+                    setSrcDirs(["src/${testSuiteDirName}/resources"])
+                }
+            }
+
+            targets.all {
+                testTask.configure {
+                    filter {
+                        includeTestsMatching "*${testSuiteTestSuffix}"
+                        includeTestsMatching "*${testSuiteTestSuffix}\$*"
+                        failOnNoMatchingTests = false
+                    }
+                    maxHeapSize = '2g'
+                    usesService(nonParallelBuildService)
+                    modularity.inferModulePath.set(false)
+                    jvmArgs = (jvmArgs ?: []).findAll { !it.contains('--module-path') }
+                }
+            }
+        }
+    }
+}
+
+def integrationTest = testing.suites.named(testSuiteName)
+def jacocoTestReport = tasks.named('jacocoTestReport')
+
+tasks.jacocoTestReport.configure {
+    shouldRunAfter(testSuiteName)
+}
+
+tasks.named(TestSuites.INTEGRATION_TEST, Test) {
+    def suiteSourceSet = sourceSets.named(testSuiteName).get()
+    testClassesDirs = suiteSourceSet.output.classesDirs
+    classpath = suiteSourceSet.runtimeClasspath
+    modularity.inferModulePath.set(false)
+}
+
+tasks.named(BuildLifecycle.ALL_CLASSES_TASK_NAME) {
+    dependsOn named('integrationTestClasses')
+}
+
+tasks.named(TestLifecycle.CHECK_INTEGRATION_TASK_NAME) {
+    dependsOn(testSuiteName)
+    if (TestLifecycle.enableJacoco(providers).get()) {
+        dependsOn(jacocoTestReport)
+    }
+}

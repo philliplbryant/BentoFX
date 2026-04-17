@@ -1,0 +1,12 @@
+plugins {
+    id libs.plugins.javafx.gradlePlugin.get()
+}
+
+description = 'BentoFX Persistence for Files'
+
+dependencies {
+
+    api projects.persistence.api
+
+    compileOnly libs.jspecify
+}

@@ -403,7 +403,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Uncollapsed size of this container.
 	 */
-	protected double getUncollapsedSize() {
+	public double getUncollapsedSize() {
 		return switch (getSide()) {
 			case TOP, BOTTOM -> uncollapsedHeight.get();
 			case LEFT, RIGHT -> uncollapsedWidth.get();
@@ -548,11 +548,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	@Override
 	public String getIdentifier() {
 		return identifier;
-	}
-
-	@Override
-	public boolean matchesIdentity(@NonNull Identifiable other) {
-		return identifier.equals(other.getIdentifier());
 	}
 
 	@Override

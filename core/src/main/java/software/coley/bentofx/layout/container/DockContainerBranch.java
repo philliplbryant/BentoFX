@@ -508,11 +508,6 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	@Override
-	public boolean matchesIdentity(@NonNull Identifiable other) {
-		return identifier.equals(other.getIdentifier());
-	}
-
-	@Override
 	protected void layoutChildren() {
 		super.layoutChildren();
 

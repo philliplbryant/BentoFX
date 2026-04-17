@@ -1,0 +1,20 @@
+plugins {
+    id libs.plugins.javafx.gradlePlugin.get()
+}
+
+description = 'BentoFX Persistence for XML'
+
+dependencies {
+
+    api projects.persistence.api
+    api libs.jackson.annotations
+    api libs.jackson.xml
+
+    implementation projects.persistence.codec.common
+
+    implementation libs.jackson.databind
+    implementation libs.javafx.graphics
+
+    compileOnly libs.javafx.controls
+    compileOnly libs.jspecify
+}

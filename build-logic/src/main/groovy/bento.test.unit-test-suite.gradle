@@ -1,0 +1,22 @@
+import software.coley.gradle.conventions.test.TestSuites
+import software.coley.gradle.lifecycle.BuildLifecycle
+import software.coley.gradle.lifecycle.TestLifecycle
+
+plugins {
+    id 'bento.project.build-lifecycle'
+    id 'jacoco'
+    id 'jvm-test-suite'
+}
+
+def testTask = tasks.named('test')
+
+tasks.named(BuildLifecycle.ALL_CLASSES_TASK_NAME) {
+    dependsOn tasks.named('testClasses')
+}
+
+tasks.named('check') {
+    dependsOn(testTask)
+    if (TestLifecycle.enableJacoco(providers).get()) {
+        dependsOn(jacocoTestReport)
+    }
+}
