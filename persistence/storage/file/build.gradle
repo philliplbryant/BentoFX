@@ -1,5 +1,5 @@
 plugins {
-    id libs.plugins.javafx.gradlePlugin.get()
+    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence for Files'

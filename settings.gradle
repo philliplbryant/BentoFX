@@ -1,11 +1,32 @@
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
     includeBuild 'build-logic'
+}
+
+//plugins {
+//    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+//}
+
+dependencyResolutionManagement {
+
+    includeBuild 'build-logic'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
 rootProject.name = 'bento-fx'
 
 enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
 enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
+
+include 'platform'
 
 include 'core'
 

@@ -1,156 +1,188 @@
+//import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+//import org.jreleaser.gradle.plugin.tasks.*
+
 plugins {
-    id 'java'
-    alias(libs.plugins.javafx) apply false
-    alias(libs.plugins.jreleaser)
-    alias(libs.plugins.benmanes.versions) apply false
-    alias(libs.plugins.buildconfig) apply false
+    // Apply the base plugin to add `clean` to the root project.
+    id 'base'
+//    id 'bento.project.build-lifecycle'
+
+    alias libs.plugins.jreleaser
+//    id("org.jreleaser") version "1.23.0"
+//    id libs.plugins.benmanes.versions
+//    id libs.plugins.buildconfig
 }
 
-ext.pluginId = { provider -> provider.get().pluginId }
+/**
+ * The directory to which JReleaser artifacts are staged.
+ */
+def stagingDir = layout.buildDirectory.dir("staging-deploy")
 
-allprojects {
-    group = 'software.coley.bento-fx'
-    version = '0.16.0'
-}
+// Publish all module publications to the shared staging repo
+tasks.register('stageAllPublications') {
+    group = 'release'
+    description = "Stages all subproject Maven publications into $stagingDir"
 
-subprojects { sub ->
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-    apply plugin: pluginId(libs.plugins.javafx)
-    apply plugin: pluginId(libs.plugins.benmanes.versions)
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-
-    dependencies {
-        // Shared annotations for all modules
-        compileOnly(libs.bundles.annotations)
-        testCompileOnly(libs.bundles.annotations)
-
-        // Test dependencies
-        testImplementation(libs.bundles.test.libraries)
-        testRuntimeOnly(libs.bundles.test.runtime)
-    }
-
-    javafx {
-        version = '21.0.9'
-        modules = ['javafx.controls']
-
-        // We don't want to include a specific version of JavaFX as a transitive dependency for users of the library
-        configurations = ['compileOnly', 'testImplementation']
-    }
-
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-
-        withJavadocJar()
-        withSourcesJar()
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.compilerArgs << '-parameters'
-    }
-
-    tasks.named('jar') {
-        from(rootProject.layout.projectDirectory) {
-            include 'LICENSE'
-            into 'META-INF'
-            rename { 'LICENSE.txt' }
-        }
-    }
-
-    javadoc {
-        options {
-            addStringOption('Xdoclint:none', '-quiet')
-        }
-    }
-
-    test {
-        useJUnitPlatform()
-
-        // Not all subprojects have tests, so don't fail the build if no tests are found.
-        failOnNoDiscoveredTests = false
-    }
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                groupId = sub.group
-                artifactId = sub.name
-                version = sub.version
-
-                from sub.components.java
-
-                pom {
-                    name = sub.name
-                    description = 'A docking system for JavaFX.'
-                    url = 'https://github.com/Col-E/BentoFX'
-                    inceptionYear = '2025'
-                    licenses {
-                        license {
-                            name = 'MIT'
-                            url = 'https://spdx.org/licenses/MIT.html'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 'Col-E'
-                            name = 'Matt Coley'
-                        }
-                    }
-                    scm {
-                        connection = 'scm:git:https://github.com/Col-E/BentoFX.git'
-                        developerConnection = 'scm:git:ssh://github.com/Col-E/BentoFX.git'
-                        url = 'https://github.com/Col-E/BentoFX'
+    // TODO
+    subprojects.forEach { subproject ->
+        // Only projects that applied maven-publish + have the publication/repo will have this task.
+        subproject.tasks.names
+                .forEach { taskName ->
+                    if (taskName == 'publishMavenPublicationToStagingRepository') {
+                        dependsOn(subproject.tasks.named(taskName))
                     }
                 }
-            }
+    }
+}
+
+tasks.register('stageMavenCentral') {
+
+    group = "release"
+    description = "Stages all subproject publications into build/staging-deploy"
+
+    into(layout.buildDirectory.dir("staging-deploy"))
+
+    subprojects.forEach { subproject ->
+        // This path exists after publishing tasks run. We’ll depend on publishToMavenLocal
+        // OR better: depend on each module's "publishMavenPublicationToMavenLocal" equivalent.
+        // But task names vary; so we stage from known build outputs when available.
+
+        // If you *do* use maven-publish, the publication metadata/jars are in build/libs + generated POM.
+        // We'll stage jars + pom from build/publications/maven (generated metadata).
+        from(subproject.layout.buildDirectory.dir('publications/maven')) {
+            into("${subproject.name}/publications/maven")
         }
-        repositories {
-            mavenLocal()
-            maven {
-                // All modules will publish to the same staging directory.
-                url = rootProject.layout.projectDirectory.dir("build/staging-deploy")
-            }
+        from(subproject.layout.buildDirectory.dir("libs")) {
+            into("${subproject.name}/libs")
         }
     }
 }
 
-jreleaser {
-    signing {
-        pgp {
-            active = 'RELEASE'
-            armored = true
-        }
-    }
-    release {
-        // TODO: This doesn't auto-publish github releases and the 'distribution' block also isn't a viable alternative
-        //  Need to look into why it doesn't work. Probably related to the project's "alternative" artifact model...
-        github {
-            tagName = project.version
-            changelog {
-                formatted = 'ALWAYS'
-                preset = 'conventional-commits'
-                contributors {
-                    format = '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
-                }
-            }
-        }
-    }
-    deploy {
-        maven {
-            mavenCentral {
-                sonatype {
-                    active = 'RELEASE'
-                    url = 'https://central.sonatype.com/api/v1/publisher'
-                    applyMavenCentralRules = true
-                    stagingRepository('build/staging-deploy')
-                }
-            }
-        }
-    }
-}
+//// Configuration cache incompatibility message
+//def jreleaserConfigCacheIncompatibilityReason =
+//        "As of version 1.23.0, the JReleaser Gradle plugin does not support " +
+//                "configuration cache: " +
+//                "(https://github.com/jreleaser/jreleaser/issues/1992).\n" +
+//                "Run `jreleaser[TaskName]` tasks using:\n" +
+//                "`./gradlew jreleaser[TaskName] --no-configuration-cache'"
+//
+//
+//tasks.named("jreleaserAssemble").configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    // Only depend on modules that actually build Java artifacts
+//    dependsOn(subprojects.mapNotNull { subproject ->
+//        subproject.tasks.matching {
+//            it.name == "assemble"
+//        }.takeIf {
+//            it.isNotEmpty()
+//        }?.let {
+//            subproject.tasks.named("assemble")
+//        }
+//    })
+//}
+//
+//tasks.named('jreleaserChecksum').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(tasks.named('stageAllPublications'))
+//}
+//
+//tasks.named('jreleaserConfig').configure {
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//}
+//
+//tasks.named('jreleaserDeploy').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(tasks.named('stageAllPublications'))
+//}
+//
+//tasks.named('jreleaserFullRelease').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(subprojects.mapNotNull { subproject ->
+//        subproject.tasks.matching {
+//            it.name == "build"
+//        }.takeIf {
+//            it.isNotEmpty()
+//        }?.let {
+//            subproject.tasks.named("build")
+//        }
+//    })
+//}
+//
+//tasks.named('jreleaserRelease').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(tasks.named('stageAllPublications'))
+//}
+//
+//tasks.named('jreleaserSign').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(tasks.named('stageAllPublications'))
+//}
+//
+//tasks.named('jreleaserUpload').configure {
+//
+//    notCompatibleWithConfigurationCache(
+//            jreleaserConfigCacheIncompatibilityReason
+//    )
+//
+//    dependsOn(tasks.named('stageMavenCentral'))
+//}
+//
+//jreleaser {
+//    signing {
+//        pgp {
+//            active = 'RELEASE'
+//            armored = true
+//        }
+//    }
+//    release {
+//        // TODO: This doesn't auto-publish github releases and the 'distribution' block also isn't a viable alternative
+//        //  Need to look into why it doesn't work. Probably related to the project's "alternative" artifact model...
+//        github {
+//            tagName = project.version
+//            changelog {
+//                formatted = 'ALWAYS'
+//                preset = 'conventional-commits'
+//                contributors {
+//                    format = '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+//                }
+//            }
+//        }
+//    }
+//    deploy {
+//        maven {
+//            mavenCentral {
+//                sonatype {
+//                    active = 'RELEASE'
+//                    url = 'https://central.sonatype.com/api/v1/publisher'
+//                    applyMavenCentralRules = true
+//                    stagingRepository('build/staging-deploy')
+//                }
+//            }
+//        }
+//    }
+//}

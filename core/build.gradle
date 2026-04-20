@@ -1,5 +1,17 @@
 plugins {
+    id 'bento.project.project-convention'
+    id 'bento.release.publish-convention'
+    alias(libs.plugins.javafx)
     alias(libs.plugins.buildconfig)
+}
+
+description = 'A docking system for JavaFX'
+
+dependencies {
+
+    api libs.jspecify
+
+    compileOnlyApi libs.javafx.controls
 }
 
 buildConfig {

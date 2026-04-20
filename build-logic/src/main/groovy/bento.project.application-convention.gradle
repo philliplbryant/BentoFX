@@ -1,0 +1,8 @@
+plugins {
+    id 'application'
+}
+
+// Don't use configuration cache for the demo run tasks
+tasks.withType(JavaExec).configureEach {
+    notCompatibleWithConfigurationCache('Demo run tasks do not need configuration cache')
+}

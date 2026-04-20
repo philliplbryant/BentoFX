@@ -1,8 +1,8 @@
 plugins {
-    id 'java-library'
+    id 'bento.project.project-convention'
 }
 
-description = 'BentoFX Persistence for JSON'
+description = "BentoFX Persistence for JSON"
 
 dependencies {
 

@@ -1,6 +1,7 @@
 plugins {
-    id 'java-library'
+    id 'bento.project.project-convention'
     id 'bento.test.functional-test-suite'
+    alias(libs.plugins.javafx)
 }
 
 description = "BentoFX Persistence API"
@@ -15,8 +16,10 @@ dependencies {
 
     compileOnly libs.jspecify
 
+    testImplementation libs.assertj
+    testImplementation libs.junit.api
+
     functionalTestImplementation testFixtures(projects.persistence.testFixtures)
-//    functionalTestImplementation testFixtures(project(':persistence:test-fixtures'))
 
     functionalTestImplementation libs.javafx.controls
 
