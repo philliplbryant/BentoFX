@@ -1,6 +1,6 @@
 [versions]
 # Libraries
-assertj = "3.27.3"
+assertj = "3.27.7"
 byte-buddy = "1.18.5"
 h2 = "2.4.240"
 hibernate = "7.2.6.Final"
@@ -12,7 +12,6 @@ jacoco = "0.8.14"
 jakarta-annotation = "3.0.0"
 jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"
-jakarta-inject = "2.0.1"
 jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
 javafx = "23.0.2"
@@ -46,16 +45,13 @@ jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xm
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
 jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-cdi" }
 jakarta-el = { module = "org.glassfish:jakarta.el", version.ref = "jakarta-el" }
-jakarta-inject = { module = "jakarta.inject:jakarta.inject-api", version.ref = "jakarta-inject" }
 jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
 jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
-jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
-jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
+javafx-gradlePlugin-dependency = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
 jaxb-bom = { module = "org.glassfish.jaxb:jaxb-bom", version.ref = "jaxb" }
-jaxb-xjc = { module = "com.sun.xml.bind:jaxb-xjc" }
 jreleaser-gradlePlugin-dependency = { module = "org.jreleaser:org.jreleaser.gradle.plugin", version.ref = "jreleaser" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api" }
@@ -81,5 +77,4 @@ test-runtime = ["junit-engine", "junit-launcher"]
 [plugins]
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
-javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
