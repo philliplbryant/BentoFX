@@ -25,7 +25,7 @@ import java.util.Objects;
  */
 public class Bento implements Identifiable {
 
-    private final @NonNull String identifier;
+    private final String identifier;
 	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
 	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
 	private final EventBus eventBus = newEventBus();
@@ -41,12 +41,11 @@ public class Bento implements Identifiable {
         identifier = DockBuilding.uid("cbento");
     }
 
-    public Bento(final @NonNull String identifier) {
+    public Bento(final String identifier) {
         Objects.requireNonNull(identifier);
         this.identifier = identifier;
     }
 
-	@NonNull
 	protected EventBus newEventBus() {
 		return new EventBus();
 	}
@@ -84,7 +83,7 @@ public class Bento implements Identifiable {
      * identifier is not guaranteed to be unique.
      */
     @Override
-    public @NonNull String getIdentifier() {
+    public String getIdentifier() {
         return identifier;
     }
 

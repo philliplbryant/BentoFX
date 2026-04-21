@@ -17,7 +17,7 @@ public interface Identifiable {
 	 *
 	 * @return {@code true} when the other object has the same identifier.
 	 */
-	default boolean matchesIdentity(final @NonNull Identifiable other) {
+	default boolean matchesIdentity(final Identifiable other) {
 		return this.getIdentifier().equals(other.getIdentifier());
 	}
 }

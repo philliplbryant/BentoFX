@@ -30,9 +30,8 @@ public class SecondStage extends Stage {
             final DefaultBentoProvider bentoProvider,
             final StageIconImageProvider stageIconImageProvider
     ) {
-// TODO BENTO-13: set default stageBuilding values
-//        bento.stageBuilding().setApplyMousePosition(true);
-//        bento.stageBuilding().setSourceIsOwner(false);
+        bento.stageBuilding().setApplyMousePosition(true);
+        bento.stageBuilding().setApplySourceAsOwner(false);
         bentoProvider.addBento(bento);
         this.stageIconImageProvider = stageIconImageProvider;
         init();

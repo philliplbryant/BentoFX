@@ -39,9 +39,8 @@ public class SecondDragDropStage extends DragDropStage {
             final StageIconImageProvider stageIconImageProvider
     ) {
         super(true);
-// TODO BENTO-13: set default stageBuilding values
-//        bento.stageBuilding().setApplyMousePosition(true);
-//        bento.stageBuilding().setSourceIsOwner(false);
+        bento.stageBuilding().setApplyMousePosition(true);
+        bento.stageBuilding().setApplySourceAsOwner(false);
         bentoProvider.addBento(bento);
         init(dockableStateProvider, stageIconImageProvider);
     }
