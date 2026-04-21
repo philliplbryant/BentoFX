@@ -39,6 +39,7 @@ tasks.register('stageMavenCentral') {
 
     into(layout.buildDirectory.dir("staging-deploy"))
 
+    // FIXME BENTO-13: This violates project isolation
     subprojects.forEach { subproject ->
         // This path exists after publishing tasks run. We’ll depend on publishToMavenLocal
         // OR better: depend on each module's "publishMavenPublicationToMavenLocal" equivalent.
