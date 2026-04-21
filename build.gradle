@@ -6,6 +6,8 @@ plugins {
     id 'base'
 
     alias libs.plugins.jreleaser
+    alias libs.plugins.dependencyAnalysis.gradlePlugin
+
 //    id libs.plugins.benmanes.versions
 //    id libs.plugins.buildconfig
 }
@@ -55,6 +57,39 @@ tasks.register('stageMavenCentral') {
         }
     }
 }
+
+dependencyAnalysis {
+    issues {
+        // Configure for all projects
+        all {
+            onDuplicateClassWarnings { severity('fail') }
+            onIncorrectConfiguration {
+                severity('fail')
+            }
+            onModuleStructure { severity('fail') }
+            onUnusedDependencies {
+                severity('fail')
+                exclude(
+                        // Exclude common testing dependencies that we apply to all
+                        // projects regardless of use (for the sake of convenience).
+                        'junit:junit',
+                        'org.assertj:assertj-core',
+                        'org.junit.jupiter:junit-jupiter',
+                        'org.junit.jupiter:junit-jupiter-api',
+                )
+            }
+            onUnusedAnnotationProcessors { severity('fail') }
+            onUsedTransitiveDependencies { severity('fail') }
+        }
+    }
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+    useTypesafeProjectAccessors(true)
+}
+
 
 //// Configuration cache incompatibility message
 //def jreleaserConfigCacheIncompatibilityReason =

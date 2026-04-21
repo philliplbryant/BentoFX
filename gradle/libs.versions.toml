@@ -2,6 +2,7 @@
 # Libraries
 assertj = "3.27.7"
 byte-buddy = "1.18.5"
+dependency-analysis-gradle-plugin = "3.6.0"
 h2 = "2.4.240"
 hibernate = "7.2.6.Final"
 hibernate-hikari-cp = "7.2.6.Final"
@@ -34,6 +35,7 @@ jreleaser = "1.23.0"
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 benmanes-versions-gradlePlugin-dependency = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benmanes-versions" }
 byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
+dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.dependency-analysis:com.autonomousapps.dependency-analysis.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
 hibernate-hikari-cp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate-hikari-cp" }
@@ -47,6 +49,8 @@ jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", ve
 jakarta-el = { module = "org.glassfish:jakarta.el", version.ref = "jakarta-el" }
 jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
 jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
+jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
+jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
 javafx-gradlePlugin-dependency = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
@@ -75,6 +79,8 @@ test-libraries = ["assertj", "junit-api",  "junit-params", "testfx", "testfx-cor
 test-runtime = ["junit-engine", "junit-launcher"]
 
 [plugins]
+#TODO BENTO-13: Reenable the versions plugin
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
+dependencyAnalysis-gradlePlugin = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis-gradle-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }

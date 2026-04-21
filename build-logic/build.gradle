@@ -10,6 +10,13 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
+    implementation(libs.dependencyAnalysis.gradlePlugin.dependency) {
+        because(
+                "Declared here even though it's not used otherwise in buildSrc to work around " +
+                        "https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin/issues/667"
+        )
+    }
+
     implementation libs.benmanes.versions.gradlePlugin.dependency
     implementation libs.javafx.gradlePlugin.dependency
     implementation libs.jreleaser.gradlePlugin.dependency

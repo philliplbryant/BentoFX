@@ -6,6 +6,7 @@ import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 plugins {
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
+    id("com.autonomousapps.dependency-analysis")
     id 'jacoco'
     id 'jvm-test-suite'
 }
@@ -46,6 +47,19 @@ testing {
                 }
             }
         }
+    }
+}
+
+dependencyAnalysis {
+    abi {
+        exclusions {
+            excludeSourceSets(testSuiteName)
+        }
+    }
+    // Test source set analysis broken by Kotlin 2.0.20:
+    // https://github.com/autonomousapps/dependency-analysis-gradle-plugin/issues/1239
+    issues {
+        ignoreSourceSet(testSuiteName)
     }
 }
 

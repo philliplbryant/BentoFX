@@ -22,6 +22,7 @@ module bento.fx.persistence.storage.db.h2Database {
     requires jakarta.cdi.lang.model;
     requires jakarta.el;
     requires jakarta.transaction;
+    requires jakarta.xml.bind;
     requires net.bytebuddy;
     requires org.hibernate.orm.hikaricp;
     requires org.hibernate.validator;
