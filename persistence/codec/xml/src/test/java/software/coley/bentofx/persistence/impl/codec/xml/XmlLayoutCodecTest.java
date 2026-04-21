@@ -3,22 +3,43 @@ package software.coley.bentofx.persistence.impl.codec.xml;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.impl.codec.BentoState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
 
 class XmlLayoutCodecTest {
 
     @Test
     void getIdentifierReturnsXml() {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
-        assertEquals("xml", codec.getIdentifier());
+
+        assertThat(codec.getIdentifier()).isEqualTo("xml");
     }
 
     @Test
@@ -31,22 +52,21 @@ class XmlLayoutCodecTest {
 
         final String xml = out.toString(StandardCharsets.UTF_8);
 
-        assertAll(
-                () -> assertTrue(xml.contains("<" + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + BENTO_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + BENTO_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + ROOT_BRANCH_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + ROOT_BRANCH_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + DIVIDER_POSITION_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + DIVIDER_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + BRANCH_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + BRANCH_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + LEAF_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + DOCKABLE_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + DOCKABLE_ELEMENT_NAME)),
-                () -> assertTrue(xml.contains("<" + DRAG_DROP_STAGE_LIST_ELEMENT_NAME + ">")),
-                () -> assertTrue(xml.contains("<" + DRAG_DROP_STAGE_ELEMENT_NAME))
-        );
+        assertThat(xml)
+                .contains("<" + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + ">")
+                .contains("<" + BENTO_LIST_ELEMENT_NAME + ">")
+                .contains("<" + BENTO_ELEMENT_NAME)
+                .contains("<" + ROOT_BRANCH_LIST_ELEMENT_NAME + ">")
+                .contains("<" + ROOT_BRANCH_ELEMENT_NAME)
+                .contains("<" + DIVIDER_POSITION_LIST_ELEMENT_NAME + ">")
+                .contains("<" + DIVIDER_ELEMENT_NAME)
+                .contains("<" + BRANCH_LIST_ELEMENT_NAME + ">")
+                .contains("<" + BRANCH_ELEMENT_NAME)
+                .contains("<" + LEAF_ELEMENT_NAME)
+                .contains("<" + DOCKABLE_LIST_ELEMENT_NAME + ">")
+                .contains("<" + DOCKABLE_ELEMENT_NAME)
+                .contains("<" + DRAG_DROP_STAGE_LIST_ELEMENT_NAME + ">")
+                .contains("<" + DRAG_DROP_STAGE_ELEMENT_NAME);
     }
 
     @Test
@@ -64,12 +84,17 @@ class XmlLayoutCodecTest {
         final DockingLayoutDto originalDto = BentoStateMapper.toDto(original);
         final DockingLayoutDto restoredDto = BentoStateMapper.toDto(restored);
 
-        assertAll(
-                () -> assertEquals(originalDto.bentoStates.size(), restoredDto.bentoStates.size()),
-                () -> assertEquals(originalDto.bentoStates.get(0).identifier, restoredDto.bentoStates.get(0).identifier),
-                () -> assertEquals(originalDto.bentoStates.get(0).rootBranches.get(0).identifier, restoredDto.bentoStates.get(0).rootBranches.get(0).identifier),
-                () -> assertEquals(originalDto.bentoStates.get(0).dragDropStages.get(0).title, restoredDto.bentoStates.get(0).dragDropStages.get(0).title)
-        );
+        assertThat(restoredDto.bentoStates)
+                .hasSize(originalDto.bentoStates.size());
+
+        assertThat(restoredDto.bentoStates.getFirst().identifier)
+                .isEqualTo(originalDto.bentoStates.getFirst().identifier);
+
+        assertThat(restoredDto.bentoStates.getFirst().rootBranches.getFirst().identifier)
+                .isEqualTo(originalDto.bentoStates.getFirst().rootBranches.getFirst().identifier);
+
+        assertThat(restoredDto.bentoStates.getFirst().dragDropStages.getFirst().title)
+                .isEqualTo(originalDto.bentoStates.getFirst().dragDropStages.getFirst().title);
     }
 
     private static List<BentoState> createStates() {

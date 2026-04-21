@@ -26,4 +26,8 @@ dependencies {
 
     runtimeOnly libs.h2
     runtimeOnly libs.javafx.controls
+
+    integrationTestImplementation libs.assertj
+
+    integrationTestRuntimeOnly libs.slf4j.simple
 }

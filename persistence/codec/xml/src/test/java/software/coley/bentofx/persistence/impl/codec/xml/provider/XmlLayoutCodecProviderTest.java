@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class XmlLayoutCodecProviderTest {
 
@@ -15,7 +14,8 @@ class XmlLayoutCodecProviderTest {
 
         final LayoutCodec codec = provider.createLayoutCodec();
 
-        assertNotNull(codec);
-        assertInstanceOf(XmlLayoutCodec.class, codec);
+        assertThat(codec)
+                .isNotNull()
+                .isInstanceOf(XmlLayoutCodec.class);
     }
 }

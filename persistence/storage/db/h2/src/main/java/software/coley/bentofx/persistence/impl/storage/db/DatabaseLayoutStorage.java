@@ -7,7 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.Instant;
 
 /**
@@ -18,116 +22,132 @@ import java.time.Instant;
  */
 public class DatabaseLayoutStorage implements LayoutStorage {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(DatabaseLayoutStorage.class);
+	private static final Logger logger =
+			LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
-    private final EntityManagerFactory emf;
-    private final String layoutIdentifier;
-    private final String codecIdentifier;
+	private final EntityManagerFactory emf;
+	private final String layoutIdentifier;
+	private final String codecIdentifier;
 
-    public DatabaseLayoutStorage(
-            final EntityManagerFactory emf,
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        this.emf = emf;
-        this.layoutIdentifier = layoutIdentifier;
-        this.codecIdentifier = codecIdentifier;
-    }
+	public DatabaseLayoutStorage(
+			final EntityManagerFactory emf,
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		this.emf = emf;
+		this.layoutIdentifier = layoutIdentifier;
+		this.codecIdentifier = codecIdentifier;
+	}
 
-    @Override
-    public boolean exists() {
+	@Override
+	public boolean exists() {
 
-        try (final EntityManager em = emf.createEntityManager()) {
+		try (final EntityManager em = emf.createEntityManager()) {
 
-            final DockingLayoutEntityCompositeKey key = new DockingLayoutEntityCompositeKey(
-                            layoutIdentifier,
-                            codecIdentifier
-                    );
+			final DockingLayoutEntityCompositeKey key = new DockingLayoutEntityCompositeKey(
+					layoutIdentifier,
+					codecIdentifier
+			);
 
-            final DockingLayoutEntity entity =
-                    em.find(
-                            DockingLayoutEntity.class,
-                            key
-                    );
+			final DockingLayoutEntity entity =
+					em.find(
+							DockingLayoutEntity.class,
+							key
+					);
 
-            return entity.payload.length > 0;
-        }
-    }
+			return entity != null &&
+					entity.payload != null &&
+					entity.payload.length > 0;
+		}
+	}
 
-    @Override
-    public InputStream openInputStream() {
+	@Override
+	public InputStream openInputStream() {
 
-        try (final EntityManager em = emf.createEntityManager()) {
+		try (final EntityManager em = emf.createEntityManager()) {
 
-            logger.trace(
-                    "Creating input stream using layout {} and codec {}.",
-                    layoutIdentifier,
-                    codecIdentifier
-                    );
+			logger.trace(
+					"Creating input stream using layout {} and codec {}.",
+					layoutIdentifier,
+					codecIdentifier
+			);
 
-            final DockingLayoutEntityCompositeKey key =
-                    new DockingLayoutEntityCompositeKey(
-                            layoutIdentifier,
-                            codecIdentifier
-                    );
+			final DockingLayoutEntityCompositeKey key =
+					new DockingLayoutEntityCompositeKey(
+							layoutIdentifier,
+							codecIdentifier
+					);
 
-            final DockingLayoutEntity entity =
-                    em.find(
-                            DockingLayoutEntity.class,
-                            key
-                    );
+			final DockingLayoutEntity entity =
+					em.find(
+							DockingLayoutEntity.class,
+							key
+					);
 
-            return new ByteArrayInputStream(entity.payload);
-        }
-    }
+			return new ByteArrayInputStream(entity.payload);
+		}
+	}
 
-    @Override
-    public OutputStream openOutputStream() {
+	@Override
+	public OutputStream openOutputStream() {
         // Capture bytes, then persist on close()
-        return new ByteArrayOutputStream() {
-            private boolean closed = false;
+		return new ByteArrayOutputStream() {
+			private boolean closed;
 
-            @Override
-            public void close() throws IOException {
+			@Override
+			public void close() throws IOException {
+				if (closed) {
+					return;
+				}
 
-                if (!closed) {
-                    closed = true;
-                    super.close();
+				closed = true;
+				super.close();
 
-                    final byte[] bytesToSave = this.toByteArray();
+				final byte[] bytesToSave = toByteArray();
 
-                    final EntityManager em = emf.createEntityManager();
-                    final EntityTransaction tx = em.getTransaction();
+				final EntityManager em = emf.createEntityManager();
+				final EntityTransaction tx = em.getTransaction();
 
-                    try (em) {
-                        tx.begin();
+				try (em) {
+					tx.begin();
 
-                        final DockingLayoutEntityCompositeKey key =
-                                new DockingLayoutEntityCompositeKey(
-                                        layoutIdentifier,
-                                        codecIdentifier
-                                );
+					final DockingLayoutEntityCompositeKey key =
+							new DockingLayoutEntityCompositeKey(
+									layoutIdentifier,
+									codecIdentifier
+							);
 
-                        final DockingLayoutEntity newEntity =
-                                new DockingLayoutEntity();
-                        newEntity.key = key;
-                        newEntity.payload = bytesToSave;
-                        newEntity.updatedAt = Instant.now();
-                        em.persist(newEntity);
+					final DockingLayoutEntity existingEntity =
+							em.find(
+									DockingLayoutEntity.class,
+									key
+							);
 
-                        tx.commit();
-                    } catch (final Exception e) {
-                        if (tx.isActive()) {
-                            tx.rollback();
-                        }
-                        throw new IOException(
-                                "Could not close output stream.",
-                                e
-                        );
-                    }
-                }
-            }
-        };
-    }
+					final DockingLayoutEntity entityToSave;
+
+					if (existingEntity == null) {
+						entityToSave = new DockingLayoutEntity();
+						entityToSave.key = key;
+						em.persist(entityToSave);
+					} else {
+						entityToSave = existingEntity;
+					}
+
+					entityToSave.payload = bytesToSave;
+					entityToSave.updatedAt = Instant.now();
+
+					tx.commit();
+				} catch (Exception e) {
+					if (tx.isActive()) {
+						tx.rollback();
+					}
+
+					throw new IOException(
+							"Could not close output stream.",
+							e
+					);
+				}
+			}
+		};
+	}
 }

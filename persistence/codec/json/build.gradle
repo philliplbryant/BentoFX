@@ -17,5 +17,6 @@ dependencies {
     compileOnly libs.javafx.controls
     compileOnly libs.jspecify
 
+    testImplementation libs.assertj
     testImplementation libs.javafx.graphics
 }
