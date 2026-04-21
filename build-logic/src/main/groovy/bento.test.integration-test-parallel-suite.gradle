@@ -1,6 +1,7 @@
-import software.coley.gradle.conventions.test.TestSuites
-import software.coley.gradle.lifecycle.BuildLifecycle
-import software.coley.gradle.lifecycle.TestLifecycle
+import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST_PARALLEL
+import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'bento.project.build-lifecycle'
@@ -9,7 +10,7 @@ plugins {
     id 'jvm-test-suite'
 }
 
-def testSuiteName = TestSuites.INTEGRATION_TEST_PARALLEL
+def testSuiteName = INTEGRATION_TEST_PARALLEL
 def testSuiteDirName = 'itp'
 def testSuiteTestSuffix = 'ITP'
 
@@ -29,48 +30,43 @@ testing {
                 }
             }
 
-            targets {
-                all {
-                    testTask.configure {
-                        filter {
-                            includeTestsMatching "*${testSuiteTestSuffix}"
-                            includeTestsMatching "*${testSuiteTestSuffix}\$*"
-                            failOnNoMatchingTests = false
-                        }
-                        maxHeapSize = '2g'
-                        maxParallelForks = Math.max((Runtime.runtime.availableProcessors() / 2) as int, 1)
-                        modularity.inferModulePath.set(false)
-                        jvmArgs = (jvmArgs ?: []).findAll { !it.contains('--module-path') }
+            targets.all {
+                testTask.configure {
+                    filter {
+                        includeTestsMatching "*${testSuiteTestSuffix}"
+                        includeTestsMatching "*${testSuiteTestSuffix}\$*"
+                        failOnNoMatchingTests = false
                     }
+
+                    maxParallelForks = Math.max((Runtime.runtime.availableProcessors() / 2) as int, 1)
+
+                    maxHeapSize = '2g'
+                    modularity.inferModulePath.set(false)
+                    jvmArgs = (jvmArgs ?: []).findAll { !it.contains('--module-path') }
                 }
             }
         }
     }
 }
 
-tasks {
-    def integrationTestParallel = testing.suites.named(testSuiteName)
-    def jacocoTestReport = named('jacocoTestReport')
+tasks.named('jacocoTestReport').configure {
+    shouldRunAfter(testing.suites.named(testSuiteName))
+}
 
-    jacocoTestReport.configure {
-        shouldRunAfter(integrationTestParallel)
-    }
+tasks.named(INTEGRATION_TEST_PARALLEL) {
+    def suiteSourceSet = sourceSets.named(testSuiteName).get()
+    testClassesDirs = suiteSourceSet.output.classesDirs
+    classpath = suiteSourceSet.runtimeClasspath
+    modularity.inferModulePath.set(false)
+}
 
-    named(TestSuites.INTEGRATION_TEST_PARALLEL, Test) {
-        def suiteSourceSet = sourceSets.named(testSuiteName).get()
-        testClassesDirs = suiteSourceSet.output.classesDirs
-        classpath = suiteSourceSet.runtimeClasspath
-        modularity.inferModulePath.set(false)
-    }
+tasks.named(ALL_CLASSES_TASK_NAME) {
+    dependsOn named('integrationTestParallelClasses')
+}
 
-    named(BuildLifecycle.ALL_CLASSES_TASK_NAME) {
-        dependsOn named('integrationTestParallelClasses')
-    }
-
-    named(TestLifecycle.CHECK_INTEGRATION_TASK_NAME) {
-        dependsOn(integrationTestParallel)
-        if (TestLifecycle.enableJacoco(providers).get()) {
-            dependsOn(jacocoTestReport)
-        }
+tasks.named(CHECK_INTEGRATION_TASK_NAME) {
+    dependsOn(testSuiteName)
+    if (enableJacoco(providers).get()) {
+        dependsOn(tasks.named('jacocoTestReport'))
     }
 }

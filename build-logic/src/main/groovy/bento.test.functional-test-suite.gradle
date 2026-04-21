@@ -69,14 +69,11 @@ dependencies {
     add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
 }
 
-def functionalTest = testing.suites.named(testSuiteName)
-def jacocoTestReport = tasks.named('jacocoTestReport')
-
-tasks.jacocoTestReport.configure {
+tasks.named("jacocoTestReport").configure {
     shouldRunAfter(testSuiteName)
 }
 
-tasks.named(FUNCTIONAL_TEST, Test) {
+tasks.named(FUNCTIONAL_TEST) {
     def suiteSourceSet = sourceSets.named(testSuiteName).get()
     testClassesDirs = suiteSourceSet.output.classesDirs
     classpath = suiteSourceSet.runtimeClasspath
@@ -90,6 +87,6 @@ tasks.named(ALL_CLASSES_TASK_NAME) {
 tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
     dependsOn(testSuiteName)
     if (enableJacoco(providers).get()) {
-        dependsOn(jacocoTestReport)
+        dependsOn(tasks.named('jacocoTestReport'))
     }
 }

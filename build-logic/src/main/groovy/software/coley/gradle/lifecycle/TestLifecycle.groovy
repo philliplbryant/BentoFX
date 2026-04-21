@@ -8,7 +8,7 @@ import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.CI
 import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.DEV
 import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.OFF
 
-class TestLifecycle {
+final class TestLifecycle {
 	public static final String CHECK_INTEGRATION_TASK_NAME = 'checkIntegration'
 	public static final String CHECK_FUNCTIONAL_TASK_NAME = 'checkFunctional'
 	public static final String CHECK_ALL_TASK_NAME = 'checkAll'

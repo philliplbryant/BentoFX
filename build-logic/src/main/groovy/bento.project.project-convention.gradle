@@ -22,10 +22,6 @@ def versionCatalog = versionCatalogs.named('libs')
 def javaMajorVersionAsInt = 21
 def javaLanguageVersion = JavaLanguageVersion.of(javaMajorVersionAsInt)
 
-def csvCodeCoverageRequired = false
-def htmlCodeCoverageRequired = false
-def xmlCodeCoverageRequired = true
-
 def testReportMode = getTestReportMode(project.providers)
 def enableJacoco = enableJacoco(project.providers)
 
@@ -101,7 +97,7 @@ tasks.withType(Jar).configureEach {
 
     // Name JARs using full project name, based on the project path.
     // Otherwise, we might get JARs with the same names that will collide
-    // when aggregated by the installer task.
+    // when aggregated by tasks like an installer task.
     def jarBaseName =
             project.path
             // Delete the leading ':'
