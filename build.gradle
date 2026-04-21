@@ -4,10 +4,8 @@
 plugins {
     // Apply the base plugin to add `clean` to the root project.
     id 'base'
-//    id 'bento.project.build-lifecycle'
 
     alias libs.plugins.jreleaser
-//    id("org.jreleaser") version "1.23.0"
 //    id libs.plugins.benmanes.versions
 //    id libs.plugins.buildconfig
 }
@@ -22,7 +20,7 @@ tasks.register('stageAllPublications') {
     group = 'release'
     description = "Stages all subproject Maven publications into $stagingDir"
 
-    // TODO
+    // FIXME BENTO-13: This violates project isolation
     subprojects.forEach { subproject ->
         // Only projects that applied maven-publish + have the publication/repo will have this task.
         subproject.tasks.names

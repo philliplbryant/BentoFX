@@ -1,7 +1,6 @@
 plugins {
     id 'bento.project.project-convention'
     id 'bento.test.integration-test-suite'
-    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence for Files'

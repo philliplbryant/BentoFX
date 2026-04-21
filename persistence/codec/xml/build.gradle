@@ -1,6 +1,5 @@
 plugins {
     id 'bento.project.project-convention'
-    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence for XML'
