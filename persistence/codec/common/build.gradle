@@ -1,5 +1,6 @@
 plugins {
     id 'bento.project.project-convention'
+    id 'bento.test.integration-test-parallel-suite'
     alias(libs.plugins.javafx)
 }
 
