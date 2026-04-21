@@ -2,7 +2,6 @@ package software.coley.bentofx;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.jspecify.annotations.NonNull;
 import software.coley.bentofx.building.ControlsBuilding;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.building.PlaceholderBuilding;
@@ -52,37 +51,30 @@ public class Bento implements Identifiable {
 		return new EventBus();
 	}
 
-	@NonNull
 	protected SearchHandler newSearchHandler() {
 		return new SearchHandler(this);
 	}
 
-	@NonNull
 	protected StageBuilding newStageBuilding() {
 		return new StageBuilding(this);
 	}
 
-	@NonNull
 	protected ControlsBuilding newControlsBuilding() {
 		return new ControlsBuilding();
 	}
 
-	@NonNull
 	protected DockBuilding newDockBuilding() {
 		return new DockBuilding(this);
 	}
 
-	@NonNull
 	protected PlaceholderBuilding newPlaceholderBuilding() {
 		return new PlaceholderBuilding();
 	}
 
-	@NonNull
 	protected DockableDragDropBehavior newDragDropBehavior() {
 		return new DockableDragDropBehavior() {};
 	}
 
-	@NonNull
 	protected DockableClickBehavior newClickBehavior() {
 		return new DockableClickBehavior() {};
 	}
@@ -99,7 +91,6 @@ public class Bento implements Identifiable {
     /**
 	 * @return Bus for handling event firing and event listeners.
 	 */
-	@NonNull
 	public EventBus events() {
 		return eventBus;
 	}
@@ -107,7 +98,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Search operations.
 	 */
-	@NonNull
 	public SearchHandler search() {
 		return searchHandler;
 	}
@@ -115,7 +105,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for {@link DragDropStage}.
 	 */
-	@NonNull
 	public StageBuilding stageBuilding() {
 		return stageBuilding;
 	}
@@ -123,7 +112,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for various bento UI controls.
 	 */
-	@NonNull
 	public ControlsBuilding controlsBuilding() {
 		return controlsBuilding;
 	}
@@ -131,7 +119,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for {@link DockContainer} and {@link Dockable}.
 	 */
-	@NonNull
 	public DockBuilding dockBuilding() {
 		return dockBuilding;
 	}
@@ -139,7 +126,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Builders for placeholder content.
 	 */
-	@NonNull
 	public PlaceholderBuilding placeholderBuilding() {
 		return placeholderBuilding;
 	}
@@ -147,7 +133,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Behavior implementation for drag-drop operations.
 	 */
-	@NonNull
 	public DockableDragDropBehavior getDragDropBehavior() {
 		return dragDropBehavior;
 	}
@@ -155,7 +140,6 @@ public class Bento implements Identifiable {
 	/**
 	 * @return Behavior implementation for click operations.
 	 */
-	@NonNull
 	public DockableClickBehavior getClickBehavior() {
 		return clickBehavior;
 	}
@@ -166,7 +150,6 @@ public class Bento implements Identifiable {
 	 * @see #registerRoot(DockContainerRootBranch)
 	 * @see #unregisterRoot(DockContainerRootBranch)
 	 */
-	@NonNull
 	public ObservableList<DockContainerRootBranch> getRootContainers() {
 		return rootContainersView;
 	}
@@ -177,7 +160,7 @@ public class Bento implements Identifiable {
 	 *
 	 * @return {@code true} when registered.
 	 */
-	public boolean registerRoot(@NonNull DockContainerRootBranch container) {
+	public boolean registerRoot(DockContainerRootBranch container) {
 		if (!rootContainers.contains(container)) {
 			rootContainers.add(container);
 			eventBus.fire(new DockEvent.RootContainerAdded(container));
@@ -192,7 +175,7 @@ public class Bento implements Identifiable {
 	 *
 	 * @return {@code true} when unregistered.
 	 */
-	public boolean unregisterRoot(@NonNull DockContainerRootBranch container) {
+	public boolean unregisterRoot(DockContainerRootBranch container) {
 		if (rootContainers.remove(container)) {
 			eventBus.fire(new DockEvent.RootContainerRemoved(container));
 			return true;
