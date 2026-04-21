@@ -1,8 +1,9 @@
 plugins {
+    id 'bento.project.project-convention'
     alias(libs.plugins.javafx)
 }
 
-description = 'H2 Database Implementation of the Bento LayoutStorage interface.
+description = "H2 Database Implementation of the Bento LayoutStorage interface"
 
 dependencies {
 

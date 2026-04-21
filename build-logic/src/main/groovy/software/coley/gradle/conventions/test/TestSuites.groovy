@@ -7,5 +7,8 @@ class TestSuites {
     public static final String UNIT_TEST = 'test'
 
     private TestSuites() {
+        throw new UnsupportedOperationException(
+                'Utility classes should not be instantiated.'
+        )
     }
 }

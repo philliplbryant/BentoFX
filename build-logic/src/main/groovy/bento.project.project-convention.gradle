@@ -1,8 +1,9 @@
 import org.gradle.api.plugins.jvm.JvmTestSuite
 import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.*
 import software.coley.gradle.artifacts.TestFxAlignmentRule
-import software.coley.gradle.lifecycle.TestLifecycle.TestReportMode
-
+import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.ALL
+import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.DEV
+import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.CI
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 import static software.coley.gradle.lifecycle.TestLifecycle.getTestReportMode
@@ -64,11 +65,11 @@ testing {
 
                 useJUnitJupiter(junitVersion)
 
-                targets.all {
+                targets.configureEach {
                     testTask.configure {
-                        filter {
-                            includeTestsMatching "*Test"
-                            includeTestsMatching "*Test\$*"
+                        it.filter {
+                            includeTestsMatching '*Test'
+                            includeTestsMatching '*Test\$*'
                             failOnNoDiscoveredTests = false
                         }
 
@@ -160,6 +161,6 @@ tasks.withType(Test).configureEach {
     }
 
     def mode = testReportMode.get()
-    reports.html.required.set(mode in [TestReportMode.ALL, TestReportMode.DEV])
-    reports.junitXml.required.set(mode in [TestReportMode.ALL, TestReportMode.CI])
+    reports.html.required.set(mode in [ALL, DEV])
+    reports.junitXml.required.set(mode in [ALL, CI])
 }

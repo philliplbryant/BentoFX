@@ -1,7 +1,8 @@
 import software.coley.gradle.buildservice.SimpleBuildService
-import software.coley.gradle.conventions.test.TestSuites
-import software.coley.gradle.lifecycle.BuildLifecycle
-import software.coley.gradle.lifecycle.TestLifecycle
+import static software.coley.gradle.conventions.test.TestSuites.FUNCTIONAL_TEST
+import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'bento.project.build-lifecycle'
@@ -15,7 +16,7 @@ def nonParallelBuildService =
             maxParallelUsages = 1
         }
 
-def testSuiteName = TestSuites.FUNCTIONAL_TEST
+def testSuiteName = FUNCTIONAL_TEST
 def testSuiteDirName = 'ft'
 def testSuiteTestSuffix = 'FT'
 
@@ -75,20 +76,20 @@ tasks.jacocoTestReport.configure {
     shouldRunAfter(testSuiteName)
 }
 
-tasks.named(TestSuites.FUNCTIONAL_TEST, Test) {
+tasks.named(FUNCTIONAL_TEST, Test) {
     def suiteSourceSet = sourceSets.named(testSuiteName).get()
     testClassesDirs = suiteSourceSet.output.classesDirs
     classpath = suiteSourceSet.runtimeClasspath
     modularity.inferModulePath.set(false)
 }
 
-tasks.named(BuildLifecycle.ALL_CLASSES_TASK_NAME) {
+tasks.named(ALL_CLASSES_TASK_NAME) {
     dependsOn named('functionalTestClasses')
 }
 
-tasks.named(TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME) {
+tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
     dependsOn(testSuiteName)
-    if (TestLifecycle.enableJacoco(providers).get()) {
+    if (enableJacoco(providers).get()) {
         dependsOn(jacocoTestReport)
     }
 }

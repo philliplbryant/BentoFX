@@ -1,5 +1,7 @@
-import org.gradle.language.base.plugins.LifecycleBasePlugin
-import software.coley.gradle.lifecycle.TestLifecycle
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_ALL_TASK_NAME
 
 plugins {
     id 'base'
@@ -7,23 +9,23 @@ plugins {
 
 //def checkTask = tasks.named('check')
 
-tasks.register(TestLifecycle.CHECK_INTEGRATION_TASK_NAME) {
+tasks.register(CHECK_INTEGRATION_TASK_NAME) {
     description = 'Runs integration tests for all applicable subprojects.'
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    group = VERIFICATION_GROUP
     shouldRunAfter(tasks.named('check'))
 }
 
-tasks.register(TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME) {
+tasks.register(CHECK_FUNCTIONAL_TASK_NAME) {
     description = 'Runs functional tests for all applicable subprojects.'
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    group = VERIFICATION_GROUP
     shouldRunAfter(tasks.named('check'))
-    shouldRunAfter(tasks.named(TestLifecycle.CHECK_INTEGRATION_TASK_NAME))
+    shouldRunAfter(tasks.named(CHECK_INTEGRATION_TASK_NAME))
 }
 
-tasks.register(TestLifecycle.CHECK_ALL_TASK_NAME) {
+tasks.register(CHECK_ALL_TASK_NAME) {
     description = 'Runs all tests for all applicable subprojects.'
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    group = VERIFICATION_GROUP
     dependsOn(tasks.named('check'))
-    dependsOn(tasks.named(TestLifecycle.CHECK_INTEGRATION_TASK_NAME))
-    dependsOn(tasks.named(TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME))
+    dependsOn(tasks.named(CHECK_INTEGRATION_TASK_NAME))
+    dependsOn(tasks.named(CHECK_FUNCTIONAL_TASK_NAME))
 }

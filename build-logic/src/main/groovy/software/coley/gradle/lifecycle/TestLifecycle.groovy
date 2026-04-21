@@ -40,5 +40,8 @@ class TestLifecycle {
 	}
 
 	private TestLifecycle() {
+		throw new UnsupportedOperationException(
+				'Utility classes should not be instantiated.'
+		)
 	}
 }

@@ -1,62 +1,61 @@
 [versions]
 # Libraries
 assertj = "3.27.3"
-#byte-buddy = "1.18.5"
-#h2 = "2.4.240"
-#hibernate = "7.2.6.Final"
-#hibernate-hikari-cp = "7.2.6.Final"
-#hibernate-validator = "9.1.0.Final"
+byte-buddy = "1.18.5"
+h2 = "2.4.240"
+hibernate = "7.2.6.Final"
+hibernate-hikari-cp = "7.2.6.Final"
+hibernate-validator = "9.1.0.Final"
 jackson = "2.21.1"
 # `jacoco` is used in project-convention.gradle.kts
 jacoco = "0.8.14"
 jakarta-annotation = "3.0.0"
-#jakarta-cdi = "4.1.0"
-#jakarta-el = "4.0.2"
-#jakarta-inject = "2.0.1"
+jakarta-cdi = "4.1.0"
+jakarta-el = "4.0.2"
+jakarta-inject = "2.0.1"
 jakarta-persistence = "3.2.0"
-#jakarta-transaction = "2.0.1"
+jakarta-transaction = "2.0.1"
 javafx = "23.0.2"
 jaxb = "4.0.6"
 jspecify = "1.0.0"
-junit = "5.10.0"
-junit-launch = "1.13.4"
+junit = "6.0.3"
 moxy = "5.0.0"
 slf4j = "2.0.17"
 testfx = "4.0.18"
 testfx-monocle = "21.0.2"
-#zaxxer-hikari-cp = "7.0.2"
+zaxxer-hikari-cp = "7.0.2"
 
 # Plugins
 benmanes-versions = "0.52.0"
 buildconfig = "6.0.9"
 javafx-plugin = "0.1.0"
-jreleaser = "1.21.0"
+jreleaser = "1.23.0"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 benmanes-versions-gradlePlugin-dependency = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benmanes-versions" }
-#byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
-#h2 = { module = "com.h2database:h2", version.ref = "h2" }
-#hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
-#hibernate-hikari-cp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate-hikari-cp" }
-#hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
+byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
+hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
+hibernate-hikari-cp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate-hikari-cp" }
+hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
-#jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml" }
+jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml" }
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
-#jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-cdi" }
-#jakarta-el = { module = "org.glassfish:jakarta.el", version.ref = "jakarta-el" }
-#jakarta-inject = { module = "jakarta.inject:jakarta.inject-api", version.ref = "jakarta-inject" }
+jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-cdi" }
+jakarta-el = { module = "org.glassfish:jakarta.el", version.ref = "jakarta-el" }
+jakarta-inject = { module = "jakarta.inject:jakarta.inject-api", version.ref = "jakarta-inject" }
 jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
-#jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
-#jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
-#jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
+jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
+jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
+jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
 jaxb-bom = { module = "org.glassfish.jaxb:jaxb-bom", version.ref = "jaxb" }
-#jaxb-xjc = { module = "com.sun.xml.bind:jaxb-xjc" }
+jaxb-xjc = { module = "com.sun.xml.bind:jaxb-xjc" }
 jreleaser-gradlePlugin-dependency = { module = "org.jreleaser:org.jreleaser.gradle.plugin", version.ref = "jreleaser" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api" }
@@ -71,7 +70,7 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 testfx = { module = "org.testfx:testfx-junit5", version.ref = "testfx" }
 testfx-core = { module = "org.testfx:testfx-core", version.ref = "testfx" }
 testfx-monocle = { module = "org.testfx:openjfx-monocle", version.ref = "testfx-monocle" }
-#zaxxer-hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "zaxxer-hikari-cp" }
+zaxxer-hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "zaxxer-hikari-cp" }
 
 [bundles]
 annotations = ["jspecify"]
