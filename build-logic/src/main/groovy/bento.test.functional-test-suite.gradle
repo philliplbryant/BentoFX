@@ -51,9 +51,9 @@ testing {
                         systemProperty 'testfx.headless', 'true'
                         systemProperty 'testfx.robot', 'glass'
                     }
+                    usesService(nonParallelBuildService)
 
                     maxHeapSize = '2g'
-                    usesService(nonParallelBuildService)
                     modularity.inferModulePath.set(false)
                     jvmArgs = (jvmArgs ?: []).findAll { !it.contains('--module-path') }
                 }
