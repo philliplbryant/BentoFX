@@ -11,7 +11,6 @@ import static software.coley.gradle.lifecycle.TestLifecycle.getTestReportMode
 plugins {
     id 'java-library'
     id 'org.openjfx.javafxplugin'
-
     id 'bento.project.build-lifecycle'
     id 'bento.test.unit-test-suite'
 }
