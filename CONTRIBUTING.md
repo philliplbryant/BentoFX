@@ -1,13 +1,13 @@
 # Contributing to BentoFX
 
-The following is a series of guidelines for contributing to BentoFX.
-They're not _"rules"_ per say, rather they're more like goals to strive towards.
-
 ## License
 
 BentoFX is licensed under the MIT License. Anything you contribute will thus also be under the MIT license.
 
 ## Coding Guidelines
+
+The following is a series of guidelines for contributing to BentoFX.
+They're not _"rules"_ per se, rather they're more like goals to strive towards.
 
 **Style**: IDE code formatting rules can be found in the [`/setup` directory](setup).
 If using IntelliJ or Eclipse you should be able to import one of the provided files.
@@ -16,33 +16,78 @@ If using IntelliJ or Eclipse you should be able to import one of the provided fi
 This makes it easier for reviewers to understand the context and purpose of each commit.
 I know some features are large in scope, just break down what you can where possible.
 
-## Automated Tests
-Automate tests should be separated into categories, as defined below, based on their purposes and the conditions under which they can be reliably run.
+## Automated Testing
 
-**Unit Tests**: 
-> <span style="font-size: 1.5em;">💡</span>Unit tests run as part of the following tasks <ul><li>`gradlew build`</li><li>`gradlew check`</li><li>`gradlew checkAll`</li>
+Automated tests are categorized as defined below, based on their purposes and the conditions under which they can be reliably executed.
 
- - Focus on a single, small piece of functionality, such as a single class, function, or method. 
- - Test the code independently, often using mocks or stubs to replace external dependencies like databases, APIs, or other modules. 
- - Run very quickly.
- - Can be run in parallel.
+**Unit Tests (Test)**: 
+
+Projects that apply the [project convention](./build-logic/src/main/groovy/bento.project.project-convention.gradle) are configured to run unit tests.  
+Unit test classes must have names ending with `Test` and be located in the `src/test/java` directory.  
+
+Unit tests:  
+- Focus on a single, small piece of functionality, such as a class, function, or method.  
+- Run independently of external dependencies (e.g., databases, APIs, or other modules), often using mocks or stubs.  
+- Execute very quickly.  
+- Can be run in parallel reliably.
+
+> 💡 **Tips for Execution**  
+> Unit tests are executed as part of the following tasks:  
+> - `gradlew build`  
+> - `gradlew check`  
+> - `gradlew checkAll`
+
+---
 
 **Integration Tests (IT)**:
-> <span style="font-size: 1.5em;">💡</span>Integration tests run as part of the following tasks <ul><li>`gradlew integrationTest`</li><li>`gradlew checkIntegration`</li><li>`gradlew checkAll`</li>
 
-- Focus on the interaction between units, modules, or subsystems to ensure they integrate properly.
-- Include interactions between components, such as an API making a database call or one service calling another, often interacting with and (temporarily) blocking or modifying resources.
-- Because they block or modify external resources, integration tests <u>cannot</u>  be run in parallel reliably.
+Projects that apply the [integration test convention](./build-logic/src/main/groovy/bento.test.integration-test-suite.gradle) are enabled to run integration tests.  
+Integration test classes must have names ending with `IT` and be located in the `src/it/java` directory.
 
-**Integration Tests, Parallel (ITP)**:
-> <span style="font-size: 1.5em;">💡</span>Integration tests, parallel run as part of the following tasks <ul><li>`gradlew integrationTestParallel`</li><li>`gradlew checkIntegration`</li><li>`gradlew checkAll`</li>
+Integration tests:
+- Focus on the interaction among units, modules, or subsystems to ensure proper integration.  
+- Often include resource-intensive processes such as API calls to databases or interactions between services.  
+- Block or modify external resources temporarily and therefore <u>cannot</u> be run in parallel reliably.
 
-- Also, focus on the interaction between units, modules, or subsystems to ensure they integrate properly.
-- May interact with external resources, but do not lock or modify them, and allow other tests to concurrently access the same resources.
-- Because they do not modify external resources, integration tests parallel can be run in parallel reliably.
+> 💡 **Tips for Execution**  
+> Integration tests are executed as part of the following tasks:  
+> - `gradlew integrationTest`  
+> - `gradlew checkIntegration`  
+> - `gradlew checkAll`
 
-**Functional Tests**:
-> <span style="font-size: 1.5em;">💡</span>Functional tests run as part of the following tasks <ul><li>`gradlew functionalTest`</li><li>`gradlew checkFunctional`</li><li>`gradlew checkAll`</li>
+---
 
-- Instantiate user interface components and therefore cannot be run without a graphics environment.
-- Often interact with user interface components and therefore cannot be run in parallel reliably.
+**Parallel Integration Tests (ITP)**:
+
+Projects that apply the [integration test parallel convention](./build-logic/src/main/groovy/bento.test.integration-test-parallel-suite.gradle) are enabled to run integration tests in parallel.  
+Parallel integration test classes must have names ending with `ITP` and be located in the `src/itp/java` directory.  
+
+Parallel integration tests:
+- Focus on the interaction among units, modules, or subsystems to ensure proper integration.  
+- May interact with external resources but do so in a non-blocking way that does not modify resources, allowing concurrent access.  
+- Because they do not modify external resources, these tests can run in parallel reliably.
+
+> 💡 **Tips for Execution**  
+> Parallel integration tests are executed as part of the following tasks:  
+> - `gradlew integrationTestParallel`  
+> - `gradlew checkIntegration`  
+> - `gradlew checkAll`
+
+---
+
+**Functional Tests (FT)**:
+
+Projects that apply the [functional test convention](./build-logic/src/main/groovy/bento.test.functional-test-suite.gradle) are enabled to run functional tests.  
+Functional test classes must have names ending with `FT` and be located in the `src/ft/java` directory.  
+
+Functional tests:
+- Test user interface components, requiring a graphical environment to run.  
+- Often interact with UI components and <u>cannot</u> be run in parallel reliably.
+
+> 💡 **Tips for Execution**  
+> Functional tests are executed as part of the following tasks:  
+> - `gradlew functionalTest`  
+> - `gradlew checkFunctional`  
+> - `gradlew checkAll`
+
+---
