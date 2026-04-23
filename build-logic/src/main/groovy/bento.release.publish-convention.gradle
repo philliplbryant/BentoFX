@@ -6,7 +6,7 @@ plugins {
 
 publishing {
     publications {
-        register( 'maven', MavenPublication) {
+        mavenJava(MavenPublication) {
 
             artifactId = project.path
                 // Delete the leading ':'

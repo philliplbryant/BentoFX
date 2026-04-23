@@ -25,6 +25,15 @@ dependencies {
     api platform(project(':platform'))
 }
 
+javafx {
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.controls']
+
+    // We don't want to include a specific version of JavaFX as a transitive
+    // dependency for users of the library
+    configurations = ['compileOnly', 'testImplementation']
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
