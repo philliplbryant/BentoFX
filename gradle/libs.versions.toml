@@ -8,8 +8,6 @@ hibernate = "7.2.6.Final"
 hibernate-hikari-cp = "7.2.6.Final"
 hibernate-validator = "9.1.0.Final"
 jackson = "2.21.1"
-# `jacoco` is used in project-convention.gradle.kts
-jacoco = "0.8.14"
 jakarta-annotation = "3.0.0"
 jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"

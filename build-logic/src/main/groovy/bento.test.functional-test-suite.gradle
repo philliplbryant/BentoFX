@@ -2,13 +2,11 @@ import software.coley.gradle.buildservice.SimpleBuildService
 import static software.coley.gradle.conventions.test.TestSuites.FUNCTIONAL_TEST
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
     id("com.autonomousapps.dependency-analysis")
-    id 'jacoco'
     id 'jvm-test-suite'
 }
 
@@ -83,10 +81,6 @@ dependencyAnalysis {
     }
 }
 
-tasks.named("jacocoTestReport").configure {
-    shouldRunAfter(testSuiteName)
-}
-
 tasks.named(FUNCTIONAL_TEST) {
     def suiteSourceSet = sourceSets.named(testSuiteName).get()
     testClassesDirs = suiteSourceSet.output.classesDirs
@@ -100,7 +94,4 @@ tasks.named(ALL_CLASSES_TASK_NAME) {
 
 tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
     dependsOn(testSuiteName)
-    if (enableJacoco(providers).get()) {
-        dependsOn(tasks.named('jacocoTestReport'))
-    }
 }

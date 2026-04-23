@@ -6,56 +6,9 @@ plugins {
     id 'base'
 
     alias libs.plugins.jreleaser
+    alias libs.plugins.benmanes.versions
+    alias libs.plugins.buildconfig
     alias libs.plugins.dependencyAnalysis.gradlePlugin
-
-//    id libs.plugins.benmanes.versions
-//    id libs.plugins.buildconfig
-}
-
-/**
- * The directory to which JReleaser artifacts are staged.
- */
-def stagingDir = layout.buildDirectory.dir("staging-deploy")
-
-// Publish all module publications to the shared staging repo
-tasks.register('stageAllPublications') {
-    group = 'release'
-    description = "Stages all subproject Maven publications into $stagingDir"
-
-    // FIXME BENTO-13: This violates project isolation
-    subprojects.forEach { subproject ->
-        // Only projects that applied maven-publish + have the publication/repo will have this task.
-        subproject.tasks.names
-                .forEach { taskName ->
-                    if (taskName == 'publishMavenPublicationToStagingRepository') {
-                        dependsOn(subproject.tasks.named(taskName))
-                    }
-                }
-    }
-}
-
-tasks.register('stageMavenCentral') {
-
-    group = "release"
-    description = "Stages all subproject publications into build/staging-deploy"
-
-    into(layout.buildDirectory.dir("staging-deploy"))
-
-    // FIXME BENTO-13: This violates project isolation
-    subprojects.forEach { subproject ->
-        // This path exists after publishing tasks run. We’ll depend on publishToMavenLocal
-        // OR better: depend on each module's "publishMavenPublicationToMavenLocal" equivalent.
-        // But task names vary; so we stage from known build outputs when available.
-
-        // If you *do* use maven-publish, the publication metadata/jars are in build/libs + generated POM.
-        // We'll stage jars + pom from build/publications/maven (generated metadata).
-        from(subproject.layout.buildDirectory.dir('publications/maven')) {
-            into("${subproject.name}/publications/maven")
-        }
-        from(subproject.layout.buildDirectory.dir("libs")) {
-            into("${subproject.name}/libs")
-        }
-    }
 }
 
 dependencyAnalysis {
@@ -90,133 +43,37 @@ dependencyAnalysis {
     useTypesafeProjectAccessors(true)
 }
 
-
-//// Configuration cache incompatibility message
-//def jreleaserConfigCacheIncompatibilityReason =
-//        "As of version 1.23.0, the JReleaser Gradle plugin does not support " +
-//                "configuration cache: " +
-//                "(https://github.com/jreleaser/jreleaser/issues/1992).\n" +
-//                "Run `jreleaser[TaskName]` tasks using:\n" +
-//                "`./gradlew jreleaser[TaskName] --no-configuration-cache'"
-//
-//
-//tasks.named("jreleaserAssemble").configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    // Only depend on modules that actually build Java artifacts
-//    dependsOn(subprojects.mapNotNull { subproject ->
-//        subproject.tasks.matching {
-//            it.name == "assemble"
-//        }.takeIf {
-//            it.isNotEmpty()
-//        }?.let {
-//            subproject.tasks.named("assemble")
-//        }
-//    })
-//}
-//
-//tasks.named('jreleaserChecksum').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(tasks.named('stageAllPublications'))
-//}
-//
-//tasks.named('jreleaserConfig').configure {
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//}
-//
-//tasks.named('jreleaserDeploy').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(tasks.named('stageAllPublications'))
-//}
-//
-//tasks.named('jreleaserFullRelease').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(subprojects.mapNotNull { subproject ->
-//        subproject.tasks.matching {
-//            it.name == "build"
-//        }.takeIf {
-//            it.isNotEmpty()
-//        }?.let {
-//            subproject.tasks.named("build")
-//        }
-//    })
-//}
-//
-//tasks.named('jreleaserRelease').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(tasks.named('stageAllPublications'))
-//}
-//
-//tasks.named('jreleaserSign').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(tasks.named('stageAllPublications'))
-//}
-//
-//tasks.named('jreleaserUpload').configure {
-//
-//    notCompatibleWithConfigurationCache(
-//            jreleaserConfigCacheIncompatibilityReason
-//    )
-//
-//    dependsOn(tasks.named('stageMavenCentral'))
-//}
-//
-//jreleaser {
-//    signing {
-//        pgp {
-//            active = 'RELEASE'
-//            armored = true
-//        }
-//    }
-//    release {
-//        // TODO: This doesn't auto-publish github releases and the 'distribution' block also isn't a viable alternative
-//        //  Need to look into why it doesn't work. Probably related to the project's "alternative" artifact model...
-//        github {
-//            tagName = project.version
-//            changelog {
-//                formatted = 'ALWAYS'
-//                preset = 'conventional-commits'
-//                contributors {
-//                    format = '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
-//                }
-//            }
-//        }
-//    }
-//    deploy {
-//        maven {
-//            mavenCentral {
-//                sonatype {
-//                    active = 'RELEASE'
-//                    url = 'https://central.sonatype.com/api/v1/publisher'
-//                    applyMavenCentralRules = true
-//                    stagingRepository('build/staging-deploy')
-//                }
-//            }
-//        }
-//    }
-//}
+jreleaser {
+    signing {
+        pgp {
+            active = 'RELEASE'
+            armored = true
+        }
+    }
+    release {
+        // TODO: This doesn't auto-publish github releases and the 'distribution' block also isn't a viable alternative
+        //  Need to look into why it doesn't work. Probably related to the project's "alternative" artifact model...
+        github {
+            tagName = project.version
+            changelog {
+                formatted = 'ALWAYS'
+                preset = 'conventional-commits'
+                contributors {
+                    format = '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+                }
+            }
+        }
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'RELEASE'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    applyMavenCentralRules = true
+                    stagingRepository('build/staging-deploy')
+                }
+            }
+        }
+    }
+}
