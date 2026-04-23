@@ -6,6 +6,7 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 plugins {
     id 'java-library'
     id 'org.openjfx.javafxplugin'
+    id 'com.github.ben-manes.versions'
     id 'bento.project.build-lifecycle'
     id 'bento.test.unit-test-suite'
 }
@@ -25,14 +26,15 @@ dependencies {
     api platform(project(':platform'))
 }
 
-javafx {
-    version = versionCatalog.findVersion("javafx")
-    modules = ['javafx.controls']
-
-    // We don't want to include a specific version of JavaFX as a transitive
-    // dependency for users of the library
-    configurations = ['compileOnly', 'testImplementation']
-}
+// TODO BENTO-13: How do I use this?
+//javafx {
+//    version = versionCatalog.findVersion("javafx")
+//    modules = ['javafx.controls']
+//
+//    // We don't want to include a specific version of JavaFX as a transitive
+//    // dependency for users of the library
+//    configurations = ['compileOnly', 'testImplementation']
+//}
 
 java {
     toolchain {
@@ -97,12 +99,9 @@ tasks.withType(JavaCompile).configureEach {
         // represent the first 256 Unicode characters. Both encode ASCII
         // exactly the same way.
         encoding = 'UTF-8'
-
         release = javaMajorVersionAsInt
-
         fork = true
         forkOptions.memoryMaximumSize = '1g'
-
         options.compilerArgs << '-parameters'
     }
 }
@@ -121,7 +120,7 @@ tasks.withType(Jar).configureEach {
 
     archiveBaseName.set(jarBaseName)
 
-    from(rootProject.layout.projectDirectory) {
+    from(project.isolated.rootProject.projectDirectory) {
         include 'LICENSE'
         into 'META-INF'
         rename { 'LICENSE.txt' }

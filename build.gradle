@@ -4,10 +4,8 @@
 plugins {
     // Apply the base plugin to add `clean` to the root project.
     id 'base'
-
     alias libs.plugins.jreleaser
     alias libs.plugins.benmanes.versions
-    alias libs.plugins.buildconfig
     alias libs.plugins.dependencyAnalysis.gradlePlugin
 }
 

@@ -2,7 +2,7 @@
 # Libraries
 assertj = "3.27.7"
 byte-buddy = "1.18.5"
-dependency-analysis-gradle-plugin = "3.6.0"
+dependency-analysis-gradle-plugin = "3.9.0"
 h2 = "2.4.240"
 hibernate = "7.2.6.Final"
 hibernate-hikari-cp = "7.2.6.Final"
