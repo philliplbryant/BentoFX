@@ -8,14 +8,14 @@ description = 'BentoFX Persistence for XML'
 dependencies {
 
     api projects.persistence.api
-    api libs.jackson.annotations
-    api libs.jackson.xml
 
     implementation projects.persistence.codec.common
 
     implementation libs.jackson.databind
     implementation libs.javafx.graphics
+    implementation libs.jackson.xml
 
+    compileOnly libs.jackson.annotations
     compileOnly libs.javafx.controls
     compileOnly libs.jspecify
 

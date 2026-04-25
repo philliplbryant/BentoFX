@@ -9,12 +9,11 @@ dependencies {
 
     api projects.persistence.api
 
-    api libs.jackson.annotations
-
     implementation projects.persistence.codec.common
 
     implementation libs.jackson.databind
 
+    compileOnly libs.jackson.annotations
     compileOnly libs.javafx.controls
     compileOnly libs.jspecify
 

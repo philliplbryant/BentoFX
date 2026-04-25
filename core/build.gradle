@@ -8,9 +8,9 @@ description = 'A docking system for JavaFX'
 
 dependencies {
 
-    api libs.jspecify
-
     compileOnlyApi libs.javafx.controls
+
+    compileOnly libs.jspecify
 }
 
 buildConfig {

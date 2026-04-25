@@ -26,12 +26,11 @@ dependencies {
     implementation libs.javafx.controls
     implementation libs.javafx.graphics
 
-    compileOnly libs.jakarta.persistence
     compileOnly libs.jspecify
 
     // Only include one codec implementation
-//    runtimeOnly projects.persistence.codec.json
-    runtimeOnly projects.persistence.codec.xml
+    runtimeOnly projects.persistence.codec.json
+//    runtimeOnly projects.persistence.codec.xml
 
     // Only include one storage implementation
     runtimeOnly projects.persistence.storage.file
