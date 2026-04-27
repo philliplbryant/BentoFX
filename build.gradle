@@ -9,6 +9,7 @@ plugins {
     alias libs.plugins.dependencyAnalysis.gradlePlugin
 }
 
+// TODO BENTO-35: Remove DAGP
 dependencyAnalysis {
     issues {
         // Configure for all projects
