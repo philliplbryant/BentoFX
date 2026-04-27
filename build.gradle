@@ -78,14 +78,18 @@ jreleaser {
     }
 }
 
-// Use this task to upgrade Gradle in order to keep
-// gradle-wrapper.properties in sync.
+// Using this task to upgrade Gradle keeps the gradle-wrapper.properties,
+// distribution JAR, and wrapper scripts (./gradle and ./gradlew.bat) in sync.
 tasks.named("wrapper", Wrapper).configure {
-    // Get the Gradle version specified in libs.versions.toml
-    gradleVersion = versionCatalog.findVersion("gradle").get().requiredVersion
-    distributionSha256Sum = versionCatalog.findVersion("gradle-checksum").get().requiredVersion
-    // Using `ALL` instead of `BIN` to provide support for developers using
-    // the Gradle scripts.
+
+    // The Gradle version and checksum are specified in libs.versions.toml
+    gradleVersion =
+            versionCatalog.findVersion("gradle").get().requiredVersion
+    distributionSha256Sum =
+            versionCatalog.findVersion("gradle-checksum").get().requiredVersion
+
+    // Use `ALL` instead of `BIN` to provide support for developers using the
+    // Gradle scripts.
     distributionType = BIN
     networkTimeout = 60000
 }
