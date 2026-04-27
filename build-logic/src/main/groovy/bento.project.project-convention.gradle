@@ -26,14 +26,15 @@ dependencies {
     api platform(project(':platform'))
 }
 
-// TODO BENTO-13: How do I use this?
+// TODO BENTO-13: Should I use this to relax dependency versioning or require
+//  users set their own dependency constraints?
 //javafx {
 //    version = versionCatalog.findVersion("javafx")
 //    modules = ['javafx.controls']
 //
 //    // We don't want to include a specific version of JavaFX as a transitive
 //    // dependency for users of the library
-//    configurations = ['compileOnly', 'testImplementation']
+//    configurations = ['compileOnly', 'compileOnlyApi']
 //}
 
 java {
