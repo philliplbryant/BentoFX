@@ -2,20 +2,58 @@
 
 A docking system for JavaFX.
 
-## Usage
+Information for contributing to the BentoFX project can be found [here](./CONTRIBUTING.md).
 
-Requirements:
+## Table of Contents
 
-- JavaFX 19+
-- Java 17+
+* [Requirements](#requirements)
+* [Core Framework](#core-module)
+  * [Usage](#core-usage)
+    * [Gradle (Groovy DSL)](#core-gradle-groovy-dsl)
+    * [Gradle (Kotlin DSL)](#core-gradle-kotlin-dsl)
+    * [Maven](#core-maven)
+  * [Overview](#overview)
+    * [Containers](#containers)
+    * [Controls](#controls)
+    * [Dockables](#dockables)
+  * [Example](#example)
+    * [Construct the Default Docking Layout](#construct-the-default-layout)
+    * [Show the Layout](#show-it)
+* [Persistence Framework](#persistence)
+  * [Usage](#persistence-usage)
+    * [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
+    * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
+    * [Maven](#persistence-maven)
+  * [Overview](#persistence-overview)
+  * [Extending Persistence](#extending-persistence)
+* [Demo Applications](#demo-applications)
+  * [Basic Demo](#basic-demo)
+  * [Persistence Demo](#persistence-demo)
 
-Gradle syntax:
+## Requirements
+
+- JavaFX 23+
+- Java 21+
+
+## Core Module
+
+The [core](./core) module is a framework of user interface controls that can be used to group, dock, and undock other user interface controls using drag and drop. 
+
+<h3 id="core-usage">Usage</h3>
+
+<h4 id="core-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>
 
 ```groovy
-implementation "software.coley.bento-fx:core:${version}"
+implementation 'software.coley.bento-fx:core:${version}'
 ```
 
-Maven syntax:
+<h4 id="core-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>
+
+```kotlin
+implementation("software.coley.bentofx:core:${version}")
+```
+
+<h4 id="core-maven">Maven</h4>
 
 ```xml
 <dependency>
@@ -25,7 +63,7 @@ Maven syntax:
 </dependency>
 ```
 
-## Overview
+### Overview
 
 ![overview](assets/overview.png)
 
@@ -39,7 +77,7 @@ In terms of hierarchy, the `Node` structure of Bento goes like:
 Each level of `*DockContainer` in the given hierarchy and `Dockable` instances can be constructed via a `Bento`
 instance's builder offered by `bento.dockBuilding()`.
 
-### Containers
+#### Containers
 
 ![containers](assets/containers.png)
 
@@ -51,7 +89,7 @@ display `Dockable` items and handle drag-n-drop operations.
 | `DockContainerBranch` | Used to show multiple child `DockContainer` instances in a `SplitPane` display. Orientation and child node scaling are thus specified the same way as with `SplitPane`. |
 | `DockContainerLeaf`   | Used to show any number of `Dockable` instance rendered by a `HeaderPane`.                                                                                              |
 
-### Controls
+#### Controls
 
 ![controls](assets/controls.png)
 
@@ -59,7 +97,7 @@ Bento comes with a few custom controls that you will want to create a custom sty
 look and feel of your application.
 
 An example reference sheet _(which is included in the dependency)_ can be found
-in [`bento.css`](demos/basic/src/main/resources/bento.css).
+in [`bento.css`](core/src/main/resources/bento.css).
 
 | Control                     | Description                                                                                                                                       |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -68,7 +106,7 @@ in [`bento.css`](demos/basic/src/main/resources/bento.css).
 | `Headers`                   | Child of `HeaderPane` that acts as a `HBox`/`VBox` holding multiple `Headers`.                                                                    |
 | `ButtonHBar` / `ButtonVBar` | Child of `HeaderPane` used to show buttons for the `DockContainerLeaf` for things like context menus and selection of overflowing `Header` items. |
 
-### Dockable
+#### Dockables
 
 The `Dockable` can be thought of as the model behind each of a `HeaderPane`'s `Header` _(Much like a `Tab` of
 a `TabPane`)_.
@@ -76,8 +114,7 @@ It outlines capabilities like whether the `Header` can be draggable, where it ca
 display,
 and the associated JavaFX `Node` to display when placed into a `DockContainerLeaf`.
 
-## Example
-
+### Example
 ![containers](assets/example.png)
 
 In this example we create a layout structure that loosely models how an IDE is laid out.
@@ -164,16 +201,258 @@ leafWorkspaceHeaders.addDockables(
 		buildDockable(builder, 0, 4, "Class 5")
 );
 
-// Show it
+#### Show it
+
+```java
 Scene scene = new Scene(branchRoot);
 scene.getStylesheets().add("/bento.css");
 stage.setScene(scene);
 stage.setOnHidden(e -> System.exit(0));
 stage.show();
 ```
-
 For a more real-world example you can check out [Recaf](https://github.com/Col-E/Recaf/)
 
 ![containers](assets/example-recaf.png)
 
-Information for contributing to the BentoFX project can be found [here](./CONTRIBUTING.md).
+## Persistence
+
+The [persistence](./persistence) modules create a framework that can be used to supplement the [core](#core-module) module, allowing BentoFX docking layouts that have been customized at runtime to be to saved and restored across application executions.  Application developers control the format and storage destination by adding runtime dependencies to implementations of codec and storage interfaces as noted below.
+
+> <span style="font-size: 1.5em;">💡</span> The persistence framework is currently limited to saving and restoring a single format at a single storage destination.
+
+<h3 id="persistence-framework-usage">Usage</h3>
+The persistence framework has dependencies on the following modules:
+
+* Persistence API  
+  The persistence API contains core classes for saving and restoring docking layouts using the format and storage destination implementations discovered at runtime.
+    * `persistence-api`
+* Codec implementations  
+  The codec implementations contain classes for encoding and decoding the docking layout in the format defined by each implementation. The BentoFX persistence framework includes codec implementations with the following artifact names:
+    * JavaScript Object notation (JSON)   
+      * `persistence-codec-json`
+    * eXtensible Markup Language (XML)  
+      * `persistence-codec-xml`
+* Storage implementations  
+  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes storage implementations artifacts with the following artifact names:
+    * File  
+      * `persistence-storage-file`
+    * H2 Database  
+      * `persistence-storage-db-h2`
+
+<h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>   
+
+```groovy  
+implementation 'software.coley.bento-fx:persistence-api:${version}'
+runtimeOnly 'software.coley.bento-fx:persistence-codec-xml:${version}'
+runtimeOnly 'software.coley.bento-fx:persistence-storage-file:${version}'
+```
+
+<h4 id="persistence-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>  
+
+```kotlin  
+implementation("software.coley.bento-fx:persistence-api:${version}")
+runtimeOnly("software.coley.bento-fx:persistence-codec-xml:${version}")
+runtimeOnly("software.coley.bento-fx:persistence-storage-file:${version}")
+```
+
+<h4 id="persistence-maven">Maven</h4>   
+
+```xml  
+<dependency>
+    <groupId>software.coley.bento-fx</groupId>
+    <artifactId>persistence-api</artifactId>
+    <version>${version}</version>
+</dependency>
+<dependency>
+    <groupId>software.coley.bento*fx</groupId>
+    <artifactId>persistence-codec-xml</artifactId>
+    <version>${version}</version>
+    <scope>runtime</scope>
+</dependency>
+<dependency>
+    <groupId>software.coley.bento*fx</groupId>
+    <artifactId>persistence-storage-file</artifactId>
+    <version>${version}</version>
+    <scope>runtime</scope>
+</dependency>
+```
+
+<h3 id=persistence-overview>Overview</h3>
+
+The primary interface for interacting with persistence framework is the `LayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer` that can be used to persist and restore a docking layout.  
+
+`BentoLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
+
+1. Manual construction
+```java
+final LayoutPersistenceProvider provider =   
+  new BentoLayoutPersistenceProvider();
+```
+
+2. Using `ServiceLocator`
+```java
+final Iterable<LayoutPersistenceProvider> persistenceProviders =
+        ServiceLoader.load(LayoutPersistenceProvider.class);
+
+final Iterator<LayoutPersistenceProvider> persistenceProviderIterator =
+        persistenceProviders.iterator();
+
+if (persistenceProviderIterator.hasNext()) {
+
+    final LayoutPersistenceProvider persistenceProvider =
+            persistenceProviderIterator.next();
+}
+```
+
+Once the `LayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver`, `LayoutRestorer`, and `Bento` implementations:  
+
+```java
+final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver();
+
+final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
+        dockableStateProvider,
+        stageIconImageProvider,               // Nullable
+        dockContainerLeafMenuFactoryProvider  // Nullable
+);
+
+final Bento bento = persistenceProvider.getBento();
+```
+
+#### LayoutSaver
+The `LayoutSaver` is used to persist the current docking layout, similar to the following:
+
+```java
+private void doOnClose() {
+
+    if (layoutSaver == null) {
+
+        logger.warn("No LayoutPersistenceProvider found. " +
+                "Docking layout will not be persisted.");
+
+    } else {
+
+        try {
+
+            layoutSaver.saveLayout();
+
+        } catch (BentoStateException e) {
+
+            logger.warn("Could not save the docking layout.", e);
+        }
+    }
+}
+```
+
+#### LayoutRestorer
+The `LayoutRestorer` is used to restore the last saved docking layout, similar to the follows:
+
+```java
+/**
+ * @return if a prior {@link DockingLayout} has been saved, restores and
+ * returns it. Otherwise, returns the default {@link DockingLayout}.
+ * @see #getDefaultDockingLayout()
+ */
+private DockingLayout getDockingLayout() {
+
+    final LayoutRestorer layoutRestorer =
+            persistenceProvider.getLayoutRestorer(
+                    bentoProvider,
+                    DEFAULT_LAYOUT_IDENTIFIER,
+                    dockableStateProvider,
+                    stageIconImageProvider,
+                    dockContainerLeafMenuFactoryProvider
+            );
+
+    return layoutRestorer.restoreLayout(
+            this::getDefaultDockingLayout
+    );
+}
+```
+
+### Extending Persistence
+The `BentoLayoutPersistenceProvider` uses the `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the module path at runtime.  
+
+Albeit otherwise not very useful, the following example is provided to demonstrate extending the the persistence framework to use a `LayoutStorage` other than the default implementations provided by the persistence framework:
+
+1. Implement the `LayoutStorage` interface:
+```java
+public class SystemLayoutStorage implements LayoutStorage {
+  @Override
+   public boolean exists() {
+       // For our example, just return false; otherwise, 
+       // the LayoutRestorer will attempt to read a 
+       // previously persisted layout that doesn't exist.
+       return false;
+   }
+
+   @Override
+   public OutputStream openOutputStream() throws IOException {
+       return System.out;
+   }
+
+   @Override
+   public InputStream openInputStream() throws IOException {
+       return System.in;
+   }
+}
+```
+
+2. Implement the `LayoutStorageProvider` interface to return an instantiated implementation of the interface:
+```java
+public class SystemLayoutStorageProvider implements LayoutStorageProvider {
+   @Override
+   public LayoutStorage createLayoutStorage(
+      final String layoutIdentifier,
+      final String codecIdentifier
+   ) {
+       // Normally, we might use the layout and codec identifiers to construct 
+       // a file name, use them as keys in a database table, etc. We'll just 
+       // ignore them here,  
+       return new SystemLayoutStorage();
+   }
+}
+```
+ 
+3. Register the provider implementation with the module's descriptor:
+```java
+provides LayoutStorageProvider with SystemLayoutStorageProvider;
+``` 
+
+4. Add the module to the application's module path:
+```kotlin
+runtimeOnly("software.coley.bentofx:persistence-storage-system:${version}")
+``` 
+
+Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces, registering the `LayoutCodecProvider` implementation with the module's descriptor and adding the module to the application's module path.     
+
+For complete examples, refer to these modules:  
+[JSON Codec](./persistence/codec/json)  
+[XML Codec](./persistence/codec/xml)  
+[H2 Database Storage](./persistence/storage/db/h2)  
+[File Storage](./persistence/storage/file)  
+
+API and usage documentation can be found [here](assets/bento-layout-persistence.md).
+
+The following are also provided for additional information on using `ServiceLoader`:
+https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
+https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html   
+https://www.baeldung.com/java-spi   
+
+## Demo Applications
+### Basic Demo
+The [basic-demo](./demos/basic-demo) module contains an example application that demonstrates using the [core](./core) framework to create a layout structure that loosely models how an IDE is laid out.  
+
+To run the basic demo, use `./gradlew :demos:basic-demo:run`
+
+For details, refer to `BoxApp.getDefaultLayout()`.
+
+### Persistence Demo
+The [persistence-demo](./demos/persistence-demo) module contains an example application, derived from the [basic-demo BoxApp application](./demos/basic-demo/src/main/java/software/coley/boxfx/demo/basic/BoxApp.java), that demonstrates using the [persistence](./persistence) framework to save and restore a BentoFX docking layout.
+
+To run the persistence demo, use `./gradlew :demos:persistence-demo:run`
+
+For details on acquiring the `LayoutPersistenceProvider`, refer to `BoxApp.init()`.
+
+For details on restoring a persisted docking layout, refer to `BoxApp.restoreBranch(Stage)`. 
+
+For details on saving the current docking layout, refer to `BoxApp.doOnClose()`.

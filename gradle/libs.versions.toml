@@ -3,6 +3,9 @@
 assertj = "3.27.7"
 byte-buddy = "1.18.5"
 dependency-analysis-gradle-plugin = "3.9.0"
+# `gradle` and `gradle-checksum` are used in the root project's build.gradle.kts
+gradle = "9.4.1"
+gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
 h2 = "2.4.240"
 hibernate = "7.2.6.Final"
 hibernate-hikari-cp = "7.2.6.Final"
@@ -13,6 +16,8 @@ jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"
 jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
+# `java-jdk` is used in project-convention.gradle.kts
+java-jdk = "21"
 javafx = "23.0.2"
 jaxb = "4.0.6"
 jspecify = "1.0.0"

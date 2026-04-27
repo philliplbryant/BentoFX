@@ -53,6 +53,5 @@ dependencies {
         api libs.junit.api
         api libs.junit.engine
         api libs.junit.params
-
     }
 }

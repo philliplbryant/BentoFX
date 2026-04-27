@@ -1,5 +1,4 @@
-//import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-//import org.jreleaser.gradle.plugin.tasks.*
+import static org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 
 plugins {
     // Apply the base plugin to add `clean` to the root project.
@@ -9,6 +8,7 @@ plugins {
     alias libs.plugins.dependencyAnalysis.gradlePlugin
 }
 
+// TODO BENTO-35: Remove DAGP
 dependencyAnalysis {
     issues {
         // Configure for all projects
@@ -74,4 +74,22 @@ jreleaser {
             }
         }
     }
+}
+
+// Using this task to upgrade Gradle keeps the gradle-wrapper.properties,
+// distribution JAR, and wrapper scripts (./gradle and ./gradlew.bat) in sync.
+tasks.named("wrapper", Wrapper).configure {
+
+    def versionCatalog = versionCatalogs.named('libs')
+
+    // The Gradle version and checksum are specified in libs.versions.toml
+    gradleVersion =
+            versionCatalog.findVersion("gradle").get().requiredVersion
+    distributionSha256Sum =
+            versionCatalog.findVersion("gradle-checksum").get().requiredVersion
+
+    // Use `ALL` instead of `BIN` to provide support for developers using the
+    // Gradle scripts.
+    distributionType = BIN
+    networkTimeout = 60000
 }
