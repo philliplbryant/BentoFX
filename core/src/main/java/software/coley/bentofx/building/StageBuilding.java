@@ -1,16 +1,22 @@
 package software.coley.bentofx.building;
 
+import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
+import javafx.scene.robot.Robot;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 
 /**
@@ -22,13 +28,15 @@ public class StageBuilding {
 	private final Bento bento;
 	private StageFactory stageFactory = DEFAULT_STAGE_FACTORY;
 	private SceneFactory sceneFactory = DEFAULT_SCENE_FACTORY;
+	private boolean applyMousePosition = false;
+	private boolean applySourceAsOwner = true;
 
-	public StageBuilding(@NonNull Bento bento) {
+	public StageBuilding(Bento bento) {
 		this.bento = bento;
 	}
 
 	/**
-	 * Create a new stage for the given dockable.,
+	 * Create a new stage for the given dockable.
 	 *
 	 * @param sourceScene
 	 * 		Original scene to copy state from.
@@ -39,16 +47,17 @@ public class StageBuilding {
 	 *
 	 * @return Newly created stage.
 	 */
-	@NonNull
-	public DragDropStage newStageForDockable(@NonNull Scene sourceScene, @NonNull DockContainer source, @NonNull Dockable dockable) {
+	public DragDropStage newStageForDockable(Scene sourceScene, DockContainerLeaf source, Dockable dockable) {
 		Region sourceRegion = source.asRegion();
 		double width = sourceRegion.getWidth();
 		double height = sourceRegion.getHeight();
-		return newStageForDockable(sourceScene, dockable, width, height);
+		final DockContainerLeafMenuFactory leafMenuFactory = source.getMenuFactory();
+		final Side side = source.getSide();
+		return newStageForDockable(sourceScene, dockable, width, height, leafMenuFactory, side);
 	}
 
 	/**
-	 * Create a new stage for the given dockable.,
+	 * Create a new stage for the given dockable.
 	 *
 	 * @param sourceScene
 	 * 		Original scene to copy state from.
@@ -58,19 +67,30 @@ public class StageBuilding {
 	 * 		Preferred stage width.
 	 * @param height
 	 * 		Preferred stage height.
+	 * @param leafMenuFactory
+	 * 		DockContainerLeafMenuFactory for creating leaf menus
+	 * @param side
+	 * 		Side of this container to place {@code Header} displays on.
+	 *        {@code null} to not display any headers.
 	 *
 	 * @return Newly created stage.
 	 */
-	@NonNull
-	public DragDropStage newStageForDockable(@Nullable Scene sourceScene, @NonNull Dockable dockable, double width, double height) {
+	public DragDropStage newStageForDockable(@Nullable Scene sourceScene,
+	                                         Dockable dockable,
+	                                         double width,
+	                                         double height,
+	                                         @Nullable DockContainerLeafMenuFactory leafMenuFactory,
+	                                         @Nullable Side side) {
 		DockBuilding builder = bento.dockBuilding();
 		DockContainerRootBranch root = builder.root();
 		DockContainerLeaf leaf = builder.leaf();
+		leaf.setMenuFactory(leafMenuFactory);
+		leaf.setSide(side);
 		return newStageForDockable(sourceScene, root, leaf, dockable, width, height);
 	}
 
 	/**
-	 * Create a new stage for the given dockable.,
+	 * Create a new stage for the given dockable.
 	 *
 	 * @param sourceScene
 	 * 		Original scene to copy state from.
@@ -87,11 +107,10 @@ public class StageBuilding {
 	 *
 	 * @return Newly created stage.
 	 */
-	@NonNull
 	public DragDropStage newStageForDockable(@Nullable Scene sourceScene,
-	                                         @NonNull DockContainerRootBranch root,
-	                                         @NonNull DockContainerLeaf leaf,
-	                                         @NonNull Dockable dockable,
+	                                         DockContainerRootBranch root,
+	                                         DockContainerLeaf leaf,
+	                                         Dockable dockable,
 	                                         double width, double height) {
 		// Sanity check, leaf shouldn't have an existing parent.
 		if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
@@ -110,7 +129,30 @@ public class StageBuilding {
 
 		// Copy properties from the source scene/stage.
 		if (sourceScene != null)
-			initializeFromSource(sourceScene, scene, sourceStage, stage, true);
+			initializeFromSource(sourceScene, scene, sourceStage, stage, applySourceAsOwner);
+
+		// Position the stage at the mouse position, if enabled.
+		if (applyMousePosition) {
+			final Robot robot = new Robot();
+			final Point2D mousePosition = robot.getMousePosition();
+
+			// Clamp the position to the screen bounds.
+			// We don't want a new stage that spawns on the bottom or right edge of the screen to be inaccessible.
+			double x = mousePosition.getX();
+			double y = mousePosition.getY();
+			ObservableList<Screen> screens = Screen.getScreensForRectangle(x, y, x + 1, y + 1);
+			if (!screens.isEmpty()) {
+				final Bounds dockableContainerBounds = leaf.getBoundsInLocal();
+				final Rectangle2D screenBounds = screens.getFirst().getVisualBounds();
+				final double maxX = screenBounds.getMaxX() - dockableContainerBounds.getWidth();
+				final double maxY = screenBounds.getMaxY() - dockableContainerBounds.getHeight();
+				x = Math.min(x, maxX);
+				y = Math.min(y, maxY);
+			}
+
+			stage.setX(x);
+			stage.setY(y);
+		}
 
 		return stage;
 	}
@@ -130,10 +172,10 @@ public class StageBuilding {
 	 * @param sourceIsOwner
 	 *        {@code true} to invoke {@link Stage#initOwner(Window)}, where the owner is the source stage.
 	 */
-	protected void initializeFromSource(@NonNull Scene sourceScene,
-	                                    @NonNull Scene newScene,
+	protected void initializeFromSource(Scene sourceScene,
+	                                    Scene newScene,
 	                                    @Nullable Stage sourceStage,
-	                                    @NonNull DragDropStage newStage,
+	                                    DragDropStage newStage,
 	                                    boolean sourceIsOwner) {
 		// Copy stylesheets.
 		newScene.setUserAgentStylesheet(sourceScene.getUserAgentStylesheet());
@@ -171,5 +213,26 @@ public class StageBuilding {
 		if (factory == null)
 			factory = DEFAULT_SCENE_FACTORY;
 		sceneFactory = factory;
+	}
+
+	/**
+	 * @param applySourceAsOwner
+	 *        {@code true} to make newly created stages have their owner set to the source stage the dockable is being dragged out of.
+	 *        {@code false} to not set an owner, allowing the new stage to be handled independently of the source stage.
+	 *
+	 * @see Stage#initOwner(Window)
+	 */
+	public void setApplySourceAsOwner(boolean applySourceAsOwner) {
+		this.applySourceAsOwner = applySourceAsOwner;
+	}
+
+	/**
+	 *
+	 * @param applyMousePosition
+	 *        {@code true} to position newly created stages at the current mouse position.
+	 *        {@code false} to not apply any special positioning, allowing the stage to be positioned automatically <i>(Generally centered)</i>.
+	 */
+	public void setApplyMousePosition(boolean applyMousePosition) {
+		this.applyMousePosition = applyMousePosition;
 	}
 }

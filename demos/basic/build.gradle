@@ -1,3 +1,28 @@
+plugins {
+    id 'bento.project.project-convention'
+    id 'bento.project.application-convention'
+}
+
+description = 'BentoFX Basic Demo'
+
 application {
+    applicationName = description ?: name
+    mainModule = 'bento.fx.demo.basic'
     mainClass = 'demo.Runner'
+    applicationDefaultJvmArgs = ["-Xms256m", "-Xmx1024m"]
+}
+
+javafx {
+    modules = ['javafx.controls']
+}
+
+dependencies {
+
+    implementation projects.core
+
+    implementation libs.javafx.base
+    implementation libs.javafx.controls
+    implementation libs.javafx.graphics
+
+    compileOnly libs.jspecify
 }
