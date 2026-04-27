@@ -2,9 +2,7 @@
 # Libraries
 assertj = "3.27.7"
 dependency-analysis-gradle-plugin = "3.9.0"
-jackson = "2.21.1"
 javafx = "23.0.2"
-jaxb = "4.0.6"
 jspecify = "1.0.0"
 junit = "6.0.3"
 testfx = "4.0.18"
@@ -20,12 +18,10 @@ jreleaser = "1.23.0"
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 benmanes-versions-gradlePlugin-dependency = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benmanes-versions" }
 dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.dependency-analysis:com.autonomousapps.dependency-analysis.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
-jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
 javafx-gradlePlugin-dependency = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
-jaxb-bom = { module = "org.glassfish.jaxb:jaxb-bom", version.ref = "jaxb" }
 jreleaser-gradlePlugin-dependency = { module = "org.jreleaser:org.jreleaser.gradle.plugin", version.ref = "jreleaser" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api" }
