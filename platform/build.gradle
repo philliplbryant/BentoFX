@@ -17,18 +17,6 @@ dependencies {
      * by those platform declarations.
      */
 
-    api platform(libs.jaxb.bom.get()) {
-        version {
-            strictly(libs.versions.jaxb.get())
-        }
-    }
-
-    api platform(libs.jackson.bom.get()) {
-        version {
-            strictly(libs.versions.jackson.get())
-        }
-    }
-
     api platform(libs.junit.bom.get())
 
     constraints {
@@ -53,6 +41,5 @@ dependencies {
         api libs.junit.api
         api libs.junit.engine
         api libs.junit.params
-
     }
 }
