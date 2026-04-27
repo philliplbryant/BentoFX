@@ -77,7 +77,6 @@ test-libraries = ["assertj", "junit-api",  "junit-params", "testfx", "testfx-cor
 test-runtime = ["junit-engine", "junit-launcher"]
 
 [plugins]
-#TODO BENTO-13: Reenable the versions plugin
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 dependencyAnalysis-gradlePlugin = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis-gradle-plugin" }
