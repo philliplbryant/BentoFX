@@ -16,8 +16,11 @@ version = '0.16.0'
 
 def versionCatalog = versionCatalogs.named('libs')
 
-def javaMajorVersionAsInt = 21
-def javaLanguageVersion = JavaLanguageVersion.of(javaMajorVersionAsInt)
+// Get the Java JDK version specified in libs.versions.toml and accommodate all
+// the different ways Gradle and its plugins take the Java version...
+def jdkVersion = versionCatalog.findVersion("java-jdk").get().requiredVersion
+def javaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
+def javaMajorVersionAsInt = javaLanguageVersion.asInt()
 
 dependencies {
 
