@@ -10,7 +10,7 @@ application {
     applicationName = description ?: name
     mainModule = 'bento.fx.demo.persistence'
     mainClass = 'software.coley.boxfx.demo.persistence.Runner'
-    applicationDefaultJvmArgs = ["-Xms256m",'-Xmx1024m']
+    applicationDefaultJvmArgs = ['-Xms256m', '-Xmx1024m']
 }
 
 javafx {

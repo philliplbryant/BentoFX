@@ -16,6 +16,15 @@ dependencyAnalysis {
             onDuplicateClassWarnings { severity('fail') }
             onIncorrectConfiguration {
                 severity('fail')
+                exclude(
+                        // The JavaFX Gradle plugin uses the same
+                        // configuration(s) for all module dependencies,
+                        // resulting in dependencies sometimes using the
+                        // incorrect/most inclusive configuration. Ignore them.
+                        'org.openjfx:javafx-base',
+                        'org.openjfx:javafx-controls',
+                        'org.openjfx:javafx-graphics'
+                )
             }
             onModuleStructure { severity('fail') }
             onUnusedDependencies {
