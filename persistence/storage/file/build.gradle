@@ -2,9 +2,20 @@ plugins {
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
     id 'bento.test.integration-test-suite'
+    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence for Files'
+
+// The entire JavaFX Gradle plugin and configuration are only needed because the
+// persistence API has a transitive dependency on core, which has a transitive
+// dependency on javafx.controls, which is declared as compileOnlyApi.
+javafx {
+    def versionCatalog = versionCatalogs.named('libs')
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.graphics']
+    configurations = ['compileOnly']
+}
 
 dependencies {
 

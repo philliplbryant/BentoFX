@@ -1,6 +1,7 @@
 plugins {
     id 'bento.project.project-convention'
     id 'bento.project.application-convention'
+    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence Demo'
@@ -13,7 +14,9 @@ application {
 }
 
 javafx {
-    modules = ['javafx.controls']
+    def versionCatalog = versionCatalogs.named('libs')
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
 }
 
 dependencies {
@@ -22,9 +25,6 @@ dependencies {
     implementation projects.persistence.api
 
     implementation libs.slf4j.api
-    implementation libs.javafx.base
-    implementation libs.javafx.controls
-    implementation libs.javafx.graphics
 
     compileOnly libs.jspecify
 
@@ -33,8 +33,8 @@ dependencies {
     runtimeOnly projects.persistence.codec.xml
 
     // Only include one storage implementation
-//    runtimeOnly projects.persistence.storage.file
-    runtimeOnly projects.persistence.storage.db.h2
+    runtimeOnly projects.persistence.storage.file
+//    runtimeOnly projects.persistence.storage.db.h2
 
     runtimeOnly libs.slf4j.jdk14
 }

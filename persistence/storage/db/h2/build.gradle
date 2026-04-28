@@ -2,9 +2,17 @@ plugins {
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
     id 'bento.test.integration-test-suite'
+    alias(libs.plugins.javafx)
 }
 
 description = "H2 Database Implementation of the Bento LayoutStorage interface"
+
+javafx {
+    def versionCatalog = versionCatalogs.named('libs')
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.controls']
+    configurations = ['runtimeOnly']
+}
 
 dependencies {
 
@@ -27,7 +35,6 @@ dependencies {
     compileOnly libs.jspecify
 
     runtimeOnly libs.h2
-    runtimeOnly libs.javafx.controls
     runtimeOnly libs.jakarta.xmlbinding.impl
 
     integrationTestImplementation libs.assertj
