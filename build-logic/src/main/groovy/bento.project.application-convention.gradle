@@ -16,4 +16,6 @@ tasks.named('distZip') { enabled = false }
 tasks.named('installDist') { enabled = false }
 tasks.named('startScripts') { enabled = false }
 tasks.named('javadoc') { enabled = false }
-tasks.withType(Jar).configureEach { enabled = false }
+// Note: Disabling the Jar task causes the run task to fail
+tasks.named('javadocJar') { enabled = false }
+tasks.named('sourcesJar') { enabled = false }
