@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tooltip;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -469,6 +470,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
             dockableState.getTitle().ifPresent(
                     dockable::setTitle
+            );
+
+            dockableState.getTooltip().ifPresent( tooltipText ->
+                    dockable.setTooltip(new Tooltip(tooltipText))
             );
 
             dockableState.getDockableIconFactory().ifPresent(

@@ -23,6 +23,7 @@ class DockableStateBuilderFT {
         final String expectedDockableId = "dockable";
         final Node expectedDockableNode = new Label("Dockable node");
         final String expectedTitle = "Selected";
+        final String expectedTooltip = "Tooltip text for Selected.";
         final int expectedDragGroupMask = 7;
         final boolean expectedClosable = true;
         final Bento expectedBento = new Bento("bento");
@@ -33,6 +34,7 @@ class DockableStateBuilderFT {
                 new DockableStateBuilder(expectedDockableId)
                         .setDockableNode(expectedDockableNode)
                         .setTitle(expectedTitle)
+                        .setTooltip(expectedTooltip)
                         .setDockableIconFactory(null)
                         .setDockableMenuFactory(null)
                         .setDragGroupMask(expectedDragGroupMask)
@@ -48,6 +50,9 @@ class DockableStateBuilderFT {
 
         assertThat(dockable.getTitle())
                 .contains(expectedTitle);
+
+        assertThat(dockable.getTooltip())
+                .contains(expectedTooltip);
 
         assertThat(dockable.getDockableIconFactory())
                 .isEmpty();

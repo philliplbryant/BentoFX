@@ -14,7 +14,7 @@ import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.Objects;
 
-import static software.coley.boxfx.demo.persistence.provider.BoxAppDockableStateProvider.SECOND_DOCKABLE_ID;
+import static software.coley.boxfx.demo.persistence.provider.BoxAppDockableStateProvider.secondDockableProperties;
 import static software.coley.boxfx.demo.persistence.ui.DockableUtils.createDockable;
 
 /**
@@ -96,7 +96,7 @@ public class SecondDragDropStage extends DragDropStage {
         );
 
         dockableStateProvider.resolveDockableState(
-                SECOND_DOCKABLE_ID
+                secondDockableProperties.identifier()
         ).ifPresentOrElse(
                 dockableState ->
                         leaf.addDockable(createDockable(bento, dockableState)),
@@ -104,7 +104,7 @@ public class SecondDragDropStage extends DragDropStage {
                         logger.warn(
                                 "Could not create DockableState for {} using " +
                                         "bento {}",
-                                SECOND_DOCKABLE_ID,
+                                secondDockableProperties,
                                 bento
                         )
         );

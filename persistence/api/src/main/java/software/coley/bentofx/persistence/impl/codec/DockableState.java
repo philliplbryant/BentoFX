@@ -20,6 +20,7 @@ public class DockableState extends IdentifiableState {
 
     private final @Nullable Node dockableNode;
     private final @Nullable String title;
+    private final @Nullable String tooltip;
     private final @Nullable DockableIconFactory dockableIconFactory;
     private final @Nullable DockableMenuFactory dockableMenuFactory;
     private final @Nullable Integer dragGroupMask;
@@ -32,6 +33,7 @@ public class DockableState extends IdentifiableState {
             final String identifier,
             final @Nullable Node dockableNode,
             final @Nullable String title,
+            final @Nullable String tooltip,
             final @Nullable DockableIconFactory dockableIconFactory,
             final @Nullable DockableMenuFactory dockableMenuFactory,
             final @Nullable Integer dragGroupMask,
@@ -41,6 +43,7 @@ public class DockableState extends IdentifiableState {
         super(identifier);
         this.dockableNode = dockableNode;
         this.title = title;
+        this.tooltip = tooltip;
         this.dockableIconFactory = dockableIconFactory;
         this.dockableMenuFactory = dockableMenuFactory;
         this.dragGroupMask = dragGroupMask;
@@ -54,6 +57,10 @@ public class DockableState extends IdentifiableState {
 
     public Optional<String> getTitle() {
         return Optional.ofNullable(title);
+    }
+
+    public Optional<String> getTooltip() {
+        return Optional.ofNullable(tooltip);
     }
 
     public Optional<DockableIconFactory> getDockableIconFactory() {
@@ -81,6 +88,7 @@ public class DockableState extends IdentifiableState {
         private final String identifier;
         private @Nullable Node dockableNode;
         private @Nullable String title;
+        private @Nullable String tooltip;
         private @Nullable DockableIconFactory dockableIconFactory;
         private @Nullable DockableMenuFactory dockableMenuFactory;
         private @Nullable Integer dragGroupMask;
@@ -104,6 +112,13 @@ public class DockableState extends IdentifiableState {
                 final @Nullable String title
         ) {
             this.title = title;
+            return this;
+        }
+
+        public DockableStateBuilder setTooltip(
+                final @Nullable String tooltip
+        ) {
+            this.tooltip = tooltip;
             return this;
         }
 
@@ -147,6 +162,7 @@ public class DockableState extends IdentifiableState {
                     identifier,
                     dockableNode,
                     title,
+                    tooltip,
                     dockableIconFactory,
                     dockableMenuFactory,
                     dragGroupMask,

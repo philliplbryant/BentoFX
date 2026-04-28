@@ -24,6 +24,7 @@ import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.impl.BentoLayout;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
+import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,21 +184,21 @@ public class MainStage extends Stage {
         branchRoot.setContainerCollapsed(leafTools, true);
 
         // Add dockables to leafWorkspaceTools
-        addDockable(bento, WORKSPACE_DOCKABLE_ID, dockableStateProvider, leafWorkspaceTools);
-        addDockable(bento, BOOKMARKS_DOCKABLE_ID, dockableStateProvider, leafWorkspaceTools);
-        addDockable(bento, MODIFICATIONS_DOCKABLE_ID, dockableStateProvider, leafWorkspaceTools);
+        addDockable(bento, workspaceDockableProperties, dockableStateProvider, leafWorkspaceTools);
+        addDockable(bento, bookmarksDockableProperties, dockableStateProvider, leafWorkspaceTools);
+        addDockable(bento, modificationsDockableProperties, dockableStateProvider, leafWorkspaceTools);
 
         // Add dockables to leafTools
-        addDockable(bento, LOGGING_DOCKABLE_ID, dockableStateProvider, leafTools);
-        addDockable(bento, TERMINAL_DOCKABLE_ID, dockableStateProvider, leafTools);
-        addDockable(bento, PROBLEMS_DOCKABLE_ID, dockableStateProvider, leafTools);
+        addDockable(bento, loggingDockableProperties, dockableStateProvider, leafTools);
+        addDockable(bento, terminalDockableProperties, dockableStateProvider, leafTools);
+        addDockable(bento, problemsDockableProperties, dockableStateProvider, leafTools);
 
         // Add dockables to leafWorkspaceHeaders
-        addDockable(bento, CLASS_1_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
-        addDockable(bento, CLASS_2_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
-        addDockable(bento, CLASS_3_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
-        addDockable(bento, CLASS_4_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
-        addDockable(bento, CLASS_5_DOCKABLE_ID, dockableStateProvider, leafWorkspaceHeaders);
+        addDockable(bento, class1DockableProperties, dockableStateProvider, leafWorkspaceHeaders);
+        addDockable(bento, class2DockableProperties, dockableStateProvider, leafWorkspaceHeaders);
+        addDockable(bento, class3DockableProperties, dockableStateProvider, leafWorkspaceHeaders);
+        addDockable(bento, class4DockableProperties, dockableStateProvider, leafWorkspaceHeaders);
+        addDockable(bento, class5DockableProperties, dockableStateProvider, leafWorkspaceHeaders);
 
         rootBranches.add(branchRoot);
 
@@ -258,17 +259,17 @@ public class MainStage extends Stage {
      * to the {@code DockContainer}. Logs a warning message when the
      * {@code Dockable} cannot be resolved using the {@code dockableId}.
      *
-     * @param dockableId the identifier for the {@code Dockable} to add.
+     * @param dockableProperties the identifier for the {@code Dockable} to add.
      * @param container  the {@code DockContainer} to which the {@code Dockable}
      *                   should be added.
      */
     private void addDockable(
             final Bento bento,
-            final String dockableId,
+            final DockableProperties dockableProperties,
             final DockableStateProvider dockableStateProvider,
             final DockContainer container
     ) {
-        dockableStateProvider.resolveDockableState(dockableId)
+        dockableStateProvider.resolveDockableState(dockableProperties.identifier())
                 .ifPresentOrElse(
                         dockableState ->
                                 // Our application isn't doing anything with the
@@ -280,7 +281,7 @@ public class MainStage extends Stage {
                         () ->
                                 logger.warn(
                                         "Could not add dockable {}.",
-                                        dockableId
+                                        dockableProperties
                                 )
                 );
     }

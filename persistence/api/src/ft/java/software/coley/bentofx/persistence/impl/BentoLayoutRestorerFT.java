@@ -64,6 +64,7 @@ class BentoLayoutRestorerFT {
     void restoreLayoutBuildsRootBranchesAndDragDropStages(FxRobot robot) throws Exception {
         DockableState dockableState = new DockableStateBuilder("dock-1")
                 .setTitle("Dock 1")
+                .setTooltip("This is the tooltip text for Dock 1")
                 .setDockableNode(new Label("node-1"))
                 .setClosable(true)
                 .build();

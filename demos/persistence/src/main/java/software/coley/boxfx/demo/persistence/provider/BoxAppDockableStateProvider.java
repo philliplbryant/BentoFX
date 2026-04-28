@@ -35,19 +35,66 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
     private static final Logger logger =
             LoggerFactory.getLogger(BoxAppDockableStateProvider.class);
 
-    public static final String WORKSPACE_DOCKABLE_ID = "Workspace";
-    public static final String BOOKMARKS_DOCKABLE_ID = "Bookmarks";
-    public static final String MODIFICATIONS_DOCKABLE_ID = "Modifications";
-    public static final String LOGGING_DOCKABLE_ID = "Logging";
-    public static final String TERMINAL_DOCKABLE_ID = "Terminal";
-    public static final String PROBLEMS_DOCKABLE_ID = "Problems";
-    public static final String CLASS_1_DOCKABLE_ID = "Class 1";
-    public static final String CLASS_2_DOCKABLE_ID = "Class 2";
-    public static final String CLASS_3_DOCKABLE_ID = "Class 3";
-    public static final String CLASS_4_DOCKABLE_ID = "Class 4";
-    public static final String CLASS_5_DOCKABLE_ID = "Class 5";
 
-    public static final String SECOND_DOCKABLE_ID = "second-dockable";
+    public static final DockableProperties workspaceDockableProperties = new DockableProperties(
+            "Workspace",
+            "This is the Workspace tooltip text."
+    );
+
+    public static final DockableProperties bookmarksDockableProperties = new DockableProperties(
+            "Bookmarks",
+            "This is the Bookmarks tooltip text."
+    );
+
+    public static final DockableProperties modificationsDockableProperties = new DockableProperties(
+            "Modifications",
+            "This is the Modifications tooltip text."
+    );
+
+    public static final DockableProperties loggingDockableProperties = new DockableProperties(
+            "Logging",
+            "This is the Logging tooltip text."
+    );
+
+    public static final DockableProperties terminalDockableProperties = new DockableProperties(
+            "Terminal",
+            "This is the Terminal tooltip text."
+    );
+
+    public static final DockableProperties problemsDockableProperties = new DockableProperties(
+            "Problems",
+            "This is the Problems tooltip text."
+    );
+
+    public static final DockableProperties class1DockableProperties = new DockableProperties(
+            "Class 1",
+            "This is the Class 1 tooltip text."
+    );
+
+    public static final DockableProperties class2DockableProperties = new DockableProperties(
+            "Class 2",
+            "This is the Class 2 tooltip text."
+    );
+
+    public static final DockableProperties class3DockableProperties = new DockableProperties(
+            "Class 3",
+            "This is the Class 3 tooltip text."
+    );
+
+    public static final DockableProperties class4DockableProperties = new DockableProperties(
+            "Class 4",
+            "This is the Class 4 tooltip text."
+    );
+
+    public static final DockableProperties class5DockableProperties = new DockableProperties(
+            "Class 5",
+            "This is the Class 5 tooltip text."
+    );
+
+    public static final DockableProperties secondDockableProperties = new DockableProperties(
+            "second-dockable",
+            "This is the Second Dockable tooltip text."
+            );
 
 
     private final Map<String, DockableState> dockablesMap =
@@ -66,117 +113,106 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
         // Application Thread because they create JavaFX components.
         Platform.runLater(() -> {
                     dockablesMap.put(
-                            WORKSPACE_DOCKABLE_ID,
+                            workspaceDockableProperties.identifier(),
                             buildDockableState(
-                                    WORKSPACE_DOCKABLE_ID,
+                                    workspaceDockableProperties,
                                     dockableMenuFactory,
                                     1,
-                                    0,
-                                    WORKSPACE_DOCKABLE_ID
+                                    0
                             )
                     );
                     dockablesMap.put(
-                            BOOKMARKS_DOCKABLE_ID,
+                            bookmarksDockableProperties.identifier(),
                             buildDockableState(
-                                    BOOKMARKS_DOCKABLE_ID,
+                                    bookmarksDockableProperties,
                                     dockableMenuFactory,
                                     1,
-                                    1,
-                                    BOOKMARKS_DOCKABLE_ID
+                                    1
                             )
                     );
                     dockablesMap.put(
-                            MODIFICATIONS_DOCKABLE_ID,
+                            modificationsDockableProperties.identifier(),
                             buildDockableState(
-                                    MODIFICATIONS_DOCKABLE_ID,
+                                    modificationsDockableProperties,
                                     dockableMenuFactory,
                                     1,
-                                    2,
-                                    MODIFICATIONS_DOCKABLE_ID
+                                    2
                             )
                     );
                     dockablesMap.put(
-                            LOGGING_DOCKABLE_ID,
+                            loggingDockableProperties.identifier(),
                             buildDockableState(
-                                    LOGGING_DOCKABLE_ID,
+                                    loggingDockableProperties,
                                     dockableMenuFactory,
                                     2,
-                                    0,
-                                    LOGGING_DOCKABLE_ID
+                                    0
                             )
                     );
                     dockablesMap.put(
-                            TERMINAL_DOCKABLE_ID,
+                            terminalDockableProperties.identifier(),
                             buildDockableState(
-                                    TERMINAL_DOCKABLE_ID,
+                                    terminalDockableProperties,
                                     dockableMenuFactory,
                                     2,
-                                    1,
-                                    TERMINAL_DOCKABLE_ID
+                                    1
                             )
                     );
                     dockablesMap.put(
-                            PROBLEMS_DOCKABLE_ID,
+                            problemsDockableProperties.identifier(),
                             buildDockableState(
-                                    PROBLEMS_DOCKABLE_ID,
+                                    problemsDockableProperties,
                                     dockableMenuFactory,
                                     2,
-                                    2,
-                                    PROBLEMS_DOCKABLE_ID
+                                    2
                             )
                     );
                     dockablesMap.put(
-                            CLASS_1_DOCKABLE_ID,
+                            class1DockableProperties.identifier(),
                             buildDockableState(
-                                    CLASS_1_DOCKABLE_ID,
+                                    class1DockableProperties,
                                     dockableMenuFactory,
                                     0,
-                                    0,
-                                    CLASS_1_DOCKABLE_ID
+                                    0
                             )
                     );
                     dockablesMap.put(
-                            CLASS_2_DOCKABLE_ID,
+                            class2DockableProperties.identifier(),
                             buildDockableState(
-                                    CLASS_2_DOCKABLE_ID,
+                                    class2DockableProperties,
                                     dockableMenuFactory,
                                     0,
-                                    1,
-                                    CLASS_2_DOCKABLE_ID
+                                    1
                             )
                     );
                     dockablesMap.put(
-                            CLASS_3_DOCKABLE_ID,
+                            class3DockableProperties.identifier(),
                             buildDockableState(
-                                    CLASS_3_DOCKABLE_ID,
+                                    class3DockableProperties,
                                     dockableMenuFactory,
                                     0,
-                                    2,
-                                    CLASS_3_DOCKABLE_ID
+                                    2
                             )
                     );
                     dockablesMap.put(
-                            CLASS_4_DOCKABLE_ID,
+                            class4DockableProperties.identifier(),
                             buildDockableState(
-                                    CLASS_4_DOCKABLE_ID,
+                                    class4DockableProperties,
                                     dockableMenuFactory,
                                     0,
-                                    3,
-                                    CLASS_4_DOCKABLE_ID
+                                    3
                             )
                     );
                     dockablesMap.put(
-                            CLASS_5_DOCKABLE_ID,
+                            class5DockableProperties.identifier(),
                             buildDockableState(
-                                    CLASS_5_DOCKABLE_ID,
+                                    class5DockableProperties,
                                     dockableMenuFactory,
                                     0,
-                                    4,
-                                    CLASS_5_DOCKABLE_ID
+                                    4
                             )
                     );
                     dockablesMap.put(
-                            SECOND_DOCKABLE_ID,
+                            secondDockableProperties.identifier(),
                             createSecondDockableState()
                     );
                 }
@@ -191,16 +227,16 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
     }
 
     private DockableState buildDockableState(
-            String identifier,
+            DockableProperties dockableProperties,
             @Nullable DockableMenuFactory dockableMenuFactory,
             int s,
-            int i,
-            String title
+            int i
     ) {
-        DockableStateBuilder builder = new DockableStateBuilder(identifier)
-                .setTitle(title)
+        DockableStateBuilder builder = new DockableStateBuilder(dockableProperties.identifier())
+                .setTitle(dockableProperties.identifier())
+                .setTooltip(dockableProperties.tooltip())
                 .setDockableIconFactory(dockable -> makeIcon(s, i))
-                .setDockableNode(new Label("<" + title + ":" + i + ">"))
+                .setDockableNode(new Label("<" + dockableProperties.identifier() + ":" + i + ">"))
                 .setDockableConsumer(
                         BoxAppDockableStateProvider::consumeDockable
                 ).setDockableMenuFactory(dockableMenuFactory);
@@ -252,9 +288,10 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 
     private DockableState createSecondDockableState() {
 
-        return new DockableStateBuilder(SECOND_DOCKABLE_ID)
-                .setTitle(SECOND_DOCKABLE_ID)
-                .setDockableNode(new Label("<" + SECOND_DOCKABLE_ID + ">"))
+        return new DockableStateBuilder(secondDockableProperties.identifier())
+                .setTitle(secondDockableProperties.identifier())
+                .setTooltip(secondDockableProperties.tooltip())
+                .setDockableNode(new Label("<" + secondDockableProperties.identifier() + ">"))
                 .setDockableConsumer(
                         BoxAppDockableStateProvider::consumeDockable
                 ).build();

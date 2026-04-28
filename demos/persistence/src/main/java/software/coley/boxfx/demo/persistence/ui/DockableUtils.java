@@ -1,5 +1,6 @@
 package software.coley.boxfx.demo.persistence.ui;
 
+import javafx.scene.control.Tooltip;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
@@ -30,6 +31,10 @@ public class DockableUtils {
 
         dockableState.getTitle().ifPresent(
                 dockable::setTitle
+        );
+
+        dockableState.getTooltip().ifPresent( tooltipText ->
+                dockable.setTooltip(new Tooltip(tooltipText))
         );
 
         dockableState.getDockableIconFactory().ifPresent(
