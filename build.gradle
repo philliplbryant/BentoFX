@@ -8,8 +8,6 @@ plugins {
     alias libs.plugins.dependencyAnalysis.gradlePlugin
 }
 
-def versionCatalog = versionCatalogs.named('libs')
-
 // TODO BENTO-35: Remove DAGP
 dependencyAnalysis {
     issues {
@@ -18,6 +16,15 @@ dependencyAnalysis {
             onDuplicateClassWarnings { severity('fail') }
             onIncorrectConfiguration {
                 severity('fail')
+                exclude(
+                        // The JavaFX Gradle plugin uses the same
+                        // configuration(s) for all module dependencies,
+                        // resulting in dependencies sometimes using the
+                        // incorrect/most inclusive configuration. Ignore them.
+                        'org.openjfx:javafx-base',
+                        'org.openjfx:javafx-controls',
+                        'org.openjfx:javafx-graphics'
+                )
             }
             onModuleStructure { severity('fail') }
             onUnusedDependencies {
@@ -81,6 +88,8 @@ jreleaser {
 // Using this task to upgrade Gradle keeps the gradle-wrapper.properties,
 // distribution JAR, and wrapper scripts (./gradle and ./gradlew.bat) in sync.
 tasks.named("wrapper", Wrapper).configure {
+
+    def versionCatalog = versionCatalogs.named('libs')
 
     // The Gradle version and checksum are specified in libs.versions.toml
     gradleVersion =
