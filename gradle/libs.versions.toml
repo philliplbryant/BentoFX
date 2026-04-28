@@ -18,7 +18,7 @@ jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
 # `java-jdk` is used in project-convention.gradle.kts
 java-jdk = "21"
-javafx = "23.0.2"
+javafx = "21.0.9"
 jaxb = "4.0.6"
 jspecify = "1.0.0"
 junit = "6.0.3"
@@ -85,4 +85,5 @@ test-runtime = ["junit-engine", "junit-launcher"]
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 dependencyAnalysis-gradlePlugin = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis-gradle-plugin" }
+javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
