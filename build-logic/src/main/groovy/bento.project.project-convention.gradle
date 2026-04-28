@@ -5,7 +5,6 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 
 plugins {
     id 'java-library'
-    id 'org.openjfx.javafxplugin'
     id 'com.github.ben-manes.versions'
     id 'bento.project.build-lifecycle'
     id 'bento.test.unit-test-suite'
@@ -28,17 +27,6 @@ dependencies {
 
     api platform(project(':platform'))
 }
-
-// TODO BENTO-13: Should I use this to relax dependency versioning or require
-//  users set their own dependency constraints?
-//javafx {
-//    version = versionCatalog.findVersion("javafx")
-//    modules = ['javafx.controls']
-//
-//    // We don't want to include a specific version of JavaFX as a transitive
-//    // dependency for users of the library
-//    configurations = ['compileOnly', 'compileOnlyApi']
-//}
 
 java {
     toolchain {
