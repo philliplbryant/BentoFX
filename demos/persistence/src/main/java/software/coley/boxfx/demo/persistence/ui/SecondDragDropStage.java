@@ -115,7 +115,10 @@ public class SecondDragDropStage extends DragDropStage {
         );
         rootBranch.addContainer(leaf);
 
-        setScene(new Scene(rootBranch));
+        final Scene scene = new Scene(rootBranch);
+        scene.getStylesheets().add("/bento.css");
+
+        setScene(scene);
         setTitle("Second DragDropStage");
         getIcons().addAll(
                 stageIconImageProvider.getStageIcons()
