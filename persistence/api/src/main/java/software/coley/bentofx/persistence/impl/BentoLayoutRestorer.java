@@ -28,10 +28,7 @@ import software.coley.bentofx.persistence.impl.codec.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -296,6 +293,11 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             }
         }
 
+        //  You can only correctly collapse a leaf if the branch containing the
+        //  leaf contains more than one DockContainer, so wait until all
+        //  DockContainers have been added to collapse the leaves.
+        conditionallyCollapseLeaves(rootBranchState, rootBranch);
+
         return rootBranch;
     }
 
@@ -436,18 +438,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             }
         }
 
-        // FIXME BENTO-13: Even though isCollapsed is getting set, the leaf
-        //  isn't collapsing. According to notes in
-        //  DockContainerBranch#setContainerCollapsed, collapsing can only occur
-        //  if there is a splitter between two or more child containers. We've
-        //  already created the rootBranch DockContainerBranch and added the
-        //  Dockable to the leaf, which should create the splitter. Restoring
-        //  the docking components in the same order as specified in the initial
-        //  layout doesn't seem to help either.
-        state.isCollapsed().ifPresent(isCollapsed ->
-                rootBranch.setContainerCollapsed(leaf, isCollapsed)
-        );
-
         return leaf;
     }
 
@@ -459,7 +449,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         final Optional<DockableState> optionalDockableProvider =
                 dockableStateProvider.resolveDockableState(dockableIdentifier);
 
-        final @Nullable DockableState dockableState =
+        final DockableState dockableState =
                 optionalDockableProvider.orElse(null);
 
         Dockable dockable;
@@ -472,7 +462,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                     dockable::setTitle
             );
 
-            dockableState.getTooltip().ifPresent( tooltipText ->
+            dockableState.getTooltip().ifPresent(tooltipText ->
                     dockable.setTooltip(new Tooltip(tooltipText))
             );
 
@@ -506,5 +496,33 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         }
 
         return dockable;
+    }
+
+    private static void conditionallyCollapseLeaves(
+            final DockContainerRootBranchState rootBranchState,
+            final DockContainerRootBranch rootBranch) {
+
+        // Map the leaves to their identifiers
+        final Map<String, DockContainerLeaf> leaves = new HashMap<>();
+        for(final DockContainer container : rootBranch.getChildContainers())
+        {
+            if(container instanceof final DockContainerLeaf leaf) {
+                leaves.put(leaf.getIdentifier(), leaf);
+            }
+        }
+
+        // For each leaf state,
+        for (final DockContainerState childState :
+                rootBranchState.getChildDockContainerStates()) {
+
+            if(childState instanceof final DockContainerLeafState leafState) {
+
+                final DockContainerLeaf leaf = leaves.get(leafState.getIdentifier());
+
+                leafState.isCollapsed().ifPresent(isCollapsed ->
+                        rootBranch.setContainerCollapsed(leaf, isCollapsed)
+                );
+            }
+        }
     }
 }
