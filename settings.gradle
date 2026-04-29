@@ -26,5 +26,4 @@ enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
 include 'platform'
 
 include 'core'
-include 'demos'
 include 'demos:basic'
