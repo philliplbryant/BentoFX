@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import software.coley.bentofx.Bento;
+import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.layout.DockContainer;
+import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
@@ -28,11 +32,14 @@ import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutSto
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.geometry.Side.LEFT;
+import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ApplicationExtension.class)
@@ -42,10 +49,10 @@ class BentoLayoutRestorerFT {
     void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() throws Exception {
         LayoutStorage storage = new InMemoryLayoutStorage(false);
         LayoutCodec codec = new InMemoryLayoutCodec();
-        DockingLayout fallback = new DockingLayoutBuilder().build();
+        DockingLayout defaultLayout = new DockingLayoutBuilder().build();
         BentoProvider bentoProvider = new DefaultBentoProvider(new Bento());
 
-        BentoLayoutRestorer restorer = new BentoLayoutRestorer(
+        BentoLayoutRestorer layoutRestorer = new BentoLayoutRestorer(
                 codec,
                 storage,
                 bentoProvider,
@@ -54,56 +61,98 @@ class BentoLayoutRestorerFT {
                 null
         );
 
-        DockingLayout restored = restorer.restoreLayout(() -> fallback);
+        DockingLayout restoredLayout = layoutRestorer.restoreLayout(() -> defaultLayout);
 
-        assertThat(restored).isSameAs(fallback);
+        assertThat(restoredLayout).isSameAs(defaultLayout);
         assertThat(codec.decode(new ByteArrayInputStream(new byte[0]))).isEmpty();
     }
 
     @Test
     void restoreLayoutBuildsRootBranchesAndDragDropStages(FxRobot robot) throws Exception {
-        DockableState dockableState = new DockableStateBuilder("dock-1")
-                .setTitle("Dock 1")
-                .setTooltip("This is the tooltip text for Dock 1")
-                .setDockableNode(new Label("node-1"))
-                .setClosable(true)
+
+        // Dockable state
+        final String expectedDockableId = "Dockable ID";
+        final String expectedDockableTitle = "Dockable Title";
+        final String expectedDockableTooltipText = "This is the Dockable's tooltip text";
+        final String expectedDockableNodeId = "Node ID";
+        final boolean expectedDockableIsClosable = true;
+
+        // Leaf state
+        final String expectedLeafId = "Leaf ID";
+        final Side expectedLeafSide = LEFT;
+        final boolean expectedLeafCanSplit = true;
+        final boolean expectedLeafResizableWithParent = true;
+        final double expectedLeafUncollapsedSizePx = 240.0;
+        final boolean expectedLeafIsCollapsed = true;
+        final boolean expectedLeafPruneWhenEmpty = false;
+        final double expectedLeafDividerPosition = 0.35;
+
+        // Bento state
+        final String expectedBentoId = "Bento ID";
+        final String expectedBentoRootId = "Bento Root ID";
+
+        // DragDropStage root branch state
+        final String expectedDragRootBuilderId = "DragDropStage Root Branch ID";
+        final Orientation expectedDragRootOrientation = VERTICAL;
+        final boolean expectedDragRootPruneWhenEmpty = true;
+
+        // DragDropStage state
+        final String expectedDragDropStageTitle = "DragDropStage ID";
+        final double expectedX = 120.0;
+        final double expectedY = 75.0;
+        final double expectedWidth = 640.0;
+        final double expectedHeight = 480.0;
+        final double expectedOpacity = 0.8;
+        final boolean expectedResizable = true;
+        final boolean expectedAlwaysOnTop = false;
+        final Modality expectedModality = NONE;
+
+        // Primary root branch state
+        final Orientation expectedRootOrientation = HORIZONTAL;
+        final boolean expectedRootPruneWhenEmpty = true;
+
+        DockableState dockableState = new DockableStateBuilder(expectedDockableId)
+                .setTitle(expectedDockableTitle)
+                .setTooltip(expectedDockableTooltipText)
+                .setDockableNode(new Label(expectedDockableNodeId))
+                .setClosable(expectedDockableIsClosable)
                 .build();
 
         DockContainerLeafStateBuilder leafBuilder =
-                new DockContainerLeafStateBuilder("leaf-1");
-        leafBuilder.setSide(Side.LEFT);
-        leafBuilder.setCanSplit(true);
-        leafBuilder.setResizableWithParent(true);
-        leafBuilder.setSelectedDockableStateIdentifier("dock-1");
-        leafBuilder.setUncollapsedSizePx(240.0);
-        leafBuilder.setCollapsed(false);
-        leafBuilder.setPruneWhenEmpty(false);
+                new DockContainerLeafStateBuilder(expectedLeafId);
+        leafBuilder.setSide(expectedLeafSide);
+        leafBuilder.setCanSplit(expectedLeafCanSplit);
+        leafBuilder.setResizableWithParent(expectedLeafResizableWithParent);
+        leafBuilder.setSelectedDockableStateIdentifier(expectedDockableId);
+        leafBuilder.setUncollapsedSizePx(expectedLeafUncollapsedSizePx);
+        leafBuilder.setCollapsed(expectedLeafIsCollapsed);
+        leafBuilder.setPruneWhenEmpty(expectedLeafPruneWhenEmpty);
         leafBuilder.addChildDockableState(dockableState);
 
         DockContainerRootBranchStateBuilder rootBuilder =
-                new DockContainerRootBranchStateBuilder("root-1");
-        rootBuilder.setOrientation(Orientation.HORIZONTAL);
-        rootBuilder.setPruneWhenEmpty(false);
-        rootBuilder.addDividerPosition(0, 0.35);
+                new DockContainerRootBranchStateBuilder(expectedBentoRootId);
+        rootBuilder.setOrientation(expectedRootOrientation);
+        rootBuilder.setPruneWhenEmpty(expectedRootPruneWhenEmpty);
+        rootBuilder.addDividerPosition(0, expectedLeafDividerPosition);
         rootBuilder.addDockContainerState(leafBuilder.build());
 
         DockContainerRootBranchStateBuilder dragRootBuilder =
-                new DockContainerRootBranchStateBuilder("root-drag");
-        dragRootBuilder.setOrientation(Orientation.VERTICAL);
-        dragRootBuilder.setPruneWhenEmpty(true);
+                new DockContainerRootBranchStateBuilder(expectedDragRootBuilderId);
+        dragRootBuilder.setOrientation(expectedDragRootOrientation);
+        dragRootBuilder.setPruneWhenEmpty(expectedDragRootPruneWhenEmpty);
 
-        BentoState state = new BentoState.BentoStateBuilder("bento-1")
+        BentoState state = new BentoState.BentoStateBuilder(expectedBentoId)
                 .addRootBranchState(rootBuilder.build())
                 .addDragDropStageState(new DragDropStageStateBuilder(true)
-                        .setTitle("drag-stage")
-                        .setX(120.0)
-                        .setY(75.0)
-                        .setWidth(640.0)
-                        .setHeight(480.0)
-                        .setOpacity(0.8)
-                        .setResizable(true)
-                        .setAlwaysOnTop(false)
-                        .setModality(Modality.NONE)
+                        .setTitle(expectedDragDropStageTitle)
+                        .setX(expectedX)
+                        .setY(expectedY)
+                        .setWidth(expectedWidth)
+                        .setHeight(expectedHeight)
+                        .setOpacity(expectedOpacity)
+                        .setResizable(expectedResizable)
+                        .setAlwaysOnTop(expectedAlwaysOnTop)
+                        .setModality(expectedModality)
                         .setDockContainerRootBranchState(dragRootBuilder.build())
                         .build())
                 .build();
@@ -124,7 +173,7 @@ class BentoLayoutRestorerFT {
                 new InMemoryLayoutStorage(true),
                 new DefaultBentoProvider(),
                 id ->
-                        "dock-1".equals(id)
+                        expectedDockableId.equals(id)
                                 ? Optional.of(dockableState)
                                 : Optional.empty(),
                 stageIconImageProvider,
@@ -147,103 +196,70 @@ class BentoLayoutRestorerFT {
 
         BentoLayout bentoLayout = restored.getBentoLayouts().getFirst();
         assertThat(bentoLayout.getIdentifier())
-                .isEqualTo("bento-1");
+                .isEqualTo(expectedBentoId);
 
         assertThat(bentoLayout.getRootBranches())
                 .hasSize(1);
         assertThat(bentoLayout.getDragDropStages())
                 .hasSize(1);
 
-        Object root = bentoLayout.getRootBranches().getFirst();
-        assertThat(invoke(root, "getIdentifier"))
-                .isEqualTo("root-1");
-        assertThat(invoke(root, "getOrientation"))
-                .isEqualTo(Orientation.HORIZONTAL);
+        DockContainerRootBranch root = bentoLayout.getRootBranches().getFirst();
+        assertThat(root.getIdentifier())
+                .isEqualTo(expectedBentoRootId);
+        assertThat(root.getOrientation())
+                .isEqualTo(expectedRootOrientation);
 
-        @SuppressWarnings("unchecked")
-        List<Object> rootContainers =
-                (List<Object>) invoke(root, "getChildContainers");
+        List<DockContainer> rootContainers = root.getChildContainers();
         assertThat(rootContainers)
                 .hasSize(1);
 
-        Object leaf = rootContainers.getFirst();
-        assertThat(invoke(leaf, "getIdentifier"))
-                .isEqualTo("leaf-1");
-        assertThat(invoke(leaf, "getSide"))
-                .isEqualTo(Side.LEFT);
+        DockContainer dockContainer = rootContainers.getFirst();
+        assertThat(dockContainer).isInstanceOf(DockContainerLeaf.class);
+        assertThat(dockContainer.getIdentifier())
+                .isEqualTo(expectedLeafId);
+        final DockContainerLeaf leaf = (DockContainerLeaf) dockContainer;
+        assertThat(leaf.getSide())
+                .isEqualTo(expectedLeafSide);
 
-        @SuppressWarnings("unchecked")
-        List<Object> dockables =
-                (List<Object>) invoke(leaf, "getDockables");
+        List<Dockable> dockables = dockContainer.getDockables();
         assertThat(dockables)
                 .hasSize(1);
-        assertThat(invoke(dockables.getFirst(), "getIdentifier"))
-                .isEqualTo("dock-1");
-        assertThat(invoke(dockables.getFirst(), "getTitle"))
-                .isEqualTo("Dock 1");
+        assertThat(dockables.getFirst().getIdentifier())
+                .isEqualTo(expectedDockableId);
+        assertThat(dockables.getFirst().getTitle())
+                .isEqualTo(expectedDockableTitle);
 
         Stage dragStage = bentoLayout.getDragDropStages().getFirst();
         assertThat(dragStage.getTitle())
-                .isEqualTo("drag-stage");
+                .isEqualTo(expectedDragDropStageTitle);
         assertThat(dragStage.getX())
-                .isEqualTo(120.0);
+                .isEqualTo(expectedX);
         assertThat(dragStage.getY())
-                .isEqualTo(75.0);
+                .isEqualTo(expectedY);
         assertThat(dragStage.getWidth())
-                .isEqualTo(640.0);
+                .isEqualTo(expectedWidth);
         assertThat(dragStage.getHeight())
-                .isEqualTo(480.0);
+                .isEqualTo(expectedHeight);
         assertThat(dragStage.getOpacity())
-                .isEqualTo(0.8);
+                .isEqualTo(expectedOpacity);
         assertThat(dragStage.isResizable())
-                .isTrue();
+                .isEqualTo(expectedResizable);
+        assertThat(dragStage.isAlwaysOnTop())
+                .isEqualTo(expectedAlwaysOnTop);
+        assertThat(dragStage.getModality())
+                .isEqualTo(expectedModality);
         assertThat(dragStage.getIcons())
                 .hasSize(1);
-        assertThat(invoke(
-                dragStage.getScene().getRoot(),
-                "getIdentifier")
-        )
-                .isEqualTo("root-drag");
+        assertThat(dragStage.getScene().getRoot())
+                .isInstanceOf(DockContainerRootBranch.class);
+        final DockContainerRootBranch rootBranch = (DockContainerRootBranch) dragStage.getScene().getRoot();
+        assertThat(rootBranch.getIdentifier())
+                .isEqualTo(expectedDragRootBuilderId);
+        assertThat(rootBranch.getOrientation())
+                .isEqualTo(expectedDragRootOrientation);
+        assertThat(rootBranch.doPruneWhenEmpty())
+                .isEqualTo(expectedDragRootPruneWhenEmpty);
 
         robot.interact(dragStage::hide);
-    }
-
-    private static Object invoke(
-            Object target,
-            String methodName,
-            Object... args
-    ) {
-        Method method = findMethod(
-                target.getClass(),
-                methodName,
-                args.length
-        );
-        try {
-            method.setAccessible(true);
-            return method.invoke(target, args);
-        } catch (ReflectiveOperationException ex) {
-            throw new AssertionError(
-                    "Failed to invoke " + methodName + " on " +
-                            target.getClass(),
-                    ex
-            );
-        }
-    }
-
-    private static Method findMethod(
-            Class<?> type,
-            String methodName,
-            int argCount
-    ) {
-        for (Method method : type.getMethods()) {
-            if (method.getName().equals(methodName) &&
-                    method.getParameterCount() == argCount) {
-                return method;
-            }
-        }
-        throw new AssertionError(
-                "No method named '" + methodName + "' with " +
-                        argCount + " parameters on " + type
-        );
     }
 }
