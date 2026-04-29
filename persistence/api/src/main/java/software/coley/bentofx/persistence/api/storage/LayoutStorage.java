@@ -12,11 +12,6 @@ import java.io.OutputStream;
  */
 public interface LayoutStorage {
 
-    // TODO BENTO-13: Enable saving/restoring multiple layouts at runtime:
-    //  * Add a method that returns a list of saved layouts (layout identifiers)
-    //  * Modify exists, openInputStream and openOutputStream methods to accept
-    //    a "layout identifier" parameter.
-
     /**
      * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.
      *
