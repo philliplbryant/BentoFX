@@ -6,7 +6,7 @@ A docking system for JavaFX.
 
 Requirements:
 
-- JavaFX 23+
+- JavaFX 21+
 - Java 21+
 
 Gradle syntax:
@@ -175,5 +175,3 @@ stage.show();
 For a more real-world example you can check out [Recaf](https://github.com/Col-E/Recaf/)
 
 ![containers](assets/example-recaf.png)
-
-Information for contributing to the BentoFX project can be found [here](./CONTRIBUTING.md).
