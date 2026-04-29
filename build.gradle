@@ -5,49 +5,6 @@ plugins {
     id 'base'
     alias libs.plugins.jreleaser
     alias libs.plugins.benmanes.versions
-    alias libs.plugins.dependencyAnalysis.gradlePlugin
-}
-
-// TODO BENTO-35: Remove DAGP
-dependencyAnalysis {
-    issues {
-        // Configure for all projects
-        all {
-            onDuplicateClassWarnings { severity('fail') }
-            onIncorrectConfiguration {
-                severity('fail')
-                exclude(
-                        // The JavaFX Gradle plugin uses the same
-                        // configuration(s) for all module dependencies,
-                        // resulting in dependencies sometimes using the
-                        // incorrect/most inclusive configuration. Ignore them.
-                        'org.openjfx:javafx-base',
-                        'org.openjfx:javafx-controls',
-                        'org.openjfx:javafx-graphics'
-                )
-            }
-            onModuleStructure { severity('fail') }
-            onUnusedDependencies {
-                severity('fail')
-                exclude(
-                        // Exclude common testing dependencies that we apply to all
-                        // projects regardless of use (for the sake of convenience).
-                        'junit:junit',
-                        'org.assertj:assertj-core',
-                        'org.junit.jupiter:junit-jupiter',
-                        'org.junit.jupiter:junit-jupiter-api',
-                )
-            }
-            onUnusedAnnotationProcessors { severity('fail') }
-            onUsedTransitiveDependencies { severity('fail') }
-        }
-    }
-    usage {
-        analysis {
-            checkSuperClasses(true)
-        }
-    }
-    useTypesafeProjectAccessors(true)
 }
 
 jreleaser {
