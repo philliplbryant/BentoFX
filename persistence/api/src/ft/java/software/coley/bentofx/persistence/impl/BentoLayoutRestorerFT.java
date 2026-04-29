@@ -74,7 +74,6 @@ class BentoLayoutRestorerFT {
         final String expectedDockableId = "Dockable ID";
         final String expectedDockableTitle = "Dockable Title";
         final String expectedDockableTooltipText = "This is the Dockable's tooltip text";
-        final String expectedDockableNodeId = "Node ID";
         final boolean expectedDockableIsClosable = true;
 
         // Leaf state
@@ -85,7 +84,6 @@ class BentoLayoutRestorerFT {
         final double expectedLeafUncollapsedSizePx = 240.0;
         final boolean expectedLeafIsCollapsed = true;
         final boolean expectedLeafPruneWhenEmpty = false;
-        final double expectedLeafDividerPosition = 0.35;
 
         // Bento state
         final String expectedBentoId = "Bento ID";
@@ -110,11 +108,12 @@ class BentoLayoutRestorerFT {
         // Primary root branch state
         final Orientation expectedRootOrientation = HORIZONTAL;
         final boolean expectedRootPruneWhenEmpty = true;
+        final double expectedRootDividerPosition = 0.35;
 
         DockableState dockableState = new DockableStateBuilder(expectedDockableId)
                 .setTitle(expectedDockableTitle)
                 .setTooltip(expectedDockableTooltipText)
-                .setDockableNode(new Label(expectedDockableNodeId))
+                .setDockableNode(new Label(expectedDockableId))
                 .setClosable(expectedDockableIsClosable)
                 .build();
 
@@ -133,7 +132,7 @@ class BentoLayoutRestorerFT {
                 new DockContainerRootBranchStateBuilder(expectedBentoRootId);
         rootBuilder.setOrientation(expectedRootOrientation);
         rootBuilder.setPruneWhenEmpty(expectedRootPruneWhenEmpty);
-        rootBuilder.addDividerPosition(0, expectedLeafDividerPosition);
+        rootBuilder.addDividerPosition(0, expectedRootDividerPosition);
         rootBuilder.addDockContainerState(leafBuilder.build());
 
         DockContainerRootBranchStateBuilder dragRootBuilder =
@@ -172,8 +171,8 @@ class BentoLayoutRestorerFT {
                 codec,
                 new InMemoryLayoutStorage(true),
                 new DefaultBentoProvider(),
-                id ->
-                        expectedDockableId.equals(id)
+                actualId ->
+                        actualId.equals(expectedDockableId)
                                 ? Optional.of(dockableState)
                                 : Optional.empty(),
                 stageIconImageProvider,
@@ -208,6 +207,10 @@ class BentoLayoutRestorerFT {
                 .isEqualTo(expectedBentoRootId);
         assertThat(root.getOrientation())
                 .isEqualTo(expectedRootOrientation);
+        assertThat(root.doPruneWhenEmpty())
+                .isEqualTo(expectedRootPruneWhenEmpty);
+        assertThat(root.getDividerPositions()[0])
+                .isEqualTo(expectedRootDividerPosition);
 
         List<DockContainer> rootContainers = root.getChildContainers();
         assertThat(rootContainers)
@@ -220,6 +223,16 @@ class BentoLayoutRestorerFT {
         final DockContainerLeaf leaf = (DockContainerLeaf) dockContainer;
         assertThat(leaf.getSide())
                 .isEqualTo(expectedLeafSide);
+        assertThat(leaf.isCanSplit())
+                .isEqualTo(expectedLeafCanSplit);
+        assertThat(leaf.isResizable())
+                .isEqualTo(expectedLeafResizableWithParent);
+        assertThat(leaf.getUncollapsedSize())
+                .isEqualTo(expectedLeafUncollapsedSizePx);
+        assertThat(leaf.isCollapsed())
+                .isEqualTo(expectedLeafIsCollapsed);
+        assertThat(leaf.doPruneWhenEmpty())
+                .isEqualTo(expectedLeafPruneWhenEmpty);
 
         List<Dockable> dockables = dockContainer.getDockables();
         assertThat(dockables)
@@ -228,6 +241,10 @@ class BentoLayoutRestorerFT {
                 .isEqualTo(expectedDockableId);
         assertThat(dockables.getFirst().getTitle())
                 .isEqualTo(expectedDockableTitle);
+        assertThat(dockables.getFirst().getTooltip().getText())
+                .isEqualTo(expectedDockableTooltipText);
+        assertThat(dockables.getFirst().isClosable())
+                .isEqualTo(expectedDockableIsClosable);
 
         Stage dragStage = bentoLayout.getDragDropStages().getFirst();
         assertThat(dragStage.getTitle())
