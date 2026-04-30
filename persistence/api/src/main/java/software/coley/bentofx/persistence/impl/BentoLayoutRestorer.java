@@ -24,21 +24,11 @@ import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.BentoLayout.BentoLayoutBuilder;
 import software.coley.bentofx.persistence.impl.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.impl.codec.BentoState;
-import software.coley.bentofx.persistence.impl.codec.DockContainerBranchState;
-import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState;
-import software.coley.bentofx.persistence.impl.codec.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.impl.codec.DockContainerState;
-import software.coley.bentofx.persistence.impl.codec.DockableState;
-import software.coley.bentofx.persistence.impl.codec.DragDropStageState;
+import software.coley.bentofx.persistence.impl.codec.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -103,9 +93,9 @@ public class BentoLayoutRestorer implements LayoutRestorer {
             scheduleService(futureState);
 
             // Wait for the future to complete
-			final List<BentoState> bentoStateList = futureState.get();
+            final List<BentoState> bentoStateList = futureState.get();
 
-			for (final BentoState bentoState : bentoStateList) {
+            for (final BentoState bentoState : bentoStateList) {
 
                 final String bentoIdentifier = bentoState.getIdentifier();
 
@@ -269,22 +259,14 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
-		applyDockContainerStates(rootBranchState, rootBranch);
-
-		applyDockableStates(rootBranchState, rootBranch, dockBuilding);
-		final Map<String, DockContainerLeaf> leaves = getLeaves(rootBranch);
-
-        restoreCollapsedLeafLayoutState(leaves, rootBranchState, rootBranch);
-
-
-
-
-
-
+        // TODO BENTO-13: Divider positions are not restoring properly
+        applyDividerPositions(rootBranchState, rootBranch);
+        applyDockContainerStates(rootBranchState, rootBranch);
+        applyDockableStates(rootBranchState, rootBranch, dockBuilding);
         //  You can only correctly collapse a leaf if the branch containing the
         //  leaf contains more than one DockContainer, so wait until all
         //  DockContainers have been added to collapse the leaves.
-        applyDividerPositions(rootBranchState, rootBranch);
+        conditionallyCollapseLeaves(rootBranchState, rootBranch);
 
         return rootBranch;
     }
@@ -397,7 +379,6 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 )
         );
 
-
         for (final DockableState dockableState :
                 state.getChildDockableStates()) {
 
@@ -427,8 +408,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     }
 
     private @Nullable Dockable restoreDockable(
-			final DockBuilding dockBuilding,
-			final String dockableIdentifier
+            final DockBuilding dockBuilding,
+            final String dockableIdentifier
     ) {
 
         final Optional<DockableState> optionalDockableProvider =
@@ -483,54 +464,66 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         return dockable;
     }
 
-	private void applyDockContainerStates(
+    private static void applyDividerPositions(
             final DockContainerRootBranchState rootBranchState,
-			final DockContainerRootBranch rootBranch
-	) {
-		for (final DockContainerState childState :
-				rootBranchState.getChildDockContainerStates()) {
+            final DockContainerRootBranch rootBranch
+    ) {
+        for (final Map.Entry<Integer, Double> positionEntry :
+                rootBranchState.getDividerPositions().entrySet()) {
+            rootBranch.setDividerPosition(
+                    positionEntry.getKey(),
+                    positionEntry.getValue()
+            );
+        }
+    }
 
-			final DockContainer dockContainer =
-					restoreDockContainer(rootBranch, childState);
-			if (dockContainer != null) {
-				rootBranch.addContainer(dockContainer);
-			}
-		}
-	}
-	private void applyDockableStates(
-			final DockContainerRootBranchState rootBranchState,
-			final DockContainerRootBranch rootBranch,
-			final DockBuilding dockBuilding
-	) {
-		for (final DockableState dockableState :
-				rootBranchState.getChildDockableStates()) {
-			final Dockable dockable =
-					restoreDockable(
-							dockBuilding,
-							dockableState.getIdentifier()
-					);
-			if (dockable != null) {
-				rootBranch.addDockable(dockable);
-			}
-		}
-	}
-	private static Map<String, DockContainerLeaf> getLeaves(
-			final DockContainerRootBranch rootBranch
-	) {
+    private void applyDockContainerStates(
+            final DockContainerRootBranchState rootBranchState,
+            final DockContainerRootBranch rootBranch
+    ) {
+        for (final DockContainerState childState :
+                rootBranchState.getChildDockContainerStates()) {
+
+            final DockContainer dockContainer =
+                    restoreDockContainer(rootBranch, childState);
+            if (dockContainer != null) {
+                rootBranch.addContainer(dockContainer);
+            }
+        }
+    }
+
+    private void applyDockableStates(
+            final DockContainerRootBranchState rootBranchState,
+            final DockContainerRootBranch rootBranch,
+            final DockBuilding dockBuilding
+    ) {
+        for (final DockableState dockableState :
+                rootBranchState.getChildDockableStates()) {
+            final Dockable dockable =
+                    restoreDockable(
+                            dockBuilding,
+                            dockableState.getIdentifier()
+                    );
+            if (dockable != null) {
+                rootBranch.addDockable(dockable);
+            }
+        }
+    }
+
+    private static void conditionallyCollapseLeaves(
+            final DockContainerRootBranchState rootBranchState,
+            final DockContainerRootBranch rootBranch) {
+
+        // Map the leaves to their identifiers
         final Map<String, DockContainerLeaf> leaves = new HashMap<>();
-		for (final DockContainer container : rootBranch.getChildContainers()) {
+        for(final DockContainer container : rootBranch.getChildContainers())
+        {
             if(container instanceof final DockContainerLeaf leaf) {
                 leaves.put(leaf.getIdentifier(), leaf);
             }
         }
 
-		return leaves;
-	}
-    private static void restoreCollapsedLeafLayoutState(
-			final Map<String, DockContainerLeaf> leaves,
-			final DockContainerRootBranchState rootBranchState,
-			final DockContainerRootBranch rootBranch
-	) {
+        // For each leaf state,
         for (final DockContainerState childState :
                 rootBranchState.getChildDockContainerStates()) {
 
@@ -538,30 +531,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
                 final DockContainerLeaf leaf = leaves.get(leafState.getIdentifier());
 
-                if (leaf == null) {
-                    continue;
-                }
-                final boolean collapsed =
-                        leafState.isCollapsed().orElse(false);
-                if (collapsed) {
-					leafState.getUncollapsedSizePx().ifPresent(size ->
-							rootBranch.setContainerSizePx(leaf, size)
+                leafState.isCollapsed().ifPresent(isCollapsed ->
+                        rootBranch.setContainerCollapsed(leaf, isCollapsed)
                 );
-                    rootBranch.setContainerCollapsed(leaf, true);
             }
         }
-	}
     }
-	private static void applyDividerPositions(
-			final DockContainerRootBranchState rootBranchState,
-			final DockContainerRootBranch rootBranch
-	) {
-		for (final Map.Entry<Integer, Double> positionEntry :
-				rootBranchState.getDividerPositions().entrySet()) {
-			rootBranch.setDividerPosition(
-					positionEntry.getKey(),
-					positionEntry.getValue()
-			);
-		}
-	}
 }
