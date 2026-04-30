@@ -115,7 +115,6 @@ public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
             throw new BentoStateException("Failed to encode BentoState", ex);
         }
-
     }
 
     private void saveDragDropStage(
