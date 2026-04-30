@@ -72,7 +72,7 @@ public class SecondStage extends Stage {
         );
         setWidth(300);
         setHeight(175);
-        setX(-300);
-        setY(0);
+        setX(1447);
+        setY(117);
     }
 }

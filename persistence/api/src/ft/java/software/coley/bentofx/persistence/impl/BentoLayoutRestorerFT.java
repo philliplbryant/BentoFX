@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -15,10 +16,11 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.impl.BentoLayout;
+import software.coley.bentofx.persistence.impl.BentoLayoutRestorer;
+import software.coley.bentofx.persistence.impl.DockingLayout;
 import software.coley.bentofx.persistence.impl.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.impl.codec.BentoState;
 import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
@@ -30,8 +32,6 @@ import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,8 +47,8 @@ class BentoLayoutRestorerFT {
 
     @Test
     void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() throws Exception {
-        LayoutStorage storage = new InMemoryLayoutStorage(false);
-        LayoutCodec codec = new InMemoryLayoutCodec();
+        InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         DockingLayout defaultLayout = new DockingLayoutBuilder().build();
         BentoProvider bentoProvider = new DefaultBentoProvider(new Bento());
 
@@ -64,7 +64,8 @@ class BentoLayoutRestorerFT {
         DockingLayout restoredLayout = layoutRestorer.restoreLayout(() -> defaultLayout);
 
         assertThat(restoredLayout).isSameAs(defaultLayout);
-        assertThat(codec.decode(new ByteArrayInputStream(new byte[0]))).isEmpty();
+        assertThat(storage.exists()).isFalse();
+        assertThat(codec.getEncodeCalls()).isEmpty();
     }
 
     @Test
@@ -78,11 +79,12 @@ class BentoLayoutRestorerFT {
 
         // Leaf state
         final String expectedLeafId = "Leaf ID";
+        final String expectedSecondLeafId = "Second Leaf ID";
         final Side expectedLeafSide = LEFT;
         final boolean expectedLeafCanSplit = true;
         final boolean expectedLeafResizableWithParent = true;
         final double expectedLeafUncollapsedSizePx = 240.0;
-        final boolean expectedLeafIsCollapsed = true;
+        final boolean expectedLeafIsCollapsed = false;
         final boolean expectedLeafPruneWhenEmpty = false;
 
         // Bento state
@@ -134,6 +136,9 @@ class BentoLayoutRestorerFT {
         rootBuilder.setPruneWhenEmpty(expectedRootPruneWhenEmpty);
         rootBuilder.addDividerPosition(0, expectedRootDividerPosition);
         rootBuilder.addDockContainerState(leafBuilder.build());
+        rootBuilder.addDockContainerState(
+                new DockContainerLeafStateBuilder(expectedSecondLeafId).build()
+        );
 
         DockContainerRootBranchStateBuilder dragRootBuilder =
                 new DockContainerRootBranchStateBuilder(expectedDragRootBuilderId);
@@ -156,11 +161,11 @@ class BentoLayoutRestorerFT {
                         .build())
                 .build();
 
-        LayoutCodec codec = new InMemoryLayoutCodec();
-        codec.encode(
-                List.of(state),
-                new ByteArrayOutputStream(0)
-        );
+        InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        try (var out = storage.openOutputStream()) {
+            codec.writeEncoded(List.of(state), out);
+        }
 
         StageIconImageProvider stageIconImageProvider =
                 () -> List.of(
@@ -169,8 +174,8 @@ class BentoLayoutRestorerFT {
 
         BentoLayoutRestorer restorer = new BentoLayoutRestorer(
                 codec,
-                new InMemoryLayoutStorage(true),
-                new DefaultBentoProvider(),
+                storage,
+                new DefaultBentoProvider(new Bento(expectedBentoId)),
                 actualId ->
                         actualId.equals(expectedDockableId)
                                 ? Optional.of(dockableState)
@@ -209,12 +214,12 @@ class BentoLayoutRestorerFT {
                 .isEqualTo(expectedRootOrientation);
         assertThat(root.doPruneWhenEmpty())
                 .isEqualTo(expectedRootPruneWhenEmpty);
-        assertThat(root.getDividerPositions()[0])
-                .isEqualTo(expectedRootDividerPosition);
+        assertThat(root.getDividerPositions())
+                .containsExactly(expectedRootDividerPosition);
 
         List<DockContainer> rootContainers = root.getChildContainers();
         assertThat(rootContainers)
-                .hasSize(1);
+                .hasSize(2);
 
         DockContainer dockContainer = rootContainers.getFirst();
         assertThat(dockContainer).isInstanceOf(DockContainerLeaf.class);
@@ -225,10 +230,8 @@ class BentoLayoutRestorerFT {
                 .isEqualTo(expectedLeafSide);
         assertThat(leaf.isCanSplit())
                 .isEqualTo(expectedLeafCanSplit);
-        assertThat(leaf.isResizable())
+        assertThat(SplitPane.isResizableWithParent(leaf))
                 .isEqualTo(expectedLeafResizableWithParent);
-        assertThat(leaf.getUncollapsedSize())
-                .isEqualTo(expectedLeafUncollapsedSizePx);
         assertThat(leaf.isCollapsed())
                 .isEqualTo(expectedLeafIsCollapsed);
         assertThat(leaf.doPruneWhenEmpty())

@@ -2,6 +2,14 @@ plugins {
     id 'application'
 }
 
+tasks.withType(JavaExec).configureEach {
+    notCompatibleWithConfigurationCache(
+            "Cannot serialize object of type `org.gradle.api.internal.project.DefaultProject`, " +
+                    "a subtype of `org.gradle.api.Project`, as these are not " +
+                    "supported with the configuration cache."
+    )
+}
+
 // Just support running the demos, don't create distributions, JavaDocs, or JARs for them
 tasks.named('assembleDist') { enabled = false }
 tasks.named('distTar') { enabled = false }

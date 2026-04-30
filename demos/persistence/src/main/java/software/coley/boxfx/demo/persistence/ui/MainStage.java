@@ -202,7 +202,7 @@ public class MainStage extends Stage {
 
         rootBranches.add(branchRoot);
 
-        setTitle("BentoFX Demo");
+        setTitle("BentoFX Persistence Demo");
         setWidth(1000);
         setHeight(700);
         getIcons().addAll(
