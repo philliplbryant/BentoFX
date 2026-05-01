@@ -47,10 +47,20 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     private final LayoutCodec layoutCodec;
 
+    /**
+     * Creates a {@link DockingLayoutSaver}
+     *
+     * @param layoutCodec   the {@link LayoutCodec} to use to encode the persisted
+     *                      layout.
+     * @param layoutStorage the {@link LayoutStorage} to use to write the
+     *                      persisted layout.
+     * @param bentoProvider the {@link BentoProvider} to use to get {@link Bento}
+     *                      instances from their identifiers.
+     */
     public DockingLayoutSaver(
-            final BentoProvider bentoProvider,
             final LayoutCodec layoutCodec,
-            final LayoutStorage layoutStorage
+            final LayoutStorage layoutStorage,
+            final BentoProvider bentoProvider
     ) {
         super(bentoProvider);
         this.layoutCodec = Objects.requireNonNull(layoutCodec);

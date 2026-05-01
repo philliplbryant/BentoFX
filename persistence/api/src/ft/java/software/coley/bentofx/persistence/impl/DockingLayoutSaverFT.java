@@ -82,9 +82,7 @@ class DockingLayoutSaverFT {
         InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
 
         try (DockingLayoutSaver saver = new DockingLayoutSaver(
-                bentoProvider,
-                codec,
-                storage
+                codec, storage, bentoProvider
         )) {
 
             saver.saveLayout();
@@ -120,9 +118,7 @@ class DockingLayoutSaverFT {
         final BentoProvider emptyBentoProvider = new DefaultBentoProvider();
 
         try (DockingLayoutSaver saver = new DockingLayoutSaver(
-                emptyBentoProvider,
-                codec,
-                storage
+                codec, storage, emptyBentoProvider
 
         )) {
 

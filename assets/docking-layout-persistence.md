@@ -1,12 +1,9 @@
-# Bento Layout Persistence Implementation
+# Docking Layout Persistence Implementation
 
-This document describes BentoFX layout persistence as implemented by:
-
-- [BentoLayoutSaver.saveLayout()](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutSaver.java):
-- [BentoLayoutRestorer.restoreLayout(Supplier\<DockingLayout>  defaultLayoutSupplier)](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutRestorer.java):
+This document describes BentoFX layout persistence as implemented by [DockingLayoutSaver](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutSaver.java) and  [DockingLayoutRestorer](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutRestorer.java).
 
 
-For the overarching design, [Bento layout persistence diagrams](bento-layout-persistence-diagrams.md) are also available.
+For the overarching design, [docking layout persistence diagrams](docking-layout-persistence-diagrams.md) are also available.
 
 ## Scope
 
@@ -18,8 +15,9 @@ This document focuses on persistence orchestration, not rendering, docking UX, o
 
 Persistence is expressed as immutable-ish *state* objects (built via builders) rather than direct serialization of UI classes:
 
-- `BentoState` is the persistence root.
-- `DockContainerRootBranchState`, `DockContainerBranchState`, `DockContainerLeafState` represent the container tree.
+- `DockingLayout` is the persistence root.
+- `BentoLayout` represent the layout for persisting `Bento`, which contain container trees.
+- `DockContainerRootBranchState`, `DockContainerBranchState`, `DockContainerLeafState` represent a container tree.
 - `DockableState` represents a dockable identity in a container/leaf and contains references to factories used to reconstruct a dockable.
 - `DragDropStageState` represents secondary (drag/drop) stages and contains a root-branch state.
 
@@ -36,7 +34,7 @@ This decoupling lets you choose the persisted format (XML,JSON, or custom implem
 
 ### High-level algorithm
 
-[BentoLayoutSaver.saveLayout()](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutSaver.java):
+[DockingLayoutSaver.saveLayout()](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutSaver.java):
 
 1. Create a new `BentoStateBuilder`.
 2. Iterate all JavaFX stages (`StageUtils.getAllStages()`).
@@ -76,7 +74,7 @@ Leaf properties include:
 ## Restore layout design
 
 ### High-level algorithm
-[BentoLayoutRestorer.restoreLayout(Supplier\<DockingLayout>  defaultLayoutSupplier)](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutRestorer.java):
+[DockingLayoutRestorer.restoreLayout(Supplier\<DockingLayout>  defaultLayoutSupplier)](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutRestorer.java):
 
 
 1. Hide primary stage and close any other existing stages.

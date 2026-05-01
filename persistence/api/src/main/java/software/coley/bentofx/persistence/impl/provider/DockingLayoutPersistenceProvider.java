@@ -51,11 +51,7 @@ public class DockingLayoutPersistenceProvider
                         layoutCodec.getIdentifier()
                 );
 
-        return new DockingLayoutSaver(
-                bentoProvider,
-                layoutCodec,
-                layoutStorage
-        );
+        return new DockingLayoutSaver(layoutCodec, layoutStorage, bentoProvider);
     }
 
     @Override

@@ -431,7 +431,7 @@ For complete examples, refer to these modules:
 [H2 Database Storage](./persistence/storage/db/h2)  
 [File Storage](./persistence/storage/file)  
 
-API and usage documentation can be found [here](assets/bento-layout-persistence.md).
+API and usage documentation can be found [here](assets/docking-layout-persistence.md).
 
 The following are also provided for additional information on using `ServiceLoader`:
 https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
