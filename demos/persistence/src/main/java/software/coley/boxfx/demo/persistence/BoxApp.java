@@ -18,7 +18,7 @@ import software.coley.bentofx.persistence.impl.BentoLayout;
 import software.coley.bentofx.persistence.impl.BentoLayout.BentoLayoutBuilder;
 import software.coley.bentofx.persistence.impl.DockingLayout;
 import software.coley.bentofx.persistence.impl.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.impl.provider.BentoLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.impl.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.boxfx.demo.persistence.provider.BoxAppDockContainerLeafMenuFactoryProvider;
 import software.coley.boxfx.demo.persistence.provider.BoxAppDockableMenuFactory;
@@ -44,7 +44,7 @@ public class BoxApp extends Application {
     private static final String DEFAULT_LAYOUT_IDENTIFIER = "recent";
 
     private final LayoutPersistenceProvider persistenceProvider =
-            new BentoLayoutPersistenceProvider();
+            new DockingLayoutPersistenceProvider();
 
     private final DockableStateProvider dockableStateProvider =
             new BoxAppDockableStateProvider(

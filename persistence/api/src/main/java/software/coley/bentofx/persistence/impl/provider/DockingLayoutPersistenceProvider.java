@@ -6,8 +6,8 @@ import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.impl.BentoLayoutRestorer;
-import software.coley.bentofx.persistence.impl.BentoLayoutSaver;
+import software.coley.bentofx.persistence.impl.DockingLayoutRestorer;
+import software.coley.bentofx.persistence.impl.DockingLayoutSaver;
 
 import java.util.ServiceLoader;
 
@@ -17,13 +17,13 @@ import java.util.ServiceLoader;
  *
  * @author Phil Bryant
  */
-public class BentoLayoutPersistenceProvider
+public class DockingLayoutPersistenceProvider
         implements LayoutPersistenceProvider {
 
     private final LayoutCodecProvider layoutCodecProvider;
     private final LayoutStorageProvider layoutStorageProvider;
 
-    public BentoLayoutPersistenceProvider() {
+    public DockingLayoutPersistenceProvider() {
 
         final Iterable<LayoutCodecProvider> codecProviders =
                 ServiceLoader.load(LayoutCodecProvider.class);
@@ -51,7 +51,7 @@ public class BentoLayoutPersistenceProvider
                         layoutCodec.getIdentifier()
                 );
 
-        return new BentoLayoutSaver(
+        return new DockingLayoutSaver(
                 bentoProvider,
                 layoutCodec,
                 layoutStorage
@@ -75,7 +75,7 @@ public class BentoLayoutPersistenceProvider
                         layoutCodec.getIdentifier()
                 );
 
-        return new BentoLayoutRestorer(
+        return new DockingLayoutRestorer(
                 layoutCodec,
                 layoutStorage,
                 bentoProvider,

@@ -125,7 +125,7 @@ public class SecondDragDropStage extends DragDropStage {
         );
         setWidth(325);
         setHeight(175);
-        setX(1448);
-        setY(288);
+        setX(1450);
+        setY(285);
     }
 }

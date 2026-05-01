@@ -27,7 +27,8 @@ public interface LayoutRestorer {
      *                              when the {@link DockingLayout} does not
      *                              exist or cannot be restored without error.
      * @return the restored {@link DockingLayout}, if it exists and can be read
-     * without error.
+     * without error; otherwise, the {@link DockingLayout} returned by the
+     * {@code Supplier<DockingLayout>}.
      */
     DockingLayout restoreLayout(
             final Supplier<DockingLayout> defaultLayoutSupplier

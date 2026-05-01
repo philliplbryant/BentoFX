@@ -37,17 +37,17 @@ import static software.coley.bentofx.persistence.impl.StageUtils.getAllStages;
  *
  * @author Phil Bryant
  */
-public class BentoLayoutSaver extends AbstractAutoCloseableLayoutSaver {
+public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     private static final Logger logger =
-            LoggerFactory.getLogger(BentoLayoutSaver.class);
+            LoggerFactory.getLogger(DockingLayoutSaver.class);
 
 
     private final LayoutStorage layoutStorage;
 
     private final LayoutCodec layoutCodec;
 
-    public BentoLayoutSaver(
+    public DockingLayoutSaver(
             final BentoProvider bentoProvider,
             final LayoutCodec layoutCodec,
             final LayoutStorage layoutStorage

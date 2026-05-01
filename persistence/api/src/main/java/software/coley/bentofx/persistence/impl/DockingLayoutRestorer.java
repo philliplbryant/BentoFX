@@ -13,6 +13,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
@@ -38,13 +39,13 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * Restores JavaFX stage layouts from a persisted {@link BentoState}.
+ * Restores persisted {@link DockingLayout}s.
  *
  * @author Phil Bryant
  */
-public class BentoLayoutRestorer implements LayoutRestorer {
+public class DockingLayoutRestorer implements LayoutRestorer {
 
-    private static final Logger logger = LoggerFactory.getLogger(BentoLayoutRestorer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DockingLayoutRestorer.class);
 
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
@@ -53,7 +54,21 @@ public class BentoLayoutRestorer implements LayoutRestorer {
     private final @Nullable StageIconImageProvider stageIconImageProvider;
     private final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
-    public BentoLayoutRestorer(
+    /**
+     * Constructs a {code DockingLayoutRestorer}.
+     * @param layoutCodec the {@link LayoutCodec} to use to decode the persisted layout.
+     * @param layoutStorage the {@link LayoutStorage} to use to read the persisted layout.
+     * @param bentoProvider the {@link BentoProvider} to use to get {@link Bento} instances
+     *                      from their identifier.
+     * @param dockableStateProvider the {@link DockableStateProvider} to use to get
+     *                              {@link Dockable} instances from their identifier.
+     * @param stageIconImageProvider the {@link StageIconImageProvider} to use to get icons for
+     *                               restored {@link DragDropStage} instances.
+     * @param dockContainerLeafMenuFactoryProvider the {@link DockContainerLeafMenuFactoryProvider}
+     *                                             to use to get {@link DockContainerLeafMenuFactory}
+     *                                             for restored {@link DockContainerLeaf} instances.
+     */
+    public DockingLayoutRestorer(
             final LayoutCodec layoutCodec,
             final LayoutStorage layoutStorage,
             final BentoProvider bentoProvider,
@@ -87,14 +102,12 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 new DockingLayoutBuilder();
         try {
 
-            final CompletableFuture<List<BentoState>> futureState =
-                    new CompletableFuture<>();
+            // Create, schedule, and wait for a service to read the layout from
+            // the LayoutStorage implementation
+            final List<BentoState> bentoStateList = scheduleService().get();
 
-            scheduleService(futureState);
-
-            // Wait for the future to complete
-            final List<BentoState> bentoStateList = futureState.get();
-
+            // Restore the BentoLayout, containing root branches and drag/drop
+            // stages for each Bento, and add the BentoLayout to the DockingLayout
             for (final BentoState bentoState : bentoStateList) {
 
                 final String bentoIdentifier = bentoState.getIdentifier();
@@ -105,8 +118,8 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 // All Bentos are not created equal - it's possible the client
                 // application extended the Bento class or otherwise customized
                 // its functionality, and used the custom Bento when creating
-                // the layout that is being restored. Get the Bento for the
-                // bento identifier.
+                // the layout that is being restored. Use the BentoProvider to
+                // get the Bento for the bento identifier.
                 final Bento bento = bentoProvider.getBento(bentoIdentifier)
                         .orElseGet(() -> {
                                     logger.warn(
@@ -122,6 +135,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
 
                 final DockBuilding dockBuilding = bento.dockBuilding();
 
+                // Restore each DockContainerRootBranch and add it to the BentoLayout
                 for (final DockContainerRootBranchState rootBranchState :
                         bentoState.getRootBranchStates()) {
                     bentoLayoutBuilder.addRootBranch(
@@ -132,7 +146,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                     );
                 }
 
-                // Restore DragDropStages
+                // Restore each DragDropStage and add it to the BentoLayout
                 for (final DragDropStageState dragDropStageState :
                         bentoState.getDragDropStageStates()) {
                     bentoLayoutBuilder.addDragDropStage(
@@ -171,11 +185,18 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private void scheduleService(
-            final CompletableFuture<List<BentoState>> futureState
-    ) {
+    /**
+     * Uses a {@link ScheduledExecutorService} to read the persisted layout
+     * state, from the {@link LayoutStorage} implementation, in a new thread that
+     * does <em>not</em> execute on the application thread.
+     * @return a {@link CompletableFuture} to use to get the {@link BentoState}s
+     * when the service completes.
+     */
+    private CompletableFuture<List<BentoState>> scheduleService() {
         try (final ScheduledExecutorService executorService =
                      newSingleThreadScheduledExecutor()) {
+
+            CompletableFuture<List<BentoState>> futureState = new CompletableFuture<>();
 
             // Do not decode on the application thread
             executorService.schedule(
@@ -193,9 +214,21 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                     300,
                     MILLISECONDS
             );
+
+            return futureState;
         }
     }
 
+    /**
+     * Creates a {@link DragDropStage}, restore its {@link DockContainerRootBranch},
+     * adds the {@link DockContainerRootBranch} to the {@link DragDropStage}, and
+     * applies the {@link DragDropStageState} to the {@link DragDropStage}.
+     * @param dockBuilding the {@link DockBuilding} to use to create {@link DockContainer}s
+     *                     and {@link Dockable}s in the {@link DragDropStage}.
+     * @param stageState the {@link DragDropStageState} defining the persisted layout for the
+     * {@link DragDropStage}.
+     * @return the restored {@link DragDropStage}.
+     */
     private DragDropStage restoreDragDropStage(
             final DockBuilding dockBuilding,
             final DragDropStageState stageState
@@ -205,6 +238,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
+        // Create the DockContainerRootBranch and add it to the DragDropStage
         stageState.getDockContainerRootBranchState().ifPresent(
                 dockContainerRootBranchState -> {
 
@@ -218,6 +252,7 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 }
         );
 
+        // Restore the DragDropStage's icons
         if (stageIconImageProvider != null) {
             dragDropStage.getIcons().addAll(
                     stageIconImageProvider.getStageIcons()
@@ -244,6 +279,16 @@ public class BentoLayoutRestorer implements LayoutRestorer {
         return dragDropStage;
     }
 
+    /**
+     * Creates a {@link DockContainerRootBranch}, restore its {@link DockContainer}s and
+     * {@link Dockable}s, and applies the {@link DockContainerRootBranchState} to the
+     * {@link DockContainerRootBranch}.
+     * @param dockBuilding the {@link DockBuilding} to use to create {@link DockContainer}s
+     *                     and {@link Dockable}s in the {@link DockContainerRootBranch}.
+     * @param rootBranchState the {@link DockContainerRootBranchState} defining the persisted
+     *                        layout for the {@link DockContainerRootBranch}.
+     * @return the restored {@link DockContainerRootBranch}.
+     */
     private DockContainerRootBranch restoreRootBranchContainer(
             final DockBuilding dockBuilding,
             final DockContainerRootBranchState rootBranchState
@@ -259,10 +304,10 @@ public class BentoLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
-        // TODO BENTO-13: Divider positions are not restoring properly
-        applyDividerPositions(rootBranchState, rootBranch);
         applyDockContainerStates(rootBranchState, rootBranch);
         applyDockableStates(rootBranchState, rootBranch, dockBuilding);
+        // TODO BENTO-13: Divider positions are not restoring properly
+        applyDividerPositions(rootBranchState, rootBranch);
         //  You can only correctly collapse a leaf if the branch containing the
         //  leaf contains more than one DockContainer, so wait until all
         //  DockContainers have been added to collapse the leaves.

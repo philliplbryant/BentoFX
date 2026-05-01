@@ -14,7 +14,8 @@ public interface StageIconImageProvider {
 
     /**
      * Returns a collection of varying sizes for the {@link Image} to be used
-     * for {@code Stage} and {@code DragDropStage} instances.
+     * for {@code Stage} and {@code DragDropStage} instances. Assumes all
+     * {@code Stage} implementations use the same icons.
      *
      * @return a collection of varying sizes for the {@link Image} to be used
      * for {@code Stage} and {@code DragDropStage} instances.

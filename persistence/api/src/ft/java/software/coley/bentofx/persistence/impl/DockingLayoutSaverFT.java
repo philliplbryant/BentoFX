@@ -15,7 +15,6 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.codec.BentoStateException;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.impl.BentoLayoutSaver;
 import software.coley.bentofx.persistence.impl.codec.BentoState;
 import software.coley.bentofx.persistence.impl.codec.IdentifiableState;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
@@ -28,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ApplicationExtension.class)
-class BentoLayoutSaverFT {
+class DockingLayoutSaverFT {
 
     @Test
     void saveLayoutEncodesNonStageRootsAndDragDropStagesWithoutDuplicates(FxRobot robot) throws BentoStateException {
@@ -82,7 +81,7 @@ class BentoLayoutSaverFT {
         InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
 
-        try (BentoLayoutSaver saver = new BentoLayoutSaver(
+        try (DockingLayoutSaver saver = new DockingLayoutSaver(
                 bentoProvider,
                 codec,
                 storage
@@ -120,7 +119,7 @@ class BentoLayoutSaverFT {
         final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final BentoProvider emptyBentoProvider = new DefaultBentoProvider();
 
-        try (BentoLayoutSaver saver = new BentoLayoutSaver(
+        try (DockingLayoutSaver saver = new DockingLayoutSaver(
                 emptyBentoProvider,
                 codec,
                 storage

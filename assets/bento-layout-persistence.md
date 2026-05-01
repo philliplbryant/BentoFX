@@ -1,11 +1,12 @@
-# Bento layout persistence design
+# Bento Layout Persistence Implementation
 
-This document describes the design of BentoFX layout persistence as implemented by:
+This document describes BentoFX layout persistence as implemented by:
 
-- `software.coley.bentofx.persistence.impl.BentoLayoutSaver#saveLayout()`
-- `software.coley.bentofx.persistence.impl.BentoLayoutRestorer#restoreLayout(Stage)`
+- [BentoLayoutSaver.saveLayout()](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutSaver.java):
+- [BentoLayoutRestorer.restoreLayout(Supplier\<DockingLayout>  defaultLayoutSupplier)](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutRestorer.java):
 
-[Bento layout persistence diagrams](bento-layout-persistence-diagrams.md) are also available.
+
+For the overarching design, [Bento layout persistence diagrams](bento-layout-persistence-diagrams.md) are also available.
 
 ## Scope
 
@@ -29,16 +30,16 @@ Persistence is a two-step pipeline:
 1. Build a `BentoState` snapshot (in-memory).
 2. Encode/decode via a `LayoutCodec` to/from a `LayoutStorage` stream.
 
-This decoupling lets you choose the persisted format (XML/JSON or future formats) without changing the save/restore logic.
+This decoupling lets you choose the persisted format (XML,JSON, or custom implementation), and the storage location (file, database, or custom implementation) without changing the save/restore logic.
 
-## saveLayout design
+## Save layout design
 
 ### High-level algorithm
 
-`BentoLayoutSaver#saveLayout()`:
+[BentoLayoutSaver.saveLayout()](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutSaver.java):
 
 1. Create a new `BentoStateBuilder`.
-2. Iterate all JavaFX stages (`FxStageUtils.getAllStages()`).
+2. Iterate all JavaFX stages (`StageUtils.getAllStages()`).
 3. For each stage:
    - If it is a `DragDropStage`, build `DragDropStageState` including its `DockContainerRootBranchState`.
    - Otherwise, attempt to build a `DockContainerRootBranchState` for the stage (if it contains a Bento root container).
@@ -72,11 +73,11 @@ Leaf properties include:
 - Saver attempts to save each stage independently; failure to save one stage should not prevent saving others.
 - Encoding failures are treated as fatal and reported via `BentoStateException`.
 
-## restoreLayout design
+## Restore layout design
 
 ### High-level algorithm
+[BentoLayoutRestorer.restoreLayout(Supplier\<DockingLayout>  defaultLayoutSupplier)](../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/BentoLayoutRestorer.java):
 
-`BentoLayoutRestorer#restoreLayout(Stage primaryStage)`:
 
 1. Hide primary stage and close any other existing stages.
 2. Decode the persisted `BentoState` from storage **off the JavaFX application thread** using a scheduled executor and a `CompletableFuture`.

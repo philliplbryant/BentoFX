@@ -18,9 +18,6 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.BentoLayout;
-import software.coley.bentofx.persistence.impl.BentoLayoutRestorer;
-import software.coley.bentofx.persistence.impl.DockingLayout;
 import software.coley.bentofx.persistence.impl.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.impl.codec.BentoState;
 import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
@@ -52,7 +49,7 @@ class BentoLayoutRestorerFT {
         DockingLayout defaultLayout = new DockingLayoutBuilder().build();
         BentoProvider bentoProvider = new DefaultBentoProvider(new Bento());
 
-        BentoLayoutRestorer layoutRestorer = new BentoLayoutRestorer(
+        DockingLayoutRestorer layoutRestorer = new DockingLayoutRestorer(
                 codec,
                 storage,
                 bentoProvider,
@@ -172,7 +169,7 @@ class BentoLayoutRestorerFT {
                         new WritableImage(1, 1)
                 );
 
-        BentoLayoutRestorer restorer = new BentoLayoutRestorer(
+        DockingLayoutRestorer restorer = new DockingLayoutRestorer(
                 codec,
                 storage,
                 new DefaultBentoProvider(new Bento(expectedBentoId)),
