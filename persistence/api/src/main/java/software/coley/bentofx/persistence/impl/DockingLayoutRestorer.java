@@ -304,8 +304,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
-        applyDockContainerStates(rootBranchState, rootBranch);
-        applyDockableStates(rootBranchState, rootBranch, dockBuilding);
+        restoreChildDockContainers(rootBranchState, rootBranch);
+        restoreDockables(rootBranchState, rootBranch, dockBuilding);
         // TODO BENTO-13: Divider positions are not restoring properly
         applyDividerPositions(rootBranchState, rootBranch);
         //  You can only correctly collapse a leaf if the branch containing the
@@ -316,6 +316,36 @@ public class DockingLayoutRestorer implements LayoutRestorer {
         return rootBranch;
     }
 
+    /**
+     * Restores all {@link DockContainer} children for {@link DockContainerRootBranch}
+     * and adds each {@link DockContainer} to the {@link DockContainerRootBranch}.
+     * @param rootBranchState the {@link DockContainerRootBranchState} containing
+     *                        the {@link DockContainerState} of the
+     *                        {@link DockContainerRootBranch}'s children.
+     * @param rootBranch the {@link DockContainerRootBranch} whose children are
+     *                   to be restored.
+     */
+    private void restoreChildDockContainers(
+            final DockContainerRootBranchState rootBranchState,
+            final DockContainerRootBranch rootBranch
+    ) {
+        for (final DockContainerState childState :
+                rootBranchState.getChildDockContainerStates()) {
+
+            final DockContainer dockContainer =
+                    restoreDockContainer(rootBranch, childState);
+            if (dockContainer != null) {
+                rootBranch.addContainer(dockContainer);
+            }
+        }
+    }
+
+    /**
+     * Restores a {@link DockContainer}.
+     * @param rootBranch the {@link DockContainerRootBranch} containing the restored {@link DockContainer}.
+     * @param state the {@link DockContainerState} defining the persisted layout for the {@link DockContainer}.
+     * @return the restored {@link DockContainer}.
+     */
     private @Nullable DockContainer restoreDockContainer(
             final DockContainerRootBranch rootBranch,
             final DockContainerState state
@@ -522,22 +552,7 @@ public class DockingLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private void applyDockContainerStates(
-            final DockContainerRootBranchState rootBranchState,
-            final DockContainerRootBranch rootBranch
-    ) {
-        for (final DockContainerState childState :
-                rootBranchState.getChildDockContainerStates()) {
-
-            final DockContainer dockContainer =
-                    restoreDockContainer(rootBranch, childState);
-            if (dockContainer != null) {
-                rootBranch.addContainer(dockContainer);
-            }
-        }
-    }
-
-    private void applyDockableStates(
+    private void restoreDockables(
             final DockContainerRootBranchState rootBranchState,
             final DockContainerRootBranch rootBranch,
             final DockBuilding dockBuilding
