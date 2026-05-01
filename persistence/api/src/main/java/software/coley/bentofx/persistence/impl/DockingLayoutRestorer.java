@@ -45,7 +45,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 public class DockingLayoutRestorer implements LayoutRestorer {
 
-    private static final Logger logger = LoggerFactory.getLogger(DockingLayoutRestorer.class);
+    private static final Logger logger =
+            LoggerFactory.getLogger(DockingLayoutRestorer.class);
 
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
@@ -56,17 +57,24 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 
     /**
      * Constructs a {code DockingLayoutRestorer}.
-     * @param layoutCodec the {@link LayoutCodec} to use to decode the persisted layout.
-     * @param layoutStorage the {@link LayoutStorage} to use to read the persisted layout.
-     * @param bentoProvider the {@link BentoProvider} to use to get {@link Bento} instances
-     *                      from their identifier.
-     * @param dockableStateProvider the {@link DockableStateProvider} to use to get
-     *                              {@link Dockable} instances from their identifier.
-     * @param stageIconImageProvider the {@link StageIconImageProvider} to use to get icons for
-     *                               restored {@link DragDropStage} instances.
-     * @param dockContainerLeafMenuFactoryProvider the {@link DockContainerLeafMenuFactoryProvider}
-     *                                             to use to get {@link DockContainerLeafMenuFactory}
-     *                                             for restored {@link DockContainerLeaf} instances.
+     *
+     * @param layoutCodec                          the {@link LayoutCodec} to use to decode the persisted
+     *                                             layout.
+     * @param layoutStorage                        the {@link LayoutStorage} to use to read the
+     *                                             persisted layout.
+     * @param bentoProvider                        the {@link BentoProvider} to use to get {@link Bento}
+     *                                             instances
+     *                                             from their identifier.
+     * @param dockableStateProvider                the {@link DockableStateProvider} to use to
+     *                                             get {@link Dockable} instances from their
+     *                                             identifier.
+     * @param stageIconImageProvider               the {@link StageIconImageProvider} to use
+     *                                             to get icons for
+     *                                             restored {@link DragDropStage} instances.
+     * @param dockContainerLeafMenuFactoryProvider the
+     *                                             {@link DockContainerLeafMenuFactoryProvider} to use to get
+     *                                             {@link DockContainerLeafMenuFactory} for restored
+     *                                             {@link DockContainerLeaf} instances.
      */
     public DockingLayoutRestorer(
             final LayoutCodec layoutCodec,
@@ -107,7 +115,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             final List<BentoState> bentoStateList = scheduleService().get();
 
             // Restore the BentoLayout, containing root branches and drag/drop
-            // stages for each Bento, and add the BentoLayout to the DockingLayout
+            // stages for each Bento, and add the BentoLayout to the
+            // DockingLayout.
             for (final BentoState bentoState : bentoStateList) {
 
                 final String bentoIdentifier = bentoState.getIdentifier();
@@ -135,7 +144,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 
                 final DockBuilding dockBuilding = bento.dockBuilding();
 
-                // Restore each DockContainerRootBranch and add it to the BentoLayout
+                // Restore each DockContainerRootBranch and add it to the
+                // BentoLayout.
                 for (final DockContainerRootBranchState rootBranchState :
                         bentoState.getRootBranchStates()) {
                     bentoLayoutBuilder.addRootBranch(
@@ -187,8 +197,9 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 
     /**
      * Uses a {@link ScheduledExecutorService} to read the persisted layout
-     * state, from the {@link LayoutStorage} implementation, in a new thread that
-     * does <em>not</em> execute on the application thread.
+     * state, from the {@link LayoutStorage} implementation, in a new thread
+     * that does <em>not</em> execute on the application thread.
+     *
      * @return a {@link CompletableFuture} to use to get the {@link BentoState}s
      * when the service completes.
      */
@@ -220,13 +231,15 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     }
 
     /**
-     * Creates a {@link DragDropStage}, restore its {@link DockContainerRootBranch},
-     * adds the {@link DockContainerRootBranch} to the {@link DragDropStage}, and
-     * applies the {@link DragDropStageState} to the {@link DragDropStage}.
-     * @param dockBuilding the {@link DockBuilding} to use to create {@link DockContainer}s
-     *                     and {@link Dockable}s in the {@link DragDropStage}.
-     * @param stageState the {@link DragDropStageState} defining the persisted layout for the
-     * {@link DragDropStage}.
+     * Creates a {@link DragDropStage}, restore its
+     * {@link DockContainerRootBranch}, adds the {@link DockContainerRootBranch}
+     * to the {@link DragDropStage}, and applies the {@link DragDropStageState}
+     * to the {@link DragDropStage}.
+     *
+     * @param dockBuilding the {@link DockBuilding} to use to create
+     *                     {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
+     * @param stageState   the {@link DragDropStageState} defining the persisted
+     *                     layout for the {@link DragDropStage}.
      * @return the restored {@link DragDropStage}.
      */
     private DragDropStage restoreDragDropStage(
@@ -280,13 +293,17 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     }
 
     /**
-     * Creates a {@link DockContainerRootBranch}, restore its {@link DockContainer}s and
-     * {@link Dockable}s, and applies the {@link DockContainerRootBranchState} to the
+     * Creates a {@link DockContainerRootBranch}, restore its
+     * {@link DockContainer}s and {@link Dockable}s, and applies the
+     * {@link DockContainerRootBranchState} to the
      * {@link DockContainerRootBranch}.
-     * @param dockBuilding the {@link DockBuilding} to use to create {@link DockContainer}s
-     *                     and {@link Dockable}s in the {@link DockContainerRootBranch}.
-     * @param rootBranchState the {@link DockContainerRootBranchState} defining the persisted
-     *                        layout for the {@link DockContainerRootBranch}.
+     *
+     * @param dockBuilding    the {@link DockBuilding} to use to create
+     *                        {@link DockContainer}s and {@link Dockable}s in the
+     *                        {@link DockContainerRootBranch}.
+     * @param rootBranchState the {@link DockContainerRootBranchState}
+     *                        defining the persisted layout for the
+     *                        {@link DockContainerRootBranch}.
      * @return the restored {@link DockContainerRootBranch}.
      */
     private DockContainerRootBranch restoreRootBranchContainer(
@@ -304,28 +321,37 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
-        restoreChildDockContainers(rootBranchState, rootBranch);
-        restoreDockables(rootBranchState, rootBranch, dockBuilding);
+        restoreChildDockContainers(dockBuilding, rootBranchState, rootBranch);
+        restoreAndAddChildDockables(dockBuilding, rootBranchState, rootBranch);
         // TODO BENTO-13: Divider positions are not restoring properly
-        applyDividerPositions(rootBranchState, rootBranch);
-        //  You can only correctly collapse a leaf if the branch containing the
-        //  leaf contains more than one DockContainer, so wait until all
-        //  DockContainers have been added to collapse the leaves.
-        conditionallyCollapseLeaves(rootBranchState, rootBranch);
+        applyDividerPositions(
+                rootBranchState.getDividerPositions().entrySet(),
+                rootBranch
+        );
+        conditionallyCollapseLeaves(
+                getLeaves(rootBranch),
+                getLeafStates(rootBranchState),
+                rootBranch
+        );
 
         return rootBranch;
     }
 
     /**
-     * Restores all {@link DockContainer} children for {@link DockContainerRootBranch}
-     * and adds each {@link DockContainer} to the {@link DockContainerRootBranch}.
-     * @param rootBranchState the {@link DockContainerRootBranchState} containing
-     *                        the {@link DockContainerState} of the
+     * Restores all {@link DockContainer} children for
+     * {@link DockContainerRootBranch} and adds each {@link DockContainer} to
+     * the {@link DockContainerRootBranch}.
+     *
+     * @param dockBuilding    the {@link DockBuilding} to use to create
+     *                        {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
+     * @param rootBranchState the {@link DockContainerRootBranchState}
+     *                        containing the {@link DockContainerState} of the
      *                        {@link DockContainerRootBranch}'s children.
-     * @param rootBranch the {@link DockContainerRootBranch} whose children are
-     *                   to be restored.
+     * @param rootBranch      the {@link DockContainerRootBranch} whose children are
+     *                        to be restored.
      */
     private void restoreChildDockContainers(
+            final DockBuilding dockBuilding,
             final DockContainerRootBranchState rootBranchState,
             final DockContainerRootBranch rootBranch
     ) {
@@ -333,7 +359,7 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                 rootBranchState.getChildDockContainerStates()) {
 
             final DockContainer dockContainer =
-                    restoreDockContainer(rootBranch, childState);
+                    restoreDockContainer(dockBuilding, childState);
             if (dockContainer != null) {
                 rootBranch.addContainer(dockContainer);
             }
@@ -341,63 +367,73 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     }
 
     /**
-     * Restores a {@link DockContainer}.
-     * @param rootBranch the {@link DockContainerRootBranch} containing the restored {@link DockContainer}.
-     * @param state the {@link DockContainerState} defining the persisted layout for the {@link DockContainer}.
-     * @return the restored {@link DockContainer}.
+     * Restores a {@link DockContainer} from a {@link DockContainerBranchState
+     * or {@link DockContainerLeafState}.
+     * @param dockBuilding       the {@link DockBuilding} used to create the restored
+     *                           {@link DockContainer}.
+     * @param dockContainerState the {@link DockContainerState} defining the
+     *                           persisted layout for the {@link DockContainer}.
+     * @return the restored {@link DockContainer}, {@code null} if the
+     * {@link DockContainer} could not be restored.
      */
     private @Nullable DockContainer restoreDockContainer(
-            final DockContainerRootBranch rootBranch,
-            final DockContainerState state
+            final DockBuilding dockBuilding,
+            final DockContainerState dockContainerState
     ) {
 
-        switch (state) {
+        switch (dockContainerState) {
             case final DockContainerBranchState branchState -> {
 
-                return restoreBranch(rootBranch, branchState);
+                return restoreBranch(dockBuilding, branchState);
             }
             case final DockContainerLeafState leafState -> {
 
-                return restoreLeaf(rootBranch, leafState);
+                return restoreLeaf(dockBuilding, leafState);
             }
             default -> {
 
                 logger.warn(
                         "Unknown DockContainerState type: {}",
-                        state.getClass()
+                        dockContainerState.getClass()
                 );
                 return null;
             }
         }
     }
 
+    /**
+     * Restores a {@link DockContainerBranch} from a
+     * {@link DockContainerBranchState}.
+     *
+     * @param dockBuilding the {@link DockBuilding} used to create the restored
+     *                     {@link DockContainerBranch}.
+     * @param branchState  the {@link DockContainerBranchState} defining the
+     *                     persisted layout for the {@link DockContainerBranch}.
+     * @return the restored {@link DockContainerBranch}.
+     */
     private DockContainerBranch restoreBranch(
-            final DockContainerRootBranch rootBranch,
+            final DockBuilding dockBuilding,
             final DockContainerBranchState branchState
     ) {
-        final String id = branchState.getIdentifier();
+        final DockContainerBranch branch =
+                dockBuilding.branch(branchState.getIdentifier());
 
-        final DockContainerBranch branch = rootBranch.getBento()
-                .dockBuilding()
-                .branch(id);
+        branchState.doPruneWhenEmpty().ifPresent(
+                branch::setPruneWhenEmpty
+        );
 
-        branchState.doPruneWhenEmpty().ifPresent(branch::setPruneWhenEmpty);
-
-        // Orientation
         branchState.getOrientation().ifPresent(orientation ->
                 branch.orientationProperty().set(orientation)
         );
 
-        // Children
-        for (
-                final DockContainerState dockContainerState :
-                branchState.getChildDockContainerStates()
-        ) {
+        // Restore child DockContainers and add them to their parent branch
+        for (final DockContainerState dockContainerState :
+                branchState.getChildDockContainerStates()) {
+
             final DockContainer container =
-                    restoreDockContainer(rootBranch, dockContainerState);
+                    restoreDockContainer(dockBuilding, dockContainerState);
 
             if (container != null) {
-
                 branch.addContainer(container);
             } else {
 
@@ -409,27 +445,41 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             }
         }
 
-        // Divider positions
-        for (final Map.Entry<Integer, Double> positionEntry :
-                branchState.getDividerPositions().entrySet()) {
-            branch.setDividerPosition(
-                    positionEntry.getKey(),
-                    positionEntry.getValue()
-            );
-        }
+        applyDividerPositions(
+                branchState.getDividerPositions().entrySet(),
+                branch
+        );
 
         return branch;
     }
 
+    /**
+     * Restores a {@link DockContainerLeaf} from a {@link DockContainerLeafState}.
+     *
+     * @param dockBuilding the {@link DockBuilding} used to create the restored
+     *                     {@link DockContainerLeaf}.
+     * @param leafState    the {@link DockContainerLeafState} defining the
+     *                     persisted layout for the {@link DockContainerLeaf}.
+     * @return the restored {@link DockContainerLeaf}.
+     */
     private DockContainerLeaf restoreLeaf(
-            final DockContainerRootBranch rootBranch,
-            final DockContainerLeafState state
+            final DockBuilding dockBuilding,
+            final DockContainerLeafState leafState
     ) {
-        final String id = state.getIdentifier();
+        // Create the leaf and restore its state
+        final DockContainerLeaf leaf =
+                dockBuilding.leaf(leafState.getIdentifier());
+        leafState.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
+        leafState.getSide().ifPresent(leaf::setSide);
+        leafState.isCanSplit().ifPresent(leaf::setCanSplit);
+        leafState.isResizableWithParent().ifPresent(isResizableWithParent ->
+                SplitPane.setResizableWithParent(
+                        leaf,
+                        isResizableWithParent
+                )
+        );
 
-        final DockBuilding dockBuilding = rootBranch.getBento().dockBuilding();
-        final DockContainerLeaf leaf = dockBuilding.leaf(id);
-
+        // Set the menu factory
         if (dockContainerLeafMenuFactoryProvider != null) {
             dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
                     leaf.getIdentifier()
@@ -438,40 +488,23 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             );
         }
 
-        state.doPruneWhenEmpty().ifPresent(leaf::setPruneWhenEmpty);
-
-        state.getSide().ifPresent(leaf::setSide);
-
-        state.isCanSplit().ifPresent(leaf::setCanSplit);
-
+        // The identifier of the selected Dockable
         final String selectedId =
-                state.getSelectedDockableIdentifier().orElse(null);
+                leafState.getSelectedDockableIdentifier().orElse(null);
 
-        state.isResizableWithParent().ifPresent(isResizableWithParent ->
-                SplitPane.setResizableWithParent(
-                        leaf,
-                        isResizableWithParent
-                )
-        );
-
+        // Restore Dockables and, if one is selected, select it
         for (final DockableState dockableState :
-                state.getChildDockableStates()) {
+                leafState.getChildDockableStates()) {
 
             final String dockableId = dockableState.getIdentifier();
-
-            final Dockable dockable = restoreDockable(
-                    dockBuilding,
-                    dockableId
-            );
+            final Dockable dockable = restoreDockable(dockBuilding, dockableId);
 
             if (dockable != null) {
-
                 leaf.addDockable(dockable);
                 if (dockableId.equals(selectedId)) {
                     leaf.selectDockable(dockable);
                 }
             } else {
-
                 logger.warn(
                         "Dockable with ID '{}' could not be acquired.",
                         dockableId
@@ -482,6 +515,19 @@ public class DockingLayoutRestorer implements LayoutRestorer {
         return leaf;
     }
 
+    /**
+     * Uses the {@link DockableStateProvider} to resolve the
+     * {@link DockableState} and then applies that {@link DockableState} to newly
+     * created {@link Dockable}.
+     *
+     * @param dockBuilding       the {@link DockBuilding} used to create the restored
+     *                           {@link Dockable}.
+     * @param dockableIdentifier the identifier of the {@link Dockable} to be
+     *                           restored.
+     * @return the restored {@link Dockable} if its {@link DockableState} is
+     * provided by the {@link DockableStateProvider}; otherwise, returns
+     * {@code null}.
+     */
     private @Nullable Dockable restoreDockable(
             final DockBuilding dockBuilding,
             final String dockableIdentifier
@@ -539,23 +585,23 @@ public class DockingLayoutRestorer implements LayoutRestorer {
         return dockable;
     }
 
-    private static void applyDividerPositions(
+    /**
+     * Restores all {@link Dockable} children for a
+     * {@link DockContainerRootBranch} and adds each {@link Dockable} to
+     * the {@link DockContainerRootBranch}.
+     *
+     * @param dockBuilding    the {@link DockBuilding} to use to create
+     *                        {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
+     * @param rootBranchState the {@link DockContainerRootBranchState}
+     *                        containing the {@link DockContainerState} of the
+     *                        {@link DockContainerRootBranch}'s children.
+     * @param rootBranch      the {@link DockContainerRootBranch} whose children are
+     *                        to be restored.
+     */
+    private void restoreAndAddChildDockables(
+            final DockBuilding dockBuilding,
             final DockContainerRootBranchState rootBranchState,
             final DockContainerRootBranch rootBranch
-    ) {
-        for (final Map.Entry<Integer, Double> positionEntry :
-                rootBranchState.getDividerPositions().entrySet()) {
-            rootBranch.setDividerPosition(
-                    positionEntry.getKey(),
-                    positionEntry.getValue()
-            );
-        }
-    }
-
-    private void restoreDockables(
-            final DockContainerRootBranchState rootBranchState,
-            final DockContainerRootBranch rootBranch,
-            final DockBuilding dockBuilding
     ) {
         for (final DockableState dockableState :
                 rootBranchState.getChildDockableStates()) {
@@ -570,29 +616,89 @@ public class DockingLayoutRestorer implements LayoutRestorer {
         }
     }
 
-    private static void conditionallyCollapseLeaves(
-            final DockContainerRootBranchState rootBranchState,
-            final DockContainerRootBranch rootBranch) {
+    /**
+     * Applies divider positions to a branch.
+     *
+     * @param dividerPositions the diver positions to be applied.
+     * @param branch           the {@link DockContainerBranch} containing the
+     *                         {@code Divider}s.
+     */
+    private static void applyDividerPositions(
+            Collection<Map.Entry<Integer, Double>> dividerPositions,
+            final DockContainerBranch branch
+    ) {
+        for (final Map.Entry<Integer, Double> positionEntry : dividerPositions) {
+            branch.setDividerPosition(
+                    positionEntry.getKey(),
+                    positionEntry.getValue()
+            );
+        }
+    }
 
+    /**
+     * Maps {@link DockContainerLeaf} to their identifiers.
+     *
+     * @return an unmodifiable a {@link Map} whose keys are
+     * {@link DockContainerLeaf#getIdentifier} and whose values are
+     * {@link DockContainerLeaf}
+     */
+    private static Map<String, DockContainerLeaf> getLeaves(
+            final DockContainerBranch branch
+    ) {
         // Map the leaves to their identifiers
         final Map<String, DockContainerLeaf> leaves = new HashMap<>();
-        for(final DockContainer container : rootBranch.getChildContainers())
-        {
-            if(container instanceof final DockContainerLeaf leaf) {
+        for (final DockContainer container : branch.getChildContainers()) {
+            if (container instanceof final DockContainerLeaf leaf) {
                 leaves.put(leaf.getIdentifier(), leaf);
             }
         }
+        return Map.copyOf(leaves);
+    }
 
-        // For each leaf state,
+    /**
+     * Returns an unmodifiable collection of all {@link DockContainerLeafState}.
+     * found in a {@link DockContainerBranchState}
+     *
+     * @param branchState the {@link DockContainerBranchState} whose
+     *                    {@link DockContainerLeafState} are to be found.
+     * @return an unmodifiable collection of all {@link DockContainerLeafState}.
+     */
+    private static Collection<DockContainerLeafState> getLeafStates(
+            final DockContainerBranchState branchState
+    ) {
+        List<DockContainerLeafState> leafStates = new ArrayList<>();
         for (final DockContainerState childState :
-                rootBranchState.getChildDockContainerStates()) {
+                branchState.getChildDockContainerStates()) {
+            if (childState instanceof final DockContainerLeafState leafState) {
+                leafStates.add(leafState);
+            }
+        }
+        return List.copyOf(leafStates);
+    }
 
-            if(childState instanceof final DockContainerLeafState leafState) {
-
-                final DockContainerLeaf leaf = leaves.get(leafState.getIdentifier());
-
+    /**
+     * Conditionally collapses {@link DockContainerLeaf} instances.
+     * This method should not be called until all {@link DockContainerLeaf} have
+     * been added to the {@link DockContainerBranch} because a
+     * {@link DockContainerLeaf} can only be collapsed if the
+     * {@link DockContainerBranch} containing it contains more than one
+     * {@link DockContainer}.
+     *
+     * @param leaves the {@link DockContainerLeaf} to be conditionally collapsed.
+     * @param leafStates the {@link DockContainerLeafState}
+     * @param branch the {@link DockContainerBranch} containing the
+     * {@link DockContainerLeaf}.
+     */
+    private static void conditionallyCollapseLeaves(
+            final Map<String, DockContainerLeaf> leaves,
+            final Collection<DockContainerLeafState> leafStates,
+            final DockContainerBranch branch
+    ) {
+        for (final DockContainerLeafState leafState : leafStates) {
+            final DockContainerLeaf leaf = leaves.get(leafState.getIdentifier());
+            if (leaf != null) {
                 leafState.isCollapsed().ifPresent(isCollapsed ->
-                        rootBranch.setContainerCollapsed(leaf, isCollapsed)
+                        branch.setContainerCollapsed(leaf, isCollapsed)
                 );
             }
         }
