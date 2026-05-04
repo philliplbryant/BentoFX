@@ -38,13 +38,17 @@ sequenceDiagram
     
     BoxApp->>persistenceProvider:getLayoutRestorer()
     BoxApp->>layoutRestorer:restoreLayout()
-    layoutRestorer->>storage:layoutExists()
-        alt layoutexists
+    layoutRestorer->>storage:exists()
+    alt normal flow
+        alt layout exists
             layoutRestorer->>storage:read()
             layoutRestorer->>codec:decode()
         else layout does not exist
             layoutRestorer->>supplier:get()
         end
+    else exception
+        layoutRestorer->>supplier:get()
+    end
     BoxApp->>BoxApp:applyLayout(DockingLayout)
     
 ```
@@ -95,10 +99,6 @@ classDiagram
   
   class StageIconImageProvider {
       +getStageIcons()
-  }
-  
-  class BentoProvider {
-      +getBento(identifier)
   }
   
   class DockContainerLeafMenuFactoryProvider {

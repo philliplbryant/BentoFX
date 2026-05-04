@@ -26,9 +26,7 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
     * [Maven](#persistence-maven)
   * [Overview](#persistence-overview)
   * [Extending Persistence](#extending-persistence)
-* [Demo Applications](#demo-applications)
-  * [Basic Demo](#basic-demo)
-  * [Persistence Demo](#persistence-demo)
+  * [Example](#persistence-demo)
 
 ## Requirements
 
@@ -281,12 +279,12 @@ runtimeOnly("software.coley.bento-fx:persistence-storage-file:${version}")
 
 The primary interface for interacting with persistence framework is the `LayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer` that can be used to persist and restore a docking layout.  
 
-`BentoLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
+`DockingLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
 
 1. Manual construction
 ```java
 final LayoutPersistenceProvider provider =   
-  new BentoLayoutPersistenceProvider();
+  new DockingLayoutPersistenceProvider();
 ```
 
 2. Using `ServiceLocator`
@@ -304,18 +302,21 @@ if (persistenceProviderIterator.hasNext()) {
 }
 ```
 
-Once the `LayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver`, `LayoutRestorer`, and `Bento` implementations:  
+Once the `LayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver` and `LayoutRestorer` implementations:  
 
 ```java
-final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver();
+final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
+        bentoProvider,
+        layoutIdentifier
+);
 
 final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
+        bentoProvider,
+        layoutIdentifier,
         dockableStateProvider,
         stageIconImageProvider,               // Nullable
         dockContainerLeafMenuFactoryProvider  // Nullable
 );
-
-final Bento bento = persistenceProvider.getBento();
 ```
 
 #### LayoutSaver
@@ -344,7 +345,7 @@ private void doOnClose() {
 ```
 
 #### LayoutRestorer
-The `LayoutRestorer` is used to restore the last saved docking layout, similar to the follows:
+The `LayoutRestorer` is used to restore the last saved docking layout, similar to the following:
 
 ```java
 /**
@@ -357,7 +358,7 @@ private DockingLayout getDockingLayout() {
     final LayoutRestorer layoutRestorer =
             persistenceProvider.getLayoutRestorer(
                     bentoProvider,
-                    DEFAULT_LAYOUT_IDENTIFIER,
+                    layoutIdentifier,
                     dockableStateProvider,
                     stageIconImageProvider,
                     dockContainerLeafMenuFactoryProvider
@@ -370,9 +371,9 @@ private DockingLayout getDockingLayout() {
 ```
 
 ### Extending Persistence
-The `BentoLayoutPersistenceProvider` uses the `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the module path at runtime.  
+The `DockingLayoutPersistenceProvider` uses the `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the module path at runtime.  
 
-Albeit otherwise not very useful, the following example is provided to demonstrate extending the the persistence framework to use a `LayoutStorage` other than the default implementations provided by the persistence framework:
+Albeit otherwise not very useful, the following example is provided to demonstrate extending the persistence framework to use a `LayoutStorage` other than the default implementations provided:
 
 1. Implement the `LayoutStorage` interface:
 ```java
@@ -381,23 +382,23 @@ public class SystemLayoutStorage implements LayoutStorage {
    public boolean exists() {
        // For our example, just return false; otherwise, 
        // the LayoutRestorer will attempt to read a 
-       // previously persisted layout that doesn't exist.
+       // previously persisted layout from the command prompt.
        return false;
    }
 
    @Override
-   public OutputStream openOutputStream() throws IOException {
+   public OutputStream openOutputStream() {
        return System.out;
    }
 
    @Override
-   public InputStream openInputStream() throws IOException {
+   public InputStream openInputStream() {
        return System.in;
    }
 }
 ```
 
-2. Implement the `LayoutStorageProvider` interface to return an instantiated implementation of the interface:
+2. Implement the `LayoutStorageProvider` interface to return the implementation:
 ```java
 public class SystemLayoutStorageProvider implements LayoutStorageProvider {
    @Override
@@ -431,28 +432,20 @@ For complete examples, refer to these modules:
 [H2 Database Storage](./persistence/storage/db/h2)  
 [File Storage](./persistence/storage/file)  
 
-API and usage documentation can be found [here](assets/docking-layout-persistence.md).
+API and usage documentation can be found [here](assets/docking-layout-persistence.md) and [here](assets/docking-layout-persistence-diagrams.md).
 
 The following are also provided for additional information on using `ServiceLoader`:
 https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
 https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html   
 https://www.baeldung.com/java-spi   
 
-## Demo Applications
-### Basic Demo
-The [basic-demo](./demos/basic-demo) module contains an example application that demonstrates using the [core](./core) framework to create a layout structure that loosely models how an IDE is laid out.  
-
-To run the basic demo, use `./gradlew :demos:basic-demo:run`
-
-For details, refer to `BoxApp.getDefaultLayout()`.
+## Example
 
 ### Persistence Demo
 The [persistence-demo](./demos/persistence-demo) module contains an example application, derived from the [basic-demo BoxApp application](./demos/basic-demo/src/main/java/software/coley/boxfx/demo/basic/BoxApp.java), that demonstrates using the [persistence](./persistence) framework to save and restore a BentoFX docking layout.
 
-To run the persistence demo, use `./gradlew :demos:persistence-demo:run`
+To run the persistence demo, use `./gradlew :demos:persistence:run`
 
-For details on acquiring the `LayoutPersistenceProvider`, refer to `BoxApp.init()`.
+For details on applying a restored docking layout, refer to `BoxApp.applyDockingLayout(DockingLayout)`. 
 
-For details on restoring a persisted docking layout, refer to `BoxApp.restoreBranch(Stage)`. 
-
-For details on saving the current docking layout, refer to `BoxApp.doOnClose()`.
+For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout()`.
