@@ -14,6 +14,7 @@ sequenceDiagram
     participant storage as LayoutStorage
     participant layoutSaver as LayoutSaver
     participant layoutRestorer as LayoutRestorer
+    participant supplier as Supplier<DockingLayout>
 
     BoxApp->>persistenceProvider: constructor()
     persistenceProvider->>serviceLoader: load(LayoutCodecProvider)
@@ -21,20 +22,31 @@ sequenceDiagram
     codecProvider->>codec:constructor()
     persistenceProvider->>serviceLoader: load(LayoutStorageProvider)
     persistenceProvider->>storageProvider: getLayoutStorage()
-    storageProvider->>layoutSaver:constructor(codec, storage, ...)
+    storageProvider->>storage:constructor()
+    persistenceProvider->>layoutSaver:constructor(codec, storage, ...)
+    layoutSaver->>layoutSaver:autoSave()
+    layoutSaver->>layoutSaver:saveLayout()
+    layoutSaver->>codec:encode()
+    layoutSaver->>storage:write()
+    persistenceProvider->>layoutRestorer:constructor(codec, storage, ...)
 
     BoxApp->>persistenceProvider:getLayoutSaver()
-    persistenceProvider->>storageProvider: getLayoutStorage()
-    storageProvider->>layoutRestorer:constructor(codec, storage, ...)
+    BoxApp->>BoxApp:onCloseRequest(LayoutSaver::saveLayout)
     BoxApp->>layoutSaver:saveLayout()
     layoutSaver->>codec:encode()
     layoutSaver->>storage:write()
     
     BoxApp->>persistenceProvider:getLayoutRestorer()
     BoxApp->>layoutRestorer:restoreLayout()
-    layoutRestorer->>storage:read()
-    layoutRestorer->>codec:decode()
+    layoutRestorer->>storage:layoutExists()
+        alt exists
+            layoutRestorer->>storage:read()
+            layoutRestorer->>codec:decode()
+        else does not exist
+            layoutRestorer->>supplier:get()
+        end
     BoxApp->>BoxApp:applyLayout(DockingLayout)
+    
 ```
 
 ## Components overview
