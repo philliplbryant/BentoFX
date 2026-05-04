@@ -385,7 +385,7 @@ public class SystemLayoutStorage implements LayoutStorage {
    public boolean exists() {
        // For our example, just return false; otherwise, 
        // the LayoutRestorer will attempt to read a 
-       // previously persisted layout from the command prompt.
+       // persisted layout from the command prompt.
        return false;
    }
 
@@ -427,7 +427,7 @@ provides LayoutStorageProvider with SystemLayoutStorageProvider;
 runtimeOnly("software.coley.bentofx:persistence-storage-system:${version}")
 ``` 
 
-Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces, registering the `LayoutCodecProvider` implementation with the module's descriptor and adding the module to the application's module path.     
+Codecs are similarly extended by implementing the `LayoutCodecProvider` and  `LayoutCodec` interfaces, registering the `LayoutCodecProvider` implementation with the implementation module's descriptor, and adding the module to the application's module path.     
 
 For complete examples, refer to these modules:  
 [JSON Codec](./persistence/codec/json)  
@@ -435,7 +435,7 @@ For complete examples, refer to these modules:
 [H2 Database Storage](./persistence/storage/db/h2)  
 [File Storage](./persistence/storage/file)  
 
-API and usage documentation can be found [here](assets/docking-layout-persistence.md) and [here](assets/docking-layout-persistence-diagrams.md).
+Additional API and usage documentation can be found [here](assets/docking-layout-persistence.md) and [here](assets/docking-layout-persistence-diagrams.md).
 
 The following are also provided for additional information on using `ServiceLoader`:
 https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html   
@@ -447,6 +447,6 @@ The [persistence-demo](./demos/persistence-demo) module contains an example appl
 
 To run the persistence demo, use `./gradlew :demos:persistence:run`
 
-For details on applying a restored docking layout, refer to `BoxApp.applyDockingLayout(DockingLayout)`. 
+For details on applying a restored docking layout, refer to `BoxApp.applyDockingLayout(DockingLayout)` in the [persistence](./demos/persistence) module. 
 
-For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout()`.
+For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout()` in the [persistence](./demos/persistence) module.
