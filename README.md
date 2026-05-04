@@ -7,7 +7,7 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
 ## Table of Contents
 
 * [Requirements](#requirements)
-* [Core Framework](#core-module)
+* [Core Framework](#core-framework)
   * [Usage](#core-usage)
     * [Gradle (Groovy DSL)](#core-gradle-groovy-dsl)
     * [Gradle (Kotlin DSL)](#core-gradle-kotlin-dsl)
@@ -33,7 +33,7 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
 - JavaFX 21+
 - Java 21+
 
-## Core Module
+## Core Framework
 
 The [core](./core) module is a framework of user interface controls that can be used to group, dock, and undock other user interface controls using drag and drop. 
 
@@ -320,28 +320,31 @@ final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
 ```
 
 #### LayoutSaver
-The `LayoutSaver` is used to persist the current docking layout, similar to the following:
+The `LayoutSaver` is used to persist the current docking layout. The default implementation auto-saves the layout every five minutes. Applications should also save the layout directly when exiting, similar to the following:
 
 ```java
-private void doOnClose() {
+private void saveDockingLayout() {
+    try {
+        final LayoutSaver layoutSaver =
+                persistenceProvider.getLayoutSaver(
+                        bentoProvider,
+                        DEFAULT_LAYOUT_IDENTIFIER
+                );
 
-    if (layoutSaver == null) {
-
-        logger.warn("No LayoutPersistenceProvider found. " +
-                "Docking layout will not be persisted.");
-
-    } else {
-
-        try {
-
-            layoutSaver.saveLayout();
-
-        } catch (BentoStateException e) {
-
-            logger.warn("Could not save the docking layout.", e);
-        }
+        layoutSaver.saveLayout();
+    } catch (BentoStateException e) {
+        logger.warn("Could not save the docking layout.", e);
     }
 }
+
+...
+
+// Save the docking layout on close request because the stage is (and all other 
+// windows are) no longer available after they are closed and, as such, will 
+// not be discoverable when saving the docking layout.     
+stage.setOnCloseRequest(event -> {
+    saveDockingLayout();
+});
 ```
 
 #### LayoutRestorer
