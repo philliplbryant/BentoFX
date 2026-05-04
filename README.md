@@ -443,8 +443,6 @@ https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html
 https://www.baeldung.com/java-spi   
 
 ## Example
-
-### Persistence Demo
 The [persistence-demo](./demos/persistence-demo) module contains an example application, derived from the [basic-demo BoxApp application](./demos/basic-demo/src/main/java/software/coley/boxfx/demo/basic/BoxApp.java), that demonstrates using the [persistence](./persistence) framework to save and restore a BentoFX docking layout.
 
 To run the persistence demo, use `./gradlew :demos:persistence:run`
