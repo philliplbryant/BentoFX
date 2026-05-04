@@ -30,7 +30,7 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
 
 ## Requirements
 
-- JavaFX 23+
+- JavaFX 21+
 - Java 21+
 
 ## Core Module
