@@ -39,10 +39,10 @@ sequenceDiagram
     BoxApp->>persistenceProvider:getLayoutRestorer()
     BoxApp->>layoutRestorer:restoreLayout()
     layoutRestorer->>storage:layoutExists()
-        alt exists
+        alt layoutexists
             layoutRestorer->>storage:read()
             layoutRestorer->>codec:decode()
-        else does not exist
+        else layout does not exist
             layoutRestorer->>supplier:get()
         end
     BoxApp->>BoxApp:applyLayout(DockingLayout)
