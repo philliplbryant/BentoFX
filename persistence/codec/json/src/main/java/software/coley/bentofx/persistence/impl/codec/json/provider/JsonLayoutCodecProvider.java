@@ -13,7 +13,7 @@ import software.coley.bentofx.persistence.impl.codec.json.JsonLayoutCodec;
 public class JsonLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
-    public LayoutCodec createLayoutCodec() {
+    public LayoutCodec getLayoutCodec() {
         return new JsonLayoutCodec();
     }
 }

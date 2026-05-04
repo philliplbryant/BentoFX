@@ -9,10 +9,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class XmlLayoutCodecProviderTest {
 
     @Test
-    void createLayoutCodecReturnsXmlLayoutCodec() {
+    void getLayoutCodecReturnsXmlLayoutCodec() {
         final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
 
-        final LayoutCodec codec = provider.createLayoutCodec();
+        final LayoutCodec codec = provider.getLayoutCodec();
 
         assertThat(codec)
                 .isNotNull()

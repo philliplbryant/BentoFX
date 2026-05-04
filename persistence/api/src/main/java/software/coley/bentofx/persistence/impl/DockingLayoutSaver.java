@@ -32,8 +32,9 @@ import java.util.Objects;
 import static software.coley.bentofx.persistence.impl.StageUtils.getAllStages;
 
 /**
- * Saves the layout of all JavaFX {@link Stage}s into a {@link BentoState} and
- * persists it via a {@link LayoutCodec}.
+ * Automatically saves the layout of all {@link Bento}s into {@link BentoState},
+ * encodes them via a {@link LayoutCodec}, and persists them via a
+ * {@link LayoutStorage}.
  *
  * @author Phil Bryant
  */
@@ -41,7 +42,6 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     private static final Logger logger =
             LoggerFactory.getLogger(DockingLayoutSaver.class);
-
 
     private final LayoutStorage layoutStorage;
 
@@ -99,7 +99,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
                         // list of all root branches
                         nonDragDropStageRootBranches.remove(rootBranch);
 
-                        saveDragDropStage(
+                        buildAndAddDragDropStage(
                                 dragDropStage,
                                 bentoStateBuilder
                         );
@@ -111,7 +111,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             for (final DockContainerRootBranch rootBranch :
                     nonDragDropStageRootBranches) {
                 bentoStateBuilder.addRootBranchState(
-                        getRootBranchState(rootBranch)
+                        buildRootBranchState(rootBranch)
                 );
             }
 
@@ -127,18 +127,26 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         }
     }
 
-    private void saveDragDropStage(
+    /**
+     * Saves the state of a {@link DragDropStage} to a {@link BentoStateBuilder}.
+     *
+     * @param dragDropStage     the {@link DragDropStage} whose state is to be saved.
+     * @param bentoStateBuilder the {@link BentoStateBuilder} to which the
+     *                          {@link DragDropStage} state is to be saved.
+     */
+    private void buildAndAddDragDropStage(
             DragDropStage dragDropStage,
             BentoStateBuilder bentoStateBuilder
     ) {
         // A DragDropStage can only have one rootBranch
         final DockContainerRootBranch rootBranch =
                 getDockContainerRootBranch(dragDropStage);
+
         if (rootBranch == null) {
             logger.debug("Ignoring unknown root branch {}", dragDropStage);
         } else {
             final DockContainerRootBranchState rootBranchState =
-                    getRootBranchState(rootBranch);
+                    buildRootBranchState(rootBranch);
 
             bentoStateBuilder.addDragDropStageState(
                     new DragDropStageStateBuilder(
@@ -166,6 +174,14 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         }
     }
 
+    /**
+     * Gets the {@link DockContainerRootBranch} for a {@link DragDropStage}
+     * ({@link DragDropStage} can only have one {@link DockContainerRootBranch}.
+     * @param stage the {@link DragDropStage} whose {@link DockContainerRootBranch}
+     *              is to be found.
+     * @return the {@link DockContainerRootBranch} for the specified
+     * {@link DragDropStage}.
+     */
     private @Nullable DockContainerRootBranch getDockContainerRootBranch(
             final DragDropStage stage
     ) {
@@ -178,31 +194,14 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         }
     }
 
-    private DockContainerState saveDockContainer(
-            final DockContainer dockContainer
-    ) {
-
-        switch (dockContainer) {
-
-            case final DockContainerBranch branch -> {
-
-                return getBranchState(branch);
-            }
-
-            case final DockContainerLeaf leaf -> {
-                return saveLeaf(leaf);
-            }
-
-            default -> {
-                logger.warn("Unsupported node type: {}", dockContainer);
-                // Fallback: empty leaf to keep the state valid.
-                return new DockContainerLeafStateBuilder("leaf-empty")
-                        .build();
-            }
-        }
-    }
-
-    private DockContainerRootBranchState getRootBranchState(
+    /**
+     * Builds a {@link DockContainerRootBranchState} for a
+     * {@link DockContainerRootBranch}.
+     * @param branch the {@link DockContainerRootBranch} whose
+     * {@link DockContainerRootBranchState} is to be built.
+     * @return the {@link DockContainerRootBranchState}.
+     */
+    private DockContainerRootBranchState buildRootBranchState(
             final DockContainerRootBranch branch
     ) {
         final DockContainerRootBranchStateBuilder builder =
@@ -223,13 +222,51 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         }
 
         for (final DockContainer dockContainer : branch.getChildContainers()) {
-            builder.addDockContainerState(saveDockContainer(dockContainer));
+            builder.addDockContainerState(buildDockContainerState(dockContainer));
         }
 
         return builder.build();
     }
 
-    private DockContainerBranchState getBranchState(
+    /**
+     * Builds a {@link DockContainerState} for a {@link DockContainer}. If the
+     * {@link DockContainer} is not a branch or leaf, which should not happen,
+     * builds an empty leaf to keep the state valid.
+     * @param dockContainer the {@link DockContainer} whose
+     * {@link DockContainerState} is to be built.
+     * @return the {@link DockContainerState}.
+     */
+    private DockContainerState buildDockContainerState(
+            final DockContainer dockContainer
+    ) {
+
+        switch (dockContainer) {
+
+            case final DockContainerBranch branch -> {
+
+                return buildBranchState(branch);
+            }
+
+            case final DockContainerLeaf leaf -> {
+                return buildLeafState(leaf);
+            }
+
+            default -> {
+                logger.warn("Unsupported node type: {}", dockContainer);
+                // Fallback: empty leaf to keep the state valid.
+                return new DockContainerLeafStateBuilder("leaf-empty")
+                        .build();
+            }
+        }
+    }
+
+    /**
+     * Builds a {@link DockContainerBranchState} for a {@link DockContainerBranch}.
+     * @param branch the {@link DockContainerBranch} whose
+     * {@link DockContainerBranchState} is to be built.
+     * @return the {@link DockContainerBranchState}.
+     */
+    private DockContainerBranchState buildBranchState(
             final DockContainerBranch branch
     ) {
         final String id = nonEmptyOr(
@@ -241,20 +278,6 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
                 new DockContainerBranchStateBuilder(
                         id
                 );
-
-        setCommonDockContainerBranchProperties(builder, branch);
-
-        for (final Dockable dockable : branch.getDockables()) {
-            builder.addChildDockableState(saveDockable(dockable));
-        }
-
-        return builder.build();
-    }
-
-    private void setCommonDockContainerBranchProperties(
-            final DockContainerBranchStateBuilder builder,
-            final DockContainerBranch branch
-    ) {
 
         builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
 
@@ -269,11 +292,23 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         }
 
         for (final DockContainer dockContainer : branch.getChildContainers()) {
-            builder.addDockContainerState(saveDockContainer(dockContainer));
+            builder.addDockContainerState(buildDockContainerState(dockContainer));
         }
+
+        for (final Dockable dockable : branch.getDockables()) {
+            builder.addChildDockableState(buildDockable(dockable));
+        }
+
+        return builder.build();
     }
 
-    private DockContainerLeafState saveLeaf(
+    /**
+     * Builds a {@link DockContainerLeafState} for a {@link DockContainerLeaf}.
+     * @param leaf the {@link DockContainerLeaf} whose
+     * {@link DockContainerLeafState} is to be built.
+     * @return the {@link DockContainerLeafState}.
+     */
+    private DockContainerLeafState buildLeafState(
             final DockContainerLeaf leaf
     ) {
 
@@ -311,7 +346,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
             try {
                 leafStateBuilder.addChildDockableState(
-                        saveDockable(dockable)
+                        buildDockable(dockable)
                 );
             } catch (final Exception ex) {
 
@@ -322,11 +357,23 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
         return leafStateBuilder.build();
     }
 
-    private DockableState saveDockable(final Dockable dockable) {
+    /**
+     * Builds a {@link DockableState} for a {@link Dockable}.
+     * @param dockable the {@link Dockable} whose {@link DockableState} is to
+     * be built.
+     * @return the {@link DockableState}.
+     */
+    private DockableState buildDockable(final Dockable dockable) {
         return new DockableStateBuilder(dockable.getIdentifier())
                 .build();
     }
 
+    /**
+     * Returns the non-blank value of a {@link String}.
+     * @param value the {@link String} whose non-blankness is to be returned.
+     * @param fallback the value to return when the {@link String} is blank.
+     * @return the non-blank value of a {@link String}.
+     */
     private static String nonEmptyOr(
             final String value,
             final String fallback

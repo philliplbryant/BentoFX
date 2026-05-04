@@ -19,7 +19,7 @@ public class BoxAppDockContainerLeafMenuFactoryProvider
         implements DockContainerLeafMenuFactoryProvider {
 
     @Override
-    public Optional<DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
+    public Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
             final String dockContainerLeafIdentifier
     ) {
         return Optional.of(factory);

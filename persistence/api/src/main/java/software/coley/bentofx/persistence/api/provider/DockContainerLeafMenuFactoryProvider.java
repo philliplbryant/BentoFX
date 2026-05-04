@@ -20,7 +20,7 @@ public interface DockContainerLeafMenuFactoryProvider {
      *
      * @return a {@link DockContainerLeafMenuFactory}.
      */
-    Optional<DockContainerLeafMenuFactory> createDockContainerLeafMenuFactory(
+    Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
             final String dockContainerLeafIdentifier
     );
 }

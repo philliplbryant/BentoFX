@@ -3,7 +3,7 @@ package software.coley.bentofx.persistence.api.provider;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for creating
+ * {@code ServiceLoader} compatible Service Provider Interface for getting
  * {@link LayoutCodec} implementations.
  *
  * @author Phil Bryant
@@ -11,8 +11,8 @@ import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 public interface LayoutCodecProvider {
 
     /**
-     * Creates a {@link LayoutCodec}.
+     * Returns a {@link LayoutCodec}.
      * @return a {@link LayoutCodec}
      */
-    LayoutCodec createLayoutCodec();
+    LayoutCodec getLayoutCodec();
 }

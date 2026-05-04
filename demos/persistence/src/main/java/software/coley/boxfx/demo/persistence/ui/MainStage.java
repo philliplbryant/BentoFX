@@ -140,15 +140,15 @@ public class MainStage extends Stage {
         leafTools.setPruneWhenEmpty(false);
 
         // Add dummy menus to each.
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+        dockContainerLeafMenuFactoryProvider.getDockContainerLeafMenuFactory(
                 leafTools.getIdentifier()
         ).ifPresent(leafTools::setMenuFactory);
 
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+        dockContainerLeafMenuFactoryProvider.getDockContainerLeafMenuFactory(
                 leafWorkspaceHeaders.getIdentifier()
         ).ifPresent(leafWorkspaceHeaders::setMenuFactory);
 
-        dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+        dockContainerLeafMenuFactoryProvider.getDockContainerLeafMenuFactory(
                 leafWorkspaceTools.getIdentifier()
         ).ifPresent(leafWorkspaceTools::setMenuFactory);
 

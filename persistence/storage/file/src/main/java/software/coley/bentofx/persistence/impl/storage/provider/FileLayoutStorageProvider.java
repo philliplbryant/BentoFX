@@ -18,7 +18,7 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
             System.getProperty("user.home") + "/.bentofx";
 
     @Override
-    public LayoutStorage createLayoutStorage(
+    public LayoutStorage getLayoutStorage(
             final String layoutIdentifier,
             final String codecIdentifier
     ) {

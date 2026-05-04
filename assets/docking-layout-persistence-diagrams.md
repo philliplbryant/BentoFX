@@ -1,5 +1,42 @@
 # Bento layout persistence diagrams
 
+## Persistence Demo startup sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor BoxApp
+    participant persistenceProvider as DockingLayoutPersistenceProvider
+    participant serviceLoader as ServiceLoader
+    participant codecProvider as LayoutCodecProvider
+    participant codec as LayoutCodec
+    participant storageProvider as LayoutStorageProvider
+    participant storage as LayoutStorage
+    participant layoutSaver as LayoutSaver
+    participant layoutRestorer as LayoutRestorer
+
+    BoxApp->>persistenceProvider: constructor()
+    persistenceProvider->>serviceLoader: load(LayoutCodecProvider)
+    persistenceProvider->>codecProvider: getLayoutCodec()
+    codecProvider->>codec:constructor()
+    persistenceProvider->>serviceLoader: load(LayoutStorageProvider)
+    persistenceProvider->>storageProvider: getLayoutStorage()
+    storageProvider->>layoutSaver:constructor(codec, storage, ...)
+
+    BoxApp->>persistenceProvider:getLayoutSaver()
+    persistenceProvider->>storageProvider: getLayoutStorage()
+    storageProvider->>layoutRestorer:constructor(codec, storage, ...)
+    BoxApp->>layoutSaver:saveLayout()
+    layoutSaver->>codec:encode()
+    layoutSaver->>storage:write()
+    
+    BoxApp->>persistenceProvider:getLayoutRestorer()
+    BoxApp->>layoutRestorer:restoreLayout()
+    layoutRestorer->>storage:read()
+    layoutRestorer->>codec:decode()
+    BoxApp->>BoxApp:applyLayout(DockingLayout)
+```
+
 ## Components overview
 
 ```mermaid
@@ -11,7 +48,12 @@ classDiagram
   }
 
   class LayoutRestorer {
-    +restoreLayout(primaryStage)
+    +restoreLayout(defaultDockingLayout)
+  }
+  
+  class BentoProvider {
+      +getAllBentos()
+      +getBento(identifier)
   }
 
   class LayoutStorage {
@@ -30,108 +72,40 @@ classDiagram
   }
 
   class DockBuilding {
-    +root(id)
-    +branch(id)
-    +leaf(id)
+    +root(identifier)
+    +branch(identifier)
+    +leaf(identifier)
   }
 
-  class DockableStateResolver {
-    +resolveDockableState(id)
+  class DockableStateProvider {
+    +resolveDockableState(identifier)
+  }
+  
+  class StageIconImageProvider {
+      +getStageIcons()
+  }
+  
+  class BentoProvider {
+      +getBento(identifier)
+  }
+  
+  class DockContainerLeafMenuFactoryProvider {
+      +getDockContainerLeafMenuFactory(identifier)
   }
 
-  LayoutSaver --> LayoutStorage : writes
-  LayoutSaver --> LayoutCodec : encodes
+  LayoutSaver --> BentoProvider : get container graph
   LayoutSaver --> BentoState : builds
+  LayoutSaver --> LayoutCodec : encodes
+  LayoutSaver --> LayoutStorage : writes
 
+  LayoutRestorer --> Supplier~DockingLayout~ : get default layout
   LayoutRestorer --> LayoutStorage : reads
   LayoutRestorer --> LayoutCodec : decodes
-  LayoutRestorer --> DockBuilding : creates containers
-  LayoutRestorer --> DockableStateResolver : resolves dockable states
-  LayoutRestorer --> BentoState : consumes
-```
-
-## saveLayout sequence
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor App
-  participant Saver as LayoutSaver
-  participant Fx as FxStageUtils
-  participant Storage as LayoutStorage
-  participant Codec as LayoutCodec
-
-  App->>Saver: saveLayout()
-  Saver->>Fx: getAllStages()
-  loop for each Stage
-    alt Stage is DragDropStage
-      Saver->>Saver: getDockContainerRootBranch(stage)
-      Saver->>Saver: saveRootBranch(rootBranch)
-      Saver->>Saver: build DragDropStageState
-      Saver->>Saver: bentoBuilder.addDragDropStageState(...)
-    else regular Stage
-      Saver->>Saver: createDockContainerRootBranchState(stage)
-      Saver->>Saver: bentoBuilder.addRootBranchState(...)
-    end
-  end
-  Saver->>Storage: openOutputStream()
-  Saver->>Codec: encode(BentoState, out)
-```
-
-## restoreLayout sequence
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor App
-  participant Restorer as LayoutRestorer
-  participant Storage as LayoutStorage
-  participant Codec as LayoutCodec
-  participant Dock as DockBuilding
-  participant Resolver as DockableStateResolver
-
-  App->>Restorer: restoreLayout(primaryStage)
-  Restorer->>Restorer: primaryStage.hide()
-  Restorer->>Restorer: closeOtherStages(primaryStage)
-
-  Restorer->>Storage: openInputStream()
-  Restorer->>Codec: decode(in)
-  Note right of Restorer: Decode scheduled off JavaFX thread <br/> Result awaited via CompletableFuture.get()
-
-  alt no root branches
-    Restorer->>Dock: root("root-branch")
-  else has state
-    Restorer->>Restorer: select primary root branch (no parent)
-    Restorer->>Dock: root(rootBranchState.id)
-    Restorer->>Restorer: restore containers and properties
-    loop dockables in states
-      Restorer->>Resolver: resolveDockableState(id)
-      Restorer->>Restorer: addDockable / selectDockable
-    end
-    loop dragDropStageStates
-      Restorer->>Restorer: restoreDragDropStage(dockBuilding, dragDropStageState)
-    end
-  end
-
-  Restorer-->>App: DockContainerRootBranch
-```
-
-## State-to-runtime mapping
-
-```mermaid
-flowchart TD
-  A[DockContainerRootBranchState] --> B[DockContainerBranchState]
-  A --> C[DockContainerLeafState]
-  B --> B1[DockContainerBranchState]
-  B --> C1[DockContainerLeafState]
-  C --> D[DockableState]
-  C1 --> D1[DockableState]
-  
-  A2["DockBuilding.root(id)"] --> R1["DockContainerRootBranch"]
-  B2["DockBuilding.branch(id)"] --> R2["DockContainerBranch"]
-  C2["DockBuilding.leaf(id)"] --> R3["DockContainerLeaf"]
-  
-  A -.->|restore| A2
-  B -.->|restore| B2
-  C -.->|restore| C2
+  LayoutRestorer --> BentoProvider : resolves Bentos
+  LayoutRestorer --> Bento : resolves DockBuilding
+  LayoutRestorer --> DockBuilding : creates and restores containers
+  LayoutRestorer --> DockableStateProvider : resolves dockable states
+  LayoutRestorer --> StageIconImageProvider: resolves icons
+  LayoutRestorer --> DockContainerLeafMenuFactoryProvider: resolves DockContainerLeafMenuFactory
+  LayoutRestorer --> DockContainerLeafMenuFactory: builds ContextMenu
 ```

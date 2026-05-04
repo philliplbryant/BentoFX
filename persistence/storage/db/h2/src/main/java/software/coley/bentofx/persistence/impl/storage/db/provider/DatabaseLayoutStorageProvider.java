@@ -15,7 +15,7 @@ import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
     @Override
-    public LayoutStorage createLayoutStorage(
+    public LayoutStorage getLayoutStorage(
             final String layoutIdentifier,
             final String codecIdentifier
     ) {

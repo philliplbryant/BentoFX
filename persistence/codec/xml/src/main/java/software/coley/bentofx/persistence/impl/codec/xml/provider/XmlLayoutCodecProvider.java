@@ -13,7 +13,7 @@ import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
 public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
-    public LayoutCodec createLayoutCodec() {
+    public LayoutCodec getLayoutCodec() {
         return new XmlLayoutCodec();
     }
 }

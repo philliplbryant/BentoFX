@@ -43,10 +43,10 @@ public class DockingLayoutPersistenceProvider
     ) {
 
         final LayoutCodec layoutCodec =
-                layoutCodecProvider.createLayoutCodec();
+                layoutCodecProvider.getLayoutCodec();
 
         final LayoutStorage layoutStorage =
-                layoutStorageProvider.createLayoutStorage(
+                layoutStorageProvider.getLayoutStorage(
                         layoutIdentifier,
                         layoutCodec.getIdentifier()
                 );
@@ -63,10 +63,10 @@ public class DockingLayoutPersistenceProvider
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         final LayoutCodec layoutCodec =
-                layoutCodecProvider.createLayoutCodec();
+                layoutCodecProvider.getLayoutCodec();
 
         final LayoutStorage layoutStorage =
-                layoutStorageProvider.createLayoutStorage(
+                layoutStorageProvider.getLayoutStorage(
                         layoutIdentifier,
                         layoutCodec.getIdentifier()
                 );

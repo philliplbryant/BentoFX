@@ -481,7 +481,7 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 
         // Set the menu factory
         if (dockContainerLeafMenuFactoryProvider != null) {
-            dockContainerLeafMenuFactoryProvider.createDockContainerLeafMenuFactory(
+            dockContainerLeafMenuFactoryProvider.getDockContainerLeafMenuFactory(
                     leaf.getIdentifier()
             ).ifPresent(
                     leaf::setMenuFactory
