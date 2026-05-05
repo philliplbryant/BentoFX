@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
@@ -321,9 +322,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                 rootBranch::setOrientation
         );
 
-        restoreChildDockContainers(dockBuilding, rootBranchState, rootBranch);
         restoreAndAddChildDockables(dockBuilding, rootBranchState, rootBranch);
-        // TODO BENTO-13: Divider positions are not restoring properly
+        restoreChildDockContainers(dockBuilding, rootBranchState, rootBranch);
         applyDividerPositions(
                 rootBranchState.getDividerPositions().entrySet(),
                 rootBranch
@@ -628,9 +628,12 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             final DockContainerBranch branch
     ) {
         for (final Map.Entry<Integer, Double> positionEntry : dividerPositions) {
-            branch.setDividerPosition(
-                    positionEntry.getKey(),
-                    positionEntry.getValue()
+            // Defer setting the divider position until after the initial layout pass
+            Platform.runLater(() ->
+                    branch.setDividerPosition(
+                            positionEntry.getKey(),
+                            positionEntry.getValue()
+                    )
             );
         }
     }
@@ -684,10 +687,10 @@ public class DockingLayoutRestorer implements LayoutRestorer {
      * {@link DockContainerBranch} containing it contains more than one
      * {@link DockContainer}.
      *
-     * @param leaves the {@link DockContainerLeaf} to be conditionally collapsed.
+     * @param leaves     the {@link DockContainerLeaf} to be conditionally collapsed.
      * @param leafStates the {@link DockContainerLeafState}
-     * @param branch the {@link DockContainerBranch} containing the
-     * {@link DockContainerLeaf}.
+     * @param branch     the {@link DockContainerBranch} containing the
+     *                   {@link DockContainerLeaf}.
      */
     private static void conditionallyCollapseLeaves(
             final Map<String, DockContainerLeaf> leaves,
