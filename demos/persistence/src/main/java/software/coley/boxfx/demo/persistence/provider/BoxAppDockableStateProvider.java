@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.impl.codec.DockableState;
-import software.coley.bentofx.persistence.impl.codec.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockableState;
+import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 
 import java.util.HashMap;
 import java.util.Map;

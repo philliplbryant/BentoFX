@@ -22,7 +22,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.BentoLayout;
+import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 

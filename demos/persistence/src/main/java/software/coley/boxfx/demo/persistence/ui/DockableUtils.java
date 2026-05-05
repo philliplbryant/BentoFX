@@ -4,7 +4,7 @@ import javafx.scene.control.Tooltip;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.persistence.impl.codec.DockableState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 
 /**
  * Utility class for creating {@link Dockable} from {@link DockableState}.

@@ -1,5 +1,6 @@
 /**
- * {@code ServiceLoader} compatible Service Provider Interface definitions.
+ * This package contains {@code ServiceLoader} compatible Service Provider
+ * Interface definitions.
  *
  * @author Phil Bryant
  */

@@ -1,13 +1,13 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.codec.*;
-import software.coley.bentofx.persistence.impl.codec.BentoState.BentoStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DragDropStageState.DragDropStageStateBuilder;
+import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.ArrayList;

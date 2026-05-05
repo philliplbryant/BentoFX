@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.codec;
+package software.coley.bentofx.persistence.impl.state;
 
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -7,7 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.persistence.impl.codec.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockableState;
+import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 
 import java.util.Optional;
 import java.util.function.Consumer;

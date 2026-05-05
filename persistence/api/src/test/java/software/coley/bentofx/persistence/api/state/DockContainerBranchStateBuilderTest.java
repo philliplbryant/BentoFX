@@ -1,10 +1,13 @@
-package software.coley.bentofx.persistence.impl.codec;
+package software.coley.bentofx.persistence.api.state;
 
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.codec.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
 
 import java.util.List;
 import java.util.Map;

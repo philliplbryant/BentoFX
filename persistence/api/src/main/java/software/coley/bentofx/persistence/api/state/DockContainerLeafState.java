@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.codec;
+package software.coley.bentofx.persistence.api.state;
 
 import javafx.geometry.Side;
 import org.jspecify.annotations.Nullable;

@@ -7,7 +7,7 @@ import software.coley.bentofx.Bento;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.event.DockEventListener;
 import software.coley.bentofx.persistence.api.LayoutSaver;
-import software.coley.bentofx.persistence.api.codec.BentoStateException;
+import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 
 import java.lang.ref.Cleaner;

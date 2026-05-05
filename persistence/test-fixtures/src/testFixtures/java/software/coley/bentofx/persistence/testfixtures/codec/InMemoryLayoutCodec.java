@@ -1,8 +1,8 @@
 package software.coley.bentofx.persistence.testfixtures.codec;
 
-import software.coley.bentofx.persistence.api.codec.BentoStateException;
+import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.impl.codec.BentoState;
+import software.coley.bentofx.persistence.api.state.BentoState;
 
 import java.io.IOException;
 import java.io.InputStream;

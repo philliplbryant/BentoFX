@@ -1,8 +1,6 @@
-package software.coley.bentofx.persistence.impl.storage;
+package software.coley.bentofx.persistence.api;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.BentoLayout;
-import software.coley.bentofx.persistence.impl.DockingLayout;
 
 import java.lang.reflect.Constructor;
 import java.util.List;

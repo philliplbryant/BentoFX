@@ -1,7 +1,5 @@
 package software.coley.bentofx.persistence.api;
 
-import software.coley.bentofx.persistence.impl.DockingLayout;
-
 import java.util.function.Supplier;
 
 /**

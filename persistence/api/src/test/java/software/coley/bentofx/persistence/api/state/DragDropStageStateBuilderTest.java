@@ -1,9 +1,11 @@
-package software.coley.bentofx.persistence.impl.codec;
+package software.coley.bentofx.persistence.api.state;
 
 import javafx.geometry.Orientation;
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DragDropStageState.DragDropStageStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 
 import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;

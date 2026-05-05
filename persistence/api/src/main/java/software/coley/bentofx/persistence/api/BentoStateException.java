@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.api.codec;
+package software.coley.bentofx.persistence.api;
 
 /**
  * Indicates conditions that applications might want to catch when the saving

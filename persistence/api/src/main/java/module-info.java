@@ -28,9 +28,9 @@ module bento.fx.persistence.api {
     exports software.coley.bentofx.persistence.api.provider;
     exports software.coley.bentofx.persistence.api.storage;
     exports software.coley.bentofx.persistence.api;
-    exports software.coley.bentofx.persistence.impl.codec;
     exports software.coley.bentofx.persistence.impl.provider;
     exports software.coley.bentofx.persistence.impl;
+    exports software.coley.bentofx.persistence.api.state;
 
     provides LayoutPersistenceProvider with DockingLayoutPersistenceProvider;
 }

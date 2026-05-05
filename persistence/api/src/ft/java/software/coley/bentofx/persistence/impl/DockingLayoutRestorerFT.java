@@ -18,13 +18,15 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.impl.codec.BentoState;
-import software.coley.bentofx.persistence.impl.codec.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DockableState;
-import software.coley.bentofx.persistence.impl.codec.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.DragDropStageState.DragDropStageStateBuilder;
+import software.coley.bentofx.persistence.api.BentoLayout;
+import software.coley.bentofx.persistence.api.DockingLayout;
+import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
+import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockableState;
+import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
@@ -40,7 +42,7 @@ import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ApplicationExtension.class)
-class BentoLayoutRestorerFT {
+class DockingLayoutRestorerFT {
 
     @Test
     void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() throws Exception {

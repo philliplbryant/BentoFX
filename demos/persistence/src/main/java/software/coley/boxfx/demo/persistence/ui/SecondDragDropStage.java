@@ -9,7 +9,7 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.BentoLayout;
+import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.Objects;

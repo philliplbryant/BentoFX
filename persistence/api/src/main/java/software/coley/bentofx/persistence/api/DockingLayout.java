@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl;
+package software.coley.bentofx.persistence.api;
 
 import java.util.ArrayList;
 import java.util.List;

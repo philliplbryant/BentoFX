@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.api.provider;
 
 import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.persistence.impl.codec.DockableState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 
 import java.util.Optional;
 

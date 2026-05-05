@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.api.codec;
 
-import software.coley.bentofx.persistence.impl.codec.BentoState;
+import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.state.BentoState;
 
 import java.io.InputStream;
 import java.io.OutputStream;

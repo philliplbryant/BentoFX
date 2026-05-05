@@ -7,7 +7,7 @@ import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.impl.BentoLayout;
+import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.List;

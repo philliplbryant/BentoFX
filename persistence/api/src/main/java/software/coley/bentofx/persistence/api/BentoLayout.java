@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl;
+package software.coley.bentofx.persistence.api;
 
 import software.coley.bentofx.Identifiable;
 import software.coley.bentofx.control.DragDropStage;
