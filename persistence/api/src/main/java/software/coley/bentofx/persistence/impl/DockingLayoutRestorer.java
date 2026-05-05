@@ -38,6 +38,8 @@ import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static software.coley.bentofx.persistence.impl.StageUtils.getXInScreenBounds;
+import static software.coley.bentofx.persistence.impl.StageUtils.getYInScreenBounds;
 
 /**
  * Restores persisted {@link DockingLayout}s.
@@ -275,8 +277,6 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 
         // Apply the stage state to the DragDropStage
         stageState.getTitle().ifPresent(dragDropStage::setTitle);
-        stageState.getX().ifPresent(dragDropStage::setX);
-        stageState.getY().ifPresent(dragDropStage::setY);
         stageState.getWidth().ifPresent(dragDropStage::setWidth);
         stageState.getHeight().ifPresent(dragDropStage::setHeight);
         stageState.getOpacity().ifPresent(dragDropStage::setOpacity);
@@ -289,6 +289,20 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                 .filter(Boolean::booleanValue)
                 .ifPresent(ignored -> dragDropStage.requestFocus());
         stageState.getModality().ifPresent(dragDropStage::initModality);
+
+        stageState.getX().ifPresent(stageX -> {
+                    final double xInScreenBounds =
+                            getXInScreenBounds(dragDropStage, stageX);
+                    dragDropStage.setX(xInScreenBounds);
+                }
+        );
+
+        stageState.getY().ifPresent(stageY -> {
+                    final double yInScreenBounds =
+                            getYInScreenBounds(dragDropStage, stageY);
+                    dragDropStage.setY(yInScreenBounds);
+                }
+        );
 
         return dragDropStage;
     }
@@ -617,7 +631,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     }
 
     /**
-     * Applies divider positions to a branch.
+     * Applies divider positions to a branch, deferred until after the initial
+     * layout pass.
      *
      * @param dividerPositions the diver positions to be applied.
      * @param branch           the {@link DockContainerBranch} containing the
