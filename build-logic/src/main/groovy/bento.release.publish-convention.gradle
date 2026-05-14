@@ -4,11 +4,13 @@ plugins {
     id 'maven-publish'
 }
 
+def bentoConvention = extensions.getByName('bentoConvention')
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
 
-            artifactId = normalizedArtifactId
+            artifactId = bentoConvention.normalizedProjectName.get()
 
             from components['java']
 
