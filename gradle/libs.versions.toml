@@ -1,11 +1,11 @@
 [versions]
-# Libraries
-assertj = "3.27.7"
-# `gradle` and `gradle-checksum` are used in the root project's build.gradle.kts
+# Build Tools
 gradle = "9.4.1"
 gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
-# `java-jdk` is used in project-convention.gradle.kts
 java-jdk = "21"
+
+# Libraries
+assertj = "3.27.7"
 javafx = "21.0.9"
 jspecify = "1.0.0"
 junit = "6.0.3"
