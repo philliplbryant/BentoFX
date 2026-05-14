@@ -101,7 +101,7 @@ public class DockBuilding {
 		return new DockContainerLeaf(bento, identifier);
 	}
 
-	private static String uid(String prefix) {
+	public static String uid(String prefix) {
 		StringBuilder suffix = new StringBuilder(8);
 		for (int i = 0; i < 8; i++)
 			suffix.append((char) RANDOM.nextInt('A', 'Z'));

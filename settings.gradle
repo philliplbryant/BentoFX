@@ -1,8 +1,39 @@
+pluginManagement {
+
+    includeBuild 'build-logic'
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+
+    includeBuild 'build-logic'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'bento-fx'
 
 enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
 enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
 
+include 'platform'
+
 include 'core'
-include 'demos'
+
 include 'demos:basic'
+include 'demos:persistence'
+
+include 'persistence:api'
+include 'persistence:codec:common'
+include 'persistence:codec:json'
+include 'persistence:codec:xml'
+include 'persistence:storage:file'
+include 'persistence:storage:db:h2'
+include 'persistence:test-fixtures'

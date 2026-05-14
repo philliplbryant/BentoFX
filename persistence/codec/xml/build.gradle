@@ -1,0 +1,29 @@
+plugins {
+    id 'bento.project.project-convention'
+    id 'bento.release.publish-convention'
+    alias(libs.plugins.javafx)
+}
+
+description = 'BentoFX Persistence for XML'
+
+javafx {
+    def versionCatalog = versionCatalogs.named('libs')
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.controls', 'javafx.graphics']
+    configurations = ['implementation']
+}
+
+dependencies {
+
+    api projects.persistence.api
+
+    implementation projects.persistence.codec.common
+
+    implementation libs.jackson.databind
+    implementation libs.jackson.xml
+
+    compileOnly libs.jackson.annotations
+    compileOnly libs.jspecify
+
+    testImplementation libs.assertj
+}

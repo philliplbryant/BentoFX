@@ -1,0 +1,30 @@
+plugins {
+    id 'bento.project.project-convention'
+    id 'bento.release.publish-convention'
+    id 'bento.test.functional-test-suite'
+    alias(libs.plugins.javafx)
+}
+
+description = "BentoFX Persistence API"
+
+javafx {
+    def versionCatalog = versionCatalogs.named('libs')
+    version = versionCatalog.findVersion("javafx")
+    modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
+    configurations = ['api','functionalTestImplementation']
+}
+
+dependencies {
+    api projects.core
+
+    implementation libs.slf4j.api
+
+    compileOnly libs.jspecify
+
+    testImplementation libs.assertj
+    testImplementation libs.junit.api
+
+    functionalTestImplementation testFixtures(projects.persistence.testFixtures)
+
+    functionalTestRuntimeOnly libs.slf4j.simple
+}

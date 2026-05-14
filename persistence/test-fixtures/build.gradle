@@ -1,0 +1,12 @@
+plugins {
+    id 'bento.test.test-fixtures'
+}
+
+description = 'Fixtures for use when testing persistence.'
+
+dependencies {
+
+    testFixturesApi projects.persistence.api
+
+    testFixturesCompileOnly libs.jspecify
+}
