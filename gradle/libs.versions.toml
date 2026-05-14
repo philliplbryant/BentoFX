@@ -1,7 +1,15 @@
 [versions]
-# Build Tools
+
+# The following versions are acquired by version catalog Project extension functions
+# and, as such, are indicated as unused by IntelliJ and Qodana.
+
+# noinspection UnusedVersionCatalogEntry
+bentofx = "0.16.0"
+# noinspection UnusedVersionCatalogEntry
 gradle = "9.4.1"
+# noinspection UnusedVersionCatalogEntry
 gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
+# noinspection UnusedVersionCatalogEntry
 java-jdk = "21"
 
 # Libraries

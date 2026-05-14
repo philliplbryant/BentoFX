@@ -10,10 +10,11 @@ plugins {
     id 'bento.test.unit-test-suite'
 }
 
-group = 'software.coley.bento-fx'
-version = '0.16.0'
-
 def versionCatalog = versionCatalogs.named('libs')
+
+group = 'software.coley.bento-fx'
+version = versionCatalog.findVersion("bentofx").get().requiredVersion
+
 ext {
     normalizedArtifactId = project.path.substring(1).replace(':', '.')
 }
