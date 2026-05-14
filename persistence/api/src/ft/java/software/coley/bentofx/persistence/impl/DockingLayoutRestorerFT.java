@@ -16,11 +16,11 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
+import software.coley.bentofx.persistence.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
@@ -113,7 +113,7 @@ class DockingLayoutRestorerFT {
 
         DockableState dockableState = new DockableStateBuilder(expectedDockableId)
                 .setTitle(expectedDockableTitle)
-                .setTooltip(expectedDockableTooltipText)
+                .setTooltipText(expectedDockableTooltipText)
                 .setDockableNode(new Label(expectedDockableId))
                 .setClosable(expectedDockableIsClosable)
                 .build();

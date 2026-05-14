@@ -45,10 +45,18 @@ public class BentoState extends IdentifiableState {
         private final List<DragDropStageState> dragDropStageStates =
                 new ArrayList<>();
 
+        /**
+         * Constructor.
+         * @param identifier the {@code Bento} identifier.
+         */
         public BentoStateBuilder(final String identifier) {
             this.identifier = identifier;
         }
 
+        /**
+         * @param rootBranchStates the {@link DockContainerRootBranchState} to add.
+         * @return this {@link BentoStateBuilder}
+         */
         public BentoStateBuilder addRootBranchState(
                 final DockContainerRootBranchState... rootBranchStates
         ) {
@@ -58,6 +66,10 @@ public class BentoState extends IdentifiableState {
             return this;
         }
 
+        /**
+         * @param dragDropStageStates the {@link DragDropStageState} to add.
+         * @return this {@link BentoStateBuilder}
+         */
         public BentoStateBuilder addDragDropStageState(
                 final DragDropStageState... dragDropStageStates
         ) {

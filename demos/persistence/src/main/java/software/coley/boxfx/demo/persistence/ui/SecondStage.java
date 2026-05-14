@@ -6,12 +6,11 @@ import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.BentoLayout;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
-
 
 /**
  * Just a plain ole {@code Stage} without any docking controls and thus nothing
@@ -41,7 +40,7 @@ public class SecondStage extends Stage {
         return bento;
     }
 
-    public void restoreLayout(final BentoLayout bentoLayout) {
+    public void applyLayout(final BentoLayout bentoLayout) {
 
         List<DockContainerRootBranch> rootBranches =
                 bentoLayout.getRootBranches();

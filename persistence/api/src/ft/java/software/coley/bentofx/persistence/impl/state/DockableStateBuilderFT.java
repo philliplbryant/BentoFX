@@ -35,7 +35,7 @@ class DockableStateBuilderFT {
                 new DockableStateBuilder(expectedDockableId)
                         .setDockableNode(expectedDockableNode)
                         .setTitle(expectedTitle)
-                        .setTooltip(expectedTooltip)
+                        .setTooltipText(expectedTooltip)
                         .setDockableIconFactory(null)
                         .setDockableMenuFactory(null)
                         .setDragGroupMask(expectedDragGroupMask)
@@ -52,7 +52,7 @@ class DockableStateBuilderFT {
         assertThat(dockable.getTitle())
                 .contains(expectedTitle);
 
-        assertThat(dockable.getTooltip())
+        assertThat(dockable.getTooltipText())
                 .contains(expectedTooltip);
 
         assertThat(dockable.getDockableIconFactory())

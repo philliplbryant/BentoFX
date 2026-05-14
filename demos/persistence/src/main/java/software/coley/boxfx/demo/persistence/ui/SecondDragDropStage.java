@@ -7,14 +7,14 @@ import software.coley.bentofx.Bento;
 import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
+import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.api.BentoLayout;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.Objects;
 
-import static software.coley.boxfx.demo.persistence.provider.BoxAppDockableStateProvider.secondDockableProperties;
+import static software.coley.boxfx.demo.persistence.provider.DockableProperties.SOMETHING_ELSE;
 import static software.coley.boxfx.demo.persistence.ui.DockableUtils.createDockable;
 
 /**
@@ -49,7 +49,7 @@ public class SecondDragDropStage extends DragDropStage {
         return bento;
     }
 
-    public void restoreLayout(final BentoLayout bentoLayout) {
+    public void applyLayout(final BentoLayout bentoLayout) {
 
         for (final DragDropStage dragDropStage :
                 bentoLayout.getDragDropStages()) {
@@ -96,7 +96,7 @@ public class SecondDragDropStage extends DragDropStage {
         );
 
         dockableStateProvider.resolveDockableState(
-                secondDockableProperties.identifier()
+                SOMETHING_ELSE.getIdentifier()
         ).ifPresentOrElse(
                 dockableState ->
                         leaf.addDockable(createDockable(bento, dockableState)),
@@ -104,7 +104,7 @@ public class SecondDragDropStage extends DragDropStage {
                         logger.warn(
                                 "Could not create DockableState for {} using " +
                                         "bento {}",
-                                secondDockableProperties,
+                                SOMETHING_ELSE,
                                 bento
                         )
         );

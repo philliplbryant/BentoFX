@@ -16,22 +16,34 @@ import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.DockingLayout;
-import software.coley.bentofx.persistence.api.LayoutRestorer;
+import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.DockingLayout;
+import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
+import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.api.state.DockableState;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
-import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -564,7 +576,7 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                     dockable::setTitle
             );
 
-            dockableState.getTooltip().ifPresent(tooltipText ->
+            dockableState.getTooltipText().ifPresent(tooltipText ->
                     dockable.setTooltip(new Tooltip(tooltipText))
             );
 

@@ -3,7 +3,11 @@ package software.coley.bentofx.persistence.impl.provider;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.WeakHashMap;
 
 /**
  * Default implementation of {@link BentoProvider} that merely collects and

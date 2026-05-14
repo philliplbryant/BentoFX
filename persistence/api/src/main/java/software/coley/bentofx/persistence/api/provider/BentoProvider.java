@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for getting or
- * creating {@link Bento} instances.
+ * {@code ServiceLoader} compatible Service Provider Interface for resolving
+ * {@link Bento} instances.
  *
  * @author Phil Bryant
  */

@@ -33,7 +33,7 @@ public class DockableUtils {
                 dockable::setTitle
         );
 
-        dockableState.getTooltip().ifPresent( tooltipText ->
+        dockableState.getTooltipText().ifPresent(tooltipText ->
                 dockable.setTooltip(new Tooltip(tooltipText))
         );
 
