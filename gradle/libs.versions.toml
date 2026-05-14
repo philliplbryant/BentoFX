@@ -24,7 +24,7 @@ testfx-monocle = "21.0.2"
 benmanes-versions = "0.52.0"
 buildconfig = "6.0.9"
 javafx-plugin = "0.1.0"
-jreleaser = "1.23.0"
+jreleaser = "1.24.0"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
