@@ -24,15 +24,9 @@ dependencies {
         /*
          * Bundles
          */
-
-        // See JavaFXComponentMetadataRule for version alignment.
         api libs.bundles.javafx
-
-        // See TestFxAlignmentRule.
         api libs.bundles.test.libraries
-
         api libs.bundles.annotations
-
         api libs.bundles.test.runtime
 
         /*
