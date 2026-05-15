@@ -26,8 +26,8 @@ publishing {
                 }
                 developers {
                     developer {
-                        id =  'Col-E '
-                        name =  'Matt Coley '
+                        id =  'Col-E'
+                        name =  'Matt Coley'
                     }
                     developer {
                         id.set( 'philliplbryant')
