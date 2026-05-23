@@ -208,6 +208,7 @@ stage.setScene(scene);
 stage.setOnHidden(e -> System.exit(0));
 stage.show();
 ```
+
 For a more real-world example you can check out [Recaf](https://github.com/Col-E/Recaf/)
 
 ![containers](assets/example-recaf.png)

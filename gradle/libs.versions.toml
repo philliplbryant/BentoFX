@@ -1,4 +1,13 @@
 [versions]
+# noinspection UnusedVersionCatalogEntry
+bentofx = "0.16.0"
+# noinspection UnusedVersionCatalogEntry
+gradle = "9.4.1"
+# noinspection UnusedVersionCatalogEntry
+gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
+# noinspection UnusedVersionCatalogEntry
+java-jdk = "21"
+
 # Libraries
 assertj = "3.27.7"
 byte-buddy = "1.18.5"
@@ -33,6 +42,7 @@ benmanes-versions = "0.52.0"
 buildconfig = "6.0.9"
 javafx-plugin = "0.1.0"
 jreleaser = "1.23.0"
+jreleaser = "1.24.0"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
