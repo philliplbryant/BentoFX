@@ -2,9 +2,9 @@
 # noinspection UnusedVersionCatalogEntry
 bentofx = "0.16.0"
 # noinspection UnusedVersionCatalogEntry
-gradle = "9.4.1"
+gradle = "9.5.1"
 # noinspection UnusedVersionCatalogEntry
-gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
+gradle-checksum = "bafc141b619ad6350fd975fc903156dd5c151998cc8b058e8c1044ab5f7b031f"
 # noinspection UnusedVersionCatalogEntry
 java-jdk = "21"
 
@@ -12,9 +12,6 @@ java-jdk = "21"
 assertj = "3.27.7"
 byte-buddy = "1.18.5"
 dependency-analysis-gradle-plugin = "3.9.0"
-# `gradle` and `gradle-checksum` are used in the root project's build.gradle.kts
-gradle = "9.4.1"
-gradle-checksum = "2ab2958f2a1e51120c326cad6f385153bb11ee93b3c216c5fccebfdfbb7ec6cb"
 h2 = "2.4.240"
 hibernate = "7.2.6.Final"
 hibernate-hikari-cp = "7.2.6.Final"
@@ -25,8 +22,6 @@ jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"
 jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
-# `java-jdk` is used in project-convention.gradle.kts
-java-jdk = "21"
 javafx = "21.0.9"
 jaxb = "4.0.6"
 jspecify = "1.0.0"
@@ -41,7 +36,6 @@ zaxxer-hikari-cp = "7.0.2"
 benmanes-versions = "0.52.0"
 buildconfig = "6.0.9"
 javafx-plugin = "0.1.0"
-jreleaser = "1.23.0"
 jreleaser = "1.24.0"
 
 [libraries]
