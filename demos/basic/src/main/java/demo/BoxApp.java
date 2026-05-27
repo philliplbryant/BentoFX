@@ -10,6 +10,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.paint.Color;
@@ -24,6 +25,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 
 public class BoxApp extends Application {
 	@Override
@@ -31,20 +33,23 @@ public class BoxApp extends Application {
 		stage.setWidth(1000);
 		stage.setHeight(700);
 
-		Bento bento = new Bento();
+		// Initialize the Bento
+		final Bento bento = new Bento();
 		bento.placeholderBuilding().setDockablePlaceholderFactory(dockable -> new Label("Empty Dockable"));
 		bento.placeholderBuilding().setContainerPlaceholderFactory(container -> new Label("Empty Container"));
 		bento.events().addEventListener((DockEvent event) -> {
 			if (event instanceof DockEvent.DockableClosing closingEvent)
 				handleDockableClosing(closingEvent);
 		});
+		bento.stageBuilding().setApplyMousePosition(true);
+		bento.stageBuilding().setApplySourceAsOwner(false);
 
-		DockBuilding builder = bento.dockBuilding();
-		DockContainerBranch branchRoot = builder.root("root");
-		DockContainerBranch branchWorkspace = builder.branch("workspace");
-		DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
-		DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
-		DockContainerLeaf leafTools = builder.leaf("misc-tools");
+		final DockBuilding builder = bento.dockBuilding();
+		final DockContainerRootBranch branchRoot = builder.root("root");
+		final DockContainerBranch branchWorkspace = builder.branch("workspace");
+		final DockContainerLeaf leafWorkspaceTools = builder.leaf("workspace-tools");
+		final DockContainerLeaf leafWorkspaceHeaders = builder.leaf("workspace-headers");
+		final DockContainerLeaf leafTools = builder.leaf("misc-tools");
 
 		branchWorkspace.setPruneWhenEmpty(false);
 		leafWorkspaceTools.setPruneWhenEmpty(false);
@@ -57,8 +62,8 @@ public class BoxApp extends Application {
 		leafWorkspaceTools.setMenuFactory(d -> addSideOptions(new ContextMenu(), leafWorkspaceTools));
 
 		// These leaves shouldn't auto-expand. They are intended to be a set size.
-		DockContainerBranch.setResizableWithParent(leafTools, false);
-		DockContainerBranch.setResizableWithParent(leafWorkspaceTools, false);
+		SplitPane.setResizableWithParent(leafTools, false);
+		SplitPane.setResizableWithParent(leafWorkspaceTools, false);
 
 		// Root: Workspace on top, tools on bottom
 		// Workspace: Explorer on left, primary editor tabs on right
@@ -71,7 +76,7 @@ public class BoxApp extends Application {
 		leafWorkspaceTools.setSide(Side.LEFT);
 		leafTools.setSide(Side.BOTTOM);
 
-		// Tools shouldn't allow splitting (mirroring intellij behavior)
+		// Tools shouldn't allow splitting (mirroring IntelliJ behavior)
 		leafWorkspaceTools.setCanSplit(false);
 		leafTools.setCanSplit(false);
 
@@ -116,13 +121,13 @@ public class BoxApp extends Application {
 		dockable.setTitle(title);
 		dockable.setIconFactory(d -> makeIcon(s, i));
 		dockable.setNode(new Label("<" + title + ":" + i + ">"));
-		dockable.setContextMenuFactory(d -> {
-			return new ContextMenu(
+		dockable.setContextMenuFactory(d ->
+			new ContextMenu(
 					new MenuItem("Menu for : " + dockable.getTitle()),
 					new SeparatorMenuItem(),
 					new MenuItem("Stuff")
-			);
-		});
+			)
+		);
 		if (s > 0) {
 			dockable.setDragGroupMask(1);
 			dockable.setClosable(false);
@@ -163,7 +168,7 @@ public class BoxApp extends Application {
 		final int radius = 6;
 		Shape icon = switch (shapeMode) {
 			case 1 -> new Polygon(radius, 0, 0, radius * 2, radius * 2, radius * 2);
-			case 2 -> new Rectangle(radius * 2, radius * 2);
+			case 2 -> new Rectangle(radius * 2d, radius * 2d);
 			default -> new Circle(radius);
 		};
 		switch (i) {
