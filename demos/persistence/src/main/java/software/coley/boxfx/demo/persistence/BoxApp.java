@@ -1,6 +1,7 @@
 package software.coley.boxfx.demo.persistence;
 
 import javafx.application.Application;
+import javafx.event.Event;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
@@ -162,21 +163,21 @@ public class BoxApp extends Application {
 		branchRoot.setContainerCollapsed(leafTools, true);
 
 		// Adding dockables to leafWorkspaceTools
-		addDockable(bento, WORKSPACE, dockableStateProvider, leafWorkspaceTools);
-		addDockable(bento, BOOKMARKS, dockableStateProvider, leafWorkspaceTools);
-		addDockable(bento, MODIFICATIONS, dockableStateProvider, leafWorkspaceTools);
+		addDockable(WORKSPACE, dockableStateProvider, leafWorkspaceTools);
+		addDockable(BOOKMARKS, dockableStateProvider, leafWorkspaceTools);
+		addDockable(MODIFICATIONS, dockableStateProvider, leafWorkspaceTools);
 
 		// Adding dockables to leafTools
-		addDockable(bento, LOGGING, dockableStateProvider, leafTools);
-		addDockable(bento, TERMINAL, dockableStateProvider, leafTools);
-		addDockable(bento, PROBLEMS, dockableStateProvider, leafTools);
+		addDockable(LOGGING, dockableStateProvider, leafTools);
+		addDockable(TERMINAL, dockableStateProvider, leafTools);
+		addDockable(PROBLEMS, dockableStateProvider, leafTools);
 
 		// Adding dockables to leafWorkspaceHeaders
-		addDockable(bento, CLASS_1, dockableStateProvider, leafWorkspaceHeaders);
-		addDockable(bento, CLASS_2, dockableStateProvider, leafWorkspaceHeaders);
-		addDockable(bento, CLASS_3, dockableStateProvider, leafWorkspaceHeaders);
-		addDockable(bento, CLASS_4, dockableStateProvider, leafWorkspaceHeaders);
-		addDockable(bento, CLASS_5, dockableStateProvider, leafWorkspaceHeaders);
+		addDockable(CLASS_1, dockableStateProvider, leafWorkspaceHeaders);
+		addDockable(CLASS_2, dockableStateProvider, leafWorkspaceHeaders);
+		addDockable(CLASS_3, dockableStateProvider, leafWorkspaceHeaders);
+		addDockable(CLASS_4, dockableStateProvider, leafWorkspaceHeaders);
+		addDockable(CLASS_5, dockableStateProvider, leafWorkspaceHeaders);
 
 		rootBranches.add(branchRoot);
 
@@ -192,8 +193,8 @@ public class BoxApp extends Application {
 		stage.setOnCloseRequest(this::saveDockingLayout);
 		stage.setOnHidden(e -> System.exit(0));
 
-        // A Scene is created and additional Stage properties are set when
-        // applying the docking layout.
+		// A Scene is created and additional Stage properties are set when
+		// applying the docking layout.
 		DockingLayout dockingLayout = getDockingLayout();
 		applyDockingLayout(dockingLayout);
 	}
@@ -201,6 +202,7 @@ public class BoxApp extends Application {
 	/**
 	 * @return if a prior {@link DockingLayout} has been saved, restores and
 	 * returns it. Otherwise, returns the default {@link DockingLayout}.
+	 *
 	 * @see #getDefaultDockingLayout()
 	 */
 	private DockingLayout getDockingLayout() {
@@ -221,6 +223,7 @@ public class BoxApp extends Application {
 
 	/**
 	 * Applies all {@link BentoLayout} found in the {@link DockingLayout}.
+	 *
 	 * @param dockingLayout the {@link DockingLayout} to be applied.
 	 */
 	private void applyDockingLayout(
@@ -241,6 +244,7 @@ public class BoxApp extends Application {
 
 	/**
 	 * Applies the {@link BentoLayout} to docking components.
+	 *
 	 * @param bentoLayout the layout to be applied.
 	 */
 	public void applyLayout(final BentoLayout bentoLayout) {
@@ -254,7 +258,7 @@ public class BoxApp extends Application {
 							"were found.",
 					bentoRootBranches.size()
 			);
-		} else if(stage == null) {
+		} else if (stage == null) {
 			// The primary stage should have been set when the application was started
 			logger.error("The stage cannot be null.");
 		} else if (!bentoLayout.matchesIdentity(bento)) {
@@ -281,6 +285,13 @@ public class BoxApp extends Application {
 		}
 	}
 
+	/**
+	 * {code EventHandler<WindowEvent>} implementation that saves the docking
+	 * layout; it does <b><i><u>not</u></i></b> save the layout of the main
+	 * Stage, non-docking components, or other application state.
+	 *
+	 * @param windowEvent unused.
+	 */
 	private void saveDockingLayout(final WindowEvent windowEvent) {
 		try {
 			final LayoutSaver layoutSaver =
@@ -295,6 +306,13 @@ public class BoxApp extends Application {
 		}
 	}
 
+	/**
+	 * Builds and returns the {@link DockingLayout} for {@link #bento} and
+	 * {@link #rootBranches}.
+	 *
+	 * @return the {@link DockingLayout} for {@link #bento} and
+	 * {@link #rootBranches}.
+	 */
 	private DockingLayout getDefaultDockingLayout() {
 
 		DockingLayoutBuilder dockingLayoutBuilder =
@@ -321,7 +339,6 @@ public class BoxApp extends Application {
 	 * should be added.
 	 */
 	private void addDockable(
-			final Bento bento,
 			final DockableProperties dockableProperties,
 			final DockableStateProvider dockableStateProvider,
 			final DockContainer container
@@ -332,32 +349,40 @@ public class BoxApp extends Application {
 								// Our application isn't doing anything with the
 								// reconstructed Dockable. Just add it to the
 								// container.
-								container.addDockable(
-										buildDockable(bento, dockableState)
-								),
-						() ->
-								logger.warn(
-										"Could not add dockable {}.",
-										dockableProperties
-								)
+								container.addDockable(buildDockable(dockableState)),
+						() -> logger.warn("Could not add dockable {}.", dockableProperties)
 				);
 	}
 
-    private static Dockable buildDockable(
-            final Bento bento,
-            final DockableState dockableState
-    ) {
-        final DockBuilding dockBuilding = bento.dockBuilding();
+	/**
+	 * Builds and returns the {@link Dockable} for the specified
+	 * {@link DockableState}.
+	 *
+	 * @param dockableState the {@link DockableState} specifying the state of
+	 * the {@link Dockable} to be built.
+	 *
+	 * @return the {@link Dockable} for the specified {@link DockableState}.
+	 */
+	private Dockable buildDockable(
+			final DockableState dockableState
+	) {
+		final DockBuilding dockBuilding = bento.dockBuilding();
 
-        final Dockable dockable = dockBuilding.dockable(dockableState.getIdentifier());
-        dockableState.getDockableNode().ifPresent(dockable::setNode);
-        dockableState.getTitle().ifPresent(dockable::setTitle);
-        dockableState.getTooltipText().ifPresent(tooltipText -> dockable.setTooltip(new Tooltip(tooltipText)));
-        dockableState.getDockableIconFactory().ifPresent(dockable::setIconFactory);
-        dockableState.getDockableMenuFactory().ifPresent(dockable::setContextMenuFactory);
-        return dockable;
-    }
+		final Dockable dockable = dockBuilding.dockable(dockableState.getIdentifier());
+		dockableState.getDockableNode().ifPresent(dockable::setNode);
+		dockableState.getTitle().ifPresent(dockable::setTitle);
+		dockableState.getTooltipText().ifPresent(tooltipText -> dockable.setTooltip(new Tooltip(tooltipText)));
+		dockableState.getDockableIconFactory().ifPresent(dockable::setIconFactory);
+		dockableState.getDockableMenuFactory().ifPresent(dockable::setContextMenuFactory);
+		return dockable;
+	}
 
+	/**
+	 * Called when a {@link DockEvent.DockableClosing} occurs.
+	 *
+	 * @param closingEvent the {@link Event} that occurred when the
+	 * {@link DockContainerLeaf} closed a {@link Dockable} item.
+	 */
 	private void handleDockableClosing(DockEvent.DockableClosing closingEvent) {
 		final Dockable dockable = closingEvent.dockable();
 		if (!dockable.getTitle().startsWith("Class "))
