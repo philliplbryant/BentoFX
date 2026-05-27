@@ -29,6 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class BentoStateMapperIntegrationTest {
+	// This test follows the "Single Act Rule" and only exercises the unit
+	// under test (BentoStateMapper) once each: for mapping to and from a DTO.
+	// As such, we are suppressing the warning for the number of assertions
+	// ("Single Assert Rule").
+	@SuppressWarnings("java:S5961")
 	@Test
 	void testFullMappingFromDomainToDtoAndBack() {
 
@@ -40,40 +45,40 @@ class BentoStateMapperIntegrationTest {
 		final String expectedStageTitle = "Stage Title";
 
 		// Set up the Domain Objects
-		DockableState dockableState = new DockableStateBuilder(expectedDockableIdentifier).build();
+		final DockableState dockableState = new DockableStateBuilder(expectedDockableIdentifier).build();
 
-		DockContainerLeafState leafState = new DockContainerLeafStateBuilder(expectedLeafIdentifier)
+		final DockContainerLeafState leafState = new DockContainerLeafStateBuilder(expectedLeafIdentifier)
 				.setPruneWhenEmpty(TRUE)
 				.setCanSplit(TRUE)
 				.addChildDockableState(dockableState)
 				.build();
 
-		DockContainerBranchState branchState = new DockContainerBranchStateBuilder(expectedBranchIdentifier)
+		final DockContainerBranchState branchState = new DockContainerBranchStateBuilder(expectedBranchIdentifier)
 				.setPruneWhenEmpty(FALSE)
 				.addDockContainerState(leafState)
 				.build();
 
-		DockContainerRootBranchState rootState = new DockContainerRootBranchStateBuilder(expectedRootIdentifier)
+		final DockContainerRootBranchState rootState = new DockContainerRootBranchStateBuilder(expectedRootIdentifier)
 				.setOrientation(javafx.geometry.Orientation.HORIZONTAL)
 				.setPruneWhenEmpty(TRUE)
 				.addDockContainerState(branchState)
 				.build();
 
-		DragDropStageState stageState = new DragDropStageStateBuilder(TRUE)
+		final DragDropStageState stageState = new DragDropStageStateBuilder(TRUE)
 				.setTitle(expectedStageTitle)
 				.setDockContainerRootBranchState(rootState)
 				.build();
 
-		BentoState bentoState = new BentoStateBuilder(expectedBentoIdentifier)
+		final BentoState bentoState = new BentoStateBuilder(expectedBentoIdentifier)
 				.addRootBranchState(rootState)
 				.addDragDropStageState(stageState)
 				.build();
 
-		List<BentoState> bentoStates = new ArrayList<>();
+		final List<BentoState> bentoStates = new ArrayList<>();
 		bentoStates.add(bentoState);
 
 		// Perform Domain to DTO Mapping
-		DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
+		final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
 
 		// Validate the DTO
 		assertNotNull(dto);
@@ -83,57 +88,57 @@ class BentoStateMapperIntegrationTest {
 		assertEquals(1, bentoStateDto.rootBranches.size());
 		assertEquals(1, bentoStateDto.dragDropStages.size());
 
-		DockContainerRootBranchDto rootBranchDto = bentoStateDto.rootBranches.getFirst();
+		final DockContainerRootBranchDto rootBranchDto = bentoStateDto.rootBranches.getFirst();
 		assertEquals(expectedRootIdentifier, rootBranchDto.identifier);
 		assertEquals(1, rootBranchDto.branches.size());
 		assertEquals(TRUE, rootBranchDto.pruneWhenEmpty);
 
-		DockContainerBranchDto branchDto = rootBranchDto.branches.getFirst();
+		final DockContainerBranchDto branchDto = rootBranchDto.branches.getFirst();
 		assertEquals(expectedBranchIdentifier, branchDto.identifier);
 		assertEquals(FALSE, branchDto.pruneWhenEmpty);
 		assertEquals(1, branchDto.children.size());
 
-		DockContainerLeafDto leafDto = (DockContainerLeafDto) branchDto.children.getFirst();
+		final DockContainerLeafDto leafDto = (DockContainerLeafDto) branchDto.children.getFirst();
 		assertEquals(expectedLeafIdentifier, leafDto.identifier);
 		assertEquals(TRUE, leafDto.pruneWhenEmpty);
 		assertEquals(expectedDockableIdentifier, leafDto.dockables.getFirst().identifier);
 
-		DragDropStageDto stageDto = bentoStateDto.dragDropStages.getFirst();
+		final DragDropStageDto stageDto = bentoStateDto.dragDropStages.getFirst();
 		assertEquals(TRUE, stageDto.autoCloseWhenEmpty);
 		assertEquals(expectedStageTitle, stageDto.title);
 		assertNotNull(stageDto.dockContainerRootBranchDto);
 		assertEquals(expectedRootIdentifier, stageDto.dockContainerRootBranchDto.identifier);
 
 		// Perform DTO to Domain Mapping
-		List<BentoState> deserializedBentoStates = BentoStateMapper.fromDto(dto);
+		final List<BentoState> deserializedBentoStates = BentoStateMapper.fromDto(dto);
 
 		// Validate the Round-tripped Result
 		assertNotNull(deserializedBentoStates);
 		assertEquals(1, deserializedBentoStates.size());
 
-		BentoState deserializedBentoState = deserializedBentoStates.getFirst();
+		final BentoState deserializedBentoState = deserializedBentoStates.getFirst();
 		assertEquals(expectedBentoIdentifier, deserializedBentoState.getIdentifier());
 		assertEquals(1, deserializedBentoState.getRootBranchStates().size());
 		assertEquals(1, deserializedBentoState.getDragDropStageStates().size());
 
-		DockContainerRootBranchState deserializedRoot =
+		final DockContainerRootBranchState deserializedRoot =
 				deserializedBentoState.getRootBranchStates().getFirst();
 		assertEquals(expectedRootIdentifier, deserializedRoot.getIdentifier());
 		assertEquals(TRUE, deserializedRoot.doPruneWhenEmpty().orElse(FALSE));
 		assertEquals(1, deserializedRoot.getChildDockContainerStates().size());
 
-		DockContainerBranchState deserializedBranchState =
+		final DockContainerBranchState deserializedBranchState =
 				(DockContainerBranchState) deserializedRoot.getChildDockContainerStates().getFirst();
 		assertEquals(expectedBranchIdentifier, deserializedBranchState.getIdentifier());
 		assertEquals(FALSE, deserializedBranchState.doPruneWhenEmpty().orElse(TRUE));
 
-		DockContainerLeafState deserializedLeafState =
+		final DockContainerLeafState deserializedLeafState =
 				(DockContainerLeafState) deserializedBranchState.getChildDockContainerStates().getFirst();
 		assertEquals(expectedLeafIdentifier, deserializedLeafState.getIdentifier());
 		assertEquals(TRUE, deserializedLeafState.doPruneWhenEmpty().orElse(FALSE));
 		assertEquals(1, deserializedLeafState.getChildDockableStates().size());
 
-		DockableState deserializedDockableState =
+		final DockableState deserializedDockableState =
 				deserializedLeafState.getChildDockableStates().getFirst();
 		assertEquals(expectedDockableIdentifier, deserializedDockableState.getIdentifier());
 	}

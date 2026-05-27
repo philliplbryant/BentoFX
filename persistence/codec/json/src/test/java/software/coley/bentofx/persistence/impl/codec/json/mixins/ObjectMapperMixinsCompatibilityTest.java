@@ -7,9 +7,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import javafx.geometry.Orientation;
-import javafx.geometry.Side;
-import javafx.stage.Modality;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
@@ -23,12 +20,53 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropS
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Value.ALL_ALWAYS;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
+import static com.fasterxml.jackson.annotation.JsonInclude.Value.construct;
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.geometry.Side.TOP;
+import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
 
 class ObjectMapperMixinsCompatibilityTest {
+
+	private static final String FIELD_ALWAYS_ON_TOP = "alwaysOnTop";
+	private static final String FIELD_AUTO_CLOSE_WHEN_EMPTY = "autoCloseWhenEmpty";
+	private static final String FIELD_CHILDREN = "children";
+	private static final String FIELD_FOCUSED = "focused";
+	private static final String FIELD_FULL_SCREEN = "fullScreen";
+	private static final String FIELD_HEIGHT = "height";
+	private static final String FIELD_IDENTIFIER = "identifier";
+	private static final String FIELD_ICONIFIED = "iconified";
+	private static final String FIELD_INDEX = "index";
+	private static final String FIELD_IS_CAN_SPLIT = "isCanSplit";
+	private static final String FIELD_IS_COLLAPSED = "isCollapsed";
+	private static final String FIELD_IS_RESIZABLE_WITH_PARENT = "isResizableWithParent";
+	private static final String FIELD_MAXIMIZED = "maximized";
+	private static final String FIELD_MODALITY = "modality";
+	private static final String FIELD_OPACITY = "opacity";
+	private static final String FIELD_ORIENTATION = "orientation";
+	private static final String FIELD_POSITION = "position";
+	private static final String FIELD_PRUNE_WHEN_EMPTY = "pruneWhenEmpty";
+	private static final String FIELD_RESIZABLE = "resizable";
+	private static final String FIELD_SELECTED_DOCKABLE_IDENTIFIER = "selectedDockableIdentifier";
+	private static final String FIELD_SHOWING = "showing";
+	private static final String FIELD_SIDE = "side";
+	private static final String FIELD_TITLE = "title";
+	private static final String FIELD_TYPE = "type";
+	private static final String FIELD_UNCOLLAPSED_SIZE_PX = "uncollapsedSizePx";
+	private static final String FIELD_WIDTH = "width";
+	private static final String FIELD_X = "x";
+	private static final String FIELD_Y = "y";
+
+	private static final String BENTO_IDENTIFIER = "bento-1";
+	private static final String BRANCH_IDENTIFIER = "branch-1";
+	private static final String DOCKABLE_IDENTIFIER = "dockable-1";
+	private static final String LEAF_IDENTIFIER = "leaf-1";
+	private static final String ROOT_IDENTIFIER = "root-1";
+	private static final String STAGE_TITLE = "Stage";
 
 	@Test
 	void serializesDockingLayoutUsingCommonMapperFieldNames() throws Exception {
@@ -71,7 +109,7 @@ class ObjectMapperMixinsCompatibilityTest {
 
 	private static JsonMapper newCodecMapper() {
 		final JsonMapper mapper = JsonMapper.builder()
-				.defaultPropertyInclusion(ALL_ALWAYS)
+				.defaultPropertyInclusion(construct(ALWAYS, ALWAYS))
 				.enable(SerializationFeature.WRAP_ROOT_VALUE)
 				.enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
 				.build();
@@ -82,7 +120,7 @@ class ObjectMapperMixinsCompatibilityTest {
 
 	private static JsonMapper newTreeMapper() {
 		return JsonMapper.builder()
-				.defaultPropertyInclusion(ALL_ALWAYS)
+				.defaultPropertyInclusion(construct(ALWAYS, ALWAYS))
 				.build();
 	}
 
@@ -127,13 +165,13 @@ class ObjectMapperMixinsCompatibilityTest {
 
 	private static DockingLayoutDto createDockingLayoutDto() {
 		final DockableDto dockable = new DockableDto();
-		dockable.identifier = "dockable-1";
+		dockable.identifier = DOCKABLE_IDENTIFIER;
 
 		final DockContainerLeafDto leaf = new DockContainerLeafDto();
-		leaf.identifier = "leaf-1";
+		leaf.identifier = LEAF_IDENTIFIER;
 		leaf.pruneWhenEmpty = true;
-		leaf.selectedDockableIdentifier = "dockable-1";
-		leaf.side = Side.TOP;
+		leaf.selectedDockableIdentifier = DOCKABLE_IDENTIFIER;
+		leaf.side = TOP;
 		leaf.isResizableWithParent = true;
 		leaf.isCanSplit = true;
 		leaf.uncollapsedSizePx = 321.0;
@@ -145,27 +183,27 @@ class ObjectMapperMixinsCompatibilityTest {
 		divider.position = 0.42;
 
 		final DockContainerBranchDto branch = new DockContainerBranchDto();
-		branch.identifier = "branch-1";
+		branch.identifier = BRANCH_IDENTIFIER;
 		branch.pruneWhenEmpty = false;
-		branch.orientation = Orientation.HORIZONTAL;
+		branch.orientation = HORIZONTAL;
 		branch.dividerPositions.add(divider);
 		branch.children.add(leaf);
 
 		final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
-		root.identifier = "root-1";
+		root.identifier = ROOT_IDENTIFIER;
 		root.pruneWhenEmpty = false;
-		root.orientation = Orientation.VERTICAL;
+		root.orientation = VERTICAL;
 		root.dividerPositions.add(divider);
 		root.branches.add(branch);
 		root.leaf = leaf;
 
 		final DragDropStageDto stage = new DragDropStageDto();
-		stage.title = "Stage";
+		stage.title = STAGE_TITLE;
 		stage.x = 10.0;
 		stage.y = 20.0;
 		stage.width = 800.0;
 		stage.height = 600.0;
-		stage.modality = Modality.NONE;
+		stage.modality = NONE;
 		stage.opacity = 0.9;
 		stage.iconified = false;
 		stage.fullScreen = false;
@@ -178,7 +216,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		stage.dockContainerRootBranchDto = root;
 
 		final BentoStateDto bento = new BentoStateDto();
-		bento.identifier = "bento-1";
+		bento.identifier = BENTO_IDENTIFIER;
 		bento.rootBranches.add(root);
 		bento.dragDropStages.add(stage);
 
@@ -192,8 +230,8 @@ class ObjectMapperMixinsCompatibilityTest {
 		final JsonNodeFactory factory = JsonNodeFactory.instance;
 
 		final ObjectNode divider = factory.objectNode();
-		divider.put("index", 0);
-		divider.put("position", 0.42);
+		divider.put(FIELD_INDEX, 0);
+		divider.put(FIELD_POSITION, 0.42);
 
 		final ArrayNode dividerPositions = factory.arrayNode();
 		dividerPositions.add(divider);
@@ -204,40 +242,40 @@ class ObjectMapperMixinsCompatibilityTest {
 		children.add(leaf.deepCopy());
 
 		final ObjectNode branch = factory.objectNode();
-		branch.put("type", BRANCH_ELEMENT_NAME);
-		branch.put("identifier", "branch-1");
-		branch.put("pruneWhenEmpty", false);
-		branch.put("orientation", Orientation.HORIZONTAL.name());
+		branch.set(FIELD_TYPE, factory.textNode(BRANCH_ELEMENT_NAME));
+		branch.set(FIELD_IDENTIFIER, factory.textNode(BRANCH_IDENTIFIER));
+		branch.put(FIELD_PRUNE_WHEN_EMPTY, false);
+		branch.set(FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name()));
 		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
-		branch.set("children", children);
+		branch.set(FIELD_CHILDREN, children);
 
 		final ArrayNode branches = factory.arrayNode();
 		branches.add(branch);
 
 		final ObjectNode rootBranch = factory.objectNode();
-		rootBranch.put("identifier", "root-1");
-		rootBranch.put("pruneWhenEmpty", false);
-		rootBranch.put("orientation", Orientation.VERTICAL.name());
+		rootBranch.set(FIELD_IDENTIFIER, factory.textNode(ROOT_IDENTIFIER));
+		rootBranch.put(FIELD_PRUNE_WHEN_EMPTY, false);
+		rootBranch.set(FIELD_ORIENTATION, factory.textNode(VERTICAL.name()));
 		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
 		rootBranch.set(BRANCH_LIST_ELEMENT_NAME, branches);
 		rootBranch.set(LEAF_ELEMENT_NAME, leaf.deepCopy());
 
 		final ObjectNode dragDropStage = factory.objectNode();
-		dragDropStage.put("title", "Stage");
-		dragDropStage.put("x", 10.0);
-		dragDropStage.put("y", 20.0);
-		dragDropStage.put("width", 800.0);
-		dragDropStage.put("height", 600.0);
-		dragDropStage.put("modality", Modality.NONE.name());
-		dragDropStage.put("opacity", 0.9);
-		dragDropStage.put("iconified", false);
-		dragDropStage.put("fullScreen", false);
-		dragDropStage.put("maximized", true);
-		dragDropStage.put("alwaysOnTop", false);
-		dragDropStage.put("resizable", true);
-		dragDropStage.put("showing", true);
-		dragDropStage.put("focused", true);
-		dragDropStage.put("autoCloseWhenEmpty", true);
+		dragDropStage.set(FIELD_TITLE, factory.textNode(STAGE_TITLE));
+		dragDropStage.put(FIELD_X, 10.0);
+		dragDropStage.put(FIELD_Y, 20.0);
+		dragDropStage.put(FIELD_WIDTH, 800.0);
+		dragDropStage.put(FIELD_HEIGHT, 600.0);
+		dragDropStage.put(FIELD_MODALITY, NONE.name());
+		dragDropStage.put(FIELD_OPACITY, 0.9);
+		dragDropStage.put(FIELD_ICONIFIED, false);
+		dragDropStage.put(FIELD_FULL_SCREEN, false);
+		dragDropStage.put(FIELD_MAXIMIZED, true);
+		dragDropStage.put(FIELD_ALWAYS_ON_TOP, false);
+		dragDropStage.put(FIELD_RESIZABLE, true);
+		dragDropStage.put(FIELD_SHOWING, true);
+		dragDropStage.put(FIELD_FOCUSED, true);
+		dragDropStage.put(FIELD_AUTO_CLOSE_WHEN_EMPTY, true);
 		dragDropStage.set(ROOT_BRANCH_ELEMENT_NAME, rootBranch.deepCopy());
 
 		final ArrayNode rootBranches = factory.arrayNode();
@@ -247,7 +285,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		dragDropStages.add(dragDropStage);
 
 		final ObjectNode bento = factory.objectNode();
-		bento.put("identifier", "bento-1");
+		bento.set(FIELD_IDENTIFIER, factory.textNode(BENTO_IDENTIFIER));
 		bento.set(ROOT_BRANCH_LIST_ELEMENT_NAME, rootBranches);
 		bento.set(DRAG_DROP_STAGE_LIST_ELEMENT_NAME, dragDropStages);
 
@@ -265,18 +303,18 @@ class ObjectMapperMixinsCompatibilityTest {
 
 	private static ObjectNode createLeafNode(final JsonNodeFactory factory) {
 		final ObjectNode leaf = factory.objectNode();
-		leaf.put("type", LEAF_ELEMENT_NAME);
-		leaf.put("identifier", "leaf-1");
-		leaf.put("pruneWhenEmpty", true);
-		leaf.put("selectedDockableIdentifier", "dockable-1");
-		leaf.put("side", Side.TOP.name());
-		leaf.put("isResizableWithParent", true);
-		leaf.put("isCanSplit", true);
-		leaf.put("uncollapsedSizePx", 321.0);
-		leaf.put("isCollapsed", false);
+		leaf.set(FIELD_TYPE, factory.textNode(LEAF_ELEMENT_NAME));
+		leaf.set(FIELD_IDENTIFIER, factory.textNode(LEAF_IDENTIFIER));
+		leaf.put(FIELD_PRUNE_WHEN_EMPTY, true);
+		leaf.set(FIELD_SELECTED_DOCKABLE_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
+		leaf.set(FIELD_SIDE, factory.textNode(TOP.name()));
+		leaf.put(FIELD_IS_RESIZABLE_WITH_PARENT, true);
+		leaf.put(FIELD_IS_CAN_SPLIT, true);
+		leaf.put(FIELD_UNCOLLAPSED_SIZE_PX, 321.0);
+		leaf.put(FIELD_IS_COLLAPSED, false);
 
 		final ObjectNode dockable = factory.objectNode();
-		dockable.put("identifier", "dockable-1");
+		dockable.set(FIELD_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
 
 		final ArrayNode dockables = factory.arrayNode();
 		dockables.add(dockable);

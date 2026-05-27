@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.api.provider;
 
-import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
 
 import java.util.Optional;
