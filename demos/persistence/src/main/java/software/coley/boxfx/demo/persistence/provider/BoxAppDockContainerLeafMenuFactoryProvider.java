@@ -4,6 +4,7 @@ import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 
@@ -16,33 +17,26 @@ import java.util.Optional;
  * @author Phil Bryant
  */
 public class BoxAppDockContainerLeafMenuFactoryProvider
-        implements DockContainerLeafMenuFactoryProvider {
+		implements DockContainerLeafMenuFactoryProvider {
 
-    @Override
-    public Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
-            final String dockContainerLeafIdentifier
-    ) {
-        return Optional.of(factory);
-    }
+	@Override
+	public Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
+			final String dockContainerLeafIdentifier
+	) {
+		return Optional.of(factory);
+	}
 
-    private static final DockContainerLeafMenuFactory factory =
-            dockContainerLeaf -> {
+	private static final DockContainerLeafMenuFactory factory =
+			dockContainerLeaf ->
+					addSideOptions(new ContextMenu(), dockContainerLeaf);
 
-                ContextMenu menu = new ContextMenu();
-
-                for (final Side side : Side.values()) {
-                    final MenuItem item = new MenuItem(side.name());
-                    item.setGraphic(
-                            new Label(
-                                    side == dockContainerLeaf.getSide() ?
-                                            "✓" :
-                                            " "
-                            )
-                    );
-                    item.setOnAction(e -> dockContainerLeaf.setSide(side));
-                    menu.getItems().add(item);
-                }
-
-                return menu;
-            };
+	private static ContextMenu addSideOptions(ContextMenu menu, DockContainerLeaf space) {
+		for (Side side : Side.values()) {
+			MenuItem item = new MenuItem(side.name());
+			item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
+			item.setOnAction(e -> space.setSide(side));
+			menu.getItems().add(item);
+		}
+		return menu;
+	}
 }

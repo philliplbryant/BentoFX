@@ -135,5 +135,8 @@ sequenceDiagram
     participant consumer as Consumer<Dockable>
     
     BoxApp->>layoutRestorer:restoreLayout()
+    activate layoutRestorer
+    layoutRestorer-->>BoxApp: return DockingLayout
     BoxApp->>BoxApp:applyLayout(DockingLayout)
+    
 ```

@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DockingLayoutRestorerFT {
 
     @Test
-    void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() throws Exception {
+    void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() {
         InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         DockingLayout defaultLayout = new DockingLayoutBuilder().build();
@@ -60,13 +60,19 @@ class DockingLayoutRestorerFT {
                 null
         );
 
-        DockingLayout restoredLayout = layoutRestorer.restoreLayout(() -> defaultLayout);
+        DockingLayout restoredLayout = layoutRestorer.restoreLayout(() ->
+                defaultLayout
+        );
 
         assertThat(restoredLayout).isSameAs(defaultLayout);
         assertThat(storage.exists()).isFalse();
         assertThat(codec.getEncodeCalls()).isEmpty();
     }
 
+    // This test follows the "Single Act Rule" and only exercises the unit
+    // under test (DockingLayoutRestorer) once. As such, we are suppressing the
+    // warning for the number of assertions ("Single Assert Rule").
+    @SuppressWarnings("java:S5961")
     @Test
     void restoreLayoutBuildsRootBranchesAndDragDropStages(FxRobot robot) throws Exception {
 
@@ -183,9 +189,11 @@ class DockingLayoutRestorerFT {
                 null
         );
 
-        AtomicReference<DockingLayout> restoredRef = new AtomicReference<>();
+        AtomicReference<DockingLayout> restoredReferenceToDockingLayout =
+                new AtomicReference<>();
+
         robot.interact(() ->
-                restoredRef.set(
+                restoredReferenceToDockingLayout.set(
                         restorer.restoreLayout(
                                 () ->
                                         new DockingLayoutBuilder().build()
@@ -193,14 +201,13 @@ class DockingLayoutRestorerFT {
                 )
         );
 
-        DockingLayout restored = restoredRef.get();
-        assertThat(restored.getBentoLayouts())
+        DockingLayout dockingLayout = restoredReferenceToDockingLayout.get();
+        assertThat(dockingLayout.getBentoLayouts())
                 .hasSize(1);
 
-        BentoLayout bentoLayout = restored.getBentoLayouts().getFirst();
+        BentoLayout bentoLayout = dockingLayout.getBentoLayouts().getFirst();
         assertThat(bentoLayout.getIdentifier())
                 .isEqualTo(expectedBentoId);
-
         assertThat(bentoLayout.getRootBranches())
                 .hasSize(1);
         assertThat(bentoLayout.getDragDropStages())
@@ -224,6 +231,7 @@ class DockingLayoutRestorerFT {
         assertThat(dockContainer).isInstanceOf(DockContainerLeaf.class);
         assertThat(dockContainer.getIdentifier())
                 .isEqualTo(expectedLeafId);
+
         final DockContainerLeaf leaf = (DockContainerLeaf) dockContainer;
         assertThat(leaf.getSide())
                 .isEqualTo(expectedLeafSide);
@@ -243,6 +251,8 @@ class DockingLayoutRestorerFT {
                 .isEqualTo(expectedDockableId);
         assertThat(dockables.getFirst().getTitle())
                 .isEqualTo(expectedDockableTitle);
+        assertThat(dockables.getFirst().getTooltip())
+                .isNotNull();
         assertThat(dockables.getFirst().getTooltip().getText())
                 .isEqualTo(expectedDockableTooltipText);
         assertThat(dockables.getFirst().isClosable())
@@ -271,7 +281,9 @@ class DockingLayoutRestorerFT {
                 .hasSize(1);
         assertThat(dragStage.getScene().getRoot())
                 .isInstanceOf(DockContainerRootBranch.class);
-        final DockContainerRootBranch rootBranch = (DockContainerRootBranch) dragStage.getScene().getRoot();
+
+        final DockContainerRootBranch rootBranch =
+                (DockContainerRootBranch) dragStage.getScene().getRoot();
         assertThat(rootBranch.getIdentifier())
                 .isEqualTo(expectedDragRootBuilderId);
         assertThat(rootBranch.getOrientation())
@@ -279,6 +291,7 @@ class DockingLayoutRestorerFT {
         assertThat(rootBranch.doPruneWhenEmpty())
                 .isEqualTo(expectedDragRootPruneWhenEmpty);
 
+        // Cleanup
         robot.interact(dragStage::hide);
     }
 }

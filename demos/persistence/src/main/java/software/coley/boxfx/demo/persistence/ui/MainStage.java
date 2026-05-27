@@ -5,9 +5,7 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
@@ -26,7 +24,6 @@ import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFact
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
-import software.coley.boxfx.demo.persistence.BoxApp;
 import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 
 import java.util.ArrayList;
@@ -163,8 +160,6 @@ public class MainStage extends Stage {
 	 * {@code DockContainerLeafMenuFactory}.
 	 * @param onCloseRequestRunnable {@link Runnable} to be called when there
 	 * is an external request to close this {@code Window}.
-	 *
-	 * @see {@code BoxApp#start()} in the basic demo application.
 	 */
 	private void initUi(
 			final DockableStateProvider dockableStateProvider,
@@ -331,15 +326,5 @@ public class MainStage extends Stage {
 										dockableProperties
 								)
 				);
-	}
-
-	private static ContextMenu addSideOptions(ContextMenu menu, DockContainerLeaf space) {
-		for (Side side : Side.values()) {
-			MenuItem item = new MenuItem(side.name());
-			item.setGraphic(new Label(side == space.getSide() ? "✓" : " "));
-			item.setOnAction(e -> space.setSide(side));
-			menu.getItems().add(item);
-		}
-		return menu;
 	}
 }
