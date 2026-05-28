@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.storage.db;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -31,13 +32,15 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
     }
 
     @Override
-    public boolean equals(Object that) {
+    public boolean equals(final @Nullable Object that) {
+
+        if (that == null) return false;
 
         if (this == that) return true;
 
-        if (that == null || this.getClass() != that.getClass()) return false;
+        if (this.getClass() != that.getClass()) return false;
 
-        DockingLayoutEntityCompositeKey thatKey =
+        final DockingLayoutEntityCompositeKey thatKey =
                 (DockingLayoutEntityCompositeKey) that;
 
         return Objects.equals(

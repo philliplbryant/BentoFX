@@ -102,7 +102,7 @@ public class DockContainerLeafState extends DockContainerState {
             return this;
         }
 
-        public DockContainerLeafStateBuilder setPruneWhenEmpty(boolean pruneWhenEmpty) {
+        public DockContainerLeafStateBuilder setPruneWhenEmpty(final @Nullable Boolean pruneWhenEmpty) {
             this.pruneWhenEmpty = pruneWhenEmpty;
             return this;
         }
@@ -113,7 +113,7 @@ public class DockContainerLeafState extends DockContainerState {
         }
 
         public DockContainerLeafStateBuilder setSelectedDockableStateIdentifier(
-                final String selectedDockableStateIdentifier
+                final @Nullable String selectedDockableStateIdentifier
         ) {
             this.selectedDockableStateIdentifier =
                     selectedDockableStateIdentifier;
@@ -121,28 +121,28 @@ public class DockContainerLeafState extends DockContainerState {
         }
 
         public DockContainerLeafStateBuilder setResizableWithParent(
-                final Boolean isResizableWithParent
+                final @Nullable Boolean isResizableWithParent
         ) {
             this.isResizableWithParent = isResizableWithParent;
             return this;
         }
 
         public DockContainerLeafStateBuilder setCanSplit(
-                final Boolean isCanSplit
+                final @Nullable Boolean isCanSplit
         ) {
             this.isCanSplit = isCanSplit;
             return this;
         }
 
         public DockContainerLeafStateBuilder setUncollapsedSizePx(
-                final Double uncollapsedSizePx
+                final @Nullable Double uncollapsedSizePx
         ) {
             this.uncollapsedSizePx = uncollapsedSizePx;
             return this;
         }
 
         public DockContainerLeafStateBuilder setCollapsed(
-                final Boolean isCollapsed
+                final @Nullable Boolean isCollapsed
         ) {
             this.isCollapsed = isCollapsed;
             return this;

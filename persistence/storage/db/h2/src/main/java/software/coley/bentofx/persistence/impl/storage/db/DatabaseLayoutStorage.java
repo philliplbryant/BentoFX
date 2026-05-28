@@ -55,9 +55,10 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 							key
 					);
 
-			return entity != null &&
-					entity.payload != null &&
-					entity.payload.length > 0;
+			// Qodana reports entity != null is always true, but em.find(...)
+			// can return null.
+			// noinspection ConstantValue
+			return entity != null && entity.payload.length > 0;
 		}
 	}
 
@@ -125,6 +126,9 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 
 					final DockingLayoutEntity entityToSave;
 
+					// Qodana reports existingEntity == null is always false,
+					// but em.find(...) can return null.
+					// noinspection ConstantValue
 					if (existingEntity == null) {
 						entityToSave = new DockingLayoutEntity();
 						entityToSave.key = key;

@@ -200,161 +200,6 @@ public class BoxApp extends Application {
 	}
 
 	/**
-	 * @return if a prior {@link DockingLayout} has been saved, restores and
-	 * returns it. Otherwise, returns the default {@link DockingLayout}.
-	 *
-	 * @see #getDefaultDockingLayout()
-	 */
-	private DockingLayout getDockingLayout() {
-
-		final LayoutRestorer layoutRestorer =
-				persistenceProvider.getLayoutRestorer(
-						bentoProvider,
-						DEFAULT_LAYOUT_IDENTIFIER,
-						dockableStateProvider,
-						stageIconImageProvider,
-						dockContainerLeafMenuFactoryProvider
-				);
-
-		return layoutRestorer.restoreLayout(
-				this::getDefaultDockingLayout
-		);
-	}
-
-	/**
-	 * Applies all {@link BentoLayout} found in the {@link DockingLayout}.
-	 *
-	 * @param dockingLayout the {@link DockingLayout} to be applied.
-	 */
-	private void applyDockingLayout(
-			final DockingLayout dockingLayout
-	) {
-		for (final BentoLayout bentoLayout :
-				dockingLayout.getBentoLayouts()) {
-			if (bentoLayout.matchesIdentity(bento)) {
-				applyLayout(bentoLayout);
-			} else {
-				logger.warn(
-						"Unknown BentoLayout identifier: {}",
-						bentoLayout.getIdentifier()
-				);
-			}
-		}
-	}
-
-	/**
-	 * Applies the {@link BentoLayout} to docking components.
-	 *
-	 * @param bentoLayout the layout to be applied.
-	 */
-	public void applyLayout(final BentoLayout bentoLayout) {
-		final List<DockContainerRootBranch> bentoRootBranches =
-				bentoLayout.getRootBranches();
-
-		if (bentoRootBranches.size() != 1) {
-			// This stage only has one root branch
-			logger.error(
-					"The stage should have one root branch but {} " +
-							"were found.",
-					bentoRootBranches.size()
-			);
-		} else if (stage == null) {
-			// The primary stage should have been set when the application was started
-			logger.error("The stage cannot be null.");
-		} else if (!bentoLayout.matchesIdentity(bento)) {
-			// A DockingLayout can have multiple BentoLayout; make sure we're
-			// applying the right one
-			logger.warn(
-					"Cannot apply BentoLayout {} to {}.",
-					bentoLayout.getIdentifier(),
-					bento.getIdentifier()
-			);
-		} else {
-			// Apply the root branch of the BentoLayout
-			final Scene scene =
-					new Scene(bentoRootBranches.getFirst());
-			scene.getStylesheets().add("/bento.css");
-			stage.setScene(scene);
-			stage.show();
-		}
-
-		// Show any DragDropStages
-		for (final DragDropStage dragDropStage :
-				bentoLayout.getDragDropStages()) {
-			dragDropStage.show();
-		}
-	}
-
-	/**
-	 * {code EventHandler<WindowEvent>} implementation that saves the docking
-	 * layout; it does <b><i><u>not</u></i></b> save the layout of the main
-	 * Stage, non-docking components, or other application state.
-	 *
-	 * @param windowEvent unused.
-	 */
-	private void saveDockingLayout(final WindowEvent windowEvent) {
-		try {
-			final LayoutSaver layoutSaver =
-					persistenceProvider.getLayoutSaver(
-							bentoProvider,
-							DEFAULT_LAYOUT_IDENTIFIER
-					);
-
-			layoutSaver.saveLayout();
-		} catch (BentoStateException e) {
-			logger.warn("Could not save the docking layout.", e);
-		}
-	}
-
-	/**
-	 * Builds and returns the {@link DockingLayout} for {@link #bento} and
-	 * {@link #rootBranches}.
-	 *
-	 * @return the {@link DockingLayout} for {@link #bento} and
-	 * {@link #rootBranches}.
-	 */
-	private DockingLayout getDefaultDockingLayout() {
-
-		DockingLayoutBuilder dockingLayoutBuilder =
-				new DockingLayoutBuilder();
-
-		BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
-				bento.getIdentifier()
-		);
-		for (final DockContainerRootBranch rootBranch : rootBranches) {
-			bentoLayoutBuilder.addRootBranch(rootBranch);
-		}
-		dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
-
-		return dockingLayoutBuilder.build();
-	}
-
-	/**
-	 * Optionally adds the {@code Dockable} with the provided {@code dockableId}
-	 * to the {@code DockContainer}. Logs a warning message when the
-	 * {@code Dockable} cannot be resolved using the {@code dockableId}.
-	 *
-	 * @param dockableProperties the identifier for the {@code Dockable} to add.
-	 * @param container the {@code DockContainer} to which the {@code Dockable}
-	 * should be added.
-	 */
-	private void addDockable(
-			final DockableProperties dockableProperties,
-			final DockableStateProvider dockableStateProvider,
-			final DockContainer container
-	) {
-		dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
-				.ifPresentOrElse(
-						dockableState ->
-								// Our application isn't doing anything with the
-								// reconstructed Dockable. Just add it to the
-								// container.
-								container.addDockable(buildDockable(dockableState)),
-						() -> logger.warn("Could not add dockable {}.", dockableProperties)
-				);
-	}
-
-	/**
 	 * Builds and returns the {@link Dockable} for the specified
 	 * {@link DockableState}.
 	 *
@@ -411,6 +256,161 @@ public class BoxApp extends Application {
 		} else if (result.equals(ButtonType.CANCEL)) {
 			// prevent closing
 			closingEvent.cancel();
+		}
+	}
+
+	/**
+	 * Optionally adds the {@code Dockable} with the provided {@code dockableId}
+	 * to the {@code DockContainer}. Logs a warning message when the
+	 * {@code Dockable} cannot be resolved using the {@code dockableId}.
+	 *
+	 * @param dockableProperties the identifier for the {@code Dockable} to add.
+	 * @param container the {@code DockContainer} to which the {@code Dockable}
+	 * should be added.
+	 */
+	private void addDockable(
+			final DockableProperties dockableProperties,
+			final DockableStateProvider dockableStateProvider,
+			final DockContainer container
+	) {
+		dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
+				.ifPresentOrElse(
+						dockableState ->
+								// Our application isn't doing anything with the
+								// reconstructed Dockable. Just add it to the
+								// container.
+								container.addDockable(buildDockable(dockableState)),
+						() -> logger.warn("Could not add dockable {}.", dockableProperties)
+				);
+	}
+
+	/**
+	 * {code EventHandler<WindowEvent>} implementation that saves the docking
+	 * layout; it does <b><i><u>not</u></i></b> save the layout of the main
+	 * Stage, non-docking components, or other application state.
+	 *
+	 * @param windowEvent unused.
+	 */
+	private void saveDockingLayout(final WindowEvent windowEvent) {
+		try {
+			final LayoutSaver layoutSaver =
+					persistenceProvider.getLayoutSaver(
+							bentoProvider,
+							DEFAULT_LAYOUT_IDENTIFIER
+					);
+
+			layoutSaver.saveLayout();
+		} catch (BentoStateException e) {
+			logger.warn("Could not save the docking layout.", e);
+		}
+	}
+
+	/**
+	 * @return if a prior {@link DockingLayout} has been saved, restores and
+	 * returns it. Otherwise, returns the default {@link DockingLayout}.
+	 *
+	 * @see #getDefaultDockingLayout()
+	 */
+	private DockingLayout getDockingLayout() {
+
+		final LayoutRestorer layoutRestorer =
+				persistenceProvider.getLayoutRestorer(
+						bentoProvider,
+						DEFAULT_LAYOUT_IDENTIFIER,
+						dockableStateProvider,
+						stageIconImageProvider,
+						dockContainerLeafMenuFactoryProvider
+				);
+
+		return layoutRestorer.restoreLayout(
+				this::getDefaultDockingLayout
+		);
+	}
+
+	/**
+	 * Applies all {@link BentoLayout} found in the {@link DockingLayout}.
+	 *
+	 * @param dockingLayout the {@link DockingLayout} to be applied.
+	 */
+	private void applyDockingLayout(
+			final DockingLayout dockingLayout
+	) {
+		for (final BentoLayout bentoLayout :
+				dockingLayout.getBentoLayouts()) {
+			if (bentoLayout.matchesIdentity(bento)) {
+				applyBentoLayout(bentoLayout);
+			} else {
+				logger.warn(
+						"Unknown BentoLayout identifier: {}",
+						bentoLayout.getIdentifier()
+				);
+			}
+		}
+	}
+
+	/**
+	 * Builds and returns the {@link DockingLayout} for {@link #bento} and
+	 * {@link #rootBranches}.
+	 *
+	 * @return the {@link DockingLayout} for {@link #bento} and
+	 * {@link #rootBranches}.
+	 */
+	private DockingLayout getDefaultDockingLayout() {
+
+		DockingLayoutBuilder dockingLayoutBuilder =
+				new DockingLayoutBuilder();
+
+		BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
+				bento.getIdentifier()
+		);
+		for (final DockContainerRootBranch rootBranch : rootBranches) {
+			bentoLayoutBuilder.addRootBranch(rootBranch);
+		}
+		dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
+
+		return dockingLayoutBuilder.build();
+	}
+
+	/**
+	 * Applies the {@link BentoLayout} to docking components.
+	 *
+	 * @param bentoLayout the layout to be applied.
+	 */
+	public void applyBentoLayout(final BentoLayout bentoLayout) {
+		final List<DockContainerRootBranch> bentoRootBranches =
+				bentoLayout.getRootBranches();
+
+		if (bentoRootBranches.size() != 1) {
+			// This stage only has one root branch
+			logger.error(
+					"The stage should have one root branch but {} " +
+							"were found.",
+					bentoRootBranches.size()
+			);
+		} else if (stage == null) {
+			// The primary stage should have been set when the application was started
+			logger.error("The stage cannot be null.");
+		} else if (!bentoLayout.matchesIdentity(bento)) {
+			// A DockingLayout can have multiple BentoLayout; make sure we're
+			// applying the right one
+			logger.warn(
+					"Cannot apply BentoLayout {} to {}.",
+					bentoLayout.getIdentifier(),
+					bento.getIdentifier()
+			);
+		} else {
+			// Apply the root branch of the BentoLayout
+			final Scene scene =
+					new Scene(bentoRootBranches.getFirst());
+			scene.getStylesheets().add("/bento.css");
+			stage.setScene(scene);
+			stage.show();
+		}
+
+		// Show any DragDropStages
+		for (final DragDropStage dragDropStage :
+				bentoLayout.getDragDropStages()) {
+			dragDropStage.show();
 		}
 	}
 }

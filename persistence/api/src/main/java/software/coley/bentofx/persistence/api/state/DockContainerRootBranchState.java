@@ -56,7 +56,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             return this;
         }
 
-        public DockContainerRootBranchStateBuilder setPruneWhenEmpty(boolean pruneWhenEmpty) {
+        public DockContainerRootBranchStateBuilder setPruneWhenEmpty(final @Nullable Boolean pruneWhenEmpty) {
             this.pruneWhenEmpty = pruneWhenEmpty;
             return this;
         }

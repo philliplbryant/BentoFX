@@ -168,98 +168,98 @@ public class DragDropStageState {
         }
 
         public DragDropStageStateBuilder setTitle(
-                final String title
+                final @Nullable String title
         ) {
             this.title = title;
             return this;
         }
 
         public DragDropStageStateBuilder setX(
-                final Double x
+                final @Nullable Double x
         ) {
             this.x = x;
             return this;
         }
 
         public DragDropStageStateBuilder setY(
-                final Double y
+                final @Nullable Double y
         ) {
             this.y = y;
             return this;
         }
 
         public DragDropStageStateBuilder setWidth(
-                final Double width
+                final @Nullable Double width
         ) {
             this.width = width;
             return this;
         }
 
         public DragDropStageStateBuilder setHeight(
-                final Double height
+                final @Nullable Double height
         ) {
             this.height = height;
             return this;
         }
 
         public DragDropStageStateBuilder setModality(
-                final Modality modality
+                final @Nullable Modality modality
         ) {
             this.modality = modality;
             return this;
         }
 
         public DragDropStageStateBuilder setOpacity(
-                final Double opacity
+                final @Nullable Double opacity
         ) {
             this.opacity = opacity;
             return this;
         }
 
         public DragDropStageStateBuilder setIconified(
-                final Boolean isIconified
+                final @Nullable Boolean isIconified
         ) {
             this.isIconified = isIconified;
             return this;
         }
 
         public DragDropStageStateBuilder setFullScreen(
-                final Boolean isFullScreen
+                final @Nullable Boolean isFullScreen
         ) {
             this.isFullScreen = isFullScreen;
             return this;
         }
 
         public DragDropStageStateBuilder setMaximized(
-                final Boolean isMaximized
+                final @Nullable Boolean isMaximized
         ) {
             this.isMaximized = isMaximized;
             return this;
         }
 
         public DragDropStageStateBuilder setAlwaysOnTop(
-                final Boolean isAlwaysOnTop
+                final @Nullable Boolean isAlwaysOnTop
         ) {
             this.isAlwaysOnTop = isAlwaysOnTop;
             return this;
         }
 
         public DragDropStageStateBuilder setResizable(
-                final Boolean isResizable
+                final @Nullable Boolean isResizable
         ) {
             this.isResizable = isResizable;
             return this;
         }
 
         public DragDropStageStateBuilder setShowing(
-                final Boolean isShowing
+                final @Nullable Boolean isShowing
         ) {
             this.isShowing = isShowing;
             return this;
         }
 
         public DragDropStageStateBuilder setFocused(
-                final Boolean isFocused
+                final @Nullable Boolean isFocused
         ) {
             this.isFocused = isFocused;
             return this;
