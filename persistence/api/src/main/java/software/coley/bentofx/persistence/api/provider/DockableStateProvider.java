@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * {@code ServiceLoader} compatible Service Provider Interface for getting or
- * creating {@link Dockable} instances and other user interface components.
+ * creating {@link DockableState} instances and other user interface components.
  *
  * @author Phil Bryant
  */

@@ -25,6 +25,7 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
     * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
     * [Maven](#persistence-maven)
   * [Overview](#persistence-overview)
+    * [Provider Interfaces](#provider-interfaces) 
   * [Extending Persistence](#extending-persistence)
   * [Example](#persistence-demo)
 
@@ -95,7 +96,7 @@ Bento comes with a few custom controls that you will want to create a custom sty
 look and feel of your application.
 
 An example reference sheet _(which is included in the dependency)_ can be found
-in [`bento.css`](core/src/main/resources/bento.css).
+in [`bento.css`](demos/basic/src/main/resources/bento.css).
 
 | Control                     | Description                                                                                                                                       |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -220,7 +221,7 @@ The [persistence](./persistence) modules create a framework that can be used to 
 > <span style="font-size: 1.5em;">💡</span> The persistence framework is currently limited to saving and restoring a single format at a single storage destination.
 
 <h3 id="persistence-framework-usage">Usage</h3>
-The persistence framework has dependencies on the following modules:
+In additional to the `core` module, users of the persistence framework will also have dependencies on the following modules:
 
 * Persistence API  
   The persistence API contains core classes for saving and restoring docking layouts using the format and storage destination implementations discovered at runtime.
@@ -232,7 +233,7 @@ The persistence framework has dependencies on the following modules:
     * eXtensible Markup Language (XML)  
       * `persistence-codec-xml`
 * Storage implementations  
-  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes storage implementations artifacts with the following artifact names:
+  The storage implementations contain classes for reading and writing the docking layout to input and output streams as defined by each implementation. The BentoFX persistence framework includes storage implementation artifacts with the following artifact names:
     * File  
       * `persistence-storage-file`
     * H2 Database  
@@ -278,6 +279,34 @@ runtimeOnly("software.coley.bento-fx:persistence-storage-file:${version}")
 
 <h3 id=persistence-overview>Overview</h3>
 
+<h4 id="provider-interfaces">Provider Interfaces</h4> 
+
+To persist docking layouts, applications implement "provider" interfaces that supply non-serializable components used by the persistence framework. These provider types include:
+
+BentoProvider 
+: Used to resolve `Bento` instances.      
+
+DockableMenuFactoryProvider
+: Used to resolve `DockableMenuFactory` instances, 
+
+DockableStateProvider
+: Used to resolve `DockableState` instances, 
+
+DockContainerLeafMenuFactoryProvider
+: Used to resolve `DockContainerLeafMenuFactory` instances, 
+
+LayoutCodecProvider
+: Used to resolve `LayoutCodec` instances, 
+
+LayoutPersistenceProvider
+: Used to resolve `LayoutSaver` and `LayoutRestorer` instances, 
+
+LayoutStorageProvider
+: Used to resolve `LayoutStorage` instances, 
+
+StageIconImageProvider
+: Used to resolve `Stage` icon `Image`s,
+
 The primary interface for interacting with persistence framework is the `LayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer` that can be used to persist and restore a docking layout.  
 
 `DockingLayoutPersistenceProvider`, the default `LayoutPersistenceProvider` implementation, can be acquired in one of the following ways: 
@@ -321,7 +350,7 @@ final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
 ```
 
 #### LayoutSaver
-The `LayoutSaver` is used to persist the current docking layout. The default implementation auto-saves the layout every five minutes. Applications should also save the layout directly when exiting, similar to the following:
+The `LayoutSaver` is used to persist the current docking layout. The default implementation auto-saves the layout every five minutes. Applications should also save the layout when exiting, similar to the following:
 
 ```java
 private void saveDockingLayout() {
