@@ -1,8 +1,8 @@
 import org.jspecify.annotations.NullMarked;
+import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.impl.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.impl.provider.DefaultDockingLayoutPersistenceProvider;
 
 /**
  * This module provides the persistence Application Programming Interface (API)
@@ -32,5 +32,5 @@ module bento.fx.persistence.api {
     exports software.coley.bentofx.persistence.impl;
     exports software.coley.bentofx.persistence.api.state;
 
-    provides LayoutPersistenceProvider with DockingLayoutPersistenceProvider;
+    provides DockingLayoutPersistenceProvider with DefaultDockingLayoutPersistenceProvider;
 }

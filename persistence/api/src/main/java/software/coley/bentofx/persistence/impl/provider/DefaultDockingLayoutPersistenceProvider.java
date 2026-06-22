@@ -4,13 +4,7 @@ import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.api.provider.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.DockingLayoutRestorer;
 import software.coley.bentofx.persistence.impl.DockingLayoutSaver;
@@ -23,13 +17,13 @@ import java.util.ServiceLoader;
  *
  * @author Phil Bryant
  */
-public class DockingLayoutPersistenceProvider
-        implements LayoutPersistenceProvider {
+public class DefaultDockingLayoutPersistenceProvider
+        implements DockingLayoutPersistenceProvider {
 
     private final LayoutCodecProvider layoutCodecProvider;
     private final LayoutStorageProvider layoutStorageProvider;
 
-    public DockingLayoutPersistenceProvider() {
+    public DefaultDockingLayoutPersistenceProvider() {
 
         final Iterable<LayoutCodecProvider> codecProviders =
                 ServiceLoader.load(LayoutCodecProvider.class);
@@ -44,8 +38,8 @@ public class DockingLayoutPersistenceProvider
 
     @Override
     public LayoutSaver getLayoutSaver(
-            final BentoProvider bentoProvider,
-            final String layoutIdentifier
+            final String layoutIdentifier,
+            final BentoProvider bentoProvider
     ) {
 
         final LayoutCodec layoutCodec =
@@ -62,8 +56,8 @@ public class DockingLayoutPersistenceProvider
 
     @Override
     public LayoutRestorer getLayoutRestorer(
-            final BentoProvider bentoProvider,
             final String layoutIdentifier,
+            final BentoProvider bentoProvider,
             final DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider

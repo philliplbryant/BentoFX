@@ -1,5 +1,5 @@
 import org.jspecify.annotations.NullMarked;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
 
 /**
  * This module is a basic JavaFX application demonstrating use of the BentoFX
@@ -24,5 +24,5 @@ module bento.fx.demo.persistence {
     // application classes in them.
     exports software.coley.boxfx.demo.persistence;
 
-    uses LayoutPersistenceProvider;
+    uses DockingLayoutPersistenceProvider;
 }

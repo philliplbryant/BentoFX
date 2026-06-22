@@ -5,11 +5,7 @@ import javafx.event.Event;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.jspecify.annotations.Nullable;
@@ -24,25 +20,17 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.BentoLayout;
+import software.coley.bentofx.persistence.api.*;
 import software.coley.bentofx.persistence.api.BentoLayout.BentoLayoutBuilder;
-import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.api.LayoutRestorer;
-import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
-import software.coley.bentofx.persistence.impl.provider.DockingLayoutPersistenceProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockContainerLeafMenuFactoryProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockableMenuFactoryProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockableStateProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppStageIconImageProvider;
-import software.coley.boxfx.demo.persistence.provider.DockableProperties;
+import software.coley.bentofx.persistence.impl.provider.DefaultDockingLayoutPersistenceProvider;
+import software.coley.boxfx.demo.persistence.provider.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,8 +60,8 @@ public class BoxApp extends Application {
 	private final List<DockContainerRootBranch> rootBranches =
 			new ArrayList<>();
 
-	private final LayoutPersistenceProvider persistenceProvider =
-			new DockingLayoutPersistenceProvider();
+	private final DockingLayoutPersistenceProvider persistenceProvider =
+			new DefaultDockingLayoutPersistenceProvider();
 
 	private final DockableStateProvider dockableStateProvider =
 			new BoxAppDockableStateProvider(
@@ -295,9 +283,9 @@ public class BoxApp extends Application {
 		try {
 			final LayoutSaver layoutSaver =
 					persistenceProvider.getLayoutSaver(
-							bentoProvider,
-							DEFAULT_LAYOUT_IDENTIFIER
-					);
+                            DEFAULT_LAYOUT_IDENTIFIER,
+                            bentoProvider
+                    );
 
 			layoutSaver.saveLayout();
 		} catch (BentoStateException e) {
@@ -315,9 +303,9 @@ public class BoxApp extends Application {
 
 		final LayoutRestorer layoutRestorer =
 				persistenceProvider.getLayoutRestorer(
-						bentoProvider,
-						DEFAULT_LAYOUT_IDENTIFIER,
-						dockableStateProvider,
+                        DEFAULT_LAYOUT_IDENTIFIER,
+                        bentoProvider,
+                        dockableStateProvider,
 						stageIconImageProvider,
 						dockContainerLeafMenuFactoryProvider
 				);
