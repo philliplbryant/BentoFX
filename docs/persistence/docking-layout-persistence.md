@@ -126,9 +126,23 @@ Provider implementations should be available before calling `LayoutRestorer.rest
 
 Identifiers are the bridge between persisted state and runtime objects. They should be stable across application restarts and, where practical, across application versions.
 
-Prefer identifiers based on durable application concepts, such as `projects`, `terminal`, `editor`, or `workspace-explorer`. Avoid identifiers based on memory addresses, object identity, generated UUIDs, timestamps, or localized display labels.
+Identifiers may represent application views, tools, documents, domain objects, or any other concept that can be consistently reconstructed by the application.
+
+Examples include:
+
+- `projects`
+- `terminal`
+- `editor`
+- `workspace-explorer`
+- `document:12345`
+- `customer:98765`
+- `order:ABC123`
+
+Avoid identifiers based on runtime object instances, memory addresses, hash codes, generated UUIDs that change between executions, timestamps, localized display labels, or other values that change between application executions.
 
 Changing an identifier means older persisted layouts may no longer resolve the corresponding dockable. If a dockable is renamed, the `DockableStateProvider` can preserve compatibility by accepting the old identifier and returning the new runtime dockable state.
+
+Applications should also consider how identifiers are resolved when the underlying object is no longer available. For example, a persisted identifier may refer to a document, record, or domain object that no longer exists when a layout is restored. In such cases, providers may choose to return an alternative dockable, a placeholder dockable, or no dockable at all, depending on the application's requirements.
 
 ### Provider lifecycle
 

@@ -28,12 +28,15 @@ Information for contributing to the BentoFX project can be found [here](./CONTRI
     * [Provider Interfaces](#provider-interfaces)
     * [Application Responsibilities](#application-responsibilities)
     * [Application Design for Persistence](#application-design-for-persistence)
+    * [Choosing Stable Identifiers](#choosing-stable-identifiers)
     * [Provider Responsibilities](#provider-responsibilities)
     * [Provider Lifecycle](#provider-lifecycle)
     * [Recommended Application Startup Flow](#recommended-application-startup-flow)
     * [Saving the Layout](#saving-the-layout)
     * [Restoring the Layout](#restoring-the-layout)
-    * [Versioning Considerations](#versioning-considerations)
+    * [Runtime Considerations](#runtime-considerations)
+      * [JavaFX Application Thread](#javafx-application-thread)
+      * [Application Evolution](#application-evolution)
     * [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
   * [Extending Persistence](#extending-persistence)
   * [Persistence Example](#persistence-example)
@@ -295,12 +298,17 @@ runtimeOnly("org.slf4j:slf4j-jdk14:${slf4j-version}")
 
 <h3 id="persistence-overview">Overview</h3>
 
+For additional implementation details and diagrams, see:
+
+* [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md)
+* [Bento Layout Persistence Diagrams](docs/persistence/docking-layout-persistence-diagrams.md)
+
 The persistence framework has two responsibilities:
 
 1. Save the current BentoFX container graph into serializable state.
 2. Restore that state into runtime BentoFX objects.
 
-The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockables through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. During restoration, providers are given the identifier initially used when creating the persisted objects and are expected to return a nullable runtime object.
+The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockables through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
 
 <h4 id="provider-interfaces">Provider Interfaces</h4>
 
@@ -370,7 +378,7 @@ Applications supply:
 - Tooltips
 - Context menu factories
 - Leaf menu factories
-- Stage icons
+- Stage icon factories
 - Application-specific state
 
 The framework obtains these application-specific objects through
@@ -454,9 +462,8 @@ This keeps the default-layout path and restore path aligned. Application code do
 
 When creating a persistent application, treat provider-backed reconstruction as part of the application architecture. Avoid hiding dockable construction in one-off startup code unless those dockables never need to be restored.
 
-It is up to application developers to determine the identifier format or formats to use and how best to resolve the dockables: eagerly, on first access, statically, dynamically, through dependency injection, or by any other mechanism that can consistently reconstruct the appropriate runtime objects from persisted identifiers.
 
-#### Choosing Stable Identifiers
+<h4 id="choosing-stable-identifiers">Choosing Stable Identifiers</h4>
 
 Identifiers should remain stable across application executions and software upgrades.
 
@@ -603,12 +610,12 @@ private DockingLayout getDockingLayout() {
 }
 ```
 
-## Runtime Considerations
+<h4 id="runtime-considerations">Runtime Considerations</h4>
 
 Applications should keep two runtime considerations in mind when using
 layout persistence.
 
-### JavaFX Application Thread
+<h5 id="javafx-application-thread">JavaFX Application Thread</h5>
 
 Restoration separates persistence operations from JavaFX object creation.
 Storage access and codec decoding can occur independently of the JavaFX
@@ -629,7 +636,7 @@ JavaFX controls. Applications using lazy loading, dependency injection,
 or other dynamic resolution strategies should apply the same principle
 whenever providers create JavaFX runtime objects.
 
-### Application Evolution
+<h5 id="application-evolution">Application Evolution</h5>
 
 Persisted layouts may outlive individual software releases.
 
@@ -648,6 +655,12 @@ application changes until explicit layout migration support is added.
 
 <h4 id="basic-demo-vs-persistence-demo">Basic Demo vs Persistence Demo</h4>
 
+The BentoFX project includes both a basic demo and a persistence demo.
+
+The basic demo focuses on container construction and docking behavior. The persistence demo builds on the same concepts and demonstrates how applications can save and restore docking layouts across executions using provider-backed reconstruction.
+
+The persistence demo intentionally introduces additional abstractions such as providers and state objects. These abstractions are not required by the core docking framework itself, but become necessary when layouts must be persisted and later restored.
+
 | Concern | Basic demo | Persistence demo |
 |---------|------------|------------------|
 | Bento creation | Creates a default `Bento`. | Creates a `Bento` with a stable identifier. |
@@ -661,14 +674,6 @@ application changes until explicit layout migration support is added.
 | JavaFX threading | Startup creates JavaFX objects directly. | Restore and provider code must create JavaFX objects on the JavaFX Application Thread. |
 | Provider implementations | Not required. | Required for application-specific objects that cannot be serialized. |
 | Shutdown | Exits when the stage is hidden. | Saves the docking layout on close request before stages are closed. |
-
-#### Why Two Demos Exist
-
-The basic demo demonstrates BentoFX container construction and docking behavior.
-
-The persistence demo demonstrates how to organize an application so that docking layouts can survive application restarts.
-
-The persistence demo intentionally introduces additional abstractions such as providers and state objects. These abstractions are not required for BentoFX itself, but they become necessary when layouts must be saved and restored.
 
 <h3 id="extending-persistence">Extending Persistence</h3>
 
