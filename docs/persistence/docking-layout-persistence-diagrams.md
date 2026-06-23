@@ -1,5 +1,8 @@
 # Bento layout persistence diagrams
 
+For implementation details and application integration guidance, see [Docking Layout Persistence Implementation](docking-layout-persistence.md). For a high-level overview, see the [README Persistence Framework](../../README.md#persistence).
+
+
 ## Components overview
 
 ```mermaid
@@ -43,6 +46,12 @@ classDiagram
   class DockableStateProvider {
     +resolveDockableState(identifier)
   }
+
+  class DockableState {
+    +getIdentifier()
+    +getDockableNode()
+    +getTitle()
+  }
   
   class StageIconImageProvider {
       +getStageIcons()
@@ -64,6 +73,8 @@ classDiagram
   LayoutRestorer --> Bento : resolves DockBuilding
   LayoutRestorer --> DockBuilding : creates and restores containers
   LayoutRestorer --> DockableStateProvider : resolves dockable states
+  DockableStateProvider --> DockableState : supplies
+  LayoutRestorer --> DockableState : restores dockables from
   LayoutRestorer --> StageIconImageProvider: resolves icons
   LayoutRestorer --> DockContainerLeafMenuFactoryProvider: resolves DockContainerLeafMenuFactory
   LayoutRestorer --> DockContainerLeafMenuFactory: builds ContextMenu
@@ -85,6 +96,8 @@ sequenceDiagram
     participant layoutSaver as LayoutSaver
     participant layoutRestorer as LayoutRestorer
     participant supplier as Supplier<DockingLayout>
+    participant dockableProvider as DockableStateProvider
+    participant dockableState as DockableState
     participant consumer as Consumer<Dockable>
 
     BoxApp->>persistenceProvider: constructor()
@@ -114,6 +127,9 @@ sequenceDiagram
         alt layout exists
             layoutRestorer->>storage:read()
             layoutRestorer->>codec:decode()
+            layoutRestorer->>dockableProvider:resolveDockableState(identifier)
+            dockableProvider-->>layoutRestorer:DockableState
+            layoutRestorer->>dockableState:get runtime values
             layoutRestorer->>consumer:consume(Dockable)
         else layout does not exist
             layoutRestorer->>supplier:get()

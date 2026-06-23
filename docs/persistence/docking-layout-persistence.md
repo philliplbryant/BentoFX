@@ -1,5 +1,8 @@
 # Docking Layout Persistence Implementation
 
+For a high-level architectural overview, see the [README Persistence Framework](../../README.md#persistence).
+
+
 This document describes BentoFX layout persistence as implemented by
 [DockingLayoutSaver](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutSaver.java)
 and [DockingLayoutRestorer](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutRestorer.java).
@@ -102,6 +105,36 @@ final LayoutRestorer layoutRestorer =
 This is the key application pattern: the default layout and restored layout should both rely on the same provider-backed
 construction strategy. The default layout decides initial placement. The restored layout gets placement from persisted
 state and uses providers to rebuild the objects referenced by that state.
+
+## What application developers must implement
+
+The persistence framework supplies the saver, restorer, state model, codec abstraction, and storage abstraction. Applications supply the runtime objects that are specific to the application.
+
+| Required | Interface | When it is needed |
+|----------|-----------|-------------------|
+| Yes | `BentoProvider` | Always needed so the saver and restorer can find the runtime `Bento` instances by identifier. |
+| Yes | `DockableStateProvider` | Needed whenever persisted layouts contain dockables that must be reconstructed by identifier. |
+| Optional | `DockableMenuFactoryProvider` | Needed when restored dockables should receive application-specific context menus. |
+| Optional | `DockContainerLeafMenuFactoryProvider` | Needed when restored leaves should receive application-specific context menus. |
+| Optional | `StageIconImageProvider` | Needed when restored drag/drop stages should receive application-specific icons. |
+
+Applications must also choose exactly one codec provider and one storage provider at runtime by adding the appropriate modules to the runtime module path.
+
+Provider implementations should be available before calling `LayoutRestorer.restoreLayout(...)`. A provider may be called while restoring persisted state, while building the fallback default layout, or by future application features that restore layouts repeatedly.
+
+### Stable identifier guidance
+
+Identifiers are the bridge between persisted state and runtime objects. They should be stable across application restarts and, where practical, across application versions.
+
+Prefer identifiers based on durable application concepts, such as `projects`, `terminal`, `editor`, or `workspace-explorer`. Avoid identifiers based on memory addresses, object identity, generated UUIDs, timestamps, or localized display labels.
+
+Changing an identifier means older persisted layouts may no longer resolve the corresponding dockable. If a dockable is renamed, the `DockableStateProvider` can preserve compatibility by accepting the old identifier and returning the new runtime dockable state.
+
+### Provider lifecycle
+
+Providers are usually long-lived application services. They should be created during startup, registered or wired into the persistence provider, and reused for both default layout creation and restoration.
+
+Providers should not assume they are called only once. Restoration may be retried after a failed decode, future application features may allow users to switch saved layouts, and the default layout may use the same providers before any persisted layout exists.
 
 ## Provider responsibilities
 
@@ -391,6 +424,7 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 | Bento identity | Uses a default `Bento`. | Uses a `Bento` with a stable identifier. |
 | Layout creation | Builds the runtime container tree directly in `start(Stage)`. | Builds a default `DockingLayout`, then restores or applies a `DockingLayout`. |
 | Dockable creation | Creates dockables inline. | Resolves `DockableState` by stable identifier through `DockableStateProvider`. |
+| Source of truth for dockables | Startup code. | Provider implementations. |
 | Dockable placement | Placement is hard-coded during startup. | Default placement is hard-coded, but restored placement comes from persisted layout state. |
 | Menus | Menu factories are set directly. | Menu factories are supplied by providers so restored objects receive the same behavior. |
 | Stage handling | Creates and shows the primary scene directly. | Applies the restored `BentoLayout` to the stage and shows restored drag/drop stages. |
