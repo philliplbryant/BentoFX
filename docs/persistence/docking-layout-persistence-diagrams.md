@@ -27,6 +27,17 @@ classDiagram
     +openOutputStream()
   }
 
+  class LayoutPersistenceProfile {
+    +layoutIdentifier()
+    +codecIdentifier()
+    +storageIdentifier()
+  }
+
+  class LayoutPersistenceComponentProvider {
+    +getIdentifier()
+    +isDefault()
+  }
+
   class LayoutCodec {
     +encode(state,out)
     +decode(in) BentoState
@@ -61,11 +72,15 @@ classDiagram
       +getDockContainerLeafMenuFactory(identifier)
   }
   
+  LayoutCodecProvider --|> LayoutPersistenceComponentProvider
+  LayoutStorageProvider --|> LayoutPersistenceComponentProvider
+
   LayoutSaver --> BentoProvider : get container graph
   LayoutSaver --> BentoState : builds
   LayoutSaver --> LayoutCodec : encodes
   LayoutSaver --> LayoutStorage : writes
 
+  LayoutRestorer --> LayoutPersistenceProfile : uses provider identifiers
   LayoutRestorer --> Supplier~DockingLayout~ : get default layout
   LayoutRestorer --> LayoutStorage : reads
   LayoutRestorer --> LayoutCodec : decodes
@@ -88,6 +103,7 @@ sequenceDiagram
     autonumber
     actor BoxApp
     participant persistenceProvider as DockingLayoutPersistenceProvider
+    participant profile as LayoutPersistenceProfile
     participant serviceLoader as ServiceLoader
     participant codecProvider as LayoutCodecProvider
     participant codec as LayoutCodec
@@ -101,10 +117,13 @@ sequenceDiagram
     participant consumer as Consumer<Dockable>
 
     BoxApp->>persistenceProvider: constructor()
+    BoxApp->>profile: optional provider identifiers
     persistenceProvider->>serviceLoader: load(LayoutCodecProvider)
+    persistenceProvider->>codecProvider: select by profile, single provider, or default
     persistenceProvider->>codecProvider: getLayoutCodec()
     codecProvider->>codec:constructor()
     persistenceProvider->>serviceLoader: load(LayoutStorageProvider)
+    persistenceProvider->>storageProvider: select by profile, single provider, or default
     persistenceProvider->>storageProvider: getLayoutStorage()
     storageProvider->>storage:constructor()
     persistenceProvider->>layoutSaver:constructor(codec, storage, ...)
@@ -114,13 +133,13 @@ sequenceDiagram
     layoutSaver->>storage:write()
     persistenceProvider->>layoutRestorer:constructor(codec, storage, ...)
 
-    BoxApp->>persistenceProvider:getLayoutSaver()
+    BoxApp->>persistenceProvider:getLayoutSaver(profile)
     BoxApp->>BoxApp:onCloseRequest(LayoutSaver::saveLayout)
     BoxApp->>layoutSaver:saveLayout()
     layoutSaver->>codec:encode()
     layoutSaver->>storage:write()
     
-    BoxApp->>persistenceProvider:getLayoutRestorer()
+    BoxApp->>persistenceProvider:getLayoutRestorer(profile)
     BoxApp->>layoutRestorer:restoreLayout()
     layoutRestorer->>storage:exists()
     alt normal flow

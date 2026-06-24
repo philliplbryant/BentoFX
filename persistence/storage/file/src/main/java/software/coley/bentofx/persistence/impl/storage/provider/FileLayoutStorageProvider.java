@@ -14,8 +14,20 @@ import java.io.File;
  */
 public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
+    private static final String IDENTIFIER = "file";
+
     private static final String DEFAULT_BENTO_DIRECTORY =
             System.getProperty("user.home") + "/.bentofx";
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return true;
+    }
 
     @Override
     public LayoutStorage getLayoutStorage(

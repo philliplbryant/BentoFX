@@ -14,6 +14,13 @@ import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
  */
 public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
+    private static final String IDENTIFIER = "h2";
+
+    @Override
+    public String getIdentifier() {
+        return IDENTIFIER;
+    }
+
     @Override
     public LayoutStorage getLayoutStorage(
             final String layoutIdentifier,

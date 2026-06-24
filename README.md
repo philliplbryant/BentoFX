@@ -231,7 +231,7 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 The [persistence](./persistence) modules supplement the [core](#core-framework) module by saving and restoring BentoFX docking layouts across application executions. The persistence framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. It does **not** serialize live JavaFX `Node`, `Stage`, menu, or application-domain objects.
 
-Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage implementations.
+Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
 > <span style="font-size: 1.5em;">💡</span> The persistence framework is currently limited to saving and restoring a single format at a single storage destination.
 
@@ -245,7 +245,7 @@ In addition to the `core` module, applications using persistence need:
 
 For debugging purposes, applications can also enable logging in the persistence modules by adding an optional [SLF4J runtime dependency](https://www.slf4j.org/manual.html#swapping). Depending on the SLF4J dependency chosen, applications might also need to include a logging configuration file. See [logging.properties](./demos/persistence/src/main/resources/logging.properties) in the persistence demo project for an example Java Utils Logging (JUL) configuration file.
 
-The codec and storage provider implementations are discovered at runtime using the Java [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html) and service provider compatible interfaces. As such, changing from XML to JSON, or from file storage to database storage, should normally be a simple dependency change rather than an application-code change.
+The codec and storage provider implementations are discovered at runtime using the Java [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html) and service provider compatible interfaces. When exactly one codec provider and one storage provider are available, the default persistence provider selects them automatically. When multiple providers are available, applications can select providers explicitly using `LayoutPersistenceProfile`; otherwise, the framework uses a single default provider when one is available or fails with a configuration error.
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>
 
@@ -322,8 +322,8 @@ As previously mentioned, to persist docking layouts, applications supply provide
 | `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus.                              |
 | `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages.                                                                     |
 | `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`.                                                     |
-| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state.                                                    |
-| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state.                                         |
+| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier.             |
+| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier.  |
 
 The primary interface for interacting with persistence framework is the `DockingLayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer`.
 
@@ -334,9 +334,9 @@ final DockingLayoutPersistenceProvider persistenceProvider =
         new DefaultDockingLayoutPersistenceProvider();
 ```
 
-The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to discover `LayoutCodecProvider` and `LayoutStorageProvider` implementations available on the runtime module path (or classpath for non-modularized applications). The current implementation uses the first provider returned for each service type.
+The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to discover `LayoutCodecProvider` and `LayoutStorageProvider` implementations available on the runtime module path (or classpath for non-modularized applications). The provider is selected deterministically: an explicitly requested provider identifier wins, otherwise a single available provider is used, otherwise a single provider marked as default is used. Ambiguous configurations fail with a `BentoStateException` that lists the available provider identifiers.
 
-Once the `DockingLayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver` and `LayoutRestorer` implementations:
+Once the `DockingLayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver` and `LayoutRestorer` implementations. The simplest form uses the codec and storage providers selected from runtime dependencies:
 
 ```java
 final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
@@ -352,6 +352,23 @@ final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
         dockContainerLeafMenuFactoryProvider  // Nullable
 );
 ```
+
+Applications that include multiple codec or storage implementations can select specific providers with a `LayoutPersistenceProfile`:
+
+```java
+final LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
+        layoutIdentifier,
+        "json",
+        "file"
+);
+
+final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
+        profile,
+        bentoProvider
+);
+```
+
+This makes simple dependency-only replacement possible while still allowing future application features to save and restore multiple layouts using different codec or storage providers.
 
 <h4 id="application-responsibilities">Application Responsibilities</h4>
 
@@ -677,7 +694,7 @@ The persistence demo intentionally introduces additional abstractions such as pr
 
 <h3 id="extending-persistence">Extending Persistence</h3>
 
-The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the module path at runtime.
+The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the runtime module path, or from the classpath for non-modularized applications. Provider identifiers allow applications to select a specific codec or storage implementation when more than one implementation is available.
 
 To add a storage destination:
 
@@ -716,10 +733,12 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 }
 ```
 
-The `LayoutStorageProvider` implementation is the type discovered by `ServiceLoader`. It must therefore be compatible with Java's Service Provider Interface (SPI) mechanism. In practice, the provider implementation should:
+The `LayoutStorageProvider` implementation is the type discovered by `ServiceLoader`. It must expose a stable identifier and be compatible with Java's Service Provider Interface (SPI) mechanism. In practice, the provider implementation should:
 
 * be a public concrete class
 * have a public no-argument constructor, or an implicit default constructor
+* return a stable provider identifier from `getIdentifier()`
+* optionally return `true` from `isDefault()` when it should be selected automatically from multiple providers
 * be registered with a `provides` clause in the module descriptor
 
 The `LayoutStorage` implementation itself is not discovered directly by `ServiceLoader`; it is created by the `LayoutStorageProvider`. This allows a storage implementation to use constructor arguments or other setup logic when the provider creates it.
@@ -736,7 +755,7 @@ provides LayoutStorageProvider with SystemLayoutStorageProvider;
 runtimeOnly("software.coley.bento-fx:persistence-storage-system:${version}")
 ```
 
-Codecs are extended similarly by implementing `LayoutCodecProvider` and `LayoutCodec`, registering the provider with the implementation module's descriptor, and adding the module to the application's runtime module path. The same SPI compatibility requirements apply to the `LayoutCodecProvider`; the `LayoutCodec` implementation is created by the provider and does not need to be directly discoverable by `ServiceLoader`.
+Codecs are extended similarly by implementing `LayoutCodecProvider` and `LayoutCodec`, registering the provider with the implementation module's descriptor, and adding the module to the application's runtime module path. The same SPI compatibility and identifier requirements apply to the `LayoutCodecProvider`; the `LayoutCodec` implementation is created by the provider and does not need to be directly discoverable by `ServiceLoader`.
 
 For complete examples, refer to these modules:
 

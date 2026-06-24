@@ -36,15 +36,19 @@ The restorer uses that state, plus application-provided providers, to recreate r
 
 Round-trip persistence is a multistep, pipelined process:
 
-1. The application adds one `LayoutCodecProvider` implementation to choose the persisted format.
-2. The application adds one `LayoutStorageProvider` implementation to choose the storage destination.
-3. `LayoutSaver` walks the current BentoFX container graph through a `BentoProvider`.
-4. `LayoutSaver` builds serializable state, encodes it with `LayoutCodec`, and writes it with `LayoutStorage`.
-5. `LayoutRestorer` reads state with `LayoutStorage`, decodes it with `LayoutCodec`, and rebuilds runtime layout objects.
-6. The application applies the returned `DockingLayout` to its stages.
+1. The application adds one or more `LayoutCodecProvider` implementations to make persisted formats available.
+2. The application adds one or more `LayoutStorageProvider` implementations to make storage destinations available.
+3. The default persistence provider selects codec and storage providers by explicit `LayoutPersistenceProfile` 
+   identifiers, by a single available provider, or by a single default provider.
+4. `LayoutSaver` walks the current BentoFX container graph through a `BentoProvider`.
+5. `LayoutSaver` builds serializable state, encodes it with `LayoutCodec`, and writes it with `LayoutStorage`.
+6. `LayoutRestorer` reads state with `LayoutStorage`, decodes it with `LayoutCodec`, and rebuilds runtime layout objects.
+7. The application applies the returned `DockingLayout` to its stages.
 
 This decoupling lets applications choose the persisted format, such as XML or JSON, and the storage location, such as a
-file or database, without changing the save/restore orchestration.
+file or database, without changing the save/restore orchestration. In the simple case, changing providers requires only 
+a dependency change. When multiple providers are present, applications can select a specific codec or storage provider 
+by identifier with `LayoutPersistenceProfile`.
 
 ## Application integration model
 
@@ -118,7 +122,7 @@ The persistence framework supplies the saver, restorer, state model, codec abstr
 | Optional | `DockContainerLeafMenuFactoryProvider` | Needed when restored leaves should receive application-specific context menus. |
 | Optional | `StageIconImageProvider` | Needed when restored drag/drop stages should receive application-specific icons. |
 
-Applications must also choose exactly one codec provider and one storage provider at runtime by adding the appropriate modules to the runtime module path.
+Applications must also make at least one codec provider and one storage provider available at runtime by adding the appropriate modules to the runtime module path or classpath. If exactly one provider of each type is available, the framework selects them automatically. If multiple providers are available, applications can select specific providers by identifier with `LayoutPersistenceProfile`, rely on a single provider marked as default, or fail fast when provider selection is ambiguous.
 
 Provider implementations should be available before calling `LayoutRestorer.restoreLayout(...)`. A provider may be called while restoring persisted state, while building the fallback default layout, or by future application features that restore layouts repeatedly.
 
@@ -149,6 +153,24 @@ Applications should also consider how identifiers are resolved when the underlyi
 Providers are usually long-lived application services. They should be created during startup, registered or wired into the persistence provider, and reused for both default layout creation and restoration.
 
 Providers should not assume they are called only once. Restoration may be retried after a failed decode, future application features may allow users to switch saved layouts, and the default layout may use the same providers before any persisted layout exists.
+
+### Codec and storage provider selection
+
+`LayoutCodecProvider` and `LayoutStorageProvider` implementations expose stable provider identifiers. These identifiers allow applications to select a provider explicitly when more than one implementation is available.
+
+A `LayoutPersistenceProfile` groups the layout identifier with optional codec and storage provider identifiers:
+
+```java
+LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
+        "main-layout",
+        "json",
+        "file"
+);
+```
+
+If a profile does not specify codec or storage identifiers, the default persistence provider selects providers from runtime dependencies. A single available provider is selected automatically. If multiple providers are available, exactly one provider may be marked as default. Ambiguous provider sets fail with a configuration exception.
+
+This keeps the common dependency-only replacement workflow simple while allowing future application features to save and restore multiple layouts with different codecs or storage destinations.
 
 ## Provider responsibilities
 
@@ -199,7 +221,7 @@ secondary stages will not receive application-specific stage icons.
 ### `LayoutPersistenceProvider`
 
 `LayoutPersistenceProvider` creates the application-facing `LayoutSaver` and `LayoutRestorer`. The default
-`DockingLayoutPersistenceProvider` discovers the codec and storage providers using `ServiceLoader`.
+`DockingLayoutPersistenceProvider` discovers codec and storage providers using `ServiceLoader` and selects providers by explicit profile identifiers, by a single available provider, or by a single default provider.
 
 ## Application design for persistence
 

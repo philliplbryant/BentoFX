@@ -301,18 +301,23 @@ public class BoxApp extends Application {
 	 */
 	private DockingLayout getDockingLayout() {
 
-		final LayoutRestorer layoutRestorer =
-				persistenceProvider.getLayoutRestorer(
-                        DEFAULT_LAYOUT_IDENTIFIER,
-                        bentoProvider,
-                        dockableStateProvider,
-						stageIconImageProvider,
-						dockContainerLeafMenuFactoryProvider
-				);
+		try {
+			final LayoutRestorer layoutRestorer =
+					persistenceProvider.getLayoutRestorer(
+							DEFAULT_LAYOUT_IDENTIFIER,
+							bentoProvider,
+							dockableStateProvider,
+							stageIconImageProvider,
+							dockContainerLeafMenuFactoryProvider
+					);
 
-		return layoutRestorer.restoreLayout(
-				this::getDefaultDockingLayout
-		);
+			return layoutRestorer.restoreLayout(
+					this::getDefaultDockingLayout
+			);
+		} catch (BentoStateException e) {
+			logger.warn("Could not create the docking layout restorer.", e);
+			return getDefaultDockingLayout();
+		}
 	}
 
 	/**
