@@ -25,8 +25,8 @@ public class BentoLayout implements Identifiable {
             final List<DragDropStage> dragDropStages
     ) {
         this.identifier = Objects.requireNonNull(identifier);
-        this.rootBranches = Objects.requireNonNull(rootBranches);
-        this.dragDropStages = Objects.requireNonNull(dragDropStages);
+        this.rootBranches = List.copyOf(rootBranches);
+        this.dragDropStages = List.copyOf(dragDropStages);
     }
 
     @Override
@@ -35,11 +35,11 @@ public class BentoLayout implements Identifiable {
     }
 
     public List<DockContainerRootBranch> getRootBranches() {
-        return List.copyOf(rootBranches);
+        return rootBranches;
     }
 
     public List<DragDropStage> getDragDropStages() {
-        return List.copyOf(dragDropStages);
+        return dragDropStages;
     }
 
     public static class BentoLayoutBuilder {

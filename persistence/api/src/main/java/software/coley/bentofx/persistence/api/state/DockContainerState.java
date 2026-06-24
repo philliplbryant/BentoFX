@@ -25,7 +25,7 @@ public class DockContainerState extends IdentifiableState {
             final List<DockableState> childDockableStates
     ) {
         super(identifier);
-        this.childDockableStates = List.of(childDockableStates.toArray(new DockableState[0]));
+        this.childDockableStates = List.copyOf(childDockableStates);
         this.pruneWhenEmpty = pruneWhenEmpty;
     }
 

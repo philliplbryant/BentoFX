@@ -3,11 +3,7 @@ package software.coley.bentofx.persistence.api.state;
 import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,13 +32,8 @@ public class DockContainerBranchState extends DockContainerState {
                 childDockableStates
         );
         this.orientation = orientation;
-        this.dividerPositions = dividerPositions;
-        this.childDockContainerStates =
-                List.of(
-                        childDockContainerStates.toArray(
-                                new DockContainerState[0]
-                        )
-                );
+        this.dividerPositions = Map.copyOf(dividerPositions);
+        this.childDockContainerStates = List.copyOf(childDockContainerStates);
     }
 
     public Optional<Orientation> getOrientation() {
@@ -50,7 +41,7 @@ public class DockContainerBranchState extends DockContainerState {
     }
 
     public Map<Integer, Double> getDividerPositions() {
-        return Map.copyOf(dividerPositions);
+        return dividerPositions;
     }
 
     public List<DockContainerState> getChildDockContainerStates() {

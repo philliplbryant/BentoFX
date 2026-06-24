@@ -106,4 +106,26 @@ class BentoStateTest {
         assertThatThrownBy(dragDropStageStates::clear)
                 .isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Test
+    void builtStateIsNotAffectedByLaterBuilderMutation() {
+        DockContainerRootBranchState firstRoot =
+                new DockContainerRootBranchStateBuilder("root:first")
+                        .build();
+        DockContainerRootBranchState secondRoot =
+                new DockContainerRootBranchStateBuilder("root:second")
+                        .build();
+
+        BentoStateBuilder builder =
+                new BentoStateBuilder("bento:workbench")
+                        .addRootBranchState(firstRoot);
+
+        BentoState state = builder.build();
+
+        builder.addRootBranchState(secondRoot);
+
+        assertThat(state.getRootBranchStates())
+                .containsExactly(firstRoot);
+    }
+
 }

@@ -64,4 +64,30 @@ class DockContainerBranchStateBuilderTest {
         assertThatThrownBy(() -> dockContainerStates.add(childLeaf))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Test
+    void builtStateIsNotAffectedByLaterBuilderMutation() {
+        DockContainerLeafState firstLeaf =
+                new DockContainerLeafStateBuilder("leaf:first")
+                        .build();
+        DockContainerLeafState secondLeaf =
+                new DockContainerLeafStateBuilder("leaf:second")
+                        .build();
+
+        DockContainerBranchStateBuilder builder =
+                new DockContainerBranchStateBuilder("branch")
+                        .addDividerPosition(0, 0.25)
+                        .addDockContainerState(firstLeaf);
+
+        DockContainerBranchState state = builder.build();
+
+        builder.addDividerPosition(1, 0.75)
+                .addDockContainerState(secondLeaf);
+
+        assertThat(state.getDividerPositions())
+                .containsOnly(Map.entry(0, 0.25));
+        assertThat(state.getChildDockContainerStates())
+                .containsExactly(firstLeaf);
+    }
+
 }

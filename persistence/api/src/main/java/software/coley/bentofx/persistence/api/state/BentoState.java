@@ -23,16 +23,16 @@ public class BentoState extends IdentifiableState {
     ) {
 
         super(identifier);
-        this.rootBranchStates = requireNonNull(rootBranchStates);
-        this.dragDropStageStates = requireNonNull(dragDropStageStates);
+        this.rootBranchStates = List.copyOf(rootBranchStates);
+        this.dragDropStageStates = List.copyOf(dragDropStageStates);
     }
 
     public List<DockContainerRootBranchState> getRootBranchStates() {
-        return List.copyOf(rootBranchStates);
+        return rootBranchStates;
     }
 
     public List<DragDropStageState> getDragDropStageStates() {
-        return List.copyOf(dragDropStageStates);
+        return dragDropStageStates;
     }
 
     public static class BentoStateBuilder {

@@ -16,11 +16,11 @@ public class DockingLayout {
     private DockingLayout(
             final List<BentoLayout> bentoLayouts
     ) {
-            this.bentoLayouts = bentoLayouts;
+        this.bentoLayouts = List.copyOf(bentoLayouts);
     }
 
     public List<BentoLayout> getBentoLayouts() {
-        return List.copyOf(bentoLayouts);
+        return bentoLayouts;
     }
 
 

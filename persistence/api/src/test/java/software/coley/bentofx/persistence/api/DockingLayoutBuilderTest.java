@@ -35,4 +35,29 @@ class DockingLayoutBuilderTest {
         assertThatThrownBy(() -> bentoLayouts.add(first))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Test
+    void builtLayoutIsNotAffectedByLaterBuilderMutation() throws Exception {
+        Constructor<BentoLayout> constructor = BentoLayout.class.getDeclaredConstructor(
+                String.class,
+                List.class,
+                List.class
+        );
+        constructor.setAccessible(true);
+
+        BentoLayout first = constructor.newInstance("bento-1", List.of(), List.of());
+        BentoLayout second = constructor.newInstance("bento-2", List.of(), List.of());
+
+        DockingLayout.DockingLayoutBuilder builder =
+                new DockingLayout.DockingLayoutBuilder()
+                        .addBentoLayout(first);
+
+        DockingLayout layout = builder.build();
+
+        builder.addBentoLayout(second);
+
+        assertThat(layout.getBentoLayouts())
+                .containsExactly(first);
+    }
+
 }
