@@ -38,11 +38,11 @@ final class JsonLayoutCodecTest {
         final String json = out.toString(StandardCharsets.UTF_8);
 
         assertThat(json)
-                .describedAs("encoded JSON schema version")
-                .contains("\"schemaVersion\" : " + DockingLayoutDto.getCurrentSchemaVersion());
-        assertThat(json)
-                .describedAs("encoded JSON codec identifier")
-                .contains("\"codecIdentifier\" : \"json\"");
+                .describedAs("encoded JSON layout metadata")
+                .contains(
+                        "\"schemaVersion\" : " + DockingLayoutDto.getCurrentSchemaVersion(),
+                        "\"codecIdentifier\" : \"json\""
+                );
     }
 
     @Test

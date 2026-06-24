@@ -1,5 +1,7 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Metadata about a persisted BentoFX docking layout payload.
  *
@@ -10,10 +12,10 @@ public class LayoutMetadataDto {
     /**
      * Version of the persisted layout schema.
      */
-    public Integer schemaVersion;
+    public @Nullable Integer schemaVersion;
 
     /**
      * Identifier of the codec that encoded the layout payload.
      */
-    public String codecIdentifier;
+    public @Nullable String codecIdentifier;
 }
