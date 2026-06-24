@@ -1,10 +1,11 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
@@ -21,12 +22,12 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 @JsonRootName(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
 @JacksonXmlRootElement(localName = DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
-public abstract class DockingLayoutDtoXmlMixin {
+abstract class DockingLayoutDtoXmlMixin {
 
     @JacksonXmlProperty(localName = METADATA_ELEMENT_NAME)
-    public LayoutMetadataDto metadata;
+    public @Nullable LayoutMetadataDto metadata;
 
     @JacksonXmlElementWrapper(localName = BENTO_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = BENTO_ELEMENT_NAME)
-    public List<BentoStateDto> bentoStates;
+    public @Nullable List<BentoStateDto> bentoStates;
 }

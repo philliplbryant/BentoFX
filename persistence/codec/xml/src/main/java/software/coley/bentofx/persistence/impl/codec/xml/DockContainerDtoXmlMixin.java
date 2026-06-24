@@ -1,9 +1,10 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
 
@@ -24,11 +25,11 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
         @JsonSubTypes.Type(value = DockContainerBranchDto.class, name = BRANCH_ELEMENT_NAME),
         @JsonSubTypes.Type(value = DockContainerLeafDto.class, name = LEAF_ELEMENT_NAME)
 })
-public abstract class DockContainerDtoXmlMixin {
+abstract class DockContainerDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
-    public String identifier;
+    public @Nullable String identifier;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean pruneWhenEmpty;
+    public @Nullable Boolean pruneWhenEmpty;
 }

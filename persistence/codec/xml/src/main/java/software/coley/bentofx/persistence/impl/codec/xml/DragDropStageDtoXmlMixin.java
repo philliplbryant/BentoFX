@@ -1,7 +1,9 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javafx.stage.Modality;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -13,53 +15,53 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class DragDropStageDtoXmlMixin {
+abstract class DragDropStageDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
-    public String title;
+    public @Nullable String title;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double x;
+    public @Nullable Double x;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double y;
+    public @Nullable Double y;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double width;
+    public @Nullable Double width;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double height;
+    public @Nullable Double height;
 
     @JacksonXmlProperty(isAttribute = true)
-    public javafx.stage.Modality modality;
+    public @Nullable Modality modality;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double opacity;
+    public @Nullable Double opacity;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean iconified;
+    public @Nullable Boolean iconified;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean fullScreen;
+    public @Nullable Boolean fullScreen;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean maximized;
+    public @Nullable Boolean maximized;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean alwaysOnTop;
+    public @Nullable Boolean alwaysOnTop;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean resizable;
+    public @Nullable Boolean resizable;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean showing;
+    public @Nullable Boolean showing;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean focused;
+    public @Nullable Boolean focused;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean autoCloseWhenEmpty;
+    public @Nullable Boolean autoCloseWhenEmpty;
 
     @JacksonXmlProperty(localName = ROOT_BRANCH_ELEMENT_NAME)
-    public DockContainerRootBranchDto dockContainerRootBranchDto;
+    public @Nullable DockContainerRootBranchDto dockContainerRootBranchDto;
 }

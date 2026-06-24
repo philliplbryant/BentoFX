@@ -1,7 +1,8 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.jspecify.annotations.Nullable;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -11,11 +12,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class DividerPositionDtoXmlMixin {
+abstract class DividerPositionDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
-    public Integer index;
+    public @Nullable Integer index;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double position;
+    public @Nullable Double position;
 }

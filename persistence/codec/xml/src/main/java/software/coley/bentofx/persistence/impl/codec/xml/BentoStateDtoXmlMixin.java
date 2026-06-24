@@ -1,8 +1,9 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
 
@@ -17,16 +18,16 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class BentoStateDtoXmlMixin {
+abstract class BentoStateDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
-    public String identifier;
+    public @Nullable String identifier;
 
     @JacksonXmlElementWrapper(localName = ROOT_BRANCH_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = ROOT_BRANCH_ELEMENT_NAME)
-    public List<DockContainerRootBranchDto> rootBranches;
+    public @Nullable List<DockContainerRootBranchDto> rootBranches;
 
     @JacksonXmlElementWrapper(localName = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = DRAG_DROP_STAGE_ELEMENT_NAME)
-    public List<DragDropStageDto> dragDropStages;
+    public @Nullable List<DragDropStageDto> dragDropStages;
 }

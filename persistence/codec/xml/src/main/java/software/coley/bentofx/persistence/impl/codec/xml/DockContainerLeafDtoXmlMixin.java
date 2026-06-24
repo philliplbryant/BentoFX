@@ -1,8 +1,10 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javafx.geometry.Side;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
 
 import java.util.List;
@@ -17,33 +19,33 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class DockContainerLeafDtoXmlMixin {
+abstract class DockContainerLeafDtoXmlMixin {
 
     @JacksonXmlElementWrapper(localName = DOCKABLE_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = DOCKABLE_ELEMENT_NAME)
-    public List<DockableDto> dockables;
+    public @Nullable List<DockableDto> dockables;
 
     @JacksonXmlProperty(isAttribute = true)
-    public String identifier;
+    public @Nullable String identifier;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean pruneWhenEmpty;
+    public @Nullable Boolean pruneWhenEmpty;
 
     @JacksonXmlProperty(isAttribute = true)
-    public String selectedDockableIdentifier;
+    public @Nullable String selectedDockableIdentifier;
 
     @JacksonXmlProperty(isAttribute = true)
-    public javafx.geometry.Side side;
+    public @Nullable Side side;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean isResizableWithParent;
+    public @Nullable Boolean isResizableWithParent;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean isCanSplit;
+    public @Nullable Boolean isCanSplit;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Double uncollapsedSizePx;
+    public @Nullable Double uncollapsedSizePx;
 
     @JacksonXmlProperty(isAttribute = true)
-    public Boolean isCollapsed;
+    public @Nullable Boolean isCollapsed;
 }

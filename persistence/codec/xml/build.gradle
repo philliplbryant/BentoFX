@@ -16,11 +16,11 @@ javafx {
 dependencies {
 
     api projects.persistence.api
-    api libs.jackson.xml
 
     implementation projects.persistence.codec.common
 
     implementation libs.jackson.databind
+    implementation libs.jackson.xml
 
     compileOnly libs.jackson.annotations
     compileOnly libs.jspecify

@@ -1,7 +1,6 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.NonNull;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import static java.util.Objects.requireNonNull;
@@ -9,13 +8,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * Utility for registering all DTO Jackson XML mix-ins on an ObjectMapper.
  */
-public final class XmlMapperMixins {
+final class XmlMapperMixins {
 
     private XmlMapperMixins() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static @NonNull ObjectMapper registerAll(final @NonNull ObjectMapper objectMapper) {
+    static ObjectMapper registerAll(final ObjectMapper objectMapper) {
         requireNonNull(objectMapper);
 
         objectMapper.addMixIn(DockingLayoutDto.class, DockingLayoutDtoXmlMixin.class);

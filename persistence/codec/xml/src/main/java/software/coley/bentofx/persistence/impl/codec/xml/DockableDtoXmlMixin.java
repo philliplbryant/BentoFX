@@ -1,7 +1,8 @@
-package software.coley.bentofx.persistence.impl.codec.xml.mixins;
+package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.jspecify.annotations.Nullable;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -11,8 +12,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class DockableDtoXmlMixin {
+abstract class DockableDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
-    public String identifier;
+    public @Nullable String identifier;
 }
