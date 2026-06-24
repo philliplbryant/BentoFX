@@ -2,7 +2,31 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 
 plugins {
     id 'bento.project.build-lifecycle'
+    id 'bento.test.test-lifecycle'
+    id("com.autonomousapps.dependency-analysis")
     id 'jvm-test-suite'
+}
+
+def testSuiteName = "test"
+
+dependencies {
+    def versionCatalog = versionCatalogs.named('libs')
+    add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
+    add("${testSuiteName}Implementation", versionCatalog.findBundle('test-libraries').get())
+    add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
+}
+
+dependencyAnalysis {
+    abi {
+        exclusions {
+            excludeSourceSets(testSuiteName)
+        }
+    }
+    // Test source set analysis broken by Kotlin 2.0.20:
+    // https://github.com/autonomousapps/dependency-analysis-gradle-plugin/issues/1239
+    issues {
+        ignoreSourceSet(testSuiteName)
+    }
 }
 
 tasks.named(ALL_CLASSES_TASK_NAME) {

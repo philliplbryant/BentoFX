@@ -9,6 +9,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class XmlLayoutCodecProviderTest {
 
     @Test
+    void exposesXmlIdentifierAndIsNotDefault() {
+        final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
+
+        assertThat(provider.getIdentifier())
+                .isEqualTo(XmlLayoutCodec.EXTENSION);
+        assertThat(provider.isDefault())
+                .isFalse();
+    }
+
+    @Test
     void getLayoutCodecReturnsXmlLayoutCodec() {
         final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
 
@@ -17,5 +27,7 @@ class XmlLayoutCodecProviderTest {
         assertThat(codec)
                 .isNotNull()
                 .isInstanceOf(XmlLayoutCodec.class);
+        assertThat(codec.getIdentifier())
+                .isEqualTo(XmlLayoutCodec.EXTENSION);
     }
 }

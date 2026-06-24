@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.testfixtures.provider;
 
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.storage.TestLayoutStorage;
@@ -10,8 +11,8 @@ import software.coley.bentofx.persistence.testfixtures.storage.TestLayoutStorage
 public final class TestLayoutStorageProvider implements LayoutStorageProvider {
     private final String identifier;
     private final boolean defaultProvider;
-    private String layoutIdentifier;
-    private String codecIdentifier;
+    private @Nullable String layoutIdentifier;
+    private @Nullable String codecIdentifier;
 
     public TestLayoutStorageProvider(
             final String identifier,
@@ -41,11 +42,11 @@ public final class TestLayoutStorageProvider implements LayoutStorageProvider {
         return new TestLayoutStorage();
     }
 
-    public String getLayoutIdentifier() {
+    public @Nullable String getLayoutIdentifier() {
         return layoutIdentifier;
     }
 
-    public String getCodecIdentifier() {
+    public @Nullable String getCodecIdentifier() {
         return codecIdentifier;
     }
 }

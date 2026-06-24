@@ -10,7 +10,4 @@ dependencies {
     testFixturesApi projects.persistence.api
 
     testFixturesCompileOnly libs.jspecify
-
-    testImplementation libs.assertj
-    testImplementation libs.junit.api
 }

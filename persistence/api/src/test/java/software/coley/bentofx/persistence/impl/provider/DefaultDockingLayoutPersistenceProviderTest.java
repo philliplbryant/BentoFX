@@ -112,4 +112,35 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .hasMessageContaining("xml")
                 .hasMessageContaining("json");
     }
+
+    @Test
+    void failsWhenNoCodecProvidersAreAvailable() {
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(),
+                        List.of(new TestLayoutStorageProvider("file", false))
+                );
+
+        assertThatThrownBy(() -> provider.getLayoutSaver("default", new DefaultBentoProvider()))
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("No LayoutCodecProvider implementation was found");
+    }
+
+    @Test
+    void failsWhenMultipleDefaultCodecProvidersAreAvailable() {
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(
+                                new TestLayoutCodecProvider("json", true),
+                                new TestLayoutCodecProvider("xml", true)
+                        ),
+                        List.of(new TestLayoutStorageProvider("file", false))
+                );
+
+        assertThatThrownBy(() -> provider.getLayoutSaver("default", new DefaultBentoProvider()))
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Multiple default LayoutCodecProvider implementations")
+                .hasMessageContaining("json")
+                .hasMessageContaining("xml");
+    }
 }

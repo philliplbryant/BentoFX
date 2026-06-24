@@ -48,6 +48,13 @@ testing {
     }
 }
 
+dependencies {
+    def versionCatalog = versionCatalogs.named('libs')
+    add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
+    add("${testSuiteName}Implementation", versionCatalog.findBundle('test-libraries').get())
+    add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
+}
+
 dependencyAnalysis {
     abi {
         exclusions {

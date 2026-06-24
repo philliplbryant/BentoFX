@@ -9,21 +9,19 @@ description = 'BentoFX Persistence for XML'
 javafx {
     def versionCatalog = versionCatalogs.named('libs')
     version = versionCatalog.findVersion("javafx")
-    modules = ['javafx.controls', 'javafx.graphics']
+    modules = ['javafx.graphics']
     configurations = ['implementation']
 }
 
 dependencies {
 
     api projects.persistence.api
+    api libs.jackson.xml
 
     implementation projects.persistence.codec.common
 
     implementation libs.jackson.databind
-    implementation libs.jackson.xml
 
     compileOnly libs.jackson.annotations
     compileOnly libs.jspecify
-
-    testImplementation libs.assertj
 }

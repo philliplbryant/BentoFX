@@ -1,13 +1,9 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_ALL_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.*
 
 plugins {
     id 'base'
 }
-
-//def checkTask = tasks.named('check')
 
 tasks.register(CHECK_INTEGRATION_TASK_NAME) {
     description = 'Runs integration tests for all applicable subprojects.'

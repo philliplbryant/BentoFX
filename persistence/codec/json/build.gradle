@@ -23,6 +23,4 @@ dependencies {
 
     compileOnly libs.jackson.annotations
     compileOnly libs.jspecify
-
-    testImplementation libs.assertj
 }

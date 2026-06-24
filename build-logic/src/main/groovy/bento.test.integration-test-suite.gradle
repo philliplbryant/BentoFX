@@ -1,4 +1,5 @@
 import software.coley.gradle.buildservice.SimpleBuildService
+
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
@@ -52,6 +53,13 @@ testing {
             }
         }
     }
+}
+
+dependencies {
+    def versionCatalog = versionCatalogs.named('libs')
+    add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
+    add("${testSuiteName}Implementation", versionCatalog.findBundle('test-libraries').get())
+    add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
 }
 
 dependencyAnalysis {

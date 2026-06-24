@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.testfixtures.codec;
 
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.state.BentoState;
@@ -15,8 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Test codec that records the threads used to encode and decode persisted state.
  */
 public final class ThreadRecordingLayoutCodec implements LayoutCodec {
-    private final AtomicReference<Thread> encodeThread = new AtomicReference<>();
-    private final AtomicReference<Thread> decodeThread = new AtomicReference<>();
+    private final AtomicReference<@Nullable Thread> encodeThread = new AtomicReference<>();
+    private final AtomicReference<@Nullable Thread> decodeThread = new AtomicReference<>();
     private List<BentoState> encodedStates = List.of();
     private List<BentoState> decodedStates = List.of();
 
@@ -62,11 +63,11 @@ public final class ThreadRecordingLayoutCodec implements LayoutCodec {
         writeMarker(outputStream);
     }
 
-    public Thread getEncodeThread() {
+    public @Nullable Thread getEncodeThread() {
         return encodeThread.get();
     }
 
-    public Thread getDecodeThread() {
+    public @Nullable Thread getDecodeThread() {
         return decodeThread.get();
     }
 

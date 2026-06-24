@@ -4,16 +4,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class FileLayoutStorageIT {
 	private static final String TEST_FILE_NAME = "test-layout.bento";
@@ -46,14 +41,20 @@ class FileLayoutStorageIT {
 	@Test
 	void testFileLayoutStorageIntegration() throws IOException {
 		// Test the file does not initially exist
-		assertFalse(fileLayoutStorage.exists(), "File should not exist initially");
+		assertThat(fileLayoutStorage.exists())
+                .describedAs("File should not exist initially")
+                .isFalse();
 
 		// Write data to the file and verify existence
 		try (OutputStream outputStream = fileLayoutStorage.openOutputStream()) {
 			outputStream.write(TEST_FILE_CONTENT.getBytes());
 		}
-		assertTrue(fileLayoutStorage.exists(), "File should exist after writing to it");
-		assertTrue(testFile.length() > 0, "File length should be greater than zero after writing data");
+		assertThat(fileLayoutStorage.exists())
+                .describedAs("File should exist after writing to it")
+                .isTrue();
+		assertThat(testFile)
+                .describedAs("File length should be greater than zero after writing data")
+                .isNotEmpty();
 
 		// Read data from the file and verify the content
 		StringBuilder fileContent = new StringBuilder();
@@ -64,6 +65,8 @@ class FileLayoutStorageIT {
 				fileContent.append(line);
 			}
 		}
-		assertEquals(TEST_FILE_CONTENT, fileContent.toString(), "File content should match the written data");
+		assertThat(fileContent)
+                .describedAs("File content should match the written data")
+                .hasToString(TEST_FILE_CONTENT);
 	}
 }

@@ -37,8 +37,6 @@ dependencies {
     runtimeOnly libs.h2
     runtimeOnly libs.jakarta.xmlbinding.impl
 
-    integrationTestImplementation libs.assertj
-
     integrationTestRuntimeOnly libs.slf4j.simple
 }
 
