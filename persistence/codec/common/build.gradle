@@ -23,4 +23,6 @@ dependencies {
     compileOnly libs.jakarta.annotation
     compileOnly libs.jspecify
     compileOnly libs.moxy
+
+    integrationTestParallelImplementation libs.assertj
 }

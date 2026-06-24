@@ -1,30 +1,22 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,7 +27,7 @@ class BentoStateMapperIntegrationTest {
 	// ("Single Assert Rule").
 	@SuppressWarnings("java:S5961")
 	@Test
-	void testFullMappingFromDomainToDtoAndBack() {
+	void testFullMappingFromDomainToDtoAndBack() throws BentoStateException {
 
 		final String expectedBentoIdentifier = "bento-1";
 		final String expectedDockableIdentifier = "dockable-1";
@@ -82,6 +74,14 @@ class BentoStateMapperIntegrationTest {
 
 		// Validate the DTO
 		assertNotNull(dto);
+
+		assertThat(dto.metadata)
+				.describedAs("layout metadata")
+				.isNotNull();
+		assertThat(dto.metadata.schemaVersion)
+				.describedAs("schema version")
+				.isEqualTo(DockingLayoutDto.getCurrentSchemaVersion());
+
 		assertEquals(1, dto.bentoStates.size());
 		BentoStateDto bentoStateDto = dto.bentoStates.getFirst();
 		assertEquals(expectedBentoIdentifier, bentoStateDto.identifier);
@@ -142,4 +142,62 @@ class BentoStateMapperIntegrationTest {
 				deserializedLeafState.getChildDockableStates().getFirst();
 		assertEquals(expectedDockableIdentifier, deserializedDockableState.getIdentifier());
 	}
+	@Test
+	void validateSupportedMetadataAllowsMissingMetadata() {
+		assertThatCode(() ->
+				BentoStateMapper.validateSupportedMetadata(null)
+		)
+				.describedAs("missing legacy metadata validation")
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	void validateSupportedMetadataAllowsMissingSchemaVersion() {
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+
+		assertThatCode(() ->
+				BentoStateMapper.validateSupportedMetadata(metadata)
+		)
+				.describedAs("missing legacy schema version validation")
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	void validateSupportedMetadataAllowsCurrentSchemaVersion() {
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+
+		assertThatCode(() ->
+				BentoStateMapper.validateSupportedMetadata(metadata)
+		)
+				.describedAs("current schema version validation")
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	void validateSupportedMetadataRejectsInvalidSchemaVersion() {
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+		metadata.schemaVersion = 0;
+
+		assertThatThrownBy(() ->
+				BentoStateMapper.validateSupportedMetadata(metadata)
+		)
+				.describedAs("invalid schema version validation")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessageContaining("Unsupported BentoFX docking layout schema version: 0");
+	}
+
+	@Test
+	void validateSupportedMetadataRejectsFutureSchemaVersion() {
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion() + 1;
+
+		assertThatThrownBy(() ->
+				BentoStateMapper.validateSupportedMetadata(metadata)
+		)
+				.describedAs("future schema version validation")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessageContaining("Unsupported BentoFX docking layout schema version");
+	}
+
 }

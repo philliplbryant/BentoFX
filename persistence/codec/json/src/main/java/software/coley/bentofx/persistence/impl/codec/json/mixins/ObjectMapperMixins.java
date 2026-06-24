@@ -1,15 +1,7 @@
 package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -36,6 +28,7 @@ public final class ObjectMapperMixins {
         objectMapper.addMixIn(DockContainerRootBranchDto.class, DockContainerRootBranchDtoJsonMixin.class);
         objectMapper.addMixIn(DockingLayoutDto.class, DockingLayoutDtoJsonMixin.class);
         objectMapper.addMixIn(DragDropStageDto.class, DragDropStageDtoJsonMixin.class);
+        objectMapper.addMixIn(LayoutMetadataDto.class, LayoutMetadataDtoJsonMixin.class);
 
         return objectMapper;
     }

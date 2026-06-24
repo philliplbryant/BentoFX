@@ -47,7 +47,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
             final OutputStream outputStream
     ) throws BentoStateException {
         try {
-            final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
+            final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates, getIdentifier());
             mapper.writeValue(outputStream, dto);
         } catch (final Exception e) {
             throw new BentoStateException("Failed to encode BentoState as XML", e);

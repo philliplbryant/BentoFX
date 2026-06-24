@@ -8,14 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +38,15 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_IS_COLLAPSED = "isCollapsed";
 	private static final String FIELD_IS_RESIZABLE_WITH_PARENT = "isResizableWithParent";
 	private static final String FIELD_MAXIMIZED = "maximized";
+	private static final String FIELD_METADATA = "metadata";
 	private static final String FIELD_MODALITY = "modality";
 	private static final String FIELD_OPACITY = "opacity";
 	private static final String FIELD_ORIENTATION = "orientation";
 	private static final String FIELD_POSITION = "position";
 	private static final String FIELD_PRUNE_WHEN_EMPTY = "pruneWhenEmpty";
 	private static final String FIELD_RESIZABLE = "resizable";
+	private static final String FIELD_SCHEMA_VERSION = "schemaVersion";
+	private static final String FIELD_CODEC_IDENTIFIER = "codecIdentifier";
 	private static final String FIELD_SELECTED_DOCKABLE_IDENTIFIER = "selectedDockableIdentifier";
 	private static final String FIELD_SHOWING = "showing";
 	private static final String FIELD_SIDE = "side";
@@ -67,6 +63,7 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String LEAF_IDENTIFIER = "leaf-1";
 	private static final String ROOT_IDENTIFIER = "root-1";
 	private static final String STAGE_TITLE = "Stage";
+	private static final String TEST_CODEC_IDENTIFIER = "json";
 
 	@Test
 	void serializesDockingLayoutUsingCommonMapperFieldNames() throws Exception {
@@ -81,8 +78,10 @@ class ObjectMapperMixinsCompatibilityTest {
 		);
 
 		assertThat(expected)
+				.describedAs("expected serialized docking layout JSON")
 				.isNotNull();
 		assertThat(actual)
+				.describedAs("actual serialized docking layout JSON")
 				.isNotNull()
 				.isEqualTo(expected);
 	}
@@ -103,8 +102,12 @@ class ObjectMapperMixinsCompatibilityTest {
 				treeMapper.readTree(codecMapper.writeValueAsBytes(restored))
 		);
 
-		assertThat(restored).isNotNull();
-		assertThat(actual).isEqualTo(expected);
+		assertThat(restored)
+				.describedAs("deserialized docking layout DTO")
+				.isNotNull();
+		assertThat(actual)
+				.describedAs("reserialized docking layout JSON")
+				.isEqualTo(expected);
 	}
 
 	private static JsonMapper newCodecMapper() {
@@ -220,7 +223,12 @@ class ObjectMapperMixinsCompatibilityTest {
 		bento.rootBranches.add(root);
 		bento.dragDropStages.add(stage);
 
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+		metadata.codecIdentifier = TEST_CODEC_IDENTIFIER;
+
 		final DockingLayoutDto layout = new DockingLayoutDto();
+		layout.metadata = metadata;
 		layout.bentoStates.add(bento);
 
 		return layout;
@@ -292,7 +300,12 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ArrayNode bentos = factory.arrayNode();
 		bentos.add(bento);
 
+		final ObjectNode metadata = factory.objectNode();
+		metadata.put(FIELD_SCHEMA_VERSION, DockingLayoutDto.getCurrentSchemaVersion());
+		metadata.put(FIELD_CODEC_IDENTIFIER, TEST_CODEC_IDENTIFIER);
+
 		final ObjectNode dockingLayout = factory.objectNode();
+		dockingLayout.set(FIELD_METADATA, metadata);
 		dockingLayout.set(BENTO_LIST_ELEMENT_NAME, bentos);
 
 		final ObjectNode wrapped = factory.objectNode();

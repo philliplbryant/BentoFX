@@ -4,28 +4,15 @@ import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerState;
-import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,15 +50,48 @@ public final class BentoStateMapper {
 	public static DockingLayoutDto toDto(
 			final List<BentoState> bentoStates
 	) {
+		return toDto(bentoStates, null);
+	}
+
+	/**
+	 * Maps a {@code List<BentoState>} to a {@link DockingLayoutDto}.
+	 *
+	 * @param bentoStates the {@code List<BentoState>} to map.
+	 * @param codecIdentifier the identifier of the codec writing the DTO.
+	 *
+	 * @return the {@link DockingLayoutDto} mapped from the
+	 * {@code List<BentoState>}.
+	 */
+	public static DockingLayoutDto toDto(
+			final List<BentoState> bentoStates,
+			final @Nullable String codecIdentifier
+	) {
 		requireNonNull(bentoStates);
 
 		final DockingLayoutDto dockingLayoutDto = new DockingLayoutDto();
+		dockingLayoutDto.metadata = createMetadata(codecIdentifier);
 
 		for (final BentoState state : bentoStates) {
 			dockingLayoutDto.bentoStates.add(toDto(state));
 		}
 
 		return dockingLayoutDto;
+	}
+
+	/**
+	 * Creates metadata for a persisted layout payload.
+	 *
+	 * @param codecIdentifier the identifier of the codec writing the DTO.
+	 *
+	 * @return the metadata DTO.
+	 */
+	private static LayoutMetadataDto createMetadata(
+			final @Nullable String codecIdentifier
+	) {
+		final LayoutMetadataDto metadata = new LayoutMetadataDto();
+		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+		metadata.codecIdentifier = codecIdentifier;
+		return metadata;
 	}
 
 	/**
@@ -298,7 +318,11 @@ public final class BentoStateMapper {
 	 */
 	public static List<BentoState> fromDto(
 			final DockingLayoutDto dockingLayoutDto
-	) {
+	) throws BentoStateException {
+		requireNonNull(dockingLayoutDto);
+
+		validateSupportedMetadata(dockingLayoutDto.metadata);
+
 		final List<BentoState> bentoStateList = new ArrayList<>();
 
 		for (final BentoStateDto stateDto : dockingLayoutDto.bentoStates) {
@@ -306,6 +330,40 @@ public final class BentoStateMapper {
 		}
 
 		return bentoStateList;
+	}
+
+	/**
+	 * Validates that decoded layout metadata can be restored by this version of
+	 * the persistence framework.
+	 *
+	 * @param metadata the decoded metadata. {@code null} indicates a legacy
+	 * payload that did not include metadata.
+	 *
+	 * @throws BentoStateException when the metadata describes an unsupported
+	 * schema version.
+	 */
+	static void validateSupportedMetadata(
+			final @Nullable LayoutMetadataDto metadata
+	) throws BentoStateException {
+		if (metadata == null || metadata.schemaVersion == null) {
+			return;
+		}
+
+		if (metadata.schemaVersion < 1) {
+			throw new BentoStateException(
+					"Unsupported BentoFX docking layout schema version: "
+							+ metadata.schemaVersion
+			);
+		}
+
+		if (metadata.schemaVersion > DockingLayoutDto.getCurrentSchemaVersion()) {
+			throw new BentoStateException(
+					"Unsupported BentoFX docking layout schema version: "
+							+ metadata.schemaVersion
+							+ ". Current supported schema version is "
+							+ DockingLayoutDto.getCurrentSchemaVersion()
+			);
+		}
 	}
 
 	/**

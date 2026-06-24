@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.util.List;
 
@@ -21,6 +22,9 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonRootName(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
 @JacksonXmlRootElement(localName = DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
 public abstract class DockingLayoutDtoXmlMixin {
+
+    @JacksonXmlProperty(localName = METADATA_ELEMENT_NAME)
+    public LayoutMetadataDto metadata;
 
     @JacksonXmlElementWrapper(localName = BENTO_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = BENTO_ELEMENT_NAME)

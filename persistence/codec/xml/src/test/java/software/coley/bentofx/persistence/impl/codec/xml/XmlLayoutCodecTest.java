@@ -1,16 +1,10 @@
 package software.coley.bentofx.persistence.impl.codec.xml;
 
 import org.junit.jupiter.api.Test;
+import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 class XmlLayoutCodecTest {
@@ -26,7 +21,9 @@ class XmlLayoutCodecTest {
     void getIdentifierReturnsXml() {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
 
-        assertThat(codec.getIdentifier()).isEqualTo("xml");
+        assertThat(codec.getIdentifier())
+                .describedAs("codec identifier")
+                .isEqualTo("xml");
     }
 
     @Test
@@ -40,7 +37,11 @@ class XmlLayoutCodecTest {
         final String xml = out.toString(StandardCharsets.UTF_8);
 
         assertThat(xml)
+                .describedAs("encoded XML element names")
                 .contains("<" + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + ">")
+                .contains("<" + METADATA_ELEMENT_NAME + ">")
+                .contains("<" + SCHEMA_VERSION_ELEMENT_NAME + ">")
+                .contains("<" + CODEC_IDENTIFIER_ELEMENT_NAME + ">")
                 .contains("<" + BENTO_LIST_ELEMENT_NAME + ">")
                 .contains("<" + BENTO_ELEMENT_NAME)
                 .contains("<" + ROOT_BRANCH_LIST_ELEMENT_NAME + ">")
@@ -71,20 +72,58 @@ class XmlLayoutCodecTest {
         final DockingLayoutDto originalDto = BentoStateMapper.toDto(original);
         final DockingLayoutDto restoredDto = BentoStateMapper.toDto(restored);
 
+        assertThat(restoredDto.metadata)
+                .describedAs("restored layout metadata")
+                .isNotNull();
+        assertThat(restoredDto.metadata.schemaVersion)
+                .describedAs("restored schema version")
+                .isEqualTo(DockingLayoutDto.getCurrentSchemaVersion());
+        assertThat(restoredDto.metadata.codecIdentifier)
+                .describedAs("restored codec identifier")
+                .isNull();
+
         assertThat(restoredDto.bentoStates)
+                .describedAs("restored Bento states")
                 .hasSize(originalDto.bentoStates.size());
 
         assertThat(restoredDto.bentoStates.getFirst().identifier)
+                .describedAs("restored Bento identifier")
                 .isEqualTo(originalDto.bentoStates.getFirst().identifier);
 
         assertThat(restoredDto.bentoStates.getFirst().rootBranches.getFirst().identifier)
+                .describedAs("restored root branch identifier")
                 .isEqualTo(originalDto.bentoStates.getFirst().rootBranches.getFirst().identifier);
 
         assertThat(restoredDto.bentoStates.getFirst().dragDropStages.getFirst().title)
+                .describedAs("restored drag/drop stage title")
                 .isEqualTo(originalDto.bentoStates.getFirst().dragDropStages.getFirst().title);
     }
 
-    private static List<BentoState> createStates() {
+
+
+    @Test
+    void decodeRejectsFutureSchemaVersion() {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+        final int futureSchemaVersion =
+                DockingLayoutDto.getCurrentSchemaVersion() + 1;
+        final String xml = """
+                <dockingLayout>
+                  <metadata>
+                    <schemaVersion>%d</schemaVersion>
+                    <codecIdentifier>xml</codecIdentifier>
+                  </metadata>
+                  <bentos/>
+                </dockingLayout>
+                """.formatted(futureSchemaVersion);
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("future XML schema version validation")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Unsupported BentoFX docking layout schema version");
+    }
+    private static List<BentoState> createStates() throws Exception {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
     }
 
@@ -145,7 +184,11 @@ class XmlLayoutCodecTest {
         bento.rootBranches.add(root);
         bento.dragDropStages.add(stage);
 
+        final LayoutMetadataDto metadata = new LayoutMetadataDto();
+        metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+
         final DockingLayoutDto layout = new DockingLayoutDto();
+        layout.metadata = metadata;
         layout.bentoStates.add(bento);
 
         return layout;

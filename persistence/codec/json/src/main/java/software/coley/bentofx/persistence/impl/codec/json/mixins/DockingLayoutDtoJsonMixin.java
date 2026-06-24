@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 /**
  * Jackson JSON mix-in for {@code DockingLayoutDto}.
@@ -19,6 +19,9 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 @JsonRootName(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
 public abstract class DockingLayoutDtoJsonMixin {
+
+    @JsonProperty(METADATA_ELEMENT_NAME)
+    public LayoutMetadataDto metadata;
 
     @JsonProperty(BENTO_LIST_ELEMENT_NAME)
     public List<BentoStateDto> bentoStates;
