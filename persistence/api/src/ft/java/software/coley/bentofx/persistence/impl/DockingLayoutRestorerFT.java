@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
+import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -17,6 +18,7 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoLayout;
+import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
@@ -31,8 +33,10 @@ import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
@@ -293,5 +297,86 @@ class DockingLayoutRestorerFT {
 
         // Cleanup
         robot.interact(dragStage::hide);
+    }
+
+    @Test
+    void restoreLayoutDecodesAwayFromFxThreadAndRestoresOnFxThread(FxRobot robot) throws Exception {
+        final String bentoId = "bento-thread-test";
+        final String rootId = "root-thread-test";
+        final String leafId = "leaf-thread-test";
+        final String dockableId = "dock-thread-test";
+
+        final DockableState dockableState =
+                new DockableStateBuilder(dockableId)
+                        .setDockableNode(new Label(dockableId))
+                        .build();
+
+        final DockContainerLeafStateBuilder leafBuilder =
+                new DockContainerLeafStateBuilder(leafId);
+        leafBuilder.addChildDockableState(dockableState);
+
+        final DockContainerRootBranchStateBuilder rootBuilder =
+                new DockContainerRootBranchStateBuilder(rootId);
+        rootBuilder.addDockContainerState(leafBuilder.build());
+
+        final BentoState state = new BentoState.BentoStateBuilder(bentoId)
+                .addRootBranchState(rootBuilder.build())
+                .build();
+
+        final ThreadRecordingLayoutCodec codec =
+                new ThreadRecordingLayoutCodec();
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        try (var out = storage.openOutputStream()) {
+            codec.writeEncoded(List.of(state), out);
+        }
+
+        final AtomicBoolean providerRanOnFxThread = new AtomicBoolean();
+
+        final DockingLayoutRestorer restorer = new DockingLayoutRestorer(
+                codec,
+                storage,
+                new DefaultBentoProvider(new Bento(bentoId)),
+                actualId -> {
+                    providerRanOnFxThread.set(Platform.isFxApplicationThread());
+                    return actualId.equals(dockableId)
+                            ? Optional.of(dockableState)
+                            : Optional.empty();
+                },
+                null,
+                null
+        );
+
+        final AtomicReference<DockingLayout> restoredLayout =
+                new AtomicReference<>();
+
+        robot.interact(() ->
+                restoredLayout.set(
+                        restorer.restoreLayout(
+                                () -> new DockingLayoutBuilder().build()
+                        )
+                )
+        );
+
+        assertThat(codec.decodeRanOnFxThread()).isFalse();
+        assertThat(providerRanOnFxThread).isTrue();
+        assertThat(restoredLayout.get().getBentoLayouts()).hasSize(1);
+    }
+
+
+    private static class ThreadRecordingLayoutCodec extends InMemoryLayoutCodec {
+
+        private final AtomicBoolean decodeRanOnFxThread = new AtomicBoolean();
+
+        @Override
+        public synchronized List<BentoState> decode(
+                final InputStream inputStream
+        ) throws BentoStateException {
+            decodeRanOnFxThread.set(Platform.isFxApplicationThread());
+            return super.decode(inputStream);
+        }
+
+        boolean decodeRanOnFxThread() {
+            return decodeRanOnFxThread.get();
+        }
     }
 }

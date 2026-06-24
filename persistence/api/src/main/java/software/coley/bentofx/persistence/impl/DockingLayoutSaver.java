@@ -15,16 +15,11 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockContainerState;
-import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -34,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static software.coley.bentofx.persistence.impl.PersistenceThreading.callOffFxThread;
 import static software.coley.bentofx.persistence.impl.StageUtils.getAllStages;
 
 /**
@@ -74,6 +70,23 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     @Override
     public void saveLayout() throws BentoStateException {
+        final List<BentoState> bentoStateList =
+                PersistenceThreading.callOnFxThread(this::captureBentoStates);
+
+        callOffFxThread(() -> {
+            writeLayout(bentoStateList);
+            return null;
+        });
+    }
+
+    /**
+     * Captures the current JavaFX/BentoFX runtime graph as serializable state.
+     * This method must run on the JavaFX application thread because it reads
+     * live JavaFX and BentoFX objects.
+     *
+     * @return captured Bento states.
+     */
+    private List<BentoState> captureBentoStates() {
 
         final List<BentoState> bentoStateList =
                 new ArrayList<>();
@@ -123,6 +136,19 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             bentoStateList.add(bentoStateBuilder.build());
         }
 
+        return List.copyOf(bentoStateList);
+    }
+
+    /**
+     * Encodes and writes captured layout state. This method should run away
+     * from the JavaFX application thread because it performs codec and storage
+     * operations.
+     *
+     * @param bentoStateList captured Bento states.
+     * @throws BentoStateException when encoding or storage fails.
+     */
+    private void writeLayout(final List<BentoState> bentoStateList)
+            throws BentoStateException {
         try (final OutputStream out = layoutStorage.openOutputStream()) {
 
             layoutCodec.encode(bentoStateList, out);

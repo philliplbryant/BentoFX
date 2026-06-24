@@ -2,10 +2,7 @@ package software.coley.bentofx.persistence.testfixtures.storage;
 
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 
 /**
@@ -63,7 +60,7 @@ public class InMemoryLayoutStorage implements LayoutStorage {
     }
 
     @Override
-    public synchronized ByteArrayOutputStream openOutputStream() {
+    public synchronized OutputStream openOutputStream() {
         return new ByteArrayOutputStream() {
             @Override
             public void close() throws IOException {

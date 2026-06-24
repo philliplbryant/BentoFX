@@ -26,31 +26,14 @@ import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerState;
-import software.coley.bentofx.persistence.api.state.DockableState;
-import software.coley.bentofx.persistence.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.*;
 import java.util.function.Supplier;
 
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static software.coley.bentofx.persistence.impl.StageUtils.getXInScreenBounds;
 import static software.coley.bentofx.persistence.impl.StageUtils.getYInScreenBounds;
 
@@ -119,132 +102,142 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     ) {
 
         if (!doesLayoutExist()) {
-            return defaultLayoutSupplier.get();
+            return getDefaultLayout(defaultLayoutSupplier);
         }
 
-        final DockingLayoutBuilder dockingLayoutBuilder =
-                new DockingLayoutBuilder();
         try {
+            final List<BentoState> bentoStateList =
+                    PersistenceThreading.callOffFxThread(this::readLayoutState);
 
-            // Create, schedule, and wait for a service to read the layout from
-            // the LayoutStorage implementation
-            final List<BentoState> bentoStateList = scheduleService().get();
+            return PersistenceThreading.callOnFxThread(() ->
+                    restoreDockingLayout(bentoStateList)
+            );
 
-            // Restore the BentoLayout, containing root branches and drag/drop
-            // stages for each Bento, and add the BentoLayout to the
-            // DockingLayout.
-            for (final BentoState bentoState : bentoStateList) {
-
-                final String bentoIdentifier = bentoState.getIdentifier();
-
-                final BentoLayoutBuilder bentoLayoutBuilder =
-                        new BentoLayoutBuilder(bentoIdentifier);
-
-                // All Bentos are not created equal - it's possible the client
-                // application extended the Bento class or otherwise customized
-                // its functionality, and used the custom Bento when creating
-                // the layout that is being restored. Use the BentoProvider to
-                // get the Bento for the bento identifier.
-                final Bento bento = bentoProvider.getBento(bentoIdentifier)
-                        .orElseGet(() -> {
-                                    logger.warn(
-                                            "Could not find the Bento with " +
-                                                    "identifier {}. Some " +
-                                                    "docking features might " +
-                                                    "not be available.",
-                                            bentoIdentifier
-                                    );
-                                    return new Bento();
-                                }
-                        );
-
-                final DockBuilding dockBuilding = bento.dockBuilding();
-
-                // Restore each DockContainerRootBranch and add it to the
-                // BentoLayout.
-                for (final DockContainerRootBranchState rootBranchState :
-                        bentoState.getRootBranchStates()) {
-                    bentoLayoutBuilder.addRootBranch(
-                            restoreRootBranchContainer(
-                                    dockBuilding,
-                                    rootBranchState
-                            )
-                    );
-                }
-
-                // Restore each DragDropStage and add it to the BentoLayout
-                for (final DragDropStageState dragDropStageState :
-                        bentoState.getDragDropStageStates()) {
-                    bentoLayoutBuilder.addDragDropStage(
-                            restoreDragDropStage(
-                                    dockBuilding,
-                                    dragDropStageState
-                            )
-                    );
-                }
-
-                dockingLayoutBuilder.addBentoLayout(
-                        bentoLayoutBuilder.build()
-                );
-            }
-
-            return dockingLayoutBuilder.build();
-
-        } catch (final ExecutionException e) {
-
+        } catch (final BentoStateException e) {
             logger.warn(
-                    "An error occurred while attempting to read the layout",
+                    "An error occurred while attempting to restore the layout",
                     e
             );
 
-            return defaultLayoutSupplier.get();
-
-        } catch (final InterruptedException e) {
-
-            Thread.currentThread().interrupt();
-            logger.warn(
-                    "Interrupted while attempting to read the layout",
-                    e
-            );
-
-            return defaultLayoutSupplier.get();
+            return getDefaultLayout(defaultLayoutSupplier);
         }
     }
 
     /**
-     * Uses a {@link ScheduledExecutorService} to read the persisted layout
-     * state, from the {@link LayoutStorage} implementation, in a new thread
-     * that does <em>not</em> execute on the application thread.
+     * Reads and decodes persisted layout state. This method should run away
+     * from the JavaFX application thread because it performs storage and codec
+     * operations.
      *
-     * @return a {@link CompletableFuture} to use to get the {@link BentoState}s
-     * when the service completes.
+     * @return decoded Bento states.
+     * @throws BentoStateException when storage or decoding fails.
      */
-    private CompletableFuture<List<BentoState>> scheduleService() {
-        try (final ScheduledExecutorService executorService =
-                     newSingleThreadScheduledExecutor()) {
+    private List<BentoState> readLayoutState() throws BentoStateException {
+        try (final InputStream in = layoutStorage.openInputStream()) {
 
-            CompletableFuture<List<BentoState>> futureState = new CompletableFuture<>();
+            return layoutCodec.decode(in);
+        } catch (final IOException e) {
 
-            // Do not decode on the application thread
-            executorService.schedule(
-                    () -> {
-                        try (
-                                final InputStream in =
-                                        layoutStorage.openInputStream()
-                        ) {
-
-                            futureState.complete(layoutCodec.decode(in));
-                        } catch (final BentoStateException | IOException e) {
-                            futureState.completeExceptionally(e);
-                        }
-                    },
-                    300,
-                    MILLISECONDS
+            throw new BentoStateException(
+                    "Could not read persisted layout state",
+                    e
             );
-
-            return futureState;
         }
     }
+
+    /**
+     * Restores decoded layout state to JavaFX/BentoFX runtime objects. This
+     * method must run on the JavaFX application thread because it creates and
+     * mutates JavaFX and BentoFX objects.
+     *
+     * @param bentoStateList decoded Bento states.
+     * @return restored docking layout.
+     */
+    private DockingLayout restoreDockingLayout(
+            final List<BentoState> bentoStateList
+    ) {
+        final DockingLayoutBuilder dockingLayoutBuilder =
+                new DockingLayoutBuilder();
+
+        // Restore the BentoLayout, containing root branches and drag/drop
+        // stages for each Bento, and add the BentoLayout to the
+        // DockingLayout.
+        for (final BentoState bentoState : bentoStateList) {
+
+            final String bentoIdentifier = bentoState.getIdentifier();
+
+            final BentoLayoutBuilder bentoLayoutBuilder =
+                    new BentoLayoutBuilder(bentoIdentifier);
+
+            // All Bentos are not created equal - it's possible the client
+            // application extended the Bento class or otherwise customized
+            // its functionality, and used the custom Bento when creating
+            // the layout that is being restored. Use the BentoProvider to
+            // get the Bento for the bento identifier.
+            final Bento bento = bentoProvider.getBento(bentoIdentifier)
+                    .orElseGet(() -> {
+                                logger.warn(
+                                        "Could not find the Bento with " +
+                                                "identifier {}. Some " +
+                                                "docking features might " +
+                                                "not be available.",
+                                        bentoIdentifier
+                                );
+                                return new Bento();
+                            }
+                    );
+
+            final DockBuilding dockBuilding = bento.dockBuilding();
+
+            // Restore each DockContainerRootBranch and add it to the
+            // BentoLayout.
+            for (final DockContainerRootBranchState rootBranchState :
+                    bentoState.getRootBranchStates()) {
+                bentoLayoutBuilder.addRootBranch(
+                        restoreRootBranchContainer(
+                                dockBuilding,
+                                rootBranchState
+                        )
+                );
+            }
+
+            // Restore each DragDropStage and add it to the BentoLayout
+            for (final DragDropStageState dragDropStageState :
+                    bentoState.getDragDropStageStates()) {
+                bentoLayoutBuilder.addDragDropStage(
+                        restoreDragDropStage(
+                                dockBuilding,
+                                dragDropStageState
+                        )
+                );
+            }
+
+            dockingLayoutBuilder.addBentoLayout(
+                    bentoLayoutBuilder.build()
+            );
+        }
+
+        return dockingLayoutBuilder.build();
+    }
+
+    /**
+     * Gets the fallback/default layout on the JavaFX application thread.
+     *
+     * @param defaultLayoutSupplier default layout supplier.
+     * @return default layout.
+     */
+    private DockingLayout getDefaultLayout(
+            final Supplier<DockingLayout> defaultLayoutSupplier
+    ) {
+        try {
+            return PersistenceThreading.callOnFxThread(defaultLayoutSupplier::get);
+        } catch (final BentoStateException e) {
+            throw new IllegalStateException(
+                    "Could not create default docking layout",
+                    e
+            );
+        }
+    }
+
 
     /**
      * Creates a {@link DragDropStage}, restore its
