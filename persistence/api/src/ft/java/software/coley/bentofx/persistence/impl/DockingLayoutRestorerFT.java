@@ -18,7 +18,6 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoLayout;
-import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
@@ -31,9 +30,9 @@ import software.coley.bentofx.persistence.api.state.DockableState.DockableStateB
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
+import software.coley.bentofx.persistence.testfixtures.codec.ThreadRecordingLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -331,6 +330,7 @@ class DockingLayoutRestorerFT {
         }
 
         final AtomicBoolean providerRanOnFxThread = new AtomicBoolean();
+        final AtomicReference<Thread> providerThread = new AtomicReference<>();
 
         final DockingLayoutRestorer restorer = new DockingLayoutRestorer(
                 codec,
@@ -338,6 +338,7 @@ class DockingLayoutRestorerFT {
                 new DefaultBentoProvider(new Bento(bentoId)),
                 actualId -> {
                     providerRanOnFxThread.set(Platform.isFxApplicationThread());
+                    providerThread.set(Thread.currentThread());
                     return actualId.equals(dockableId)
                             ? Optional.of(dockableState)
                             : Optional.empty();
@@ -357,26 +358,10 @@ class DockingLayoutRestorerFT {
                 )
         );
 
-        assertThat(codec.decodeRanOnFxThread()).isFalse();
+        assertThat(codec.getDecodeThread()).isNotNull();
+        assertThat(providerThread.get()).isNotNull();
+        assertThat(codec.getDecodeThread()).isNotEqualTo(providerThread.get());
         assertThat(providerRanOnFxThread).isTrue();
         assertThat(restoredLayout.get().getBentoLayouts()).hasSize(1);
-    }
-
-
-    private static class ThreadRecordingLayoutCodec extends InMemoryLayoutCodec {
-
-        private final AtomicBoolean decodeRanOnFxThread = new AtomicBoolean();
-
-        @Override
-        public synchronized List<BentoState> decode(
-                final InputStream inputStream
-        ) throws BentoStateException {
-            decodeRanOnFxThread.set(Platform.isFxApplicationThread());
-            return super.decode(inputStream);
-        }
-
-        boolean decodeRanOnFxThread() {
-            return decodeRanOnFxThread.get();
-        }
     }
 }

@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.impl;
 
-import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -20,11 +19,11 @@ import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.IdentifiableState;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
+import software.coley.bentofx.persistence.testfixtures.codec.ThreadRecordingLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
+import software.coley.bentofx.persistence.testfixtures.storage.ThreadRecordingLayoutStorage;
 
-import java.io.OutputStream;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -142,7 +141,10 @@ class DockingLayoutSaverFT {
         final ThreadRecordingLayoutStorage storage = new ThreadRecordingLayoutStorage();
         final BentoProvider bentoProvider = new DefaultBentoProvider(bento);
 
+        final AtomicReference<Thread> fxThread = new AtomicReference<>();
+
         robot.interact(() -> {
+            fxThread.set(Thread.currentThread());
             try (DockingLayoutSaver saver = new DockingLayoutSaver(
                     codec, storage, bentoProvider
             )) {
@@ -152,42 +154,10 @@ class DockingLayoutSaverFT {
             }
         });
 
-        assertThat(codec.encodeRanOnFxThread()).isFalse();
-        assertThat(storage.openOutputStreamRanOnFxThread()).isFalse();
-    }
-
-
-    private static class ThreadRecordingLayoutCodec extends InMemoryLayoutCodec {
-
-        private final AtomicBoolean encodeRanOnFxThread = new AtomicBoolean();
-
-        @Override
-        public synchronized void encode(
-                final List<BentoState> bentoStates,
-                final OutputStream outputStream
-        ) throws BentoStateException {
-            encodeRanOnFxThread.set(Platform.isFxApplicationThread());
-            super.encode(bentoStates, outputStream);
-        }
-
-        boolean encodeRanOnFxThread() {
-            return encodeRanOnFxThread.get();
-        }
-    }
-
-    private static class ThreadRecordingLayoutStorage extends InMemoryLayoutStorage {
-
-        private final AtomicBoolean openOutputStreamRanOnFxThread =
-                new AtomicBoolean();
-
-        @Override
-        public synchronized OutputStream openOutputStream() {
-            openOutputStreamRanOnFxThread.set(Platform.isFxApplicationThread());
-            return super.openOutputStream();
-        }
-
-        boolean openOutputStreamRanOnFxThread() {
-            return openOutputStreamRanOnFxThread.get();
-        }
+        assertThat(fxThread.get()).isNotNull();
+        assertThat(codec.getEncodeThread()).isNotNull();
+        assertThat(storage.getOpenOutputStreamThread()).isNotNull();
+        assertThat(codec.getEncodeThread()).isNotEqualTo(fxThread.get());
+        assertThat(storage.getOpenOutputStreamThread()).isNotEqualTo(fxThread.get());
     }
 }

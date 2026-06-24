@@ -3,16 +3,9 @@ package software.coley.bentofx.persistence.impl.provider;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutCodecProvider;
+import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutStorageProvider;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,8 +15,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void usesSingleCodecAndStorageProvidersWithoutExplicitSelection() throws BentoStateException {
-        final TestCodecProvider codecProvider = new TestCodecProvider("json", false);
-        final TestStorageProvider storageProvider = new TestStorageProvider("file", false);
+        final TestLayoutCodecProvider codecProvider = new TestLayoutCodecProvider("json", false);
+        final TestLayoutStorageProvider storageProvider = new TestLayoutStorageProvider("file", false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -33,17 +26,17 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         provider.getLayoutSaver("default", new DefaultBentoProvider());
 
-        assertThat(codecProvider.createdCodecCount).isEqualTo(1);
-        assertThat(storageProvider.layoutIdentifier).isEqualTo("default");
-        assertThat(storageProvider.codecIdentifier).isEqualTo("json");
+        assertThat(codecProvider.getCreatedCodecCount()).isEqualTo(1);
+        assertThat(storageProvider.getLayoutIdentifier()).isEqualTo("default");
+        assertThat(storageProvider.getCodecIdentifier()).isEqualTo("json");
     }
 
     @Test
     void usesExplicitProviderIdentifiersWhenMultipleProvidersAreAvailable() throws BentoStateException {
-        final TestCodecProvider jsonProvider = new TestCodecProvider("json", false);
-        final TestCodecProvider xmlProvider = new TestCodecProvider("xml", false);
-        final TestStorageProvider fileProvider = new TestStorageProvider("file", false);
-        final TestStorageProvider databaseProvider = new TestStorageProvider("h2", false);
+        final TestLayoutCodecProvider jsonProvider = new TestLayoutCodecProvider("json", false);
+        final TestLayoutCodecProvider xmlProvider = new TestLayoutCodecProvider("xml", false);
+        final TestLayoutStorageProvider fileProvider = new TestLayoutStorageProvider("file", false);
+        final TestLayoutStorageProvider databaseProvider = new TestLayoutStorageProvider("h2", false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -56,19 +49,19 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 new DefaultBentoProvider()
         );
 
-        assertThat(jsonProvider.createdCodecCount).isZero();
-        assertThat(xmlProvider.createdCodecCount).isEqualTo(1);
-        assertThat(fileProvider.layoutIdentifier).isNull();
-        assertThat(databaseProvider.layoutIdentifier).isEqualTo("default");
-        assertThat(databaseProvider.codecIdentifier).isEqualTo("xml");
+        assertThat(jsonProvider.getCreatedCodecCount()).isZero();
+        assertThat(xmlProvider.getCreatedCodecCount()).isEqualTo(1);
+        assertThat(fileProvider.getLayoutIdentifier()).isNull();
+        assertThat(databaseProvider.getLayoutIdentifier()).isEqualTo("default");
+        assertThat(databaseProvider.getCodecIdentifier()).isEqualTo("xml");
     }
 
     @Test
     void usesSingleDefaultProviderWhenMultipleProvidersAreAvailableWithoutExplicitSelection() throws BentoStateException {
-        final TestCodecProvider jsonProvider = new TestCodecProvider("json", false);
-        final TestCodecProvider xmlProvider = new TestCodecProvider("xml", true);
-        final TestStorageProvider fileProvider = new TestStorageProvider("file", true);
-        final TestStorageProvider databaseProvider = new TestStorageProvider("h2", false);
+        final TestLayoutCodecProvider jsonProvider = new TestLayoutCodecProvider("json", false);
+        final TestLayoutCodecProvider xmlProvider = new TestLayoutCodecProvider("xml", true);
+        final TestLayoutStorageProvider fileProvider = new TestLayoutStorageProvider("file", true);
+        final TestLayoutStorageProvider databaseProvider = new TestLayoutStorageProvider("h2", false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -78,11 +71,11 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         provider.getLayoutSaver("default", new DefaultBentoProvider());
 
-        assertThat(jsonProvider.createdCodecCount).isZero();
-        assertThat(xmlProvider.createdCodecCount).isEqualTo(1);
-        assertThat(fileProvider.layoutIdentifier).isEqualTo("default");
-        assertThat(fileProvider.codecIdentifier).isEqualTo("xml");
-        assertThat(databaseProvider.layoutIdentifier).isNull();
+        assertThat(jsonProvider.getCreatedCodecCount()).isZero();
+        assertThat(xmlProvider.getCreatedCodecCount()).isEqualTo(1);
+        assertThat(fileProvider.getLayoutIdentifier()).isEqualTo("default");
+        assertThat(fileProvider.getCodecIdentifier()).isEqualTo("xml");
+        assertThat(databaseProvider.getLayoutIdentifier()).isNull();
     }
 
     @Test
@@ -90,10 +83,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
                         List.of(
-                                new TestCodecProvider("json", false),
-                                new TestCodecProvider("xml", false)
+                                new TestLayoutCodecProvider("json", false),
+                                new TestLayoutCodecProvider("xml", false)
                         ),
-                        List.of(new TestStorageProvider("file", false))
+                        List.of(new TestLayoutStorageProvider("file", false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver("default", new DefaultBentoProvider()))
@@ -107,8 +100,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
     void failsWhenExplicitProviderIdentifierIsUnavailable() {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestCodecProvider("json", false)),
-                        List.of(new TestStorageProvider("file", false))
+                        List.of(new TestLayoutCodecProvider("json", false)),
+                        List.of(new TestLayoutStorageProvider("file", false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(
@@ -118,109 +111,5 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("xml")
                 .hasMessageContaining("json");
-    }
-
-    private static final class TestCodecProvider implements LayoutCodecProvider {
-        private final String identifier;
-        private final boolean defaultProvider;
-        private int createdCodecCount;
-
-        private TestCodecProvider(
-                final String identifier,
-                final boolean defaultProvider
-        ) {
-            this.identifier = identifier;
-            this.defaultProvider = defaultProvider;
-        }
-
-        @Override
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        @Override
-        public boolean isDefault() {
-            return defaultProvider;
-        }
-
-        @Override
-        public LayoutCodec getLayoutCodec() {
-            createdCodecCount++;
-            return new TestCodec(identifier);
-        }
-    }
-
-    private static final class TestStorageProvider implements LayoutStorageProvider {
-        private final String identifier;
-        private final boolean defaultProvider;
-        private String layoutIdentifier;
-        private String codecIdentifier;
-
-        private TestStorageProvider(
-                final String identifier,
-                final boolean defaultProvider
-        ) {
-            this.identifier = identifier;
-            this.defaultProvider = defaultProvider;
-        }
-
-        @Override
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        @Override
-        public boolean isDefault() {
-            return defaultProvider;
-        }
-
-        @Override
-        public LayoutStorage getLayoutStorage(
-                final String layoutIdentifier,
-                final String codecIdentifier
-        ) {
-            this.layoutIdentifier = layoutIdentifier;
-            this.codecIdentifier = codecIdentifier;
-            return new TestStorage();
-        }
-    }
-
-    private record TestCodec(String identifier) implements LayoutCodec {
-        @Override
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        @Override
-        public void encode(
-                final List<BentoState> bentoStates,
-                final OutputStream outputStream
-        ) throws BentoStateException {
-            // no-op
-        }
-
-        @Override
-        public List<BentoState> decode(
-                final InputStream inputStream
-        ) throws BentoStateException {
-            return List.of();
-        }
-    }
-
-    private static final class TestStorage implements LayoutStorage {
-        @Override
-        public boolean exists() {
-            return false;
-        }
-
-        @Override
-        public OutputStream openOutputStream() {
-            return new ByteArrayOutputStream();
-        }
-
-        @Override
-        public InputStream openInputStream() {
-            return new ByteArrayInputStream(new byte[0]);
-        }
     }
 }
