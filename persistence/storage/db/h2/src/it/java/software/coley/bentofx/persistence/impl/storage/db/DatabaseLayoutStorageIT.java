@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -39,11 +40,11 @@ class DatabaseLayoutStorageIT {
     private static final String URL_PATH_SEPARATOR = "/";
 
     @TempDir
-    private static Path temporaryDirectory;
+    private static @Nullable Path temporaryDirectory;
 
-    private static EntityManagerFactory entityManagerFactory;
+    private static @Nullable EntityManagerFactory entityManagerFactory;
 
-    private LayoutStorage storage;
+    private @Nullable LayoutStorage storage;
 
     @BeforeAll
     static void setUpAll() {

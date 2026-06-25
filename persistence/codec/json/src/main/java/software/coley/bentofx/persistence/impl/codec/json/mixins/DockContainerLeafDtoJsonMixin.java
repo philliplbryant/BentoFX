@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.codec.json.mixins;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
 
 import java.util.List;
@@ -21,5 +22,5 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class DockContainerLeafDtoJsonMixin {
 
     @JsonProperty(DOCKABLE_LIST_ELEMENT_NAME)
-    public List<DockableDto> dockables;
+    public @Nullable List<DockableDto> dockables;
 }

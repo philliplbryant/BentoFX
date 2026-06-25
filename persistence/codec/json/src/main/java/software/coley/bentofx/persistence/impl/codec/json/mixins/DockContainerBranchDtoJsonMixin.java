@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.codec.json.mixins;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
 
@@ -21,8 +22,8 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class DockContainerBranchDtoJsonMixin {
 
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
-    public List<DividerPositionDto> dividerPositions;
+    public @Nullable List<DividerPositionDto> dividerPositions;
 
     @JsonProperty(BRANCH_LIST_ELEMENT_NAME)
-    public List<DockContainerDto> branches;
+    public @Nullable List<DockContainerDto> branches;
 }

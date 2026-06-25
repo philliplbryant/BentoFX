@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl.storage.file;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,8 @@ class FileLayoutStorageIT {
 	private static final String TEST_FILE_NAME = "test-layout.bento";
 	private static final String TEST_FILE_CONTENT = "Test data for FileLayoutStorage integration test";
 
-	private FileLayoutStorage fileLayoutStorage;
-	private File testFile;
+	private @Nullable FileLayoutStorage fileLayoutStorage;
+	private @Nullable File testFile;
 
 	@BeforeEach
 	void setUp() throws IOException {

@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jspecify.annotations.Nullable;
 
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.SCHEMA_VERSION_ELEMENT_NAME;
 
@@ -12,5 +13,5 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class LayoutMetadataDtoJsonMixin {
 
     @JsonProperty(SCHEMA_VERSION_ELEMENT_NAME)
-    public Integer schemaVersion;
+    public @Nullable Integer schemaVersion;
 }

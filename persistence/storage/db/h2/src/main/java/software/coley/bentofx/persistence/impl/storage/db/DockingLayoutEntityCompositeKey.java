@@ -16,10 +16,10 @@ import java.util.Objects;
 public class DockingLayoutEntityCompositeKey implements Serializable {
 
     @Column(name = "layout_id", nullable = false, length = 24)
-    public String layoutIdentifier;
+    public @Nullable String layoutIdentifier;
 
     @Column(name = "codec_id", nullable = false, length = 4)
-    public String codecIdentifier;
+    public @Nullable String codecIdentifier;
 
     public DockingLayoutEntityCompositeKey() {}
 

@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -16,5 +17,5 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class DragDropStageDtoJsonMixin {
 
     @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
-    public DockContainerRootBranchDto dockContainerRootBranchDto;
+    public @Nullable DockContainerRootBranchDto dockContainerRootBranchDto;
 }

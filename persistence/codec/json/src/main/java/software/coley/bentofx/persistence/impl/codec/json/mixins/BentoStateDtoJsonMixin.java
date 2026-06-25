@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
 
@@ -20,8 +21,8 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class BentoStateDtoJsonMixin {
 
     @JsonProperty(ROOT_BRANCH_LIST_ELEMENT_NAME)
-    public List<DockContainerRootBranchDto> rootBranches;
+    public @Nullable List<DockContainerRootBranchDto> rootBranches;
 
     @JsonProperty(DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
-    public List<DragDropStageDto> dragDropStages;
+    public @Nullable List<DragDropStageDto> dragDropStages;
 }

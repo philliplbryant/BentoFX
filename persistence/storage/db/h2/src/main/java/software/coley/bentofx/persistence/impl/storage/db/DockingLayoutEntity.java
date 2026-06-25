@@ -1,12 +1,7 @@
 package software.coley.bentofx.persistence.impl.storage.db;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 
@@ -21,7 +16,7 @@ import java.time.Instant;
 public class DockingLayoutEntity {
 
     @EmbeddedId
-    public DockingLayoutEntityCompositeKey key;
+    public @Nullable DockingLayoutEntityCompositeKey key;
 
     @Lob
     @Basic(fetch = FetchType.LAZY)

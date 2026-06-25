@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.codec.json.mixins;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
@@ -21,8 +22,8 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 public abstract class DockingLayoutDtoJsonMixin {
 
     @JsonProperty(METADATA_ELEMENT_NAME)
-    public LayoutMetadataDto metadata;
+    public @Nullable LayoutMetadataDto metadata;
 
     @JsonProperty(BENTO_LIST_ELEMENT_NAME)
-    public List<BentoStateDto> bentoStates;
+    public @Nullable List<BentoStateDto> bentoStates;
 }
