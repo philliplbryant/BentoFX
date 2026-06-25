@@ -10,6 +10,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DockingLayoutBuilderTest {
 
+    private static final String FIRST_BENTO_IDENTIFIER = "bento-1";
+    private static final String SECOND_BENTO_IDENTIFIER = "bento-2";
+
+    private static final String LAYOUT_GET_BENTOLAYOUTS_DESCRIPTION = "layout.getBentoLayouts()";
+
     @Test
     void dockingLayoutExposesImmutableSnapshotOfBuiltLayouts() throws Exception {
         Constructor<BentoLayout> constructor = BentoLayout.class.getDeclaredConstructor(
@@ -19,8 +24,8 @@ class DockingLayoutBuilderTest {
         );
         constructor.setAccessible(true);
 
-        BentoLayout first = constructor.newInstance("bento-1", List.of(), List.of());
-        BentoLayout second = constructor.newInstance("bento-2", List.of(), List.of());
+        BentoLayout first = constructor.newInstance(FIRST_BENTO_IDENTIFIER, List.of(), List.of());
+        BentoLayout second = constructor.newInstance(SECOND_BENTO_IDENTIFIER, List.of(), List.of());
 
         DockingLayout layout = new DockingLayout.DockingLayoutBuilder()
                 .addBentoLayout(first)
@@ -28,11 +33,13 @@ class DockingLayoutBuilderTest {
                 .build();
 
         assertThat(layout.getBentoLayouts())
+                .describedAs(LAYOUT_GET_BENTOLAYOUTS_DESCRIPTION)
                 .extracting(BentoLayout::getIdentifier)
-                .containsExactly("bento-1", "bento-2");
+                .containsExactly(FIRST_BENTO_IDENTIFIER, SECOND_BENTO_IDENTIFIER);
 
         final List<BentoLayout> bentoLayouts = layout.getBentoLayouts();
         assertThatThrownBy(() -> bentoLayouts.add(first))
+                .describedAs("exception thrown by () -> bentoLayouts.add(first)")
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -45,8 +52,8 @@ class DockingLayoutBuilderTest {
         );
         constructor.setAccessible(true);
 
-        BentoLayout first = constructor.newInstance("bento-1", List.of(), List.of());
-        BentoLayout second = constructor.newInstance("bento-2", List.of(), List.of());
+        BentoLayout first = constructor.newInstance(FIRST_BENTO_IDENTIFIER, List.of(), List.of());
+        BentoLayout second = constructor.newInstance(SECOND_BENTO_IDENTIFIER, List.of(), List.of());
 
         DockingLayout.DockingLayoutBuilder builder =
                 new DockingLayout.DockingLayoutBuilder()
@@ -57,6 +64,7 @@ class DockingLayoutBuilderTest {
         builder.addBentoLayout(second);
 
         assertThat(layout.getBentoLayouts())
+                .describedAs(LAYOUT_GET_BENTOLAYOUTS_DESCRIPTION)
                 .containsExactly(first);
     }
 

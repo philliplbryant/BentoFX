@@ -10,13 +10,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FileLayoutStorageProviderTest {
 
+    private static final String FILE_STORAGE_IDENTIFIER = "file";
+    private static final String MAIN_LAYOUT_IDENTIFIER = "main-layout";
+    private static final String USER_HOME_PROPERTY = "user.home";
+
     @Test
     void exposesFileIdentifierAndIsDefault() {
         final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
 
         assertThat(provider.getIdentifier())
-                .isEqualTo("file");
+                .describedAs("provider.getIdentifier()")
+                .isEqualTo(FILE_STORAGE_IDENTIFIER);
         assertThat(provider.isDefault())
+                .describedAs("provider.isDefault()")
                 .isTrue();
     }
 
@@ -24,12 +30,14 @@ class FileLayoutStorageProviderTest {
     void createsFileStorageUsingLayoutIdentifierAndNormalizedCodecExtension() throws Exception {
         final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
 
-        final Object storage = provider.getLayoutStorage("main-layout", ".json");
+        final Object storage = provider.getLayoutStorage(MAIN_LAYOUT_IDENTIFIER, ".json");
 
         assertThat(storage)
+                .describedAs("storage")
                 .isInstanceOf(FileLayoutStorage.class);
         assertThat(layoutFile((FileLayoutStorage) storage))
-                .isEqualTo(new File(System.getProperty("user.home"), ".bentofx/main-layout.json"));
+                .describedAs("layoutFile((FileLayoutStorage) storage)")
+                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/main-layout.json"));
     }
 
     @Test
@@ -37,16 +45,17 @@ class FileLayoutStorageProviderTest {
         final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
 
         final FileLayoutStorage storage = (FileLayoutStorage) provider.getLayoutStorage(
-                "main-layout",
+                MAIN_LAYOUT_IDENTIFIER,
                 "xml"
         );
 
         assertThat(layoutFile(storage))
-                .isEqualTo(new File(System.getProperty("user.home"), ".bentofx/main-layout.xml"));
+                .describedAs("layoutFile(storage)")
+                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/main-layout.xml"));
     }
 
     private static File layoutFile(final FileLayoutStorage storage) throws Exception {
-        final Field fileField = FileLayoutStorage.class.getDeclaredField("file");
+        final Field fileField = FileLayoutStorage.class.getDeclaredField(FILE_STORAGE_IDENTIFIER);
         fileField.setAccessible(true);
         return (File) fileField.get(storage);
     }

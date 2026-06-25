@@ -15,6 +15,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class PersistenceThreadingFT {
 
+    private static final String RANONFXTHREAD = "ranOnFxThread";
+    private static final String RANONFXTHREAD_GET_DESCRIPTION = "ranOnFxThread.get()";
+
     @Test
     void callOnFxThreadRunsImmediatelyWhenAlreadyOnFxThread(FxRobot robot) {
         final AtomicReference<Boolean> ranOnFxThread = new AtomicReference<>();
@@ -31,7 +34,9 @@ class PersistenceThreadingFT {
             }
         });
 
-        assertThat(ranOnFxThread.get()).isTrue();
+        assertThat(ranOnFxThread.get())
+                .describedAs(RANONFXTHREAD_GET_DESCRIPTION)
+                .isTrue();
     }
 
     @Test
@@ -40,7 +45,9 @@ class PersistenceThreadingFT {
                 Platform::isFxApplicationThread
         );
 
-        assertThat(ranOnFxThread).isTrue();
+        assertThat(ranOnFxThread)
+                .describedAs(RANONFXTHREAD)
+                .isTrue();
     }
 
     @Test
@@ -59,7 +66,9 @@ class PersistenceThreadingFT {
             }
         });
 
-        assertThat(ranOnFxThread.get()).isFalse();
+        assertThat(ranOnFxThread.get())
+                .describedAs(RANONFXTHREAD_GET_DESCRIPTION)
+                .isFalse();
     }
 
     @Test
@@ -72,7 +81,11 @@ class PersistenceThreadingFT {
             return Platform.isFxApplicationThread();
         });
 
-        assertThat(called).isTrue();
-        assertThat(ranOnFxThread).isFalse();
+        assertThat(called)
+                .describedAs("called")
+                .isTrue();
+        assertThat(ranOnFxThread)
+                .describedAs(RANONFXTHREAD)
+                .isFalse();
     }
 }

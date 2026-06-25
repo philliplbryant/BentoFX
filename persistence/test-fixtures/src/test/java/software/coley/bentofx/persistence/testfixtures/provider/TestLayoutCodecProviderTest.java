@@ -6,23 +6,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TestLayoutCodecProviderTest {
 
+    private static final String JSON_CODEC_IDENTIFIER = "json";
+
     @Test
     void exposesIdentifierAndDefaultFlag() {
-        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider("json", true);
+        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, true);
 
         assertThat(provider.getIdentifier())
-                .isEqualTo("json");
+                .describedAs("provider.getIdentifier()")
+                .isEqualTo(JSON_CODEC_IDENTIFIER);
         assertThat(provider.isDefault())
+                .describedAs("provider.isDefault()")
                 .isTrue();
     }
 
     @Test
     void createsCodecWithMatchingIdentifierAndCountsCreations() {
-        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider("json", false);
+        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
 
         assertThat(provider.getLayoutCodec().getIdentifier())
-                .isEqualTo("json");
+                .describedAs("provider.getLayoutCodec().getIdentifier()")
+                .isEqualTo(JSON_CODEC_IDENTIFIER);
         assertThat(provider.getCreatedCodecCount())
+                .describedAs("provider.getCreatedCodecCount()")
                 .isEqualTo(1);
     }
 }

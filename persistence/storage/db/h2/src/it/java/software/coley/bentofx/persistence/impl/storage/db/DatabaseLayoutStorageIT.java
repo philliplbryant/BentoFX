@@ -3,18 +3,10 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +21,8 @@ class DatabaseLayoutStorageIT {
 			"This is test data for the layout.";
 	private static final String UPDATED_TEST_DATA =
 			"This is updated data for the layout.";
+	private static final String LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION =
+			"The layout should exist after writing data.";
 
 	private static EntityManagerFactory entityManagerFactory;
 
@@ -69,7 +63,7 @@ class DatabaseLayoutStorageIT {
 	@Test
 	void testDatabaseLayoutStorageInitialNonExistence() {
 		assertThat(storage.exists())
-				.as("The layout should not exist initially.")
+				.describedAs("The layout should not exist initially.")
 				.isFalse();
 	}
 
@@ -78,11 +72,11 @@ class DatabaseLayoutStorageIT {
 		writeData(TEST_DATA);
 
 		assertThat(storage.exists())
-				.as("The layout should exist after writing data.")
+				.describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
 				.isTrue();
 
 		assertThat(readData())
-				.as("Read data should match the written data.")
+				.describedAs("Read data should match the written data.")
 				.isEqualTo(TEST_DATA);
 	}
 
@@ -91,13 +85,13 @@ class DatabaseLayoutStorageIT {
 		writeData(TEST_DATA);
 
 		assertThat(storage.exists())
-				.as("The layout should exist after writing data.")
+				.describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
 				.isTrue();
 
 		writeData(UPDATED_TEST_DATA);
 
 		assertThat(readData())
-				.as("Read data should match the updated data.")
+				.describedAs("Read data should match the updated data.")
 				.isEqualTo(UPDATED_TEST_DATA);
 	}
 

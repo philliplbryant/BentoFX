@@ -31,6 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class DockingLayoutSaverFT {
 
+    private static final String DETACHED_STAGE_TITLE = "Detached";
+
+    private static final String CODEC_GET_ENCODETHREAD_DESCRIPTION = "codec.getEncodeThread()";
+    private static final String STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION = "storage.getOpenOutputStreamThread()";
+    private static final String STORAGE_TOBYTEARRAY_DESCRIPTION = "storage.toByteArray()";
+
     @Test
     void saveLayoutEncodesNonStageRootsAndDragDropStagesWithoutDuplicates(FxRobot robot) throws BentoStateException {
         Bento bento = new Bento();
@@ -68,7 +74,7 @@ class DockingLayoutSaverFT {
             mainStageRef.set(mainStage);
 
             DragDropStage stage = new DragDropStage(true);
-            stage.setTitle("Detached");
+            stage.setTitle(DETACHED_STAGE_TITLE);
             stage.setX(200);
             stage.setY(150);
             stage.setWidth(600);
@@ -92,19 +98,31 @@ class DockingLayoutSaverFT {
 
         final List<BentoState> bentoStates = codec.getEncodedStates();
 
-        assertThat(storage.exists()).isTrue();
-        assertThat(storage.toByteArray()).isNotEmpty();
-        assertThat(bentoStates).hasSize(1);
+        assertThat(storage.exists())
+                .describedAs("storage.exists()")
+                .isTrue();
+        assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .isNotEmpty();
+        assertThat(bentoStates)
+                .describedAs("bentoStates")
+                .hasSize(1);
 
         BentoState saved = bentoStates.getFirst();
         assertThat(saved.getRootBranchStates())
+                .describedAs("saved.getRootBranchStates()")
                 .extracting(IdentifiableState::getIdentifier)
                 .containsExactly(mainRootBranchId);
-        assertThat(saved.getDragDropStageStates()).hasSize(1);
-        assertThat(saved.getDragDropStageStates().getFirst().getTitle()).contains("Detached");
+        assertThat(saved.getDragDropStageStates())
+                .describedAs("saved.getDragDropStageStates()")
+                .hasSize(1);
+        assertThat(saved.getDragDropStageStates().getFirst().getTitle())
+                .describedAs("saved.getDragDropStageStates().getFirst().getTitle()")
+                .contains(DETACHED_STAGE_TITLE);
         assertThat(saved.getDragDropStageStates().getFirst()
                 .getDockContainerRootBranchState()
                 .map(IdentifiableState::getIdentifier))
+                .describedAs("saved.getDragDropStageStates().getFirst() .getDockContainerRootBran...")
                 .contains(dragDropRootBranchId);
 
         robot.interact(() -> {
@@ -127,8 +145,12 @@ class DockingLayoutSaverFT {
             saver.saveLayout();
         }
 
-        assertThat(codec.getEncodedStates()).isEmpty();
-        assertThat(storage.toByteArray()).isNotEmpty();
+        assertThat(codec.getEncodedStates())
+                .describedAs("codec.getEncodedStates()")
+                .isEmpty();
+        assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .isNotEmpty();
     }
     @Test
     void saveLayoutEncodesAndWritesAwayFromFxThreadWhenCalledOnFxThread(FxRobot robot) {
@@ -154,10 +176,20 @@ class DockingLayoutSaverFT {
             }
         });
 
-        assertThat(fxThread.get()).isNotNull();
-        assertThat(codec.getEncodeThread()).isNotNull();
-        assertThat(storage.getOpenOutputStreamThread()).isNotNull();
-        assertThat(codec.getEncodeThread()).isNotEqualTo(fxThread.get());
-        assertThat(storage.getOpenOutputStreamThread()).isNotEqualTo(fxThread.get());
+        assertThat(fxThread.get())
+                .describedAs("fxThread.get()")
+                .isNotNull();
+        assertThat(codec.getEncodeThread())
+                .describedAs(CODEC_GET_ENCODETHREAD_DESCRIPTION)
+                .isNotNull();
+        assertThat(storage.getOpenOutputStreamThread())
+                .describedAs(STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION)
+                .isNotNull();
+        assertThat(codec.getEncodeThread())
+                .describedAs(CODEC_GET_ENCODETHREAD_DESCRIPTION)
+                .isNotEqualTo(fxThread.get());
+        assertThat(storage.getOpenOutputStreamThread())
+                .describedAs(STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION)
+                .isNotEqualTo(fxThread.get());
     }
 }

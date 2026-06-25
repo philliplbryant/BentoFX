@@ -44,35 +44,46 @@ class DockContainerLeafStateBuilderTest {
                 .build();
 
         assertThat(leafState.getIdentifier())
+                .describedAs("leafState.getIdentifier()")
                 .isEqualTo(expectedLeafId);
 
         assertThat(leafState.doPruneWhenEmpty())
+                .describedAs("leafState.doPruneWhenEmpty()")
                 .contains(expectedPruneWhenEmpty);
 
         assertThat(leafState.getSide())
+                .describedAs("leafState.getSide()")
                 .contains(expectedSide);
 
         assertThat(leafState.getSelectedDockableIdentifier())
+                .describedAs("leafState.getSelectedDockableIdentifier()")
                 .contains(expectedSelectedDockableId);
 
         assertThat(leafState.isResizableWithParent())
+                .describedAs("leafState.isResizableWithParent()")
                 .contains(expectedResizableWithParent);
 
         assertThat(leafState.isCanSplit())
+                .describedAs("leafState.isCanSplit()")
                 .contains(expectedCanSplit);
 
         assertThat(leafState.getUncollapsedSizePx())
+                .describedAs("leafState.getUncollapsedSizePx()")
                 .contains(expectedUncollapsedSizePx);
 
         assertThat(leafState.isCollapsed())
+                .describedAs("leafState.isCollapsed()")
                 .contains(expectedCollapsed);
 
-        assertThat(leafState.getChildDockableStates()).singleElement()
+        assertThat(leafState.getChildDockableStates())
+                .describedAs("leafState.getChildDockableStates()")
+                .singleElement()
                 .extracting(DockableState::getIdentifier)
                 .isEqualTo(expectedSelectedDockableId);
 
         final List<DockableState> childDockableStates = leafState.getChildDockableStates();
         assertThatThrownBy(() -> childDockableStates.add(selectedDockable))
+                .describedAs("exception thrown by () -> childDockableStates.add(selectedDockable)")
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 }

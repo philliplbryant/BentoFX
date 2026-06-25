@@ -15,9 +15,11 @@ class ThreadRecordingLayoutStorageTest {
         final Thread currentThread = Thread.currentThread();
 
         assertThat(storage.exists())
+                .describedAs("storage.exists()")
                 .isFalse();
 
         assertThat(storage.getExistsThread())
+                .describedAs("storage.getExistsThread()")
                 .isSameAs(currentThread);
     }
 
@@ -31,8 +33,10 @@ class ThreadRecordingLayoutStorageTest {
         }
 
         assertThat(storage.getOpenOutputStreamThread())
+                .describedAs("storage.getOpenOutputStreamThread()")
                 .isSameAs(currentThread);
         assertThat(storage.toByteArray())
+                .describedAs("storage.toByteArray()")
                 .containsExactly(1, 2, 3);
     }
 
@@ -46,8 +50,10 @@ class ThreadRecordingLayoutStorageTest {
         }
 
         assertThat(storage.openInputStream().readAllBytes())
+                .describedAs("storage.openInputStream().readAllBytes()")
                 .containsExactly(1, 2, 3);
         assertThat(storage.getOpenInputStreamThread())
+                .describedAs("storage.getOpenInputStreamThread()")
                 .isSameAs(currentThread);
     }
 }

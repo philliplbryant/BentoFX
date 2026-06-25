@@ -17,13 +17,18 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 
 class XmlLayoutCodecTest {
 
+    private static final String XML_CODEC_IDENTIFIER = "xml";
+    private static final String OPENING_TAG_PREFIX = "<";
+    private static final String CLOSING_TAG_SUFFIX = ">";
+    private static final String DOCKABLE_IDENTIFIER = "Test-Dockable";
+
     @Test
     void getIdentifierReturnsXml() {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
 
         assertThat(codec.getIdentifier())
                 .describedAs("codec identifier")
-                .isEqualTo("xml");
+                .isEqualTo(XML_CODEC_IDENTIFIER);
     }
 
     @Test
@@ -38,23 +43,23 @@ class XmlLayoutCodecTest {
 
         assertThat(xml)
                 .describedAs("encoded XML element names")
-                .contains("<" + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + ">")
-                .contains("<" + METADATA_ELEMENT_NAME + ">")
-                .contains("<" + SCHEMA_VERSION_ELEMENT_NAME + ">")
-                .contains("<" + CODEC_IDENTIFIER_ELEMENT_NAME + ">")
-                .contains("<" + BENTO_LIST_ELEMENT_NAME + ">")
-                .contains("<" + BENTO_ELEMENT_NAME)
-                .contains("<" + ROOT_BRANCH_LIST_ELEMENT_NAME + ">")
-                .contains("<" + ROOT_BRANCH_ELEMENT_NAME)
-                .contains("<" + DIVIDER_POSITION_LIST_ELEMENT_NAME + ">")
-                .contains("<" + DIVIDER_ELEMENT_NAME)
-                .contains("<" + BRANCH_LIST_ELEMENT_NAME + ">")
-                .contains("<" + BRANCH_ELEMENT_NAME)
-                .contains("<" + LEAF_ELEMENT_NAME)
-                .contains("<" + DOCKABLE_LIST_ELEMENT_NAME + ">")
-                .contains("<" + DOCKABLE_ELEMENT_NAME)
-                .contains("<" + DRAG_DROP_STAGE_LIST_ELEMENT_NAME + ">")
-                .contains("<" + DRAG_DROP_STAGE_ELEMENT_NAME);
+                .contains(OPENING_TAG_PREFIX + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + METADATA_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + SCHEMA_VERSION_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + CODEC_IDENTIFIER_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + BENTO_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + BENTO_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + DIVIDER_POSITION_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + DIVIDER_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + BRANCH_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + BRANCH_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + LEAF_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + DOCKABLE_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + DOCKABLE_ELEMENT_NAME)
+                .contains(OPENING_TAG_PREFIX + DRAG_DROP_STAGE_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
+                .contains(OPENING_TAG_PREFIX + DRAG_DROP_STAGE_ELEMENT_NAME);
     }
 
     @Test
@@ -123,18 +128,19 @@ class XmlLayoutCodecTest {
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("Unsupported BentoFX docking layout schema version");
     }
+
     private static List<BentoState> createStates() throws Exception {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
     }
 
     private static DockingLayoutDto createDockingLayoutDto() {
         final DockableDto dockable = new DockableDto();
-        dockable.identifier = "dockable-1";
+        dockable.identifier = DOCKABLE_IDENTIFIER;
 
         final DockContainerLeafDto leaf = new DockContainerLeafDto();
         leaf.identifier = "leaf-1";
         leaf.pruneWhenEmpty = true;
-        leaf.selectedDockableIdentifier = "dockable-1";
+        leaf.selectedDockableIdentifier = DOCKABLE_IDENTIFIER;
         leaf.side = javafx.geometry.Side.TOP;
         leaf.isResizableWithParent = true;
         leaf.isCanSplit = true;

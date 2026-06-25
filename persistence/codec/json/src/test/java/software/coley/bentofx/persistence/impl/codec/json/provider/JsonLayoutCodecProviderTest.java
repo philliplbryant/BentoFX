@@ -13,8 +13,10 @@ class JsonLayoutCodecProviderTest {
         final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
 
         assertThat(provider.getIdentifier())
+                .describedAs("provider.getIdentifier()")
                 .isEqualTo(JsonLayoutCodec.EXTENSION);
         assertThat(provider.isDefault())
+                .describedAs("provider.isDefault()")
                 .isFalse();
     }
 
@@ -25,9 +27,11 @@ class JsonLayoutCodecProviderTest {
         final LayoutCodec codec = provider.getLayoutCodec();
 
         assertThat(codec)
+                .describedAs("codec")
                 .isNotNull()
                 .isInstanceOf(JsonLayoutCodec.class);
         assertThat(codec.getIdentifier())
+                .describedAs("codec.getIdentifier()")
                 .isEqualTo(JsonLayoutCodec.EXTENSION);
     }
 }

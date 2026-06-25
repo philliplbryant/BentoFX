@@ -13,8 +13,10 @@ class XmlLayoutCodecProviderTest {
         final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
 
         assertThat(provider.getIdentifier())
+                .describedAs("provider.getIdentifier()")
                 .isEqualTo(XmlLayoutCodec.EXTENSION);
         assertThat(provider.isDefault())
+                .describedAs("provider.isDefault()")
                 .isFalse();
     }
 
@@ -25,9 +27,11 @@ class XmlLayoutCodecProviderTest {
         final LayoutCodec codec = provider.getLayoutCodec();
 
         assertThat(codec)
+                .describedAs("codec")
                 .isNotNull()
                 .isInstanceOf(XmlLayoutCodec.class);
         assertThat(codec.getIdentifier())
+                .describedAs("codec.getIdentifier()")
                 .isEqualTo(XmlLayoutCodec.EXTENSION);
     }
 }

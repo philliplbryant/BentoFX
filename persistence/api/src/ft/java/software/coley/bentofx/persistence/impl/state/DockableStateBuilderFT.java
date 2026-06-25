@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class DockableStateBuilderFT {
 
+    private static final String DOCKABLECONSUMER_CONSUMEDDOCKABLE = "DockableConsumer.consumedDockable";
+
     @Test
     void testDockableBuilder() {
 
@@ -44,39 +46,50 @@ class DockableStateBuilderFT {
                         .build();
 
         assertThat(dockable.getIdentifier())
+                .describedAs("dockable.getIdentifier()")
                 .isEqualTo(expectedDockableId);
 
         assertThat(dockable.getDockableNode())
+                .describedAs("dockable.getDockableNode()")
                 .contains(expectedDockableNode);
 
         assertThat(dockable.getTitle())
+                .describedAs("dockable.getTitle()")
                 .contains(expectedTitle);
 
         assertThat(dockable.getTooltipText())
+                .describedAs("dockable.getTooltipText()")
                 .contains(expectedTooltip);
 
         assertThat(dockable.getDockableIconFactory())
+                .describedAs("dockable.getDockableIconFactory()")
                 .isEmpty();
 
         assertThat(dockable.getDockableMenuFactory())
+                .describedAs("dockable.getDockableMenuFactory()")
                 .isEmpty();
 
         assertThat(dockable.getDragGroupMask())
+                .describedAs("dockable.getDragGroupMask()")
                 .contains(expectedDragGroupMask);
 
         assertThat(dockable.isClosable())
+                .describedAs("dockable.isClosable()")
                 .contains(expectedClosable);
 
         Optional<Consumer<Dockable>> optionalDockableConsumer =
                 dockable.getDockableConsumer();
         assertThat(optionalDockableConsumer)
+                .describedAs("optionalDockableConsumer")
                 .isPresent();
 
         assertThat(DockableConsumer.consumedDockable)
+                .describedAs(DOCKABLECONSUMER_CONSUMEDDOCKABLE)
                 .isNull();
 
         optionalDockableConsumer.get().accept(expectedDockable);
         assertThat(DockableConsumer.consumedDockable)
+                .describedAs(DOCKABLECONSUMER_CONSUMEDDOCKABLE)
                 .isEqualTo(expectedDockable);
     }
 

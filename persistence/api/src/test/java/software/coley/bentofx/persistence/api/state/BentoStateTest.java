@@ -16,10 +16,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BentoStateTest {
 
+    private static final String BENTO_IDENTIFIER = "bento:workbench";
+    private static final String ROOT_BRANCH_IDENTIFIER = "root:main";
+    private static final String DOCKABLE_IDENTIFIER = "dockable:editor";
+    private static final String STAGE_TITLE = "Floating tools";
+
+    private static final String STATE_GET_ROOTBRANCHSTATES_DESCRIPTION = "state.getRootBranchStates()";
+
     @Test
     void bentoStateCanRepresentNestedRootBranchesAndDetachedStages() {
         DockableState editor =
-                new DockableStateBuilder("dockable:editor")
+                new DockableStateBuilder(DOCKABLE_IDENTIFIER)
                         .setTitle("Editor")
                         .build();
 
@@ -31,7 +38,7 @@ class BentoStateTest {
         DockContainerLeafState editorLeaf =
                 new DockContainerLeafStateBuilder("leaf:editor")
                         .setSide(Side.TOP)
-                        .setSelectedDockableStateIdentifier("dockable:editor")
+                        .setSelectedDockableStateIdentifier(DOCKABLE_IDENTIFIER)
                         .addChildDockableState(editor)
                         .build();
 
@@ -42,7 +49,7 @@ class BentoStateTest {
                         .build();
 
         DockContainerRootBranchState root =
-                new DockContainerRootBranchStateBuilder("root:main")
+                new DockContainerRootBranchStateBuilder(ROOT_BRANCH_IDENTIFIER)
                         .setOrientation(Orientation.VERTICAL)
                         .addDividerPosition(0, 0.70)
                         .addDockContainerState(editorLeaf)
@@ -51,59 +58,70 @@ class BentoStateTest {
 
         DragDropStageState detached =
                 new DragDropStageStateBuilder(false)
-                        .setTitle("Floating tools")
+                        .setTitle(STAGE_TITLE)
                         .setDockContainerRootBranchState(root)
                         .build();
 
         BentoState state =
-                new BentoStateBuilder("bento:workbench")
+                new BentoStateBuilder(BENTO_IDENTIFIER)
                         .addRootBranchState(root)
                         .addDragDropStageState(detached)
                         .build();
 
         assertThat(state.getIdentifier())
-                .isEqualTo("bento:workbench");
+                .describedAs("state.getIdentifier()")
+                .isEqualTo(BENTO_IDENTIFIER);
 
         assertThat(state.getRootBranchStates())
+                .describedAs(STATE_GET_ROOTBRANCHSTATES_DESCRIPTION)
                 .singleElement()
                 .satisfies(savedRoot -> {
 
                     assertThat(savedRoot.getIdentifier())
-                            .isEqualTo("root:main");
+                            .describedAs("savedRoot.getIdentifier()")
+                            .isEqualTo(ROOT_BRANCH_IDENTIFIER);
 
                     assertThat(savedRoot.getOrientation())
+                            .describedAs("savedRoot.getOrientation()")
                             .contains(Orientation.VERTICAL);
 
                     assertThat(savedRoot.getDividerPositions())
+                            .describedAs("savedRoot.getDividerPositions()")
                             .containsEntry(0, 0.70);
 
                     assertThat(savedRoot.getChildDockContainerStates())
+                            .describedAs("savedRoot.getChildDockContainerStates()")
                             .hasSize(2);
                 });
 
         assertThat(state.getDragDropStageStates())
+                .describedAs("state.getDragDropStageStates()")
                 .singleElement()
                 .satisfies(savedStage -> {
 
                     assertThat(savedStage.getTitle())
-                            .contains("Floating tools");
+                            .contains(STAGE_TITLE);
 
                     assertThat(savedStage.isAutoClosedWhenEmpty())
+                            .describedAs("savedStage.isAutoClosedWhenEmpty()")
                             .isFalse();
 
                     assertThat(savedStage.getDockContainerRootBranchState())
+                            .describedAs("savedStage.getDockContainerRootBranchState()")
                             .contains(root);
                 });
 
         final List<DockContainerRootBranchState> rootBranchStates =
                 state.getRootBranchStates();
         assertThatThrownBy(rootBranchStates::clear)
+                .describedAs("exception thrown by rootBranchStates::clear")
                 .isInstanceOf(UnsupportedOperationException.class);
 
         final List<DragDropStageState> dragDropStageStates =
                 state.getDragDropStageStates();
 
         assertThatThrownBy(dragDropStageStates::clear)
+                .describedAs("exception thrown by dragDropStageStates::clear")
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -117,7 +135,7 @@ class BentoStateTest {
                         .build();
 
         BentoStateBuilder builder =
-                new BentoStateBuilder("bento:workbench")
+                new BentoStateBuilder(BENTO_IDENTIFIER)
                         .addRootBranchState(firstRoot);
 
         BentoState state = builder.build();
@@ -125,6 +143,7 @@ class BentoStateTest {
         builder.addRootBranchState(secondRoot);
 
         assertThat(state.getRootBranchStates())
+                .describedAs(STATE_GET_ROOTBRANCHSTATES_DESCRIPTION)
                 .containsExactly(firstRoot);
     }
 

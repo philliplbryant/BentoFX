@@ -39,29 +39,36 @@ class DockContainerBranchStateBuilderTest {
                         .build();
 
         assertThat(branchState.getIdentifier())
+                .describedAs("branchState.getIdentifier()")
                 .isEqualTo(expectedBranchName);
 
         assertThat(branchState.doPruneWhenEmpty())
+                .describedAs("branchState.doPruneWhenEmpty()")
                 .contains(expectedPruneWhenEmpty);
 
         assertThat(branchState.getOrientation())
+                .describedAs("branchState.getOrientation()")
                 .contains(expectedOrientation);
 
         assertThat(branchState.getDividerPositions())
+                .describedAs("branchState.getDividerPositions()")
                 .containsEntry(0, expectedDividerPosition0)
                 .containsEntry(1, expectedDividerPosition1);
 
         assertThat(branchState.getChildDockContainerStates())
+                .describedAs("branchState.getChildDockContainerStates()")
                 .containsExactly(childLeaf);
 
         final Map<Integer, Double> dividerPositions =
                 branchState.getDividerPositions();
         assertThatThrownBy(() -> dividerPositions.put(2, 0.5))
+                .describedAs("exception thrown by () -> dividerPositions.put(2, 0.5)")
                 .isInstanceOf(UnsupportedOperationException.class);
 
         final List<DockContainerState> dockContainerStates =
                 branchState.getChildDockContainerStates();
         assertThatThrownBy(() -> dockContainerStates.add(childLeaf))
+                .describedAs("exception thrown by () -> dockContainerStates.add(childLeaf)")
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
@@ -85,8 +92,10 @@ class DockContainerBranchStateBuilderTest {
                 .addDockContainerState(secondLeaf);
 
         assertThat(state.getDividerPositions())
+                .describedAs("state.getDividerPositions()")
                 .containsOnly(Map.entry(0, 0.25));
         assertThat(state.getChildDockContainerStates())
+                .describedAs("state.getChildDockContainerStates()")
                 .containsExactly(firstLeaf);
     }
 

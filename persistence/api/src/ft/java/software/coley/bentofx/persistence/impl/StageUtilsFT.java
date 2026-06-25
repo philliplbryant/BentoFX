@@ -18,6 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class StageUtilsFT {
 
+    private static final String FIRST_STAGE_TITLE = "first";
+    private static final String SECOND_STAGE_TITLE = "second";
+
     private Stage first;
     private Stage second;
     private Popup popup;
@@ -25,12 +28,12 @@ class StageUtilsFT {
     @Start
     private void start(Stage ignored) {
         first = new Stage();
-        first.setTitle("first");
+        first.setTitle(FIRST_STAGE_TITLE);
         first.setScene(new Scene(new Label("one"), 100, 50));
         first.show();
 
         second = new Stage();
-        second.setTitle("second");
+        second.setTitle(SECOND_STAGE_TITLE);
         second.setScene(new Scene(new Label("two"), 100, 50));
         second.show();
 
@@ -45,10 +48,13 @@ class StageUtilsFT {
         List<Stage> stages = StageUtils.getAllStages();
 
         assertThat(stages)
+                .describedAs("stages")
                 .contains(first, second);
         assertThat(stages.stream().map(Stage::getTitle))
-                .containsOnly("first", "second");
+                .describedAs("stages.stream().map(Stage::getTitle)")
+                .containsOnly(FIRST_STAGE_TITLE, SECOND_STAGE_TITLE);
         assertThat(Window.getWindows())
+                .describedAs("Window.getWindows()")
                 .contains(popup);
 
         robot.interact(() -> {

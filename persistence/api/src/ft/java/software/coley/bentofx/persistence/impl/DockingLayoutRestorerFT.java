@@ -47,6 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class DockingLayoutRestorerFT {
 
+    private static final String CODEC_GET_DECODETHREAD_DESCRIPTION = "codec.getDecodeThread()";
+
     @Test
     void restoreLayoutReturnsDefaultWhenStorageDoesNotExist() {
         InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
@@ -67,9 +69,15 @@ class DockingLayoutRestorerFT {
                 defaultLayout
         );
 
-        assertThat(restoredLayout).isSameAs(defaultLayout);
-        assertThat(storage.exists()).isFalse();
-        assertThat(codec.getEncodeCalls()).isEmpty();
+        assertThat(restoredLayout)
+                .describedAs("restoredLayout")
+                .isSameAs(defaultLayout);
+        assertThat(storage.exists())
+                .describedAs("storage.exists()")
+                .isFalse();
+        assertThat(codec.getEncodeCalls())
+                .describedAs("codec.getEncodeCalls()")
+                .isEmpty();
     }
 
     // This test follows the "Single Act Rule" and only exercises the unit
@@ -206,92 +214,129 @@ class DockingLayoutRestorerFT {
 
         DockingLayout dockingLayout = restoredReferenceToDockingLayout.get();
         assertThat(dockingLayout.getBentoLayouts())
+                .describedAs("dockingLayout.getBentoLayouts()")
                 .hasSize(1);
 
         BentoLayout bentoLayout = dockingLayout.getBentoLayouts().getFirst();
         assertThat(bentoLayout.getIdentifier())
+                .describedAs("bentoLayout.getIdentifier()")
                 .isEqualTo(expectedBentoId);
         assertThat(bentoLayout.getRootBranches())
+                .describedAs("bentoLayout.getRootBranches()")
                 .hasSize(1);
         assertThat(bentoLayout.getDragDropStages())
+                .describedAs("bentoLayout.getDragDropStages()")
                 .hasSize(1);
 
         DockContainerRootBranch root = bentoLayout.getRootBranches().getFirst();
         assertThat(root.getIdentifier())
+                .describedAs("root.getIdentifier()")
                 .isEqualTo(expectedBentoRootId);
         assertThat(root.getOrientation())
+                .describedAs("root.getOrientation()")
                 .isEqualTo(expectedRootOrientation);
         assertThat(root.doPruneWhenEmpty())
+                .describedAs("root.doPruneWhenEmpty()")
                 .isEqualTo(expectedRootPruneWhenEmpty);
         assertThat(root.getDividerPositions())
+                .describedAs("root.getDividerPositions()")
                 .containsExactly(expectedRootDividerPosition);
 
         List<DockContainer> rootContainers = root.getChildContainers();
         assertThat(rootContainers)
+                .describedAs("rootContainers")
                 .hasSize(2);
 
         DockContainer dockContainer = rootContainers.getFirst();
-        assertThat(dockContainer).isInstanceOf(DockContainerLeaf.class);
+        assertThat(dockContainer)
+                .describedAs("dockContainer")
+                .isInstanceOf(DockContainerLeaf.class);
         assertThat(dockContainer.getIdentifier())
+                .describedAs("dockContainer.getIdentifier()")
                 .isEqualTo(expectedLeafId);
 
         final DockContainerLeaf leaf = (DockContainerLeaf) dockContainer;
         assertThat(leaf.getSide())
+                .describedAs("leaf.getSide()")
                 .isEqualTo(expectedLeafSide);
         assertThat(leaf.isCanSplit())
+                .describedAs("leaf.isCanSplit()")
                 .isEqualTo(expectedLeafCanSplit);
         assertThat(SplitPane.isResizableWithParent(leaf))
+                .describedAs("SplitPane.isResizableWithParent(leaf)")
                 .isEqualTo(expectedLeafResizableWithParent);
         assertThat(leaf.isCollapsed())
+                .describedAs("leaf.isCollapsed()")
                 .isEqualTo(expectedLeafIsCollapsed);
         assertThat(leaf.doPruneWhenEmpty())
+                .describedAs("leaf.doPruneWhenEmpty()")
                 .isEqualTo(expectedLeafPruneWhenEmpty);
 
         List<Dockable> dockables = dockContainer.getDockables();
         assertThat(dockables)
+                .describedAs("dockables")
                 .hasSize(1);
         assertThat(dockables.getFirst().getIdentifier())
+                .describedAs("dockables.getFirst().getIdentifier()")
                 .isEqualTo(expectedDockableId);
         assertThat(dockables.getFirst().getTitle())
+                .describedAs("dockables.getFirst().getTitle()")
                 .isEqualTo(expectedDockableTitle);
         assertThat(dockables.getFirst().getTooltip())
+                .describedAs("dockables.getFirst().getTooltip()")
                 .isNotNull();
         assertThat(dockables.getFirst().getTooltip().getText())
+                .describedAs("dockables.getFirst().getTooltip().getText()")
                 .isEqualTo(expectedDockableTooltipText);
         assertThat(dockables.getFirst().isClosable())
+                .describedAs("dockables.getFirst().isClosable()")
                 .isEqualTo(expectedDockableIsClosable);
 
         Stage dragStage = bentoLayout.getDragDropStages().getFirst();
         assertThat(dragStage.getTitle())
+                .describedAs("dragStage.getTitle()")
                 .isEqualTo(expectedDragDropStageTitle);
         assertThat(dragStage.getX())
+                .describedAs("dragStage.getX()")
                 .isEqualTo(expectedX);
         assertThat(dragStage.getY())
+                .describedAs("dragStage.getY()")
                 .isEqualTo(expectedY);
         assertThat(dragStage.getWidth())
+                .describedAs("dragStage.getWidth()")
                 .isEqualTo(expectedWidth);
         assertThat(dragStage.getHeight())
+                .describedAs("dragStage.getHeight()")
                 .isEqualTo(expectedHeight);
         assertThat(dragStage.getOpacity())
+                .describedAs("dragStage.getOpacity()")
                 .isEqualTo(expectedOpacity);
         assertThat(dragStage.isResizable())
+                .describedAs("dragStage.isResizable()")
                 .isEqualTo(expectedResizable);
         assertThat(dragStage.isAlwaysOnTop())
+                .describedAs("dragStage.isAlwaysOnTop()")
                 .isEqualTo(expectedAlwaysOnTop);
         assertThat(dragStage.getModality())
+                .describedAs("dragStage.getModality()")
                 .isEqualTo(expectedModality);
         assertThat(dragStage.getIcons())
+                .describedAs("dragStage.getIcons()")
                 .hasSize(1);
         assertThat(dragStage.getScene().getRoot())
+                .describedAs("dragStage.getScene().getRoot()")
                 .isInstanceOf(DockContainerRootBranch.class);
 
         final DockContainerRootBranch rootBranch =
                 (DockContainerRootBranch) dragStage.getScene().getRoot();
         assertThat(rootBranch.getIdentifier())
+                .describedAs("rootBranch.getIdentifier()")
                 .isEqualTo(expectedDragRootBuilderId);
         assertThat(rootBranch.getOrientation())
+                .describedAs("rootBranch.getOrientation()")
                 .isEqualTo(expectedDragRootOrientation);
         assertThat(rootBranch.doPruneWhenEmpty())
+                .describedAs("rootBranch.doPruneWhenEmpty()")
                 .isEqualTo(expectedDragRootPruneWhenEmpty);
 
         // Cleanup
@@ -358,10 +403,20 @@ class DockingLayoutRestorerFT {
                 )
         );
 
-        assertThat(codec.getDecodeThread()).isNotNull();
-        assertThat(providerThread.get()).isNotNull();
-        assertThat(codec.getDecodeThread()).isNotEqualTo(providerThread.get());
-        assertThat(providerRanOnFxThread).isTrue();
-        assertThat(restoredLayout.get().getBentoLayouts()).hasSize(1);
+        assertThat(codec.getDecodeThread())
+                .describedAs(CODEC_GET_DECODETHREAD_DESCRIPTION)
+                .isNotNull();
+        assertThat(providerThread.get())
+                .describedAs("providerThread.get()")
+                .isNotNull();
+        assertThat(codec.getDecodeThread())
+                .describedAs(CODEC_GET_DECODETHREAD_DESCRIPTION)
+                .isNotEqualTo(providerThread.get());
+        assertThat(providerRanOnFxThread)
+                .describedAs("providerRanOnFxThread")
+                .isTrue();
+        assertThat(restoredLayout.get().getBentoLayouts())
+                .describedAs("restoredLayout.get().getBentoLayouts()")
+                .hasSize(1);
     }
 }

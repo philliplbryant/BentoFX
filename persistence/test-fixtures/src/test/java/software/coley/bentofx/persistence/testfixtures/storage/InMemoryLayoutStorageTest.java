@@ -9,13 +9,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InMemoryLayoutStorageTest {
 
+    private static final String STORAGE_EXISTS_DESCRIPTION = "storage.exists()";
+    private static final String STORAGE_TOBYTEARRAY_DESCRIPTION = "storage.toByteArray()";
+
     @Test
     void defaultStorageDoesNotExist() {
         final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
 
         assertThat(storage.exists())
+                .describedAs(STORAGE_EXISTS_DESCRIPTION)
                 .isFalse();
         assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
                 .isEmpty();
     }
 
@@ -28,8 +33,10 @@ class InMemoryLayoutStorageTest {
         }
 
         assertThat(storage.exists())
+                .describedAs(STORAGE_EXISTS_DESCRIPTION)
                 .isTrue();
         assertThat(storage.openInputStream().readAllBytes())
+                .describedAs("storage.openInputStream().readAllBytes()")
                 .containsExactly(1, 2, 3);
     }
 
@@ -42,6 +49,7 @@ class InMemoryLayoutStorageTest {
         bytes[0] = 9;
 
         assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
                 .containsExactly(1, 2, 3);
     }
 
@@ -53,6 +61,7 @@ class InMemoryLayoutStorageTest {
         copy[0] = 9;
 
         assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
                 .containsExactly(1, 2, 3);
     }
 
@@ -63,8 +72,10 @@ class InMemoryLayoutStorageTest {
         storage.delete();
 
         assertThat(storage.exists())
+                .describedAs(STORAGE_EXISTS_DESCRIPTION)
                 .isFalse();
         assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
                 .isEmpty();
     }
 }
