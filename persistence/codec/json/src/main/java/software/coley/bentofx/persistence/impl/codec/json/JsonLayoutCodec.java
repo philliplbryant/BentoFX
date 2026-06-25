@@ -23,7 +23,7 @@ import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMa
  */
 public final class JsonLayoutCodec implements LayoutCodec {
 
-    public static final String EXTENSION = "json";
+    public static final String CODEC_IDENTIFIER = "json";
     private final ObjectMapper mapper;
 
     public JsonLayoutCodec() {
@@ -36,7 +36,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
     @Override
     public String getIdentifier() {
-        return EXTENSION;
+        return CODEC_IDENTIFIER;
     }
 
     @Override

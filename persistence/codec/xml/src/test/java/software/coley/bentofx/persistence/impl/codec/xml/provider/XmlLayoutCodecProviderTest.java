@@ -14,7 +14,7 @@ class XmlLayoutCodecProviderTest {
 
         assertThat(provider.getIdentifier())
                 .describedAs("provider.getIdentifier()")
-                .isEqualTo(XmlLayoutCodec.EXTENSION);
+                .isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
         assertThat(provider.isDefault())
                 .describedAs("provider.isDefault()")
                 .isFalse();
@@ -32,6 +32,6 @@ class XmlLayoutCodecProviderTest {
                 .isInstanceOf(XmlLayoutCodec.class);
         assertThat(codec.getIdentifier())
                 .describedAs("codec.getIdentifier()")
-                .isEqualTo(XmlLayoutCodec.EXTENSION);
+                .isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
     }
 }

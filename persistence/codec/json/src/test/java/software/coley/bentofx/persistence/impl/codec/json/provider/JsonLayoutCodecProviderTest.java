@@ -14,7 +14,7 @@ class JsonLayoutCodecProviderTest {
 
         assertThat(provider.getIdentifier())
                 .describedAs("provider.getIdentifier()")
-                .isEqualTo(JsonLayoutCodec.EXTENSION);
+                .isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
         assertThat(provider.isDefault())
                 .describedAs("provider.isDefault()")
                 .isFalse();
@@ -32,6 +32,6 @@ class JsonLayoutCodecProviderTest {
                 .isInstanceOf(JsonLayoutCodec.class);
         assertThat(codec.getIdentifier())
                 .describedAs("codec.getIdentifier()")
-                .isEqualTo(JsonLayoutCodec.EXTENSION);
+                .isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
     }
 }

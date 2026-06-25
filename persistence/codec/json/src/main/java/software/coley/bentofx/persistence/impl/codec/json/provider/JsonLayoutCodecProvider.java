@@ -14,7 +14,7 @@ public class JsonLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
     public String getIdentifier() {
-        return JsonLayoutCodec.EXTENSION;
+        return JsonLayoutCodec.CODEC_IDENTIFIER;
     }
 
     @Override

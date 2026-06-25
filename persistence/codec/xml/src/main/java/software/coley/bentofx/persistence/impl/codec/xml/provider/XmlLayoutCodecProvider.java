@@ -14,7 +14,7 @@ public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
     @Override
     public String getIdentifier() {
-        return XmlLayoutCodec.EXTENSION;
+        return XmlLayoutCodec.CODEC_IDENTIFIER;
     }
 
     @Override

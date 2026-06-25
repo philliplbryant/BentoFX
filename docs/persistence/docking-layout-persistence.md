@@ -50,6 +50,24 @@ file or database, without changing the save/restore orchestration. In the simple
 a dependency change. When multiple providers are present, applications can select a specific codec or storage provider 
 by identifier with `LayoutPersistenceProfile`.
 
+
+## Internal orchestration collaborators
+
+`DockingLayoutSaver` and `DockingLayoutRestorer` are intentionally thin orchestration classes. The JavaFX threading
+boundaries remain in those public entry points, while the detailed work is delegated to smaller package-private
+collaborators:
+
+| Collaborator | Responsibility | Threading expectation |
+|--------------|----------------|-----------------------|
+| `BentoLayoutStateCaptor` | Walks live BentoFX objects and builds serializable `BentoState` instances. | JavaFX application thread. |
+| `LayoutStateWriter` | Encodes captured state with `LayoutCodec` and writes it with `LayoutStorage`. | Off the JavaFX application thread. |
+| `LayoutStateReader` | Reads persisted bytes with `LayoutStorage` and decodes them with `LayoutCodec`. | Off the JavaFX application thread. |
+| `DockingLayoutStateRestorer` | Rebuilds live BentoFX objects from decoded state and application providers. | JavaFX application thread. |
+
+This split keeps the public saver/restorer API stable while making the persistence pipeline easier to test. Unit tests can
+cover storage/codec error handling through `LayoutStateReader` and `LayoutStateWriter` without creating JavaFX stages,
+and functional tests can continue to cover full end-to-end save and restore behavior.
+
 ## Application integration model
 
 The persistence framework can restore layout structure, but it cannot know how to recreate application-specific content

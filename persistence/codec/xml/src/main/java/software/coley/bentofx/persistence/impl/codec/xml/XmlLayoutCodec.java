@@ -22,7 +22,7 @@ import java.util.List;
  */
 public final class XmlLayoutCodec implements LayoutCodec {
 
-    public static final String EXTENSION = "xml";
+    public static final String CODEC_IDENTIFIER = "xml";
 
     private final XmlMapper mapper;
 
@@ -37,7 +37,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
     @Override
     public String getIdentifier() {
-        return EXTENSION;
+        return CODEC_IDENTIFIER;
     }
 
     @Override
