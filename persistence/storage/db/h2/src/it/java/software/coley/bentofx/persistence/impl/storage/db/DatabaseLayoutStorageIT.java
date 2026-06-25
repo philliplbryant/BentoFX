@@ -4,136 +4,160 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DatabaseLayoutStorageIT {
 
-	private static final String ENTITY_MANAGER_FACTORY_IDENTIFIER = "bentoLayout";
-	private static final String TEST_LAYOUT_IDENTIFIER = "test-layout";
-	private static final String TEST_CODEC_IDENTIFIER = "none";
+    private static final String ENTITY_MANAGER_FACTORY_IDENTIFIER = "bentoLayout";
+    private static final String JDBC_URL_PROPERTY = "jakarta.persistence.jdbc.url";
+    private static final String JDBC_FILE_URL_PREFIX = "jdbc:h2:file:";
+    private static final String JDBC_FILE_URL_SUFFIX = ";DB_CLOSE_DELAY=-1";
+    private static final String DATABASE_FILE_NAME = "bento-layouts";
+    private static final String TEST_LAYOUT_IDENTIFIER = "test-layout";
+    private static final String TEST_CODEC_IDENTIFIER = "none";
+    private static final String TEST_DATA =
+            "This is test data for the layout.";
+    private static final String UPDATED_TEST_DATA =
+            "This is updated data for the layout.";
+    private static final String LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION =
+            "The layout should exist after writing data.";
+    private static final String LAYOUT_ID_PARAMETER = "layoutId";
+    private static final String CODEC_ID_PARAMETER = "codecId";
+    private static final String DELETE_TEST_LAYOUT_QUERY =
+            "DELETE FROM DockingLayoutEntity d " +
+                    "WHERE d.key.layoutIdentifier = :" + LAYOUT_ID_PARAMETER + " " +
+                    "AND d.key.codecIdentifier = :" + CODEC_ID_PARAMETER;
+    private static final String WINDOWS_PATH_SEPARATOR = "\\";
+    private static final String URL_PATH_SEPARATOR = "/";
 
-	private static final String TEST_DATA =
-			"This is test data for the layout.";
-	private static final String UPDATED_TEST_DATA =
-			"This is updated data for the layout.";
-	private static final String LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION =
-			"The layout should exist after writing data.";
+    @TempDir
+    private static Path temporaryDirectory;
 
-	private static EntityManagerFactory entityManagerFactory;
+    private static EntityManagerFactory entityManagerFactory;
 
-	private LayoutStorage storage;
+    private LayoutStorage storage;
 
-	@BeforeAll
-	static void setUpAll() {
-		entityManagerFactory =
-				Persistence.createEntityManagerFactory(
-						ENTITY_MANAGER_FACTORY_IDENTIFIER
-				);
-	}
+    @BeforeAll
+    static void setUpAll() {
+        entityManagerFactory =
+                Persistence.createEntityManagerFactory(
+                        ENTITY_MANAGER_FACTORY_IDENTIFIER,
+                        Map.of(JDBC_URL_PROPERTY, createJdbcUrl())
+                );
+    }
 
-	@AfterAll
-	static void tearDownAll() {
-		if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
-			entityManagerFactory.close();
-		}
-	}
+    @AfterAll
+    static void tearDownAll() {
+        if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
+            entityManagerFactory.close();
+        }
+    }
 
-	@BeforeEach
-	void setUp() {
-		storage =
-				new DatabaseLayoutStorage(
-						entityManagerFactory,
-						TEST_LAYOUT_IDENTIFIER,
-						TEST_CODEC_IDENTIFIER
-				);
+    @BeforeEach
+    void setUp() {
+        storage =
+                new DatabaseLayoutStorage(
+                        entityManagerFactory,
+                        TEST_LAYOUT_IDENTIFIER,
+                        TEST_CODEC_IDENTIFIER
+                );
 
-		deleteTestLayout();
-	}
+        deleteTestLayout();
+    }
 
-	@AfterEach
-	void tearDown() {
-		deleteTestLayout();
-	}
+    @AfterEach
+    void tearDown() {
+        deleteTestLayout();
+    }
 
-	@Test
-	void testDatabaseLayoutStorageInitialNonExistence() {
-		assertThat(storage.exists())
-				.describedAs("The layout should not exist initially.")
-				.isFalse();
-	}
+    @Test
+    void testDatabaseLayoutStorageInitialNonExistence() {
+        assertThat(storage.exists())
+                .describedAs("The layout should not exist initially.")
+                .isFalse();
+    }
 
-	@Test
-	void testWriteAndReadData() throws IOException {
-		writeData(TEST_DATA);
+    @Test
+    void testWriteAndReadData() throws IOException {
+        writeData(TEST_DATA);
 
-		assertThat(storage.exists())
-				.describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
-				.isTrue();
+        assertThat(storage.exists())
+                .describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
+                .isTrue();
 
-		assertThat(readData())
-				.describedAs("Read data should match the written data.")
-				.isEqualTo(TEST_DATA);
-	}
+        assertThat(readData())
+                .describedAs("Read data should match the written data.")
+                .isEqualTo(TEST_DATA);
+    }
 
-	@Test
-	void testOverwriteData() throws IOException {
-		writeData(TEST_DATA);
+    @Test
+    void testOverwriteData() throws IOException {
+        writeData(TEST_DATA);
 
-		assertThat(storage.exists())
-				.describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
-				.isTrue();
+        assertThat(storage.exists())
+                .describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
+                .isTrue();
 
-		writeData(UPDATED_TEST_DATA);
+        writeData(UPDATED_TEST_DATA);
 
-		assertThat(readData())
-				.describedAs("Read data should match the updated data.")
-				.isEqualTo(UPDATED_TEST_DATA);
-	}
+        assertThat(readData())
+                .describedAs("Read data should match the updated data.")
+                .isEqualTo(UPDATED_TEST_DATA);
+    }
 
-	private void writeData(final String data) throws IOException {
-		try (OutputStream outputStream = storage.openOutputStream()) {
-			outputStream.write(data.getBytes(UTF_8));
-		}
-	}
+    private static String createJdbcUrl() {
+        return JDBC_FILE_URL_PREFIX + temporaryDirectory
+                .resolve(DATABASE_FILE_NAME)
+                .toAbsolutePath()
+                .normalize()
+                .toString()
+                .replace(WINDOWS_PATH_SEPARATOR, URL_PATH_SEPARATOR) +
+                JDBC_FILE_URL_SUFFIX;
+    }
 
-	private String readData() throws IOException {
-		try (InputStream inputStream = storage.openInputStream();
-		     BufferedReader reader =
-				     new BufferedReader(
-						     new InputStreamReader(
-								     inputStream,
-								     UTF_8
-						     )
-				     )) {
-			final StringBuilder data = new StringBuilder();
-			String line;
-			while ((line = reader.readLine()) != null) {
-				data.append(line);
-			}
-			return data.toString();
-		}
-	}
+    private void writeData(final String data) throws IOException {
+        try (OutputStream outputStream = storage.openOutputStream()) {
+            outputStream.write(data.getBytes(UTF_8));
+        }
+    }
 
-	private void deleteTestLayout() {
-		try (EntityManager entityManager =
-				     entityManagerFactory.createEntityManager()) {
-			entityManager.getTransaction().begin();
+    private String readData() throws IOException {
+        try (InputStream inputStream = storage.openInputStream();
+             BufferedReader reader =
+                     new BufferedReader(
+                             new InputStreamReader(
+                                     inputStream,
+                                     UTF_8
+                             )
+                     )) {
+            final StringBuilder data = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                data.append(line);
+            }
+            return data.toString();
+        }
+    }
 
-			entityManager.createQuery(
-							"DELETE FROM DockingLayoutEntity d " +
-									"WHERE d.key.layoutIdentifier = :layoutId " +
-									"AND d.key.codecIdentifier = :codecId"
-					)
-					.setParameter("layoutId", TEST_LAYOUT_IDENTIFIER)
-					.setParameter("codecId", TEST_CODEC_IDENTIFIER)
-					.executeUpdate();
+    private void deleteTestLayout() {
+        try (EntityManager entityManager =
+                     entityManagerFactory.createEntityManager()) {
+            entityManager.getTransaction().begin();
 
-			entityManager.getTransaction().commit();
-		}
-	}
+            entityManager.createQuery(DELETE_TEST_LAYOUT_QUERY)
+                    .setParameter(LAYOUT_ID_PARAMETER, TEST_LAYOUT_IDENTIFIER)
+                    .setParameter(CODEC_ID_PARAMETER, TEST_CODEC_IDENTIFIER)
+                    .executeUpdate();
+
+            entityManager.getTransaction().commit();
+        }
+    }
 }
