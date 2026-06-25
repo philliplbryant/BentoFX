@@ -219,7 +219,6 @@ final class BentoLayoutStateCaptor {
         switch (dockContainer) {
 
             case final DockContainerBranch branch -> {
-
                 return buildBranchState(branch);
             }
 
@@ -288,10 +287,7 @@ final class BentoLayoutStateCaptor {
             final DockContainerLeaf leaf
     ) {
 
-        final String id = nonEmptyOr(
-                leaf.getIdentifier(),
-                "leaf-" + System.identityHashCode(leaf)
-        );
+        final String id = leaf.getIdentifier();
 
         final DockContainerLeafStateBuilder leafStateBuilder =
                 new DockContainerLeafStateBuilder(id);
