@@ -14,7 +14,6 @@ public class ElementNames {
     public static final String DOCKING_LAYOUT_ROOT_ELEMENT_NAME = "dockingLayout";
     public static final String METADATA_ELEMENT_NAME = "metadata";
     public static final String SCHEMA_VERSION_ELEMENT_NAME = "schemaVersion";
-    public static final String CODEC_IDENTIFIER_ELEMENT_NAME = "codecIdentifier";
     public static final String BENTO_LIST_ELEMENT_NAME = "bentos";
     public static final String BENTO_ELEMENT_NAME = "bento";
     public static final String ROOT_BRANCH_LIST_ELEMENT_NAME = "rootBranches";

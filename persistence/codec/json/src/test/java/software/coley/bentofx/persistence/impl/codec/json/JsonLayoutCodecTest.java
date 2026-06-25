@@ -38,11 +38,8 @@ final class JsonLayoutCodecTest {
         final String json = out.toString(StandardCharsets.UTF_8);
 
         assertThat(json)
-                .describedAs("encoded JSON layout metadata")
-                .contains(
-                        "\"schemaVersion\" : " + DockingLayoutDto.getCurrentSchemaVersion(),
-                        "\"codecIdentifier\" : \"json\""
-                );
+                .describedAs("encoded JSON schema version metadata")
+                .contains("\"schemaVersion\" : " + DockingLayoutDto.getCurrentSchemaVersion());
     }
 
     @Test
@@ -53,8 +50,7 @@ final class JsonLayoutCodecTest {
         final String json = """
                 {
                   "metadata": {
-                    "schemaVersion": %d,
-                    "codecIdentifier": "json"
+                    "schemaVersion": %d
                   },
                   "bentos": []
                 }

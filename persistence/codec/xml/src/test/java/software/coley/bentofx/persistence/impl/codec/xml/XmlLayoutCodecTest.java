@@ -46,7 +46,6 @@ class XmlLayoutCodecTest {
                 .contains(OPENING_TAG_PREFIX + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + METADATA_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + SCHEMA_VERSION_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + CODEC_IDENTIFIER_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + BENTO_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + BENTO_ELEMENT_NAME)
                 .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
@@ -83,10 +82,6 @@ class XmlLayoutCodecTest {
         assertThat(restoredDto.metadata.schemaVersion)
                 .describedAs("restored schema version")
                 .isEqualTo(DockingLayoutDto.getCurrentSchemaVersion());
-        assertThat(restoredDto.metadata.codecIdentifier)
-                .describedAs("restored codec identifier")
-                .isNull();
-
         assertThat(restoredDto.bentoStates)
                 .describedAs("restored Bento states")
                 .hasSize(originalDto.bentoStates.size());
@@ -115,7 +110,6 @@ class XmlLayoutCodecTest {
                 <dockingLayout>
                   <metadata>
                     <schemaVersion>%d</schemaVersion>
-                    <codecIdentifier>xml</codecIdentifier>
                   </metadata>
                   <bentos/>
                 </dockingLayout>

@@ -13,9 +13,4 @@ public class LayoutMetadataDto {
      * Version of the persisted layout schema.
      */
     public @Nullable Integer schemaVersion;
-
-    /**
-     * Identifier of the codec that encoded the layout payload.
-     */
-    public @Nullable String codecIdentifier;
 }

@@ -43,33 +43,16 @@ public final class BentoStateMapper {
 	 * Maps a {@code List<BentoState>} to a {@link DockingLayoutDto}.
 	 *
 	 * @param bentoStates the {@code List<BentoState>} to map.
-	 *
 	 * @return the {@link DockingLayoutDto} mapped from the
 	 * {@code List<BentoState>}.
 	 */
 	public static DockingLayoutDto toDto(
 			final List<BentoState> bentoStates
 	) {
-		return toDto(bentoStates, null);
-	}
-
-	/**
-	 * Maps a {@code List<BentoState>} to a {@link DockingLayoutDto}.
-	 *
-	 * @param bentoStates the {@code List<BentoState>} to map.
-	 * @param codecIdentifier the identifier of the codec writing the DTO.
-	 *
-	 * @return the {@link DockingLayoutDto} mapped from the
-	 * {@code List<BentoState>}.
-	 */
-	public static DockingLayoutDto toDto(
-			final List<BentoState> bentoStates,
-			final @Nullable String codecIdentifier
-	) {
 		requireNonNull(bentoStates);
 
 		final DockingLayoutDto dockingLayoutDto = new DockingLayoutDto();
-		dockingLayoutDto.metadata = createMetadata(codecIdentifier);
+		dockingLayoutDto.metadata = createMetadata();
 
 		for (final BentoState state : bentoStates) {
 			dockingLayoutDto.bentoStates.add(toDto(state));
@@ -81,16 +64,11 @@ public final class BentoStateMapper {
 	/**
 	 * Creates metadata for a persisted layout payload.
 	 *
-	 * @param codecIdentifier the identifier of the codec writing the DTO.
-	 *
 	 * @return the metadata DTO.
 	 */
-	private static LayoutMetadataDto createMetadata(
-			final @Nullable String codecIdentifier
-	) {
+	private static LayoutMetadataDto createMetadata() {
 		final LayoutMetadataDto metadata = new LayoutMetadataDto();
 		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-		metadata.codecIdentifier = codecIdentifier;
 		return metadata;
 	}
 

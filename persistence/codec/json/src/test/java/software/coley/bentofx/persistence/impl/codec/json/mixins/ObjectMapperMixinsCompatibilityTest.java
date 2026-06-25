@@ -46,7 +46,6 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_PRUNE_WHEN_EMPTY = "pruneWhenEmpty";
 	private static final String FIELD_RESIZABLE = "resizable";
 	private static final String FIELD_SCHEMA_VERSION = "schemaVersion";
-	private static final String FIELD_CODEC_IDENTIFIER = "codecIdentifier";
 	private static final String FIELD_SELECTED_DOCKABLE_IDENTIFIER = "selectedDockableIdentifier";
 	private static final String FIELD_SHOWING = "showing";
 	private static final String FIELD_SIDE = "side";
@@ -63,7 +62,6 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String LEAF_IDENTIFIER = "leaf-1";
 	private static final String ROOT_IDENTIFIER = "root-1";
 	private static final String STAGE_TITLE = "Stage";
-	private static final String TEST_CODEC_IDENTIFIER = "json";
 
 	@Test
 	void serializesDockingLayoutUsingCommonMapperFieldNames() throws Exception {
@@ -225,7 +223,6 @@ class ObjectMapperMixinsCompatibilityTest {
 
 		final LayoutMetadataDto metadata = new LayoutMetadataDto();
 		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-		metadata.codecIdentifier = TEST_CODEC_IDENTIFIER;
 
 		final DockingLayoutDto layout = new DockingLayoutDto();
 		layout.metadata = metadata;
@@ -302,7 +299,6 @@ class ObjectMapperMixinsCompatibilityTest {
 
 		final ObjectNode metadata = factory.objectNode();
 		metadata.put(FIELD_SCHEMA_VERSION, DockingLayoutDto.getCurrentSchemaVersion());
-		metadata.put(FIELD_CODEC_IDENTIFIER, TEST_CODEC_IDENTIFIER);
 
 		final ObjectNode dockingLayout = factory.objectNode();
 		dockingLayout.set(FIELD_METADATA, metadata);

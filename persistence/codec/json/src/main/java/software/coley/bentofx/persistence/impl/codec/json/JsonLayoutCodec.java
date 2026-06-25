@@ -47,7 +47,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
         try {
 
-            final DockingLayoutDto bentoStateDto = BentoStateMapper.toDto(states, getIdentifier());
+            final DockingLayoutDto bentoStateDto = BentoStateMapper.toDto(states);
             mapper.writeValue(outputStream, bentoStateDto);
         } catch (final Exception e) {
 
