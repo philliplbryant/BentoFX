@@ -8,9 +8,9 @@ import software.coley.bentofx.persistence.testfixtures.storage.TestLayoutStorage
 /**
  * Configurable {@link LayoutStorageProvider} for provider-selection tests.
  */
-public final class TestLayoutStorageProvider implements LayoutStorageProvider {
-    private final String identifier;
-    private final boolean defaultProvider;
+public final class TestLayoutStorageProvider
+        extends AbstractTestLayoutProvider
+        implements LayoutStorageProvider {
     private @Nullable String layoutIdentifier;
     private @Nullable String codecIdentifier;
 
@@ -18,18 +18,7 @@ public final class TestLayoutStorageProvider implements LayoutStorageProvider {
             final String identifier,
             final boolean defaultProvider
     ) {
-        this.identifier = identifier;
-        this.defaultProvider = defaultProvider;
-    }
-
-    @Override
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public boolean isDefault() {
-        return defaultProvider;
+        super(identifier, defaultProvider);
     }
 
     @Override

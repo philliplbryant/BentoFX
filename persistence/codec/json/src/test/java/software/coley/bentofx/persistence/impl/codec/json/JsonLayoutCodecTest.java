@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,6 +13,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 
 final class JsonLayoutCodecTest {
 
@@ -65,16 +64,6 @@ final class JsonLayoutCodecTest {
     }
 
     private static List<BentoState> createStates() throws BentoStateException {
-        final DockingLayoutDto layout = new DockingLayoutDto();
-
-        final LayoutMetadataDto metadata = new LayoutMetadataDto();
-        metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-        layout.metadata = metadata;
-
-        final BentoStateDto bento = new BentoStateDto();
-        bento.identifier = "bento-1";
-        layout.bentoStates.add(bento);
-
-        return BentoStateMapper.fromDto(layout);
+        return BentoStateMapper.fromDto(createDockingLayoutDto());
     }
 }

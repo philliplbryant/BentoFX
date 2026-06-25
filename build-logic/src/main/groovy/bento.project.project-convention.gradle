@@ -1,6 +1,5 @@
 import org.gradle.api.plugins.jvm.JvmTestSuite
-import org.gradlex.jvm.dependency.conflict.detection.rules.CapabilityDefinition.*
-import software.coley.gradle.artifacts.TestFxAlignmentRule
+import software.coley.gradle.artifacts.JavaFxDependencyMetadataRule
 import software.coley.gradle.task.extensions.BentoConventionExtension
 
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
@@ -31,7 +30,7 @@ def javaMajorVersionAsInt = javaLanguageVersion.asInt()
 
 dependencies {
 
-    components.all(TestFxAlignmentRule)
+    components.all(JavaFxDependencyMetadataRule)
 
     api platform(project(':platform'))
 }

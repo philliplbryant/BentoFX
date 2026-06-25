@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,13 +14,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 
 class XmlLayoutCodecTest {
 
     private static final String XML_CODEC_IDENTIFIER = "xml";
     private static final String OPENING_TAG_PREFIX = "<";
     private static final String CLOSING_TAG_SUFFIX = ">";
-    private static final String DOCKABLE_IDENTIFIER = "Test-Dockable";
 
     @Test
     void getIdentifierReturnsXml() {
@@ -100,7 +100,6 @@ class XmlLayoutCodecTest {
     }
 
 
-
     @Test
     void decodeRejectsFutureSchemaVersion() {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
@@ -125,72 +124,5 @@ class XmlLayoutCodecTest {
 
     private static List<BentoState> createStates() throws Exception {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
-    }
-
-    private static DockingLayoutDto createDockingLayoutDto() {
-        final DockableDto dockable = new DockableDto();
-        dockable.identifier = DOCKABLE_IDENTIFIER;
-
-        final DockContainerLeafDto leaf = new DockContainerLeafDto();
-        leaf.identifier = "leaf-1";
-        leaf.pruneWhenEmpty = true;
-        leaf.selectedDockableIdentifier = DOCKABLE_IDENTIFIER;
-        leaf.side = javafx.geometry.Side.TOP;
-        leaf.isResizableWithParent = true;
-        leaf.isCanSplit = true;
-        leaf.uncollapsedSizePx = 321.0;
-        leaf.isCollapsed = false;
-        leaf.dockables.add(dockable);
-
-        final DividerPositionDto divider = new DividerPositionDto();
-        divider.index = 0;
-        divider.position = 0.42;
-
-        final DockContainerBranchDto branch = new DockContainerBranchDto();
-        branch.identifier = "branch-1";
-        branch.pruneWhenEmpty = false;
-        branch.orientation = javafx.geometry.Orientation.HORIZONTAL;
-        branch.dividerPositions.add(divider);
-        branch.children.add(leaf);
-
-        final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
-        root.identifier = "root-1";
-        root.pruneWhenEmpty = false;
-        root.orientation = javafx.geometry.Orientation.VERTICAL;
-        root.dividerPositions.add(divider);
-        root.branches.add(branch);
-        root.leaf = leaf;
-
-        final DragDropStageDto stage = new DragDropStageDto();
-        stage.title = "Stage";
-        stage.x = 10.0;
-        stage.y = 20.0;
-        stage.width = 800.0;
-        stage.height = 600.0;
-        stage.modality = javafx.stage.Modality.NONE;
-        stage.opacity = 0.9;
-        stage.iconified = false;
-        stage.fullScreen = false;
-        stage.maximized = true;
-        stage.alwaysOnTop = false;
-        stage.resizable = true;
-        stage.showing = true;
-        stage.focused = true;
-        stage.autoCloseWhenEmpty = true;
-        stage.dockContainerRootBranchDto = root;
-
-        final BentoStateDto bento = new BentoStateDto();
-        bento.identifier = "bento-1";
-        bento.rootBranches.add(root);
-        bento.dragDropStages.add(stage);
-
-        final LayoutMetadataDto metadata = new LayoutMetadataDto();
-        metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-
-        final DockingLayoutDto layout = new DockingLayoutDto();
-        layout.metadata = metadata;
-        layout.bentoStates.add(bento);
-
-        return layout;
     }
 }

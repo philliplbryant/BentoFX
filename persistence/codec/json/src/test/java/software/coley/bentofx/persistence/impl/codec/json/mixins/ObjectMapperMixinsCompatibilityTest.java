@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,7 @@ import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.*;
 
 class ObjectMapperMixinsCompatibilityTest {
 
@@ -56,12 +57,6 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_X = "x";
 	private static final String FIELD_Y = "y";
 
-	private static final String BENTO_IDENTIFIER = "bento-1";
-	private static final String BRANCH_IDENTIFIER = "branch-1";
-	private static final String DOCKABLE_IDENTIFIER = "dockable-1";
-	private static final String LEAF_IDENTIFIER = "leaf-1";
-	private static final String ROOT_IDENTIFIER = "root-1";
-	private static final String STAGE_TITLE = "Stage";
 
 	@Test
 	void serializesDockingLayoutUsingCommonMapperFieldNames() throws Exception {
@@ -162,73 +157,6 @@ class ObjectMapperMixinsCompatibilityTest {
 		}
 
 		return node;
-	}
-
-	private static DockingLayoutDto createDockingLayoutDto() {
-		final DockableDto dockable = new DockableDto();
-		dockable.identifier = DOCKABLE_IDENTIFIER;
-
-		final DockContainerLeafDto leaf = new DockContainerLeafDto();
-		leaf.identifier = LEAF_IDENTIFIER;
-		leaf.pruneWhenEmpty = true;
-		leaf.selectedDockableIdentifier = DOCKABLE_IDENTIFIER;
-		leaf.side = TOP;
-		leaf.isResizableWithParent = true;
-		leaf.isCanSplit = true;
-		leaf.uncollapsedSizePx = 321.0;
-		leaf.isCollapsed = false;
-		leaf.dockables.add(dockable);
-
-		final DividerPositionDto divider = new DividerPositionDto();
-		divider.index = 0;
-		divider.position = 0.42;
-
-		final DockContainerBranchDto branch = new DockContainerBranchDto();
-		branch.identifier = BRANCH_IDENTIFIER;
-		branch.pruneWhenEmpty = false;
-		branch.orientation = HORIZONTAL;
-		branch.dividerPositions.add(divider);
-		branch.children.add(leaf);
-
-		final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
-		root.identifier = ROOT_IDENTIFIER;
-		root.pruneWhenEmpty = false;
-		root.orientation = VERTICAL;
-		root.dividerPositions.add(divider);
-		root.branches.add(branch);
-		root.leaf = leaf;
-
-		final DragDropStageDto stage = new DragDropStageDto();
-		stage.title = STAGE_TITLE;
-		stage.x = 10.0;
-		stage.y = 20.0;
-		stage.width = 800.0;
-		stage.height = 600.0;
-		stage.modality = NONE;
-		stage.opacity = 0.9;
-		stage.iconified = false;
-		stage.fullScreen = false;
-		stage.maximized = true;
-		stage.alwaysOnTop = false;
-		stage.resizable = true;
-		stage.showing = true;
-		stage.focused = true;
-		stage.autoCloseWhenEmpty = true;
-		stage.dockContainerRootBranchDto = root;
-
-		final BentoStateDto bento = new BentoStateDto();
-		bento.identifier = BENTO_IDENTIFIER;
-		bento.rootBranches.add(root);
-		bento.dragDropStages.add(stage);
-
-		final LayoutMetadataDto metadata = new LayoutMetadataDto();
-		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-
-		final DockingLayoutDto layout = new DockingLayoutDto();
-		layout.metadata = metadata;
-		layout.bentoStates.add(bento);
-
-		return layout;
 	}
 
 	private static JsonNode createExpectedDockingLayoutJson() {

@@ -23,4 +23,6 @@ dependencies {
 
     compileOnly libs.jackson.annotations
     compileOnly libs.jspecify
+
+    testImplementation testFixtures(projects.persistence.testFixtures)
 }
