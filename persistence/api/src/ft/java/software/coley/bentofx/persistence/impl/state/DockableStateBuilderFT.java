@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.state;
 
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -95,7 +96,7 @@ class DockableStateBuilderFT {
 
     private static class DockableConsumer {
 
-        private static Dockable consumedDockable = null;
+        private static @Nullable Dockable consumedDockable = null;
         private static void consumeDockable(Dockable dockable) {
             consumedDockable = dockable;
         }

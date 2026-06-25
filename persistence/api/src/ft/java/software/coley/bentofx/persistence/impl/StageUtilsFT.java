@@ -5,6 +5,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -21,9 +22,9 @@ class StageUtilsFT {
     private static final String FIRST_STAGE_TITLE = "first";
     private static final String SECOND_STAGE_TITLE = "second";
 
-    private Stage first;
-    private Stage second;
-    private Popup popup;
+    private @Nullable Stage first;
+    private @Nullable Stage second;
+    private @Nullable Popup popup;
 
     @Start
     private void start(Stage ignored) {
@@ -45,22 +46,49 @@ class StageUtilsFT {
 
     @Test
     void getAllStagesReturnsOnlyJavaFxStages(final FxRobot robot) {
-        List<Stage> stages = StageUtils.getAllStages();
+        final Stage firstStage = getFirstStage();
+        final Stage secondStage = getSecondStage();
+        final Popup activePopup = getPopup();
+        final List<Stage> stages = StageUtils.getAllStages();
 
         assertThat(stages)
                 .describedAs("stages")
-                .contains(first, second);
+                .contains(firstStage, secondStage);
         assertThat(stages.stream().map(Stage::getTitle))
                 .describedAs("stages.stream().map(Stage::getTitle)")
                 .containsOnly(FIRST_STAGE_TITLE, SECOND_STAGE_TITLE);
         assertThat(Window.getWindows())
                 .describedAs("Window.getWindows()")
-                .contains(popup);
+                .contains(activePopup);
 
         robot.interact(() -> {
-            popup.hide();
-            second.hide();
-            first.hide();
+            activePopup.hide();
+            secondStage.hide();
+            firstStage.hide();
         });
+    }
+
+    private Stage getFirstStage() {
+        final Stage activeFirst = first;
+        assertThat(activeFirst)
+                .describedAs("first")
+                .isNotNull();
+        return activeFirst;
+    }
+
+    private Stage getSecondStage() {
+        final Stage activeSecond = second;
+        assertThat(activeSecond)
+                .describedAs("second")
+                .isNotNull();
+        return activeSecond;
+    }
+
+    private Popup getPopup() {
+        final Popup activePopup = popup;
+        assertThat(activePopup)
+                .describedAs("popup")
+                .isNotNull();
+        return activePopup;
     }
 }
