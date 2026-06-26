@@ -65,7 +65,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
         callOffFxThread(() -> {
             layoutStateWriter.writeLayout(bentoStateList);
-            return null;
+            return Boolean.TRUE;
         });
     }
 

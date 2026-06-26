@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@NullMarked
 class LayoutStateWriterTest {
 
     private static final String CODEC_IDENTIFIER = "test";
@@ -30,50 +32,54 @@ class LayoutStateWriterTest {
     @Test
     void writesEncodedStateToStorage() throws BentoStateException {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final BentoState bentoState = new BentoStateBuilder(LAYOUT_IDENTIFIER)
                 .build();
 
-        new LayoutStateWriter(codec, storage).writeLayout(List.of(bentoState));
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
+            new LayoutStateWriter(codec, storage).writeLayout(List.of(bentoState));
 
-        assertThat(codec.getEncodedBentoStates())
-                .describedAs("codec.getEncodedBentoStates()")
-                .containsExactly(bentoState);
-        assertThat(storage.getOutputStreamContent())
-                .describedAs(OUTPUT_STREAM_CONTENT_DESCRIPTION)
-                .isEqualTo(ENCODED_LAYOUT);
+            assertThat(codec.getEncodedBentoStates())
+                    .describedAs("codec.getEncodedBentoStates()")
+                    .containsExactly(bentoState);
+            assertThat(storage.getOutputStreamContent())
+                    .describedAs(OUTPUT_STREAM_CONTENT_DESCRIPTION)
+                    .isEqualTo(ENCODED_LAYOUT);
+        }
     }
 
     @Test
     void wrapsEncodingFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final BentoStateException expectedCause = new BentoStateException(CODEC_FAILURE_MESSAGE);
         codec.setEncodeException(expectedCause);
 
-        assertThatThrownBy(() ->
-                new LayoutStateWriter(codec, storage).writeLayout(List.of())
-        )
-                .describedAs(WRITE_EXCEPTION_DESCRIPTION)
-                .isInstanceOf(BentoStateException.class)
-                .hasMessage(WRITE_FAILURE_MESSAGE)
-                .hasCause(expectedCause);
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
+            assertThatThrownBy(() ->
+                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+            )
+                    .describedAs(WRITE_EXCEPTION_DESCRIPTION)
+                    .isInstanceOf(BentoStateException.class)
+                    .hasMessage(WRITE_FAILURE_MESSAGE)
+                    .hasCause(expectedCause);
+        }
     }
 
     @Test
     void wrapsStorageFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final IOException expectedCause = new IOException(STORAGE_FAILURE_MESSAGE);
-        storage.setOpenOutputStreamException(expectedCause);
 
-        assertThatThrownBy(() ->
-                new LayoutStateWriter(codec, storage).writeLayout(List.of())
-        )
-                .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when storage fails")
-                .isInstanceOf(BentoStateException.class)
-                .hasMessage(WRITE_FAILURE_MESSAGE)
-                .hasCause(expectedCause);
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
+            storage.setOpenOutputStreamException(expectedCause);
+
+            assertThatThrownBy(() ->
+                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+            )
+                    .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when storage fails")
+                    .isInstanceOf(BentoStateException.class)
+                    .hasMessage(WRITE_FAILURE_MESSAGE)
+                    .hasCause(expectedCause);
+        }
     }
 
 
@@ -128,7 +134,7 @@ class LayoutStateWriterTest {
             return encodedBentoStates;
         }
 
-        void setEncodeException(final BentoStateException encodeException) {
+        void setEncodeException(final @Nullable BentoStateException encodeException) {
             this.encodeException = encodeException;
         }
     }
@@ -171,7 +177,7 @@ class LayoutStateWriterTest {
         }
 
         void setOpenOutputStreamException(
-                final IOException openOutputStreamException
+                final @Nullable IOException openOutputStreamException
         ) {
             this.openOutputStreamException = openOutputStreamException;
         }

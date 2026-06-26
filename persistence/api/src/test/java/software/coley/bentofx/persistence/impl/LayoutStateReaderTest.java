@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@NullMarked
 class LayoutStateReaderTest {
 
     private static final String CODEC_IDENTIFIER = "test";
@@ -31,47 +33,50 @@ class LayoutStateReaderTest {
         final BentoState bentoState = new BentoStateBuilder(LAYOUT_IDENTIFIER)
                 .build();
         final RecordingLayoutCodec codec = new RecordingLayoutCodec(List.of(bentoState));
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT);
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT)) {
+            final List<BentoState> states = new LayoutStateReader(codec, storage)
+                    .readLayoutState();
 
-        final List<BentoState> states = new LayoutStateReader(codec, storage)
-                .readLayoutState();
-
-        assertThat(states)
-                .describedAs("states")
-                .containsExactly(bentoState);
-        assertThat(codec.getDecodedInputStreamContent())
-                .describedAs("codec.getDecodedInputStreamContent()")
-                .isEqualTo(ENCODED_LAYOUT);
+            assertThat(states)
+                    .describedAs("states")
+                    .containsExactly(bentoState);
+            assertThat(codec.getDecodedInputStreamContent())
+                    .describedAs("codec.getDecodedInputStreamContent()")
+                    .isEqualTo(ENCODED_LAYOUT);
+        }
     }
 
     @Test
     void propagatesDecodingFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec(List.of());
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT);
         final BentoStateException expectedCause = new BentoStateException(CODEC_FAILURE_MESSAGE);
         codec.setDecodeException(expectedCause);
 
-        assertThatThrownBy(() ->
-                new LayoutStateReader(codec, storage).readLayoutState()
-        )
-                .describedAs(READ_EXCEPTION_DESCRIPTION)
-                .isSameAs(expectedCause);
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT)) {
+            assertThatThrownBy(() ->
+                    new LayoutStateReader(codec, storage).readLayoutState()
+            )
+                    .describedAs(READ_EXCEPTION_DESCRIPTION)
+                    .isSameAs(expectedCause);
+        }
     }
 
     @Test
     void wrapsStorageFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec(List.of());
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT);
         final IOException expectedCause = new IOException(STORAGE_FAILURE_MESSAGE);
-        storage.setOpenInputStreamException(expectedCause);
 
-        assertThatThrownBy(() ->
-                new LayoutStateReader(codec, storage).readLayoutState()
-        )
-                .describedAs(READ_EXCEPTION_DESCRIPTION + " when storage fails")
-                .isInstanceOf(BentoStateException.class)
-                .hasMessage(READ_FAILURE_MESSAGE)
-                .hasCause(expectedCause);
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT)) {
+            storage.setOpenInputStreamException(expectedCause);
+
+            assertThatThrownBy(() ->
+                    new LayoutStateReader(codec, storage).readLayoutState()
+            )
+                    .describedAs(READ_EXCEPTION_DESCRIPTION + " when storage fails")
+                    .isInstanceOf(BentoStateException.class)
+                    .hasMessage(READ_FAILURE_MESSAGE)
+                    .hasCause(expectedCause);
+        }
     }
 
 
@@ -136,7 +141,7 @@ class LayoutStateReaderTest {
             return decodedInputStreamContent;
         }
 
-        void setDecodeException(final BentoStateException decodeException) {
+        void setDecodeException(final @Nullable BentoStateException decodeException) {
             this.decodeException = decodeException;
         }
     }
@@ -181,7 +186,7 @@ class LayoutStateReaderTest {
         }
 
         void setOpenInputStreamException(
-                final IOException openInputStreamException
+                final @Nullable IOException openInputStreamException
         ) {
             this.openInputStreamException = openInputStreamException;
         }

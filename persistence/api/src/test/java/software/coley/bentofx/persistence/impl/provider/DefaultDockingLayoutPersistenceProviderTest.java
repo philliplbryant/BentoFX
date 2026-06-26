@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl.provider;
 
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@NullMarked
 class DefaultDockingLayoutPersistenceProviderTest {
 
     private static final String DEFAULT_LAYOUT_IDENTIFIER = "default";
