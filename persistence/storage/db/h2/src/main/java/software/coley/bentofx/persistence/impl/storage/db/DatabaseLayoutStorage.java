@@ -7,12 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implementation of the {@link LayoutStorage} interface for persisting Bento
@@ -26,6 +23,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 			LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
 	private final EntityManagerFactory emf;
+	private final AtomicBoolean closed = new AtomicBoolean();
 	private final String layoutIdentifier;
 	private final String codecIdentifier;
 
@@ -153,5 +151,13 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 				}
 			}
 		};
+	}
+
+
+	@Override
+	public void close() {
+		if (closed.compareAndSet(false, true)) {
+			emf.close();
+		}
 	}
 }

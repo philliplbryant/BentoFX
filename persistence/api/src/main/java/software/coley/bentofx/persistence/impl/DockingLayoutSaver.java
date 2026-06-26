@@ -68,4 +68,14 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
             return null;
         });
     }
+
+
+    @Override
+    public void close() {
+        try {
+            super.close();
+        } finally {
+            layoutStateWriter.close();
+        }
+    }
 }

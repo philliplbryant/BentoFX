@@ -8,16 +8,18 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Writes captured Bento layout state to configured storage.
  *
  * @author Phil Bryant
  */
-final class LayoutStateWriter {
+final class LayoutStateWriter implements AutoCloseable {
 
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     LayoutStateWriter(
             final LayoutCodec layoutCodec,
@@ -43,6 +45,13 @@ final class LayoutStateWriter {
         } catch (final Exception ex) {
 
             throw new BentoStateException("Failed to encode BentoState", ex);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            layoutStorage.close();
         }
     }
 }

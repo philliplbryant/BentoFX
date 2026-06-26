@@ -10,7 +10,7 @@ import java.io.OutputStream;
  *
  * @author Phil Bryant
  */
-public interface LayoutStorage {
+public interface LayoutStorage extends AutoCloseable {
 
     /**
      * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.
@@ -36,4 +36,9 @@ public interface LayoutStorage {
      * @throws IOException if an I/O error occurs.
      */
     InputStream openInputStream() throws IOException;
+
+    @Override
+    default void close() {
+        // Default no-op. Implementations that own resources should override.
+    }
 }

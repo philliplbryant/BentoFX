@@ -10,10 +10,12 @@ import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 
-import java.lang.ref.Cleaner;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -22,28 +24,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * scheduled intervals and can be called when the application exits. To do so
  * efficiently, this class listens for {@link DockEvent}s to track whether changes have been made
  * to the layout and only saves when changes have actually been made. Because
- * this class implements :@link {@link AutoCloseable}, it can be used in a
- * try-with- resources block to automatically call {@link #close()} to save the
+ * this class implements {@link AutoCloseable}, it can be used in a
+ * try-with-resources block to automatically call {@link #close()} to save the
  * docking layout when the try block exits.
  *
  * @author Phil Bryant
  */
 public abstract class AbstractAutoCloseableLayoutSaver
-        implements LayoutSaver, AutoCloseable, DockEventListener {
+        implements LayoutSaver, DockEventListener {
 
     private static final Logger logger =
             LoggerFactory.getLogger(AbstractAutoCloseableLayoutSaver.class);
 
     private static final long DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES = 5;
 
-    private static final Cleaner CLEANER = Cleaner.create();
-
-    private final Cleaner.Cleanable cleanable;
+    private final AtomicBoolean wasDockEventReceived =
+            new AtomicBoolean(false);
+    private final Set<Bento> listenerBentos = new HashSet<>();
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     private boolean isAutoSaveEnabled;
     private @Nullable ScheduledExecutorService scheduler;
-    private final AtomicBoolean wasDockEventReceived =
-            new AtomicBoolean(false);
 
     private long autoSaveInterval =
             DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES;
@@ -75,10 +76,6 @@ public abstract class AbstractAutoCloseableLayoutSaver
     ) {
 
         this.bentoProvider = Objects.requireNonNull(bentoProvider);
-        this.cleanable = CLEANER.register(
-                this,
-                new RunnableResource(this::autoSave)
-        );
         enableAutoSave(autoSaveInterval, autoSaveTimeUnit);
     }
 
@@ -107,22 +104,32 @@ public abstract class AbstractAutoCloseableLayoutSaver
             final Long autoSaveInterval,
             final TimeUnit autoSaveTimeUnit
     ) {
+        if (closed.get()) {
+            throw new IllegalStateException("Cannot enable auto-save after saver has been closed");
+        }
+
+        final Long requestedAutoSaveInterval =
+                Objects.requireNonNull(autoSaveInterval);
+        if (requestedAutoSaveInterval <= 0) {
+            throw new IllegalArgumentException("autoSaveInterval must be greater than zero");
+        }
+
+        this.autoSaveInterval = requestedAutoSaveInterval;
+        this.autoSaveTimeUnit = Objects.requireNonNull(autoSaveTimeUnit);
+
+        disableAutoSave();
+
         this.isAutoSaveEnabled = true;
-        this.autoSaveInterval = autoSaveInterval;
-        this.autoSaveTimeUnit = autoSaveTimeUnit;
-
-        if (scheduler == null) {
-            scheduler = Executors.newScheduledThreadPool(1);
-            scheduler.scheduleAtFixedRate(this::autoSave,
-                    autoSaveInterval,
-                    autoSaveInterval,
-                    autoSaveTimeUnit
-            );
-        }
-
-        for(Bento bento : bentoProvider.getAllBentos()) {
-            bento.events().addEventListener(this);
-        }
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(
+                new AutoSaveThreadFactory()
+        );
+        this.scheduler.scheduleAtFixedRate(
+                this::autoSave,
+                autoSaveInterval,
+                autoSaveInterval,
+                autoSaveTimeUnit
+        );
+        addListeners();
     }
 
     /**
@@ -134,14 +141,14 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
         this.isAutoSaveEnabled = false;
 
-        if (scheduler != null) {
-            scheduler.close();
-            scheduler = null;
+        final ScheduledExecutorService currentScheduler = scheduler;
+        scheduler = null;
+
+        if (currentScheduler != null) {
+            currentScheduler.shutdownNow();
         }
 
-        for(Bento bento : bentoProvider.getAllBentos()) {
-            bento.events().removeEventListener(this);
-        }
+        removeListeners();
     }
 
     @Override
@@ -153,11 +160,17 @@ public abstract class AbstractAutoCloseableLayoutSaver
     @Override
     public void close() {
 
-        if (isAutoSaveEnabled) {
-            cleanable.clean();
+        if (!closed.compareAndSet(false, true)) {
+            return;
         }
 
-        disableAutoSave();
+        try {
+            if (isAutoSaveEnabled) {
+                autoSave();
+            }
+        } finally {
+            disableAutoSave();
+        }
     }
 
     /**
@@ -183,7 +196,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
                 );
             }
 
-        } catch (BentoStateException e) {
+        } catch (final BentoStateException e) {
             logger.warn(
                     "Could not auto-save docking layout",
                     e
@@ -191,21 +204,28 @@ public abstract class AbstractAutoCloseableLayoutSaver
         }
     }
 
-    /**
-     * The {@code RunnableResource} encapsulates the cleaning action.
-     * It is implemented as a {@code record} to avoid implicitly holding a
-     * reference to the outer {@link AbstractAutoCloseableLayoutSaver} instance.
-     */
-    private record RunnableResource(Runnable runnable)
-            implements Runnable {
+    private void addListeners() {
+        for (final Bento bento : bentoProvider.getAllBentos()) {
+            if (listenerBentos.add(bento)) {
+                bento.events().addEventListener(this);
+            }
+        }
+    }
 
-        private RunnableResource(Runnable runnable) {
-            this.runnable = Objects.requireNonNull(runnable);
+    private void removeListeners() {
+        for (final Bento bento : listenerBentos) {
+            bento.events().removeEventListener(this);
         }
 
+        listenerBentos.clear();
+    }
+
+    private static final class AutoSaveThreadFactory implements ThreadFactory {
         @Override
-        public void run() {
-            runnable.run();
+        public Thread newThread(final Runnable runnable) {
+            final Thread thread = new Thread(runnable, "bentofx-layout-auto-save");
+            thread.setDaemon(true);
+            return thread;
         }
     }
 }

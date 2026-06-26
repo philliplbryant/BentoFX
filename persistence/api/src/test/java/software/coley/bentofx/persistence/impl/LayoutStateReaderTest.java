@@ -8,11 +8,7 @@ import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -78,6 +74,21 @@ class LayoutStateReaderTest {
                 .hasCause(expectedCause);
     }
 
+
+    @Test
+    void closeClosesStorageOnce() {
+        final RecordingLayoutCodec codec = new RecordingLayoutCodec(List.of());
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage(ENCODED_LAYOUT);
+        final LayoutStateReader reader = new LayoutStateReader(codec, storage);
+
+        reader.close();
+        reader.close();
+
+        assertThat(storage.getCloseCount())
+                .describedAs("storage.getCloseCount()")
+                .isEqualTo(1);
+    }
+
     private static final class RecordingLayoutCodec implements LayoutCodec {
 
         private final List<BentoState> decodedBentoStates;
@@ -134,6 +145,7 @@ class LayoutStateReaderTest {
 
         private final String inputStreamContent;
         private @Nullable IOException openInputStreamException;
+        private int closeCount;
 
         InMemoryLayoutStorage(final String inputStreamContent) {
             this.inputStreamContent = inputStreamContent;
@@ -157,6 +169,15 @@ class LayoutStateReaderTest {
             return new ByteArrayInputStream(
                     inputStreamContent.getBytes(StandardCharsets.UTF_8)
             );
+        }
+
+        @Override
+        public void close() {
+            closeCount++;
+        }
+
+        int getCloseCount() {
+            return closeCount;
         }
 
         void setOpenInputStreamException(

@@ -7,7 +7,7 @@ import java.util.function.Supplier;
  *
  * @author Phil Bryant
  */
-public interface LayoutRestorer {
+public interface LayoutRestorer extends AutoCloseable {
 
     /**
      * Returns {@code true} if a stored layout exists; otherwise, returns {@code false}.
@@ -31,4 +31,9 @@ public interface LayoutRestorer {
     DockingLayout restoreLayout(
             final Supplier<DockingLayout> defaultLayoutSupplier
     );
+
+    @Override
+    default void close() {
+        // Default no-op. Implementations that own resources should override.
+    }
 }

@@ -141,4 +141,10 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             );
         }
     }
+
+
+    @Override
+    public void close() {
+        layoutStateReader.close();
+    }
 }

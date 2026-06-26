@@ -9,16 +9,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Reads persisted Bento layout state from configured storage.
  *
  * @author Phil Bryant
  */
-final class LayoutStateReader {
+final class LayoutStateReader implements AutoCloseable {
 
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     LayoutStateReader(
             final LayoutCodec layoutCodec,
@@ -46,6 +48,13 @@ final class LayoutStateReader {
                     "Could not read persisted layout state",
                     e
             );
+        }
+    }
+
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            layoutStorage.close();
         }
     }
 }
