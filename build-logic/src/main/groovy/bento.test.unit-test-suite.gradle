@@ -1,16 +1,32 @@
 import software.coley.gradle.lifecycle.TestLifecycle
 
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 
 plugins {
+    id 'jacoco'
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
-    id("com.autonomousapps.dependency-analysis")
+    id 'com.autonomousapps.dependency-analysis'
     id 'jvm-test-suite'
 }
 
-def testSuiteName = "test"
+def testSuiteName = 'test'
 def jacocoEnabled = TestLifecycle.enableJacoco(project)
+def testTask = tasks.named(testSuiteName, Test)
+def testClassesTask = tasks.named('testClasses')
+def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { reportTask ->
+    reportTask.group = VERIFICATION_GROUP
+    reportTask.description = 'Generates JaCoCo coverage report for the test task.'
+    reportTask.shouldRunAfter(testTask)
+    reportTask.reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+def checkTask = tasks.named('check')
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 
 dependencies {
     def versionCatalog = versionCatalogs.named('libs')
@@ -32,22 +48,13 @@ dependencyAnalysis {
     }
 }
 
-tasks.named(ALL_CLASSES_TASK_NAME) {
-    dependsOn tasks.named('testClasses')
+allClassesTask.configure {
+    dependsOn(testClassesTask)
 }
 
-pluginManager.withPlugin('jacoco') {
-    tasks.named('jacocoTestReport') {
-        shouldRunAfter(tasks.named('test'))
+checkTask.configure {
+    dependsOn(testTask)
+    if (jacocoEnabled) {
+        dependsOn(jacocoTestReportTask)
     }
-
-    tasks.named('check') {
-        if (jacocoEnabled) {
-            dependsOn(tasks.named('jacocoTestReport'))
-        }
-    }
-}
-
-tasks.named('check') {
-    dependsOn(tasks.named('test'))
 }

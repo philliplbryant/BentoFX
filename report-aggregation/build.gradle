@@ -1,13 +1,10 @@
-import static software.coley.gradle.lifecycle.TestLifecycle.*
-import static software.coley.gradle.lifecycle.TestLifecycle.TestReportMode.CI
-
 plugins {
-    id 'jacoco-report-aggregation'
-    id 'test-report-aggregation'
     id 'bento.project.project-convention'
     id 'bento.test.functional-test-suite'
     id 'bento.test.integration-test-parallel-suite'
     id 'bento.test.integration-test-suite'
+    id 'bento.report.test-aggregation'
+    id 'bento.report.jacoco-aggregation'
 }
 
 description = 'Aggregated test and code coverage reports for BentoFX library modules.'
@@ -22,96 +19,11 @@ def projectsToReport = [
         projects.persistence.storage.db.h2,
 ]
 
+
 dependencies {
     projectsToReport.each { projectToReport ->
         jacocoAggregation(projectToReport)
         testReportAggregation(projectToReport)
-    }
-}
-
-def aggregateTestReports = getTestReportMode(project) == CI
-def jacocoEnabled = enableJacoco(project)
-
-def configureAggregateJacocoReport = { reportTask ->
-    reportTask.reports {
-        xml.required = true
-        html.required = true
-    }
-}
-
-tasks.named('testCodeCoverageReport') { reportTask ->
-    configureAggregateJacocoReport(reportTask)
-}
-
-tasks.named('integrationTestCodeCoverageReport') { reportTask ->
-    configureAggregateJacocoReport(reportTask)
-}
-
-tasks.named('integrationTestParallelCodeCoverageReport') { reportTask ->
-    configureAggregateJacocoReport(reportTask)
-}
-
-tasks.named('functionalTestCodeCoverageReport') { reportTask ->
-    configureAggregateJacocoReport(reportTask)
-}
-
-tasks.named('testAggregateTestReport') {
-    group = 'verification'
-}
-
-tasks.named('integrationTestAggregateTestReport') {
-    group = 'verification'
-}
-
-tasks.named('integrationTestParallelAggregateTestReport') {
-    group = 'verification'
-}
-
-tasks.named('functionalTestAggregateTestReport') {
-    group = 'verification'
-}
-
-tasks.named('check') {
-    if (aggregateTestReports) {
-        dependsOn(tasks.named('testAggregateTestReport'))
-    }
-    if (jacocoEnabled) {
-        dependsOn(tasks.named('testCodeCoverageReport'))
-    }
-}
-
-tasks.named(CHECK_INTEGRATION_TASK_NAME) {
-    if (aggregateTestReports) {
-        dependsOn(tasks.named('integrationTestAggregateTestReport'))
-        dependsOn(tasks.named('integrationTestParallelAggregateTestReport'))
-    }
-    if (jacocoEnabled) {
-        dependsOn(tasks.named('integrationTestCodeCoverageReport'))
-        dependsOn(tasks.named('integrationTestParallelCodeCoverageReport'))
-    }
-}
-
-tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
-    if (aggregateTestReports) {
-        dependsOn(tasks.named('functionalTestAggregateTestReport'))
-    }
-    if (jacocoEnabled) {
-        dependsOn(tasks.named('functionalTestCodeCoverageReport'))
-    }
-}
-
-tasks.named(CHECK_ALL_TASK_NAME) {
-    if (aggregateTestReports) {
-        dependsOn(tasks.named('testAggregateTestReport'))
-        dependsOn(tasks.named('integrationTestAggregateTestReport'))
-        dependsOn(tasks.named('integrationTestParallelAggregateTestReport'))
-        dependsOn(tasks.named('functionalTestAggregateTestReport'))
-    }
-    if (jacocoEnabled) {
-        dependsOn(tasks.named('testCodeCoverageReport'))
-        dependsOn(tasks.named('integrationTestCodeCoverageReport'))
-        dependsOn(tasks.named('integrationTestParallelCodeCoverageReport'))
-        dependsOn(tasks.named('functionalTestCodeCoverageReport'))
     }
 }
 

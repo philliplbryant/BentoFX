@@ -82,8 +82,11 @@ testing {
     }
 }
 
-tasks.named(ALL_CLASSES_TASK_NAME) {
-    dependsOn(tasks.named('classes'))
+def classesTask = tasks.named('classes')
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+
+allClassesTask.configure {
+    dependsOn(classesTask)
 }
 
 tasks.withType(JavaCompile).configureEach {

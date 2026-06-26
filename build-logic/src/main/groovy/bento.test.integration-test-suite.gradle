@@ -6,10 +6,10 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
 
 plugins {
+    id 'jacoco'
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
-    id 'jacoco'
-    id("com.autonomousapps.dependency-analysis")
+    id 'com.autonomousapps.dependency-analysis'
     id 'jvm-test-suite'
 }
 
@@ -21,6 +21,9 @@ def nonParallelBuildService =
 def testSuiteName = INTEGRATION_TEST
 def testSuiteDirName = 'it'
 def testSuiteTestSuffix = 'IT'
+def jacocoEnabled = TestLifecycle.enableJacoco(project)
+def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 
 testing {
     suites {
@@ -57,6 +60,9 @@ testing {
     }
 }
 
+def integrationTestTask = tasks.named('integrationTest', Test)
+def integrationTestClassesTask = tasks.named('integrationTestClasses')
+
 dependencies {
     def versionCatalog = versionCatalogs.named('libs')
     add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
@@ -77,26 +83,38 @@ dependencyAnalysis {
     }
 }
 
-tasks.named(INTEGRATION_TEST, Test) {
+integrationTestTask.configure {
     def suiteSourceSet = sourceSets.named(testSuiteName).get()
     testClassesDirs = suiteSourceSet.output.classesDirs
     classpath = suiteSourceSet.runtimeClasspath
     modularity.inferModulePath.set(false)
 }
 
-tasks.named(ALL_CLASSES_TASK_NAME) {
-    dependsOn named('integrationTestClasses')
+allClassesTask.configure {
+    dependsOn(integrationTestClassesTask)
 }
 
-pluginManager.withPlugin('jacoco') {
-    tasks.named('jacocoTestReport') {
-        shouldRunAfter(tasks.named(testSuiteName))
+def jacocoExecutionData = integrationTestTask.map { testTask ->
+    testTask.extensions.getByType(JacocoTaskExtension).destinationFile
+}
+
+def jacocoIntegrationTestReportTask = tasks.register('jacocoIntegrationTestReport', JacocoReport) { reportTask ->
+    reportTask.group = 'verification'
+    reportTask.description = 'Generates JaCoCo coverage report for the integration test task.'
+    reportTask.dependsOn(integrationTestTask)
+    reportTask.executionData(jacocoExecutionData)
+    reportTask.onlyIf { jacocoExecutionData.get().exists() }
+    reportTask.sourceSets(sourceSets.main)
+    reportTask.reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
     }
 }
 
-tasks.named(CHECK_INTEGRATION_TASK_NAME) {
-    dependsOn(testSuiteName)
-    if (TestLifecycle.enableJacoco(project)) {
-        dependsOn(tasks.named('jacocoTestReport'))
+checkIntegrationTask.configure {
+    dependsOn(integrationTestTask)
+    if (jacocoEnabled) {
+        dependsOn(jacocoIntegrationTestReportTask)
     }
 }

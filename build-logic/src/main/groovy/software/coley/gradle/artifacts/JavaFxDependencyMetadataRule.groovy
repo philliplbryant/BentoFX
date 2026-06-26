@@ -5,7 +5,7 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.internal.os.OperatingSystem
 
 /**
- * Normalizes JavaFX-adjacent dependency metadata used by BentoFX builds.
+ * Normalizes JavaFX-adjacent dependency metadata
  */
 abstract class JavaFxDependencyMetadataRule implements ComponentMetadataRule {
     private static final String OPENJFX_GROUP = 'org.openjfx'

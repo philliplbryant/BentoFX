@@ -16,14 +16,14 @@ final class TestLifecycle {
         )
     }
 
-    static boolean enableJacoco(final Project project) {
-        final Object collectCoverage = project.findProperty(COLLECT_COVERAGE_PROPERTY_NAME)
-        return collectCoverage != null && collectCoverage.toString() != 'false'
+    public static boolean enableJacoco(final Project project) {
+        final String collectCoverage = project.providers.gradleProperty(COLLECT_COVERAGE_PROPERTY_NAME).orNull
+        return collectCoverage != null && collectCoverage != 'false'
     }
 
-    static TestReportMode getTestReportMode(final Project project) {
-        final Object testReportMode = project.findProperty(TEST_REPORT_MODE_PROPERTY_NAME)
-        switch (testReportMode?.toString()?.toLowerCase(Locale.ROOT)) {
+    public static TestReportMode getTestReportMode(final Project project) {
+        final String testReportMode = project.providers.gradleProperty(TEST_REPORT_MODE_PROPERTY_NAME).orNull
+        switch (testReportMode?.toLowerCase(Locale.ROOT)) {
             case 'off':
                 return TestReportMode.OFF
             case 'all':
@@ -35,7 +35,7 @@ final class TestLifecycle {
         }
     }
 
-    enum TestReportMode {
+    public enum TestReportMode {
         OFF,
         ALL,
         CI,

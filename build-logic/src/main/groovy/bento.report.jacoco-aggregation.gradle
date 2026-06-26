@@ -1,0 +1,50 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+import static software.coley.gradle.lifecycle.TestLifecycle.*
+
+plugins {
+    id 'jacoco-report-aggregation'
+}
+
+def collectCoverage = enableJacoco(project)
+
+def testCodeCoverageReportTask = tasks.named('testCodeCoverageReport', JacocoReport)
+def integrationTestCodeCoverageReportTask = tasks.named('integrationTestCodeCoverageReport', JacocoReport)
+def integrationTestParallelCodeCoverageReportTask = tasks.named('integrationTestParallelCodeCoverageReport', JacocoReport)
+def functionalTestCodeCoverageReportTask = tasks.named('functionalTestCodeCoverageReport', JacocoReport)
+
+def aggregateCoverageReportTasks = [
+        testCodeCoverageReportTask,
+        integrationTestCodeCoverageReportTask,
+        integrationTestParallelCodeCoverageReportTask,
+        functionalTestCodeCoverageReportTask,
+]
+
+aggregateCoverageReportTasks.each { reportTaskProvider ->
+    reportTaskProvider.configure { reportTask ->
+        reportTask.group = VERIFICATION_GROUP
+        reportTask.reports {
+            xml.required = true
+            html.required = true
+            csv.required = false
+        }
+    }
+}
+
+if (collectCoverage) {
+    tasks.named('check') {
+        dependsOn(testCodeCoverageReportTask)
+    }
+
+    tasks.named(CHECK_INTEGRATION_TASK_NAME) {
+        dependsOn(integrationTestCodeCoverageReportTask)
+        dependsOn(integrationTestParallelCodeCoverageReportTask)
+    }
+
+    tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
+        dependsOn(functionalTestCodeCoverageReportTask)
+    }
+
+    tasks.named(CHECK_ALL_TASK_NAME) {
+        dependsOn(aggregateCoverageReportTasks)
+    }
+}
