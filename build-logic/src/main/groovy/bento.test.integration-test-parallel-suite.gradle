@@ -1,3 +1,5 @@
+import software.coley.gradle.lifecycle.TestLifecycle
+
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST_PARALLEL
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
@@ -5,6 +7,7 @@ import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TA
 plugins {
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
+    id 'jacoco'
     id("com.autonomousapps.dependency-analysis")
     id 'jvm-test-suite'
 }
@@ -79,6 +82,15 @@ tasks.named(ALL_CLASSES_TASK_NAME) {
     dependsOn named('integrationTestParallelClasses')
 }
 
+pluginManager.withPlugin('jacoco') {
+    tasks.named('jacocoTestReport') {
+        shouldRunAfter(tasks.named(testSuiteName))
+    }
+}
+
 tasks.named(CHECK_INTEGRATION_TASK_NAME) {
     dependsOn(testSuiteName)
+    if (TestLifecycle.enableJacoco(project)) {
+        dependsOn(tasks.named('jacocoTestReport'))
+    }
 }

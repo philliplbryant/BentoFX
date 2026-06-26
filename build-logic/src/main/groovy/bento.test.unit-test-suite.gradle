@@ -1,3 +1,5 @@
+import software.coley.gradle.lifecycle.TestLifecycle
+
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 
 plugins {
@@ -8,6 +10,7 @@ plugins {
 }
 
 def testSuiteName = "test"
+def jacocoEnabled = TestLifecycle.enableJacoco(project)
 
 dependencies {
     def versionCatalog = versionCatalogs.named('libs')
@@ -31,6 +34,18 @@ dependencyAnalysis {
 
 tasks.named(ALL_CLASSES_TASK_NAME) {
     dependsOn tasks.named('testClasses')
+}
+
+pluginManager.withPlugin('jacoco') {
+    tasks.named('jacocoTestReport') {
+        shouldRunAfter(tasks.named('test'))
+    }
+
+    tasks.named('check') {
+        if (jacocoEnabled) {
+            dependsOn(tasks.named('jacocoTestReport'))
+        }
+    }
 }
 
 tasks.named('check') {

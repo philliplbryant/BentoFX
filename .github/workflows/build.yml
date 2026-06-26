@@ -37,8 +37,20 @@ jobs:
           check-latest: true
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Run tests
-        run: ./gradlew test
+      - name: Run build, analysis, tests, and coverage reports
+        run: ./gradlew build buildHealth checkAll -PcollectCoverage=true -PtestReportMode=ci
+      - name: Write coverage summary
+        if: always()
+        run: python3 .github/scripts/coverage-summary.py
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coverage reports
+          retention-days: 21
+          path: |
+            **/reports/jacoco/**
+            **/reports/tests/**
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

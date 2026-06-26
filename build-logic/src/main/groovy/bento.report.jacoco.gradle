@@ -1,0 +1,62 @@
+import software.coley.gradle.lifecycle.TestLifecycle
+
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
+plugins {
+    id 'jacoco'
+}
+
+def jacocoEnabled = TestLifecycle.enableJacoco(project)
+
+
+def configureJacocoReports = { reports ->
+    reports.xml.required = true
+    reports.html.required = true
+    reports.csv.required = false
+}
+
+tasks.withType(Test).configureEach { testTask ->
+    testTask.jacoco.enabled = jacocoEnabled
+}
+
+def testTaskProvider = tasks.named('test', Test)
+
+tasks.named('jacocoTestReport', JacocoReport) { reportTask ->
+    reportTask.group = VERIFICATION_GROUP
+    reportTask.description = 'Generates JaCoCo coverage report for the test task.'
+    reportTask.enabled = jacocoEnabled
+    reportTask.dependsOn(testTaskProvider)
+    reportTask.sourceSets(sourceSets.main)
+    reportTask.reports(configureJacocoReports)
+}
+
+if (!tasks.names.contains('jacocoTestCoverageVerification')) {
+    tasks.register('jacocoTestCoverageVerification', JacocoCoverageVerification)
+}
+
+tasks.named('jacocoTestCoverageVerification', JacocoCoverageVerification) { verificationTask ->
+    verificationTask.group = VERIFICATION_GROUP
+    verificationTask.description = 'Verifies JaCoCo coverage for the test task.'
+    verificationTask.enabled = jacocoEnabled
+    verificationTask.dependsOn(testTaskProvider)
+    verificationTask.sourceSets(sourceSets.main)
+}
+
+tasks.register('jacocoAllTestReport', JacocoReport) { reportTask ->
+    reportTask.group = VERIFICATION_GROUP
+    reportTask.description = 'Generates an aggregate JaCoCo coverage report for all test tasks in this project.'
+    reportTask.enabled = jacocoEnabled
+    reportTask.dependsOn(tasks.withType(Test))
+    reportTask.executionData(tasks.withType(Test))
+    reportTask.sourceSets(sourceSets.main)
+    reportTask.reports(configureJacocoReports)
+}
+
+tasks.register('jacocoAllTestCoverageVerification', JacocoCoverageVerification) { verificationTask ->
+    verificationTask.group = VERIFICATION_GROUP
+    verificationTask.description = 'Verifies aggregate JaCoCo coverage for all test tasks in this project.'
+    verificationTask.enabled = jacocoEnabled
+    verificationTask.dependsOn(tasks.withType(Test))
+    verificationTask.executionData(tasks.withType(Test))
+    verificationTask.sourceSets(sourceSets.main)
+}
