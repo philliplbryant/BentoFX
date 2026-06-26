@@ -9,6 +9,9 @@ plugins {
 
 description = 'Aggregated test and code coverage reports for BentoFX library modules.'
 
+// Notes:
+//   JaCoCo includes transitive dependencies when aggregating.
+//   Excluding modules such as demos and test-fixtures
 def projectsToReport = [
         projects.core,
         projects.persistence.api,
