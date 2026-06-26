@@ -1,0 +1,38 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
+plugins {
+    id 'net.ltgt.errorprone'
+    id 'net.ltgt.nullaway'
+}
+
+def versionCatalog = versionCatalogs.named('libs')
+
+dependencies {
+    errorprone versionCatalog.findLibrary('errorprone').get()
+    errorprone versionCatalog.findLibrary('nullaway').get()
+    compileOnly versionCatalog.findLibrary('jspecify').get()
+    testCompileOnly versionCatalog.findLibrary('jspecify').get()
+}
+
+nullaway {
+    // Analyze packages/classes that opt in with JSpecify @NullMarked rather
+    // than assuming every BentoFX package is fully annotated immediately.
+    onlyNullMarked = true
+
+    // Enable NullAway's JSpecify-specific interpretation of annotations,
+    // including type-use and generic nullness.
+    jspecifyMode = true
+}
+
+tasks.withType(JavaCompile).configureEach { compileTask ->
+    compileTask.options.errorprone.disableWarningsInGeneratedCode = true
+    compileTask.options.errorprone.nullaway {
+        error()
+    }
+}
+
+tasks.register('checkJSpecify') { checkTask ->
+    checkTask.group = VERIFICATION_GROUP
+    checkTask.description = 'Runs JSpecify nullness analysis through Error Prone and NullAway.'
+    checkTask.dependsOn(tasks.withType(JavaCompile))
+}

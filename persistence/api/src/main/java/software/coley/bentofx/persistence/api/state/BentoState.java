@@ -54,8 +54,8 @@ public class BentoState extends IdentifiableState {
         }
 
         /**
+         * {@return this {@link BentoStateBuilder}}
          * @param rootBranchStates the {@link DockContainerRootBranchState} to add.
-         * @return this {@link BentoStateBuilder}
          */
         public BentoStateBuilder addRootBranchState(
                 final DockContainerRootBranchState... rootBranchStates
@@ -67,8 +67,8 @@ public class BentoState extends IdentifiableState {
         }
 
         /**
-         * @param dragDropStageStates the {@link DragDropStageState} to add.
-         * @return this {@link BentoStateBuilder}
+         * {@return this {@link BentoStateBuilder}}
+         * @param dragDropStageStates the {@link DragDropStageState} to add.         *
          */
         public BentoStateBuilder addDragDropStageState(
                 final DragDropStageState... dragDropStageStates

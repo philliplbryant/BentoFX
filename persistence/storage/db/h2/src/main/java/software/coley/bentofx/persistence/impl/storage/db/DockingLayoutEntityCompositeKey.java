@@ -33,23 +33,16 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
 
     @Override
     public boolean equals(final @Nullable Object that) {
+        if (this == that) {
+            return true;
+        }
 
-        if (that == null) return false;
+        if (!(that instanceof final DockingLayoutEntityCompositeKey thatKey)) {
+            return false;
+        }
 
-        if (this == that) return true;
-
-        if (this.getClass() != that.getClass()) return false;
-
-        final DockingLayoutEntityCompositeKey thatKey =
-                (DockingLayoutEntityCompositeKey) that;
-
-        return Objects.equals(
-                this.layoutIdentifier,
-                thatKey.layoutIdentifier
-        ) && Objects.equals(
-                this.codecIdentifier,
-                thatKey.codecIdentifier
-        );
+        return Objects.equals(layoutIdentifier, thatKey.layoutIdentifier)
+                && Objects.equals(codecIdentifier, thatKey.codecIdentifier);
     }
 
     @Override

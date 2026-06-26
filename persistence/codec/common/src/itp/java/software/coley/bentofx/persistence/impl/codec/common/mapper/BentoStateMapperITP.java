@@ -2,25 +2,14 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.state.DockableState;
-import software.coley.bentofx.persistence.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +105,7 @@ class BentoStateMapperITP {
 		        .hasSize(1);
 		assertThat(rootBranchDto.pruneWhenEmpty)
 		        .describedAs("rootBranchDto.pruneWhenEmpty")
-		        .isEqualTo(TRUE);
+		        .isTrue();
 
 		final DockContainerBranchDto branchDto = rootBranchDto.branches.getFirst();
 		assertThat(branchDto.identifier)
@@ -124,7 +113,7 @@ class BentoStateMapperITP {
 		        .isEqualTo(expectedBranchIdentifier);
 		assertThat(branchDto.pruneWhenEmpty)
 		        .describedAs("branchDto.pruneWhenEmpty")
-		        .isEqualTo(FALSE);
+		        .isFalse();
 		assertThat(branchDto.children)
 		        .describedAs("branchDto.children")
 		        .hasSize(1);
@@ -135,7 +124,7 @@ class BentoStateMapperITP {
 		        .isEqualTo(expectedLeafIdentifier);
 		assertThat(leafDto.pruneWhenEmpty)
 		        .describedAs("leafDto.pruneWhenEmpty")
-		        .isEqualTo(TRUE);
+		        .isTrue();
 		assertThat(leafDto.dockables.getFirst().identifier)
 		        .describedAs("leafDto.dockables.getFirst().identifier")
 		        .isEqualTo(expectedDockableIdentifier);
@@ -143,7 +132,7 @@ class BentoStateMapperITP {
 		final DragDropStageDto stageDto = bentoStateDto.dragDropStages.getFirst();
 		assertThat(stageDto.autoCloseWhenEmpty)
 		        .describedAs("stageDto.autoCloseWhenEmpty")
-		        .isEqualTo(TRUE);
+		        .isTrue();
 		assertThat(stageDto.title)
 		        .describedAs("stageDto.title")
 		        .isEqualTo(expectedStageTitle);

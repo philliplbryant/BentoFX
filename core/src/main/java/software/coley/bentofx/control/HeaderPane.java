@@ -76,6 +76,7 @@ public class HeaderPane extends BorderPane {
 			}
 		});
 		container.getDockables().addListener((ListChangeListener<Dockable>) c -> {
+            @SuppressWarnings("NullAway") // FIXME
 			ObservableList<Node> headerList = headers.getChildren();
 			while (c.next()) {
 				if (c.wasPermutated()) {
@@ -171,6 +172,7 @@ public class HeaderPane extends BorderPane {
 	/**
 	 * @return New button that displays all dockables in this space.
 	 */
+    @SuppressWarnings("NullAway") // FIXME
 	protected Button createDockableListButton() {
 		Button button = new Button("▼");
 		button.setEllipsisString("▼");
@@ -188,7 +190,7 @@ public class HeaderPane extends BorderPane {
 			button.setContextMenu(menu);
 		});
 		button.setOnMouseClicked(e -> button.getContextMenu().show(button, e.getScreenX(), e.getScreenY()));
-		button.visibleProperty().bind(headers.overflowingProperty());
+        button.visibleProperty().bind(headers.overflowingProperty());
 		button.managedProperty().bind(button.visibleProperty());
 		return button;
 	}
@@ -227,9 +229,11 @@ public class HeaderPane extends BorderPane {
 	public Header getHeader(@Nullable Dockable dockable) {
 		if (dockable == null)
 			return null;
-		for (Node child : headers.getChildren())
-			if (child instanceof Header header && header.getDockable() == dockable)
-				return header;
+        if(headers != null) {
+            for (Node child : headers.getChildren())
+                if (child instanceof Header header && header.getDockable() == dockable)
+                    return header;
+        }
 		return null;
 	}
 

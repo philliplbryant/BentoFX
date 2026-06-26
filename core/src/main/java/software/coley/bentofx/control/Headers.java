@@ -30,7 +30,8 @@ public class Headers extends LinearItemPane {
 	 * @param side
 	 * 		Side in the parent container where tabs are displayed.
 	 */
-	public Headers(DockContainerLeaf container, Orientation orientation, Side side) {
+    @SuppressWarnings("NullAway") // FIXME
+    public Headers(DockContainerLeaf container, Orientation orientation, Side side) {
 		super(orientation);
 
 		// Create side-specific header region class.

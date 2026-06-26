@@ -98,7 +98,7 @@ final class PersistenceThreading {
             }
             throw new BentoStateException(
                     "Persistence task failed",
-                    cause
+                    e
             );
         }
     }

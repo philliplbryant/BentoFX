@@ -93,6 +93,22 @@ Functional tests:
 ---
 
 
+## JSpecify Nullness Analysis
+
+BentoFX uses JSpecify annotations for nullness contracts and validates those
+contracts during Java compilation with Error Prone and NullAway.
+
+NullAway runs in JSpecify mode and treats violations as compilation errors. Code
+is checked when it opts in with `@NullMarked`, so the project can enforce
+nullness without requiring every package to be fully annotated at once.
+
+Use this command to run the nullness analysis directly:
+
+```shell
+gradlew checkJSpecify
+```
+
+
 ## Code Coverage
 
 JaCoCo is configured by the test-suite convention plugins, not by the generic project convention. This keeps coverage setup next to the test suite that produces the execution data.

@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.building.StageBuilding;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class DragDropStage extends Stage {
 	private final boolean autoCloseWhenEmpty;
-	private WeakReference<Parent> content;
+    private @Nullable WeakReference<Parent> content;
 
 	/**
 	 * @param autoCloseWhenEmpty

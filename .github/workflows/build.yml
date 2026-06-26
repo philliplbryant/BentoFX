@@ -38,7 +38,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Run build, analysis, tests, and coverage reports
-        run: ./gradlew build buildHealth checkAll -PcollectCoverage=true -PtestReportMode=ci
+        run: ./gradlew build buildHealth checkJSpecify checkAll -PcollectCoverage=true -PtestReportMode=ci
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py

@@ -13,13 +13,7 @@ import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerState;
-import software.coley.bentofx.persistence.api.state.DockableState;
-import software.coley.bentofx.persistence.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.api.state.*;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
@@ -222,23 +216,10 @@ final class BentoLayoutStateCaptor {
             final DockContainer dockContainer
     ) {
 
-        switch (dockContainer) {
-
-            case final DockContainerBranch branch -> {
-                return buildBranchState(branch);
-            }
-
-            case final DockContainerLeaf leaf -> {
-                return buildLeafState(leaf);
-            }
-
-            default -> {
-                logger.warn("Unsupported node type: {}", dockContainer);
-                // Fallback: empty leaf to keep the state valid.
-                return new DockContainerLeafStateBuilder("leaf-empty")
-                        .build();
-            }
-        }
+        return switch (dockContainer) {
+            case final DockContainerBranch branch -> buildBranchState(branch);
+            case final DockContainerLeaf leaf -> buildLeafState(leaf);
+        };
     }
 
     /**

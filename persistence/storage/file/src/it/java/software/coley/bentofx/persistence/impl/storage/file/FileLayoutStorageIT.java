@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FileLayoutStorageIT {
@@ -48,7 +49,7 @@ class FileLayoutStorageIT {
 
 		// Write data to the file and verify existence
 		try (OutputStream outputStream = fileLayoutStorage.openOutputStream()) {
-			outputStream.write(TEST_FILE_CONTENT.getBytes());
+			outputStream.write(TEST_FILE_CONTENT.getBytes(UTF_8));
 		}
 		assertThat(fileLayoutStorage.exists())
                 .describedAs("File should exist after writing to it")
@@ -60,7 +61,7 @@ class FileLayoutStorageIT {
 		// Read data from the file and verify the content
 		StringBuilder fileContent = new StringBuilder();
 		try (InputStream inputStream = fileLayoutStorage.openInputStream();
-		     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+		     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				fileContent.append(line);

@@ -123,7 +123,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
         this.scheduler = Executors.newSingleThreadScheduledExecutor(
                 new AutoSaveThreadFactory()
         );
-        this.scheduler.scheduleAtFixedRate(
+        var unused = this.scheduler.scheduleAtFixedRate(
                 this::autoSave,
                 autoSaveInterval,
                 autoSaveInterval,

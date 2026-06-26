@@ -27,6 +27,7 @@ class StageUtilsFT {
     private @Nullable Popup popup;
 
     @Start
+    @SuppressWarnings("unused") // Called by ApplicationExtension
     private void start(Stage ignored) {
         first = new Stage();
         first.setTitle(FIRST_STAGE_TITLE);

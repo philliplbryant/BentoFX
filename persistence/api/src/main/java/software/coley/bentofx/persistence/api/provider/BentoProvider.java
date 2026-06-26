@@ -22,8 +22,8 @@ public interface BentoProvider {
     Optional<Bento> getBento(String identifier);
 
     /**
-     * @return a {@link Collection} of all {@link Bento} whose layouts are to be
-     * saved and restored.
+     * {@return a {@link Collection} of all {@link Bento} whose layouts are to be
+     * saved and restored.}
      */
     Collection<Bento> getAllBentos();
 }
