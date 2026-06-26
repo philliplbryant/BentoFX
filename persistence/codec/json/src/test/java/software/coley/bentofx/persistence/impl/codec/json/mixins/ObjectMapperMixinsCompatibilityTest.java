@@ -20,9 +20,24 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.TOP;
 import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_LIST_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.*;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.BENTO_IDENTIFIER;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.BRANCH_IDENTIFIER;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.DOCKABLE_IDENTIFIER;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.LEAF_IDENTIFIER;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.ROOT_IDENTIFIER;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.STAGE_TITLE;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 
 class ObjectMapperMixinsCompatibilityTest {
 

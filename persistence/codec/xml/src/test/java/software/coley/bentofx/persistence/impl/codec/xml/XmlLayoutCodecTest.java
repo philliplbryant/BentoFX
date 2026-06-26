@@ -13,7 +13,22 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.METADATA_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.SCHEMA_VERSION_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 
 class XmlLayoutCodecTest {

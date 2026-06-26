@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.storage.provider;
+package software.coley.bentofx.persistence.impl.storage.file.provider;
 
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;

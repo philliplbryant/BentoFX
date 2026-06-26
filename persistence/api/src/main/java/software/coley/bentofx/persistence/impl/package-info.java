@@ -1,5 +1,5 @@
 /**
- * This package contains classes common to multiple codec implementations.
+ * This package contains default persistence implementations and collaborators.
  *
  * @author Phil Bryant
  */

@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.codec.xml;
+package software.coley.bentofx.persistence.impl.codec.xml.mixins;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.jspecify.annotations.Nullable;

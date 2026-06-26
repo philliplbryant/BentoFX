@@ -4,4 +4,5 @@
  * storage.
  *
  * @author Phil Bryant
- */package software.coley.bentofx.persistence.api.storage;
+ */
+package software.coley.bentofx.persistence.api.storage;

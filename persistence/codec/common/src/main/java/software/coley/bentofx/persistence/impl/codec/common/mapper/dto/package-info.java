@@ -1,6 +1,6 @@
 /**
- * This package contains Data Transfer Objects (DTOs) used to mapping the
- * docking layout.
+ * This package contains Data Transfer Objects (DTOs) used to map the docking
+ * layout.
  *
  * @author Phil Bryant
  */

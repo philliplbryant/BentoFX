@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.storage.provider;
+package software.coley.bentofx.persistence.impl.storage.file.provider;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;

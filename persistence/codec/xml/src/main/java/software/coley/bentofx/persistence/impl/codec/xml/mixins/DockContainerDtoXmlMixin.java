@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.codec.xml;
+package software.coley.bentofx.persistence.impl.codec.xml.mixins;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

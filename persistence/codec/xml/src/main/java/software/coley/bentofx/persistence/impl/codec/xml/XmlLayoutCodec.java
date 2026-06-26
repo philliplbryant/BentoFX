@@ -8,6 +8,7 @@ import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.xml.mixins.XmlMapperMixins;
 
 import java.io.IOException;
 import java.io.InputStream;

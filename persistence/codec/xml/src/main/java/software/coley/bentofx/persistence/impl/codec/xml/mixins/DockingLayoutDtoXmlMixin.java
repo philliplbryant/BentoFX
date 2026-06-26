@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.impl.codec.xml;
+package software.coley.bentofx.persistence.impl.codec.xml.mixins;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -12,7 +12,10 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMet
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.METADATA_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
 
 /**
  * Jackson XML mix-in for {@code DockingLayoutDto}.

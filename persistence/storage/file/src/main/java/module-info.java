@@ -1,6 +1,6 @@
 import org.jspecify.annotations.NullMarked;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.impl.storage.provider.FileLayoutStorageProvider;
+import software.coley.bentofx.persistence.impl.storage.file.provider.FileLayoutStorageProvider;
 
 /**
  * This module implements the Application Programming Interface (API) for
@@ -19,7 +19,7 @@ module bento.fx.persistence.storage.file {
     requires static org.jspecify;
 
     exports software.coley.bentofx.persistence.impl.storage.file;
-    exports software.coley.bentofx.persistence.impl.storage.provider;
+    exports software.coley.bentofx.persistence.impl.storage.file.provider;
 
     provides LayoutStorageProvider with FileLayoutStorageProvider;
 }
