@@ -75,6 +75,9 @@ def count_source_lines(root: Path) -> int:
 def find_jacoco_xml_reports(root: Path) -> list[Path]:
     reports = []
     for path in root.rglob("*.xml"):
+        if not path.is_file():
+            continue
+
         if "jacoco" in path.parts and "reports" in path.parts:
             reports.append(path)
     return sorted(reports)
@@ -83,9 +86,12 @@ def find_jacoco_xml_reports(root: Path) -> list[Path]:
 def collect_jacoco_counters(reports: list[Path]) -> dict[str, tuple[int, int]]:
     counters = {counter_type: (0, 0) for counter_type in JACOCO_COUNTER_TYPES}
     for report in reports:
+        if not report.is_file():
+            continue
+
         try:
             root = ElementTree.parse(report).getroot()
-        except ElementTree.ParseError:
+        except (ElementTree.ParseError, OSError):
             continue
 
         for counter in root.findall("counter"):
