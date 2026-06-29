@@ -524,15 +524,13 @@ public final class BentoStateMapper {
 			final DockContainerBranchStateBuilder builder,
 			final List<DockContainerDto> dockContainers
 	) {
-		if (dockContainers != null) {
-			for (final DockContainerDto container : dockContainers) {
-				if (container instanceof final DockContainerBranchDto b) {
-					builder.addDockContainerState(fromDto(b));
-				} else if (container instanceof final DockContainerLeafDto l) {
-					builder.addDockContainerState(fromDto(l));
-				}
-			}
-		}
+        for (final DockContainerDto container : dockContainers) {
+            if (container instanceof final DockContainerBranchDto b) {
+                builder.addDockContainerState(fromDto(b));
+            } else if (container instanceof final DockContainerLeafDto l) {
+                builder.addDockContainerState(fromDto(l));
+            }
+        }
 	}
 
 	/**
