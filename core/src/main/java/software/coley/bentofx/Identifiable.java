@@ -8,7 +8,7 @@ package software.coley.bentofx;
 public interface Identifiable {
 
 	/**
-	 * {@return This objects identifier.}
+	 * {@return This object's identifier.}
 	 */
 	String getIdentifier();
 

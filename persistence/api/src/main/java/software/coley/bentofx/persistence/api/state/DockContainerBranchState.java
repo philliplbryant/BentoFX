@@ -76,7 +76,7 @@ public class DockContainerBranchState extends DockContainerState {
         }
 
         /**
-         * {@return this {@link DockContainerBranchStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param pruneWhenEmpty whether empty branches should be pruned,
          * {@code null} leaves prune-when-empty unspecified.
          */
@@ -88,8 +88,7 @@ public class DockContainerBranchState extends DockContainerState {
         }
 
         /**
-         * {@return this {@link DockContainerBranchStateBuilder} for chaining
-         * method calls.}
+         * {@return this builder for chaining method calls.}
          * @param orientation the branch orientation, {@code null} leaves
          * {@link Orientation} unspecified.
          */
@@ -101,8 +100,7 @@ public class DockContainerBranchState extends DockContainerState {
         }
 
         /**
-         * {@return this {@link DockContainerBranchStateBuilder} for chaining
-         * method calls.}
+         * {@return this builder for chaining method calls.}
          * @param dividerIndex the index of the divider.
          * @param dividerPosition the divider position, between 0.0 and 1.0 (inclusive).
          */
@@ -118,8 +116,7 @@ public class DockContainerBranchState extends DockContainerState {
         }
 
         /**
-         * {@return this {@link DockContainerBranchStateBuilder} for chaining
-         * method calls.}
+         * {@return this builder for chaining method calls.}
          * @param dockContainerState the {@link DockContainerState} to add.
          */
         public DockContainerBranchStateBuilder addDockContainerState(

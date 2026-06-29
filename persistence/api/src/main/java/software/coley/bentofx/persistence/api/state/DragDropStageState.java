@@ -226,7 +226,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param dockContainerRootBranchState the value to persist, {@code null}
          * leaves the root branch state unspecified.
          */
@@ -238,7 +238,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param title the value to persist, {@code null} leaves the title
          * unspecified.
          */
@@ -250,7 +250,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param x the value to persist, {@code null} leaves the x-coordinate unspecified.
          */
         public DragDropStageStateBuilder setX(
@@ -261,7 +261,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param y the value to persist, {@code null} leaves the y-coordinate
          * unspecified.
          */
@@ -273,7 +273,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param width the value to persist, {@code null} leaves the width
          * unspecified.
          */
@@ -285,7 +285,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param height the value to persist, {@code null} leaves the height
          * unspecified.
          */
@@ -297,7 +297,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param modality the value to persist, {@code null} leaves the
          * {@link Modality} unspecified.
          */
@@ -309,7 +309,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param opacity the value to persist, {@code null} leaves the opacity
          * unspecified.
          */
@@ -321,7 +321,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isIconified the value to persist, {@code null} leaves the
          * iconification unspecified.
          */
@@ -333,7 +333,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isFullScreen the value to persist, {@code null} leaves the
          * screen fullness unspecified.
          */
@@ -345,7 +345,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isMaximized the value to persist, {@code null} leaves
          * maximization unspecified.
          */
@@ -357,7 +357,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isAlwaysOnTop the value to persist, {@code null} leaves the
          * being on top unspecified.
          */
@@ -369,7 +369,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isResizable the value to persist, {@code null} leaves the
          * resizability unspecified.
          */
@@ -381,7 +381,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isShowing the value to persist, {@code null} leaves showing
          * unspecified.
          */
@@ -393,7 +393,7 @@ public class DragDropStageState {
         }
 
         /**
-         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param isFocused the value to persist, {@code null} to leave the
          * focused state unspecified.
          */

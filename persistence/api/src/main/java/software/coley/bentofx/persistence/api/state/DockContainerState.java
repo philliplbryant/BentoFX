@@ -62,7 +62,7 @@ public class DockContainerState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockContainerStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param pruneWhenEmpty {@code true} to prune when empty, {@code false}
          * otherwise.
          */

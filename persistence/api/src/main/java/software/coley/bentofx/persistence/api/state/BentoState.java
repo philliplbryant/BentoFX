@@ -54,7 +54,7 @@ public class BentoState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link BentoStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param rootBranchStates the {@link DockContainerRootBranchState} to add.
          */
         public BentoStateBuilder addRootBranchState(
@@ -67,7 +67,7 @@ public class BentoState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link BentoStateBuilder} for chaining method calls.}
+         * {@return this builder for chaining method calls.}
          * @param dragDropStageStates the {@link DragDropStageState} to add.         *
          */
         public BentoStateBuilder addDragDropStageState(
