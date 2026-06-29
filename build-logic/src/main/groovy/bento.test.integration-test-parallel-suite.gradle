@@ -35,7 +35,7 @@ testing {
                 }
             }
 
-            targets.all {
+            targets.configureEach {
                 testTask.configure {
                     filter {
                         includeTestsMatching "*${testSuiteTestSuffix}"

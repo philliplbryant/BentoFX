@@ -8,8 +8,6 @@ plugins {
 description = "BentoFX Persistence API"
 
 javafx {
-    def versionCatalog = versionCatalogs.named('libs')
-    version = versionCatalog.findVersion("javafx")
     modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
     configurations = ['api','functionalTestImplementation']
 }
@@ -18,8 +16,6 @@ dependencies {
     api projects.core
 
     implementation libs.slf4j.api
-
-    compileOnly libs.jspecify
 
     testImplementation testFixtures(projects.persistence.testFixtures)
 

@@ -11,8 +11,6 @@ description = 'BentoFX Persistence for Files'
 // persistence API has a transitive dependency on core, which has a transitive
 // dependency on javafx.controls, which is declared as compileOnlyApi.
 javafx {
-    def versionCatalog = versionCatalogs.named('libs')
-    version = versionCatalog.findVersion("javafx")
     modules = ['javafx.graphics']
     configurations = ['compileOnly']
 }
@@ -20,6 +18,4 @@ javafx {
 dependencies {
 
     api projects.persistence.api
-
-    compileOnly libs.jspecify
 }

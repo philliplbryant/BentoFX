@@ -8,8 +8,6 @@ plugins {
 description = "H2 Database Implementation of the Bento LayoutStorage interface"
 
 javafx {
-    def versionCatalog = versionCatalogs.named('libs')
-    version = versionCatalog.findVersion("javafx")
     modules = ['javafx.controls']
     configurations = ['runtimeOnly']
 }
@@ -31,8 +29,6 @@ dependencies {
     implementation libs.zaxxer.hikari.cp
 
     compileOnly libs.hibernate.core
-
-    compileOnly libs.jspecify
 
     runtimeOnly libs.h2
     runtimeOnly libs.jakarta.xmlbinding.impl

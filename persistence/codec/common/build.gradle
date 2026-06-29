@@ -8,8 +8,6 @@ plugins {
 description = 'BentoFX Persistence'
 
 javafx {
-    def versionCatalog = versionCatalogs.named('libs')
-    version = versionCatalog.findVersion("javafx")
     modules = ['javafx.graphics']
     configurations = ['api']
 }
@@ -21,6 +19,5 @@ dependencies {
     implementation libs.slf4j.api
 
     compileOnly libs.jakarta.annotation
-    compileOnly libs.jspecify
     compileOnly libs.moxy
 }

@@ -6,16 +6,15 @@ package software.coley.bentofx;
  * @author Matt Coley
  */
 public interface Identifiable {
+
 	/**
-	 * @return This objects identifier.
+	 * {@return This objects identifier.}
 	 */
 	String getIdentifier();
 
 	/**
-	 * @param other
-	 * 		Another identifiable object.
-	 *
-	 * @return {@code true} when the other object has the same identifier.
+     * {@return {@code true} when the other object has the same identifier.}
+     * @param other another identifiable object.
 	 */
 	default boolean matchesIdentity(final Identifiable other) {
 		return this.getIdentifier().equals(other.getIdentifier());

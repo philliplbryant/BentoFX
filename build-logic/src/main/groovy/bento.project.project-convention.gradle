@@ -14,6 +14,12 @@ plugins {
 
 def versionCatalog = versionCatalogs.named('libs')
 
+plugins.withId('org.openjfx.javafxplugin') {
+    javafx {
+        version = versionCatalog.findVersion('javafx')
+    }
+}
+
 group = 'software.coley.bento-fx'
 version = versionCatalog.findVersion("bentofx").get().requiredVersion
 

@@ -14,8 +14,6 @@ application {
 }
 
 javafx {
-    def versionCatalog = versionCatalogs.named('libs')
-    version = versionCatalog.findVersion("javafx")
     modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
 }
 
@@ -25,8 +23,6 @@ dependencies {
     implementation projects.persistence.api
 
     implementation libs.slf4j.api
-
-    compileOnly libs.jspecify
 
     // Only include one codec implementation
     runtimeOnly projects.persistence.codec.json
