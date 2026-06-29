@@ -13,10 +13,7 @@ import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -45,6 +42,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
     private boolean isAutoSaveEnabled;
     private @Nullable ScheduledExecutorService scheduler;
+    private @Nullable ScheduledFuture<?> scheduledSaveTask;
 
     private long autoSaveInterval =
             DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES;
@@ -123,7 +121,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
         this.scheduler = Executors.newSingleThreadScheduledExecutor(
                 new AutoSaveThreadFactory()
         );
-        var unused = this.scheduler.scheduleAtFixedRate(
+        scheduledSaveTask = this.scheduler.scheduleAtFixedRate(
                 this::autoSave,
                 autoSaveInterval,
                 autoSaveInterval,
@@ -140,6 +138,13 @@ public abstract class AbstractAutoCloseableLayoutSaver
     public void disableAutoSave() {
 
         this.isAutoSaveEnabled = false;
+
+        final ScheduledFuture<?> currentScheduledSaveTask = scheduledSaveTask;
+        scheduledSaveTask = null;
+
+        if (currentScheduledSaveTask != null) {
+            currentScheduledSaveTask.cancel(false);
+        }
 
         final ScheduledExecutorService currentScheduler = scheduler;
         scheduler = null;
