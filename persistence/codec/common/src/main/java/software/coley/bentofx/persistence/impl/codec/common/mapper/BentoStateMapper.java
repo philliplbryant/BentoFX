@@ -461,9 +461,6 @@ public final class BentoStateMapper {
 	 * @return the {@link DockContainerBranchState} mapped from the
 	 * {@link DockContainerBranchDto}.
 	 */
-    // TODO BENTO-13 - List<DockContainerDto> cannot be converted to
-    //  @Nullable List<@Nullable DockContainerDto>
-    @SuppressWarnings("NullAway")
 	public static DockContainerBranchState fromDto(
 			final DockContainerBranchDto branchDto
 	) {
@@ -525,7 +522,7 @@ public final class BentoStateMapper {
 	 */
 	private static void addDockContainers(
 			final DockContainerBranchStateBuilder builder,
-			final @Nullable List<@Nullable DockContainerDto> dockContainers
+			final List<DockContainerDto> dockContainers
 	) {
 		if (dockContainers != null) {
 			for (final DockContainerDto container : dockContainers) {
