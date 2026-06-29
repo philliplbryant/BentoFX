@@ -13,12 +13,13 @@ import java.util.Optional;
 public interface DockableMenuFactoryProvider {
 
 	/**
-	 * Returns the {@link DockableMenuFactory} with the given identifier.
-	 *
-	 * @param identifier the identifier of the {@link DockableMenuFactory}
-	 * to be returned.
-	 *
-	 * @return the {@link DockableMenuFactory} with the given identifier.
+     * {@return an {@link Optional<DockableMenuFactory>} with a
+     * {@link DockableMenuFactory} the given identifier.} Implementations should
+     * return an empty {@link Optional<DockableMenuFactory>} when no context
+     * menu factory is available for the identifier.
+     *
+     * @param identifier the identifier of the {@link DockableMenuFactory}
+     * to be returned.
 	 */
 	Optional<DockableMenuFactory> getDockableMenuFactory(String identifier);
 }

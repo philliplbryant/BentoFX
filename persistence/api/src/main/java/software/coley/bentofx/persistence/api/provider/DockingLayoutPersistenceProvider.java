@@ -29,6 +29,21 @@ public interface DockingLayoutPersistenceProvider {
             final BentoProvider bentoProvider
     ) throws BentoStateException;
 
+    /**
+     * {@return a {@code LayoutRestorer} with the specified identifier.}
+     * @param layoutIdentifier the identifier to use to distinguish the
+     * {@code LayoutRestorer} from other {@code LayoutRestorer}s.
+     * @param bentoProvider used to acquire {@code Bento}.
+     * @param dockableStateProvider used to acquire {@code DockableState}
+     * @param stageIconImageProvider used to acquire {@code Stage} icon
+     * {@code Image}s, {@code null} when a restored {@code Stage} should not
+     * have its icon {@code Image}s set.
+     * @param dockContainerLeafMenuFactoryProvider used to acquire
+     * {@code DockContainerLeafMenuFactory}, {@code null} when the
+     * {@code DockContainerLeafMenu} should not be set.
+     * @throws BentoStateException when the {@code LayoutRestorer} cannot be
+     * returned.
+     */
     default LayoutRestorer getLayoutRestorer(
             final String layoutIdentifier,
             final BentoProvider bentoProvider,
@@ -45,9 +60,23 @@ public interface DockingLayoutPersistenceProvider {
         );
     }
 
+    /**
+     * {@return a {@code LayoutRestorer} with the specified identifier.}
+     * @param layoutPersistenceProfile identifies the {@link LayoutRestorer} to return.
+     * @param bentoProvider used to acquire {@code Bento}.
+     * @param dockableStateProvider used to acquire {@code DockableState}
+     * @param stageIconImageProvider used to acquire {@code Stage} icon
+     * {@code Image}s, {@code null} when a restored {@code Stage} should not
+     * have its icon {@code Image}s set.
+     * @param dockContainerLeafMenuFactoryProvider used to acquire
+     * {@code DockContainerLeafMenuFactory}, {@code null} when the
+     * {@code DockContainerLeafMenu} should not be set.
+     * @throws BentoStateException when the {@code LayoutRestorer} cannot be
+     * returned.
+     */
     LayoutRestorer getLayoutRestorer(
             final LayoutPersistenceProfile layoutPersistenceProfile,
-            final BentoProvider bentoprovider,
+            final BentoProvider bentoProvider,
             final DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider

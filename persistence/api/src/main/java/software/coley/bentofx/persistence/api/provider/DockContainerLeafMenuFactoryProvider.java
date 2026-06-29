@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.api.provider;
 
-import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 
 import java.util.Optional;
@@ -15,10 +14,10 @@ import java.util.Optional;
 public interface DockContainerLeafMenuFactoryProvider {
 
     /**
-     * Creates a {@link DockContainerLeafMenuFactory} for the {@link DockContainerLeaf}
-     * with the specified identifier.
-     *
-     * @return a {@link DockContainerLeafMenuFactory}.
+     * {@return an {@link Optional} caontaining the
+     * {@link DockContainerLeafMenuFactory} for the identifier, an empty
+     * {@code Optional} when no {@link DockContainerLeafMenuFactory} is
+     * available for the identifier.}
      */
     Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
             final String dockContainerLeafIdentifier

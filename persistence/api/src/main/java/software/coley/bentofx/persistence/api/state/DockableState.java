@@ -54,60 +54,77 @@ public class DockableState extends IdentifiableState {
     }
 
     /**
-     * {@return the {@link Node} to display when the dockable is selected.}
+     * {@return an {@link Optional} containing the {@link Node} to display when
+     * the dockable is selected, an empty {@code Optional} when no
+     * {@link Node} was provided when building this {@link DockableState}.}
      */
     public Optional<Node> getDockableNode() {
         return Optional.ofNullable(dockableNode);
     }
 
     /**
-     * {@return the text for the {@link Dockable}'s {@code Header}.}
+     * {@return an {@link Optional} containing the text for the
+     * {@link Dockable}'s {@code Header}, an empty {@link Optional} when no text
+     * was provided when building this {@link DockableState}.}
      */
     public Optional<String> getTitle() {
         return Optional.ofNullable(title);
     }
 
     /**
-     * {@return the text to display when hovering the mouse over the
-     * {@link Dockable}'s {@code Header}.}
+     * {@return an {@link Optional} containing the text to display when hovering
+     * the mouse over the {@link Dockable}'s {@code Header}, an empty
+     * {@link Optional} when no tooltip text was provided when building this
+     * {@link DockableState}.}
      */
     public Optional<String> getTooltipText() {
         return Optional.ofNullable(tooltip);
     }
 
     /**
-     * {@return the {@link DockableIconFactory} for creating the {@link Node}
-     * graphic in the {@link Dockable}'s {@code Header}.}
+     * {@return an {@link Optional} containing the {@link DockableIconFactory}
+     * for creating the {@link Node} graphic in the {@link Dockable}'s
+     * {@code Header}, an empty {@code Optional} when no
+     * {@link DockableIconFactory} was provided when building this
+     * {@link DockableState}.}
      */
     public Optional<DockableIconFactory> getDockableIconFactory() {
         return Optional.ofNullable(dockableIconFactory);
     }
 
     /**
-     * {@return {@link DockableMenuFactory} for creating the context menu for a
-     * {@link Dockable}.}
+     * {@return an {@link Optional} containing {@link DockableMenuFactory} for
+     * creating the context menu for a {@link Dockable}, an empty {@link Optional}
+     * when no {@link DockableMenuFactory} was provided when building this
+     * {@link DockableState}.}
      */
     public Optional<DockableMenuFactory> getDockableMenuFactory() {
         return Optional.ofNullable(dockableMenuFactory);
     }
 
     /**
-     * {@return the drag group mask for the {@link Dockable}.}
+     * {@return an {@link Optional} containing the drag group mask for the
+     * {@link Dockable}, an empty {@code Optional} when no drag drop group mask
+     * was provided when building this {@link DockableState}.}
      */
     public Optional<Integer> getDragGroupMask() {
         return Optional.ofNullable(dragGroupMask);
     }
 
     /**
-     * {@return {@code true} if the dockable is closable, {@code false} if not.}
+     * {@return an {@link Optional} containing {@code true} if the dockable is
+     * closable, {@code false} if not, and an empty {@link Optional} if
+     * closability was not specified when building this {@link DockableState}.}
      */
     public Optional<Boolean> isClosable() {
         return Optional.ofNullable(isClosable);
     }
 
     /**
-     * {@return the {@link Consumer} to call when the {@link Dockable}
-     * has been added to the docking layout.}
+     * {@return an {@link Optional} containing the {@link Consumer} to call when
+     * the {@link Dockable} has been added to the docking layout, , an empty
+     * {@code Optional} when no {@link Consumer} was provided when building this
+     * {@link DockableState}.}
      */
     public Optional<Consumer<Dockable>> getDockableConsumer() {
         return Optional.ofNullable(dockableConsumer);
@@ -136,9 +153,9 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
          * @param dockableNode {@link Node} to display when the dockable is
-         * selected.
+         * selected, {@code null} when no {@link Node} is selected.
          * @see Dockable#setNode(Node)
          */
         public DockableStateBuilder setDockableNode(
@@ -149,8 +166,9 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
-         * @param title the text for the {@link Dockable}'s {@code Header}.
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
+         * @param title the text for the {@link Dockable}'s {@code Header},
+         * {@code null} when no text should be used for the {@link Dockable}.
          * @see Dockable#setTitle(String)
          */
         public DockableStateBuilder setTitle(
@@ -161,9 +179,10 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
          * @param tooltipText the text to display when hovering the mouse over
-         * the {@link Dockable}'s {@code Header}.
+         * the {@link Dockable}'s {@code Header}, {@code null} when no tooltip
+         * should be displayed.
          * @see Tooltip#setText(String)
          * @see Dockable#setTooltip(Tooltip)
          */
@@ -175,9 +194,10 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
          * @param dockableIconFactory {@link DockableIconFactory} for creating a
-         * {@link Node} graphic.
+         * {@link Node} graphic, {@code null} when no {@link DockableIconFactory}
+         * is persisted.
          * @see Dockable#setIconFactory(DockableIconFactory)
          */
         public DockableStateBuilder setDockableIconFactory(
@@ -188,9 +208,10 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
          * @param dockableMenuFactory {@link DockableMenuFactory} for creating
-         * the context menu for a {@link Dockable}.
+         * the context menu for a {@link Dockable}, {@code null} when no
+         * {@link DockableMenuFactory} is persisted.
          * @see Dockable#setContextMenuFactory(DockableMenuFactory)
          */
         public DockableStateBuilder setDockableMenuFactory(
@@ -201,8 +222,9 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
-         * @param dragGroupMask drag group mask.
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
+         * @param dragGroupMask drag group mask, {@code null} when no drag group
+         * mask is to be set.
          * @see Dockable#setDragGroupMask(int)
          */
         public DockableStateBuilder setDragGroupMask(
@@ -213,9 +235,10 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * {@return this {@link DockableStateBuilder}}
+         * {@return this {@link DockableStateBuilder} for chaining method calls.}
          * @param isClosable {@code true} if the dockable is closable,
-         * {@code false} if not closable.
+         * {@code false} if not closable, and {@code null} when closability is
+         * not to be specified.
          * @see Dockable#setClosable(boolean)
          */
         public DockableStateBuilder setClosable(
@@ -231,8 +254,9 @@ public class DockableState extends IdentifiableState {
          * docking layout.
          * @param dockableConsumer the {@link Consumer} to call when the
          * {@link Dockable} represented by the {@link DockableState} has been
-         * added to the docking layout.
-         * @return this {@link DockableStateBuilder}
+         * added to the docking layout, {@code null} when no {@link Consumer}
+         * is to be called.
+         * @return this {@link DockableStateBuilder} for chaining method calls.
          */
         public DockableStateBuilder setDockableConsumer(
                 @Nullable Consumer<Dockable> dockableConsumer
@@ -242,8 +266,7 @@ public class DockableState extends IdentifiableState {
         }
 
         /**
-         * Creates a {@link DockableState}.
-         * @return a {@link DockableState}.
+         * {@return a {@link DockableState}.}
          */
         public DockableState build() {
             return new DockableState(

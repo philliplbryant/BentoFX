@@ -3,11 +3,7 @@ package software.coley.bentofx.persistence.api.state;
 import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -40,6 +36,11 @@ public class DockContainerBranchState extends DockContainerState {
         this.childDockContainerStates = List.copyOf(childDockContainerStates);
     }
 
+    /**
+     * {@return 2n {@link Optional} containing the branch {@link Orientation},
+     * an empty {@link Optional} when the {@link Orientation} has not been
+     * specified.}
+     */
     public Optional<Orientation> getOrientation() {
         return Optional.ofNullable(orientation);
     }
@@ -55,12 +56,14 @@ public class DockContainerBranchState extends DockContainerState {
     public static class DockContainerBranchStateBuilder {
 
         private final String identifier;
-        private final List<DockableState> childDockableStates = new ArrayList<>();
+        private final List<DockableState> childDockableStates =
+                new ArrayList<>();
         private @Nullable Boolean pruneWhenEmpty;
         private @Nullable Orientation orientation;
         private final Map<Integer, Double> dividerPositions =
                 new LinkedHashMap<>();
-        private final List<DockContainerState> childDockContainerStates = new ArrayList<>();
+        private final List<DockContainerState> childDockContainerStates =
+                new ArrayList<>();
 
         public DockContainerBranchStateBuilder(final String identifier) {
 
@@ -72,6 +75,11 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        /**
+         * {@return this {@link DockContainerBranchStateBuilder} for chaining method calls.}
+         * @param pruneWhenEmpty whether empty branches should be pruned,
+         * {@code null} leaves prune-when-empty unspecified.
+         */
         public DockContainerBranchStateBuilder setPruneWhenEmpty(
                 final @Nullable Boolean pruneWhenEmpty
         ) {
@@ -79,6 +87,12 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        /**
+         * {@return this {@link DockContainerBranchStateBuilder} for chaining
+         * method calls.}
+         * @param orientation the branch orientation, {@code null} leaves
+         * {@link Orientation} unspecified.
+         */
         public DockContainerBranchStateBuilder setOrientation(
                 final @Nullable Orientation orientation
         ) {
@@ -86,6 +100,12 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        /**
+         * {@return this {@link DockContainerBranchStateBuilder} for chaining
+         * method calls.}
+         * @param dividerIndex the index of the divider.
+         * @param dividerPosition the divider position, between 0.0 and 1.0 (inclusive).
+         */
         public DockContainerBranchStateBuilder addDividerPosition(
                 final Integer dividerIndex,
                 final Double dividerPosition
@@ -97,6 +117,11 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        /**
+         * {@return this {@link DockContainerBranchStateBuilder} for chaining
+         * method calls.}
+         * @param dockContainerState the {@link DockContainerState} to add.
+         */
         public DockContainerBranchStateBuilder addDockContainerState(
                 final DockContainerState dockContainerState
         ) {

@@ -70,66 +70,131 @@ public class DragDropStageState {
         this.dockContainerRootBranchState = dockContainerRootBranchState;
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage title, an empty
+     * {@link Optional} when the title was not specified.}
+     */
     public Optional<String> getTitle() {
         return Optional.ofNullable(title);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage x-coordinate, an empty
+     * {@link Optional} when the x-coordinate was not specified.}
+     */
     public Optional<Double> getX() {
         return Optional.ofNullable(x);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage y-coordinate, an empty
+     * {@link Optional} when the y-coordinate was not specified.}
+     */
     public Optional<Double> getY() {
         return Optional.ofNullable(y);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage x-width, an empty
+     * {@link Optional} when the width was not specified.}
+     */
     public Optional<Double> getWidth() {
         return Optional.ofNullable(width);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage height, an empty
+     * {@link Optional} when the height was not specified.}
+     */
     public Optional<Double> getHeight() {
         return Optional.ofNullable(height);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage {@link Modality}, an
+     * empty {@link Optional} when the {@link Modality} was not specified.}
+     */
     public Optional<Modality> getModality() {
         return Optional.ofNullable(modality);
     }
 
+    /**
+     * {@return an {@link Optional} containing the stage opacity, an empty
+     * {@link Optional} when the opacity was not specified.}
+     */
     public Optional<Double> getOpacity() {
         return Optional.ofNullable(opacity);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * iconified, an empty {@link Optional} when iconification was not
+     * specified.}
+     */
     public Optional<Boolean> isIconified() {
         return Optional.ofNullable(isIconified);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * shown full screen, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isFullScreen() {
         return Optional.ofNullable(isFullScreen);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * shown maximized, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isMaximized() {
         return Optional.ofNullable(isMaximized);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * shown on top, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isAlwaysOnTop() {
         return Optional.ofNullable(isAlwaysOnTop);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * resizable, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isResizable() {
         return Optional.ofNullable(isResizable);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * shown, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isShowing() {
         return Optional.ofNullable(isShowing);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should be
+     * focused, an empty {@link Optional} when unspecified.}
+     */
     public Optional<Boolean> isFocused() {
         return Optional.ofNullable(isFocused);
     }
 
+    /**
+     * {@return an {@link Optional} specifying whether the stage should close
+     * automatically when empty, an empty {@link Optional} when unspecified.}
+     */
     public Boolean isAutoClosedWhenEmpty() {
         return isAutoClosedWhenEmpty;
     }
 
+    /**
+     * {@return an {@link Optional} containing the root branch state for the
+     * drag/drop stage, and empty {@link Optional} when unspecified.}
+     */
     public Optional<DockContainerRootBranchState> getDockContainerRootBranchState() {
         return Optional.ofNullable(dockContainerRootBranchState);
     }
@@ -160,6 +225,11 @@ public class DragDropStageState {
                     requireNonNull(isAutoClosedWhenEmpty);
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param dockContainerRootBranchState the value to persist, {@code null}
+         * leaves the root branch state unspecified.
+         */
         public DragDropStageStateBuilder setDockContainerRootBranchState(
                 final @Nullable DockContainerRootBranchState dockContainerRootBranchState
         ) {
@@ -167,6 +237,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param title the value to persist, {@code null} leaves the title
+         * unspecified.
+         */
         public DragDropStageStateBuilder setTitle(
                 final @Nullable String title
         ) {
@@ -174,6 +249,10 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param x the value to persist, {@code null} leaves the x-coordinate unspecified.
+         */
         public DragDropStageStateBuilder setX(
                 final @Nullable Double x
         ) {
@@ -181,6 +260,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param y the value to persist, {@code null} leaves the y-coordinate
+         * unspecified.
+         */
         public DragDropStageStateBuilder setY(
                 final @Nullable Double y
         ) {
@@ -188,6 +272,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param width the value to persist, {@code null} leaves the width
+         * unspecified.
+         */
         public DragDropStageStateBuilder setWidth(
                 final @Nullable Double width
         ) {
@@ -195,6 +284,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param height the value to persist, {@code null} leaves the height
+         * unspecified.
+         */
         public DragDropStageStateBuilder setHeight(
                 final @Nullable Double height
         ) {
@@ -202,6 +296,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param modality the value to persist, {@code null} leaves the
+         * {@link Modality} unspecified.
+         */
         public DragDropStageStateBuilder setModality(
                 final @Nullable Modality modality
         ) {
@@ -209,6 +308,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param opacity the value to persist, {@code null} leaves the opacity
+         * unspecified.
+         */
         public DragDropStageStateBuilder setOpacity(
                 final @Nullable Double opacity
         ) {
@@ -216,6 +320,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isIconified the value to persist, {@code null} leaves the
+         * iconification unspecified.
+         */
         public DragDropStageStateBuilder setIconified(
                 final @Nullable Boolean isIconified
         ) {
@@ -223,6 +332,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isFullScreen the value to persist, {@code null} leaves the
+         * screen fullness unspecified.
+         */
         public DragDropStageStateBuilder setFullScreen(
                 final @Nullable Boolean isFullScreen
         ) {
@@ -230,6 +344,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isMaximized the value to persist, {@code null} leaves
+         * maximization unspecified.
+         */
         public DragDropStageStateBuilder setMaximized(
                 final @Nullable Boolean isMaximized
         ) {
@@ -237,6 +356,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isAlwaysOnTop the value to persist, {@code null} leaves the
+         * being on top unspecified.
+         */
         public DragDropStageStateBuilder setAlwaysOnTop(
                 final @Nullable Boolean isAlwaysOnTop
         ) {
@@ -244,6 +368,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isResizable the value to persist, {@code null} leaves the
+         * resizability unspecified.
+         */
         public DragDropStageStateBuilder setResizable(
                 final @Nullable Boolean isResizable
         ) {
@@ -251,6 +380,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isShowing the value to persist, {@code null} leaves showing
+         * unspecified.
+         */
         public DragDropStageStateBuilder setShowing(
                 final @Nullable Boolean isShowing
         ) {
@@ -258,6 +392,11 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return this {@link DragDropStageStateBuilder} for chaining method calls.}
+         * @param isFocused the value to persist, {@code null} to leave the
+         * focused state unspecified.
+         */
         public DragDropStageStateBuilder setFocused(
                 final @Nullable Boolean isFocused
         ) {

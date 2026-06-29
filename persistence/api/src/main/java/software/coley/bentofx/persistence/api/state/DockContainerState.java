@@ -29,10 +29,17 @@ public class DockContainerState extends IdentifiableState {
         this.pruneWhenEmpty = pruneWhenEmpty;
     }
 
+    /**
+     * {@return the child dockable states.}
+     */
     public List<DockableState> getChildDockableStates() {
         return childDockableStates;
     }
 
+    /**
+     * {@return an {@code Optional} specifying whether the dock container should
+     * be pruned when empty, an empty {@code Optional} when unspecified.}
+     */
     public Optional<Boolean> doPruneWhenEmpty() {
         return Optional.ofNullable(pruneWhenEmpty);
     }
@@ -54,6 +61,11 @@ public class DockContainerState extends IdentifiableState {
             return this;
         }
 
+        /**
+         * {@return this {@link DockContainerStateBuilder} for chaining method calls.}
+         * @param pruneWhenEmpty {@code true} to prune when empty, {@code false}
+         * otherwise.
+         */
         public DockContainerStateBuilder setPruneWhenEmpty(boolean pruneWhenEmpty) {
             this.pruneWhenEmpty = pruneWhenEmpty;
             return this;

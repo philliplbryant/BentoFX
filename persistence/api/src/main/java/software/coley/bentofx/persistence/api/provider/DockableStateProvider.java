@@ -14,10 +14,10 @@ import java.util.Optional;
 public interface DockableStateProvider {
 
     /**
-     * Returns the {@link Dockable} with the given identifier.
-     *
+     * {@return an {@link Optional} containing the {@link DockableState} with the
+     * given identifier, {@code null} when no {@link DockableState} with the
+     * identifier can be found.}
      * @param id the identifier of the {@link Dockable} to be returned.
-     * @return the {@link Dockable} with the given identifier.
      */
     Optional<DockableState> resolveDockableState(String id);
 }

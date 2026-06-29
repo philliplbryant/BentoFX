@@ -151,12 +151,11 @@ final class BentoLayoutStateCaptor {
     }
 
     /**
-     * Gets the {@link DockContainerRootBranch} for a {@link DragDropStage}
-     * ({@link DragDropStage} can only have one {@link DockContainerRootBranch}.
+     * {@return the {@link DockContainerRootBranch} for the specified
+     * {@link DragDropStage}, {@code null} when the stage root is not a
+     * {@link DockContainerRootBranch}.}
      * @param stage the {@link DragDropStage} whose {@link DockContainerRootBranch}
      *              is to be found.
-     * @return the {@link DockContainerRootBranch} for the specified
-     * {@link DragDropStage}.
      */
     private @Nullable DockContainerRootBranch getDockContainerRootBranch(
             final DragDropStage stage

@@ -14,10 +14,11 @@ import java.util.Optional;
 public interface BentoProvider {
 
     /**
-     * Returns the {@link Bento} with the given identifier.
+     * {@return an {@link Optional<Bento>} with the given identifier.}
+     * Implementations should return an empty {@link Optional<Bento>} when a
+     * {@link Bento} with the specified identifier cannot be found.
      *
      * @param identifier the identifier of the {@link Bento} to be returned.
-     * @return the {@link Bento} with the given identifier.
      */
     Optional<Bento> getBento(String identifier);
 
