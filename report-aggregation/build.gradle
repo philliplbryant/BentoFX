@@ -7,24 +7,16 @@ plugins {
     id 'bento.report.jacoco-aggregation'
 }
 
-description = 'Aggregated test and code coverage reports for BentoFX library modules.'
+description = 'Aggregated reports for BentoFX library modules.'
 
-// Notes:
-//   JaCoCo includes transitive dependencies when aggregating. Keep this list
-//   explicit so the aggregate reports document the intended library-module
-//   scope and exclude demos and test-fixtures.
-def projectsToReport = [
-        projects.core,
-        projects.persistence.api,
-        projects.persistence.codec.common,
-        projects.persistence.codec.json,
-        projects.persistence.codec.xml,
-        projects.persistence.storage.file,
-        projects.persistence.storage.db.h2,
-]
+def reportAggregationProjects = gradle.extensions
+        .getByName('reportAggregationProjects')
+        .projectPaths
+
 
 dependencies {
-    projectsToReport.each { projectToReport ->
+    reportAggregationProjects.get().each { String projectPath ->
+        def projectToReport = project(projectPath)
         jacocoAggregation(projectToReport)
         testReportAggregation(projectToReport)
     }

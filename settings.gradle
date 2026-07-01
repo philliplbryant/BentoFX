@@ -1,10 +1,15 @@
 pluginManagement {
     includeBuild 'build-logic'
+    includeBuild('settings-logic')
 
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
+}
+
+plugins {
+    id 'software.report.aggregated-projects'
 }
 
 dependencyResolutionManagement {
