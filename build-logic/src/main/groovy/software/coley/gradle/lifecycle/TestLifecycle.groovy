@@ -2,6 +2,7 @@ package software.coley.gradle.lifecycle
 
 import org.gradle.api.Project
 
+@SuppressWarnings("unused")
 final class TestLifecycle {
     public static final String CHECK_INTEGRATION_TASK_NAME = 'checkIntegration'
     public static final String CHECK_FUNCTIONAL_TASK_NAME = 'checkFunctional'
@@ -16,29 +17,41 @@ final class TestLifecycle {
         )
     }
 
-    public static boolean enableJacoco(final Project project) {
-        final String collectCoverage = project.providers.gradleProperty(COLLECT_COVERAGE_PROPERTY_NAME).orNull
-        return collectCoverage != null && collectCoverage != 'false'
+    static boolean enableJacoco(final Project project) {
+        return project.providers
+                .gradleProperty(COLLECT_COVERAGE_PROPERTY_NAME)
+                .map(Boolean.&parseBoolean)
+                .orElse(false)
+                .get()
     }
 
-    public static TestReportMode getTestReportMode(final Project project) {
-        final String testReportMode = project.providers.gradleProperty(TEST_REPORT_MODE_PROPERTY_NAME).orNull
-        switch (testReportMode?.toLowerCase(Locale.ROOT)) {
-            case 'off':
-                return TestReportMode.OFF
-            case 'all':
-                return TestReportMode.ALL
-            case 'ci':
-                return TestReportMode.CI
-            default:
-                return TestReportMode.DEV
-        }
+    static TestReportMode getTestReportMode(final Project project) {
+        return project.providers
+                .gradleProperty(TEST_REPORT_MODE_PROPERTY_NAME)
+                .map(TestReportMode.&parse)
+                .orElse(TestReportMode.DEV)
+                .get()
     }
 
-    public enum TestReportMode {
+    enum TestReportMode {
         OFF,
         ALL,
         CI,
         DEV
+
+        static TestReportMode parse(final String value) {
+            switch (value?.toLowerCase(Locale.ROOT)) {
+                case 'off':
+                    return OFF
+                case 'dev':
+                    return DEV
+                case 'ci':
+                    return CI
+                case 'all':
+                    return ALL
+                default:
+                    return DEV
+            }
+        }
     }
 }
