@@ -1,6 +1,8 @@
 pluginManagement {
-    includeBuild 'build-logic'
+    // Runs before Gradle configures projects.
     includeBuild('settings-logic')
+    // Runs after settings and is used to configure projects.
+    includeBuild 'build-logic'
 
     repositories {
         gradlePluginPortal()
