@@ -13,6 +13,16 @@ description = 'Used to apply plugins to projects and to configure ' +
         'dependencies and tasks. Runs during project configuration, after ' +
         'settings.'
 
+def versionCatalog = versionCatalogs.named('libs')
+def jdkVersion = versionCatalog.findVersion("java-jdk").get().requiredVersion
+def javaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
+
+java {
+    toolchain {
+        languageVersion = javaLanguageVersion
+    }
+}
+
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
