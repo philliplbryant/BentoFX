@@ -8,8 +8,9 @@
 
 # BentoFX Persistence Source Review
 
-1. Configure Qodana Gradle plugin
-2. Configure SonarQube Gradle plugin
+
+1. Configure Qodana workflow on GitHub
+2. Configure SonarQube workflow on GitHub
 3. Analyze code coverage reports
     1. Consider coverage for both normal and exceptional flows
     2. Create additional tests to increase coverage
