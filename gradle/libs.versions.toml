@@ -36,7 +36,7 @@ zaxxer-hikari-cp = "7.1.0"
 # Plugins
 benmanes-versions = "0.54.0"
 buildconfig = "6.0.10"
-dependency-analysis-gradle-plugin = "3.16.0"
+dependency-analysis-gradle-plugin = "3.16.1"
 errorprone-plugin = "5.1.0"
 javafx-plugin = "0.1.0"
 jreleaser = "1.25.0"

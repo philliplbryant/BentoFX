@@ -30,12 +30,12 @@ dependencyAnalysis {
             onUnusedDependencies {
                 severity('fail')
                 exclude(
-                    // Exclude common testing dependencies that we apply to all
-                    // projects regardless of use (for the sake of convenience).
-                    'junit:junit',
-                    'org.assertj:assertj-core',
-                    'org.junit.jupiter:junit-jupiter',
-                    'org.junit.jupiter:junit-jupiter-api',
+                        // Exclude common testing dependencies that we apply to all
+                        // projects regardless of use (for the sake of convenience).
+                        'junit:junit',
+                        'org.assertj:assertj-core',
+                        'org.junit.jupiter:junit-jupiter',
+                        'org.junit.jupiter:junit-jupiter-api',
                 )
             }
             onUnusedAnnotationProcessors { severity('fail') }

@@ -11,6 +11,10 @@ final class TestLifecycle {
     private static final String COLLECT_COVERAGE_PROPERTY_NAME = 'collectCoverage'
     private static final String TEST_REPORT_MODE_PROPERTY_NAME = 'testReportMode'
 
+    public static final ENABLE_CSV_REPORT = false
+    public static final ENABLE_HTML_REPORT = true
+    public static final ENABLE_XML_REPORT = true
+
     private TestLifecycle() {
         throw new UnsupportedOperationException(
                 'Utility classes should not be instantiated.'

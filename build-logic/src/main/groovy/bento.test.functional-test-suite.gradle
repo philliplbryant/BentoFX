@@ -3,7 +3,7 @@ import software.coley.gradle.lifecycle.TestLifecycle
 
 import static software.coley.gradle.conventions.test.TestSuites.FUNCTIONAL_TEST
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.*
 
 plugins {
     id 'jacoco'
@@ -108,9 +108,9 @@ def jacocoFunctionalTestReportTask = tasks.register('jacocoFunctionalTestReport'
     reportTask.onlyIf { jacocoExecutionData.get().exists() }
     reportTask.sourceSets(sourceSets.main)
     reportTask.reports {
-        xml.required = true
-        html.required = true
-        csv.required = false
+        csv.required = ENABLE_CSV_REPORT
+        html.required = ENABLE_HTML_REPORT
+        xml.required = ENABLE_XML_REPORT
     }
 }
 

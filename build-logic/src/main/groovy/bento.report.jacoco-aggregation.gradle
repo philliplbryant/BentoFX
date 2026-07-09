@@ -1,5 +1,5 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
+import static software.coley.gradle.lifecycle.TestLifecycle.*
 
 plugins {
     id 'jacoco-report-aggregation'
@@ -23,9 +23,9 @@ aggregateCoverageReportTasks.each { reportTaskProvider ->
     reportTaskProvider.configure { reportTask ->
         reportTask.group = VERIFICATION_GROUP
         reportTask.reports {
-            xml.required = true
-            html.required = true
-            csv.required = false
+            csv.required = ENABLE_CSV_REPORT
+            html.required = ENABLE_HTML_REPORT
+            xml.required = ENABLE_XML_REPORT
         }
     }
 }
@@ -35,16 +35,16 @@ if (collectCoverage) {
         dependsOn(testCodeCoverageReportTask)
     }
 
-    tasks.named(CHECK_INTEGRATION_TASK_NAME) {
-        dependsOn(integrationTestCodeCoverageReportTask)
-        dependsOn(integrationTestParallelCodeCoverageReportTask)
+    tasks.named(CHECK_ALL_TASK_NAME) {
+        dependsOn(aggregateCoverageReportTasks)
     }
 
     tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
         dependsOn(functionalTestCodeCoverageReportTask)
     }
 
-    tasks.named(CHECK_ALL_TASK_NAME) {
-        dependsOn(aggregateCoverageReportTasks)
+    tasks.named(CHECK_INTEGRATION_TASK_NAME) {
+        dependsOn(integrationTestCodeCoverageReportTask)
+        dependsOn(integrationTestParallelCodeCoverageReportTask)
     }
 }
