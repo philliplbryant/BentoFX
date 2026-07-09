@@ -1,8 +1,8 @@
 plugins {
-    id 'bento.project.project-convention'
-    id 'bento.release.publish-convention'
     alias(libs.plugins.buildconfig)
     alias(libs.plugins.javafx)
+    id 'bento.project.project-convention'
+    id 'bento.release.publish-convention'
 }
 
 description = 'A docking system for JavaFX'

@@ -1,21 +1,21 @@
-import software.coley.gradle.lifecycle.TestLifecycle
-
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST_PARALLEL
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
+    id 'jacoco'
+    id 'jvm-test-suite'
     id 'bento.project.build-lifecycle'
     id 'bento.test.test-lifecycle'
-    id 'jacoco'
     id 'com.autonomousapps.dependency-analysis'
-    id 'jvm-test-suite'
 }
 
 def testSuiteName = INTEGRATION_TEST_PARALLEL
 def testSuiteDirName = 'itp'
 def testSuiteTestSuffix = 'ITP'
-def jacocoEnabled = TestLifecycle.enableJacoco(project)
+
+def jacocoEnabled = enableJacoco(project)
 def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 
@@ -57,23 +57,11 @@ testing {
 def integrationTestParallelTask = tasks.named('integrationTestParallel', Test)
 def integrationTestParallelClassesTask = tasks.named('integrationTestParallelClasses')
 
-dependencies {
-    def versionCatalog = versionCatalogs.named('libs')
-    add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
-    add("${testSuiteName}Implementation", versionCatalog.findBundle('test-libraries').get())
-    add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
-}
-
 dependencyAnalysis {
     abi {
         exclusions {
             excludeSourceSets(testSuiteName)
         }
-    }
-    // Test source set analysis broken by Kotlin 2.0.20:
-    // https://github.com/autonomousapps/dependency-analysis-gradle-plugin/issues/1239
-    issues {
-        ignoreSourceSet(testSuiteName)
     }
 }
 

@@ -6,6 +6,7 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 
 plugins {
     id 'java-library'
+    id 'com.autonomousapps.dependency-analysis'
     id 'com.github.ben-manes.versions'
     id 'bento.analysis.jspecify'
     id 'bento.project.build-lifecycle'
@@ -44,7 +45,7 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(javaMajorVersionAsInt)
+        languageVersion = javaLanguageVersion
     }
 
     withSourcesJar()
@@ -65,24 +66,30 @@ testing {
                 def junitVersion =
                         versionCatalog.findVersion('junit').get().requiredVersion
 
-                useJUnitJupiter(junitVersion)
+                suite.useJUnitJupiter(junitVersion)
 
-                targets.configureEach {
-                    testTask.configure {
-                        it.filter {
+                suite.targets.configureEach { target ->
+                    target.testTask.configure {testTask ->
+                        testTask.filter {
                             includeTestsMatching '*Test'
                             includeTestsMatching '*Test\$*'
                             failOnNoDiscoveredTests = false
                         }
 
                         // Set system properties for the test JVM(s)
-                        systemProperty 'project.name', rootProject.name
+                        testTask.systemProperty 'project.name', rootProject.name
                         // Turns out we really DO need a graphics environment
                         // to initialize the JavaFx platform used by some
                         // JUnit tests. Therefore, we can NOT run JUnit
                         // tests headless.
-                        systemProperty 'java.awt.headless', 'false'
+                        testTask.systemProperty 'java.awt.headless', 'false'
                     }
+                }
+
+                suite.dependencies {
+                    implementation(platform(project(":platform")))
+                    implementation(versionCatalog.findLibrary("assertj").get())
+                    implementation(versionCatalog.findLibrary("junit-api").get())
                 }
             }
         }

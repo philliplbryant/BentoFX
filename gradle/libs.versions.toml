@@ -10,36 +10,36 @@ java-jdk = "21"
 
 # Libraries
 assertj = "3.27.7"
-byte-buddy = "1.18.5"
-dependency-analysis-gradle-plugin = "3.9.0"
+byte-buddy = "1.18.10"
 errorprone = "2.50.0"
 h2 = "2.4.240"
-hibernate = "7.2.6.Final"
-hibernate-hikari-cp = "7.2.6.Final"
+hibernate = "7.4.4.Final"
+hibernate-hikari-cp = "7.4.4.Final"
 hibernate-validator = "9.1.0.Final"
-jackson = "2.21.1"
+jackson = "2.22.0"
 jakarta-annotation = "3.0.0"
 jakarta-cdi = "4.1.0"
 jakarta-el = "4.0.2"
 jakarta-persistence = "3.2.0"
 jakarta-transaction = "2.0.1"
 javafx = "21.0.9"
-jaxb = "4.0.6"
+jaxb = "4.0.8"
 jspecify = "1.0.0"
-junit = "6.0.3"
-moxy = "5.0.0"
+junit = "6.1.1"
+moxy = "5.0.1"
 nullaway = "0.13.7"
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 testfx = "4.0.18"
 testfx-monocle = "21.0.2"
-zaxxer-hikari-cp = "7.0.2"
+zaxxer-hikari-cp = "7.1.0"
 
 # Plugins
-benmanes-versions = "0.52.0"
-buildconfig = "6.0.9"
+benmanes-versions = "0.54.0"
+buildconfig = "6.0.10"
+dependency-analysis-gradle-plugin = "3.16.0"
 errorprone-plugin = "5.1.0"
 javafx-plugin = "0.1.0"
-jreleaser = "1.24.0"
+jreleaser = "1.25.0"
 nullaway-plugin = "3.1.0"
 
 [libraries]
@@ -62,8 +62,10 @@ jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", 
 jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
 jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
 jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
+# noinspection UnusedVersionCatalogEntry
 errorprone = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 errorprone-gradlePlugin-dependency = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version.ref = "errorprone-plugin" }
+# noinspection UnusedVersionCatalogEntry
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 nullaway-gradlePlugin-dependency = { module = "net.ltgt.nullaway:net.ltgt.nullaway.gradle.plugin", version.ref = "nullaway-plugin" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
@@ -96,8 +98,10 @@ test-runtime = ["junit-engine", "junit-launcher"]
 [plugins]
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
+# noinspection UnusedVersionCatalogEntry
 errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
 dependencyAnalysis-gradlePlugin = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis-gradle-plugin" }
 javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+# noinspection UnusedVersionCatalogEntry
 nullaway = { id = "net.ltgt.nullaway", version.ref = "nullaway-plugin" }

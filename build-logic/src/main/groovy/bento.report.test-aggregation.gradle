@@ -35,13 +35,13 @@ if (aggregateTestReports) {
         dependsOn(testAggregateTestReportTask)
     }
 
+    checkFunctionalTask.configure {
+        dependsOn(functionalTestAggregateTestReportTask)
+    }
+
     checkIntegrationTask.configure {
         dependsOn(integrationTestAggregateTestReportTask)
         dependsOn(integrationTestParallelAggregateTestReportTask)
-    }
-
-    checkFunctionalTask.configure {
-        dependsOn(functionalTestAggregateTestReportTask)
     }
 
     checkAllTask.configure {

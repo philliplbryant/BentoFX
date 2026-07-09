@@ -13,7 +13,6 @@ def reportAggregationProjects = gradle.extensions
         .getByName('reportAggregationProjects')
         .projectPaths
 
-
 dependencies {
     reportAggregationProjects.get().each { String projectPath ->
         def projectToReport = project(projectPath)
@@ -24,4 +23,19 @@ dependencies {
 
 tasks.withType(Jar).configureEach {
     enabled = false
+}
+
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+            // Exclude additional, common testing dependencies that we apply to
+            // all projects regardless of use (for the sake of convenience).
+            exclude(
+                'org.testfx:testfx-junit5',
+                'org.testfx:testfx-core',
+            )
+            // plugin conventions add the current project as a dependency
+            exclude(":report-aggregation")
+        }
+    }
 }

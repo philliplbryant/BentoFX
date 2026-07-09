@@ -1,7 +1,7 @@
 plugins {
+    alias(libs.plugins.javafx)
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
-    alias(libs.plugins.javafx)
 }
 
 description = "BentoFX Persistence for JSON"
@@ -22,4 +22,7 @@ dependencies {
     compileOnly libs.jackson.annotations
 
     testImplementation testFixtures(projects.persistence.testFixtures)
+
+    testImplementation libs.jackson.annotations
+    testImplementation libs.javafx.graphics
 }

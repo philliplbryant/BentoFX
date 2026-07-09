@@ -1,18 +1,15 @@
-import software.coley.gradle.lifecycle.TestLifecycle
-
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'jacoco'
-    id 'bento.project.build-lifecycle'
-    id 'bento.test.test-lifecycle'
-    id 'com.autonomousapps.dependency-analysis'
     id 'jvm-test-suite'
+    id 'bento.project.build-lifecycle'
 }
 
 def testSuiteName = 'test'
-def jacocoEnabled = TestLifecycle.enableJacoco(project)
+def jacocoEnabled = enableJacoco(project)
 def testTask = tasks.named(testSuiteName, Test)
 def testClassesTask = tasks.named('testClasses')
 def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { reportTask ->
@@ -28,25 +25,7 @@ def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { repor
 def checkTask = tasks.named('check')
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 
-dependencies {
-    def versionCatalog = versionCatalogs.named('libs')
-    add("${testSuiteName}CompileOnly", versionCatalog.findBundle('annotations').get())
-    add("${testSuiteName}Implementation", versionCatalog.findBundle('test-libraries').get())
-    add("${testSuiteName}RuntimeOnly", versionCatalog.findBundle('test-runtime').get())
-}
-
-dependencyAnalysis {
-    abi {
-        exclusions {
-            excludeSourceSets(testSuiteName)
-        }
-    }
-    // Test source set analysis broken by Kotlin 2.0.20:
-    // https://github.com/autonomousapps/dependency-analysis-gradle-plugin/issues/1239
-    issues {
-        ignoreSourceSet(testSuiteName)
-    }
-}
+def versionCatalog = versionCatalogs.named('libs')
 
 allClassesTask.configure {
     dependsOn(testClassesTask)

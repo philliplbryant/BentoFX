@@ -1,5 +1,5 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import static software.coley.gradle.lifecycle.TestLifecycle.*
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'jacoco-report-aggregation'

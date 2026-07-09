@@ -1,5 +1,10 @@
 plugins {
     id 'application'
+    id 'com.autonomousapps.dependency-analysis'
+}
+
+dependencyAnalysis {
+    app()
 }
 
 tasks.withType(JavaExec).configureEach {

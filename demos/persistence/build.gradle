@@ -1,7 +1,7 @@
 plugins {
+    alias(libs.plugins.javafx)
     id 'bento.project.project-convention'
     id 'bento.project.application-convention'
-    alias(libs.plugins.javafx)
 }
 
 description = 'BentoFX Persistence Demo'
