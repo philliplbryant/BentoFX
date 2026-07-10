@@ -8,7 +8,6 @@
 
 # BentoFX Persistence Source Review
 
-
 1. Configure Qodana workflow on GitHub to publish results
 2. Configure SonarQube workflow on GitHub
 3. Analyze code coverage reports
