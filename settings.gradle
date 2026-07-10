@@ -15,15 +15,6 @@ plugins {
     id 'bento.analysis.dependency-settings'
 }
 
-dependencyAnalysis {
-    usage {
-        analysis {
-            checkSuperClasses(true)
-        }
-    }
-    useTypesafeProjectAccessors(true)
-}
-
 dependencyResolutionManagement {
     includeBuild 'build-logic'
 
