@@ -8,10 +8,13 @@ plugins {
     id 'bento.project.build-lifecycle'
 }
 
-def testSuiteName = 'test'
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+def checkTask = tasks.named('check')
 def jacocoEnabled = enableJacoco(project)
-def testTask = tasks.named(testSuiteName, Test)
 def testClassesTask = tasks.named('testClasses')
+def testSuiteName = 'test'
+def testTask = tasks.named(testSuiteName, Test)
+
 def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { reportTask ->
     reportTask.group = VERIFICATION_GROUP
     reportTask.description = 'Generates JaCoCo coverage report for the test task.'
@@ -22,10 +25,6 @@ def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { repor
         csv.required = false
     }
 }
-def checkTask = tasks.named('check')
-def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
-
-def versionCatalog = versionCatalogs.named('libs')
 
 allClassesTask.configure {
     dependsOn(testClassesTask)

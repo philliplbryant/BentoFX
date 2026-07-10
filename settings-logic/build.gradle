@@ -4,7 +4,7 @@ plugins {
 }
 
 /**
- * This included build produces a settings plugins, not a build convention
+ * This included build produces a settings plugins, not build convention
  * plugins. Gradle evaluates it from settings.gradle during settings evaluation,
  * before project configuration. Keep settings-time discovery and decisions here.
  * Put normal project plugin application, dependency setup, task wiring, and
@@ -34,10 +34,10 @@ gradlePlugin {
             implementationClass =
                     'software.coley.gradle.plugin.report.ReportAggregationSettingsPlugin'
         }
-        dependencyAnalysisSettingsPlugin {
-            id = 'bento.analysis.dependency-settings'
+        dagpSettingsPlugin {
+            id = 'bento.analysis.dagp-settings'
             implementationClass =
-                    'software.coley.gradle.plugin.analysis.DependencyAnalysisSettingsPlugin'
+                    'software.coley.gradle.plugin.analysis.DagpSettingsPlugin'
         }
     }
 }

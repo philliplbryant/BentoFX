@@ -1,3 +1,4 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST_PARALLEL
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.*
@@ -10,13 +11,12 @@ plugins {
     id 'com.autonomousapps.dependency-analysis'
 }
 
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
+def jacocoEnabled = enableJacoco(project)
 def testSuiteName = INTEGRATION_TEST_PARALLEL
 def testSuiteDirName = 'itp'
 def testSuiteTestSuffix = 'ITP'
-
-def jacocoEnabled = enableJacoco(project)
-def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
-def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 
 testing {
     suites {
@@ -80,7 +80,7 @@ def jacocoExecutionData = integrationTestParallelTask.map { testTask ->
 }
 
 def jacocoIntegrationTestParallelReportTask = tasks.register('jacocoIntegrationTestParallelReport', JacocoReport) { reportTask ->
-    reportTask.group = 'verification'
+    reportTask.group = VERIFICATION_GROUP
     reportTask.description = 'Generates JaCoCo coverage report for the parallel integration test task.'
     reportTask.dependsOn(integrationTestParallelTask)
     reportTask.executionData(jacocoExecutionData)

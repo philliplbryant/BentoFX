@@ -36,6 +36,9 @@ def jdkVersion = versionCatalog.findVersion("java-jdk").get().requiredVersion
 def javaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
 def javaMajorVersionAsInt = javaLanguageVersion.asInt()
 
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+def classesTask = tasks.named('classes')
+
 dependencies {
 
     components.all(JavaFxDependencyMetadataRule)
@@ -128,21 +131,8 @@ testing {
     }
 }
 
-def classesTask = tasks.named('classes')
-def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
-
 allClassesTask.configure {
     dependsOn(classesTask)
-}
-
-tasks.withType(JavaCompile).configureEach {
-    it.options.with {
-        encoding = 'UTF-8'
-        release = javaMajorVersionAsInt
-        fork = true
-        forkOptions.memoryMaximumSize = '1g'
-        options.compilerArgs << '-parameters'
-    }
 }
 
 tasks.withType(Jar).configureEach {
@@ -152,6 +142,16 @@ tasks.withType(Jar).configureEach {
         include 'LICENSE'
         into 'META-INF'
         rename { 'LICENSE.txt' }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.with {
+        encoding = 'UTF-8'
+        release = javaMajorVersionAsInt
+        fork = true
+        forkOptions.memoryMaximumSize = '1g'
+        options.compilerArgs << '-parameters'
     }
 }
 

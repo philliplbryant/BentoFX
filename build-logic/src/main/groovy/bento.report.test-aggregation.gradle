@@ -7,11 +7,15 @@ plugins {
 }
 
 def aggregateTestReports = getTestReportMode(project) == CI
-
+def checkAllTask = tasks.named(CHECK_ALL_TASK_NAME)
+def checkFunctionalTask = tasks.named(CHECK_FUNCTIONAL_TASK_NAME)
+def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
+def checkTask = tasks.named('check')
 def testAggregateTestReportTask = tasks.named('testAggregateTestReport')
 def integrationTestAggregateTestReportTask = tasks.named('integrationTestAggregateTestReport')
 def integrationTestParallelAggregateTestReportTask = tasks.named('integrationTestParallelAggregateTestReport')
 def functionalTestAggregateTestReportTask = tasks.named('functionalTestAggregateTestReport')
+
 def aggregateTestReportTasks = [
         testAggregateTestReportTask,
         integrationTestAggregateTestReportTask,
@@ -25,14 +29,9 @@ aggregateTestReportTasks.each { reportTaskProvider ->
     }
 }
 
-def checkTask = tasks.named('check')
-def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
-def checkFunctionalTask = tasks.named(CHECK_FUNCTIONAL_TASK_NAME)
-def checkAllTask = tasks.named(CHECK_ALL_TASK_NAME)
-
 if (aggregateTestReports) {
-    checkTask.configure {
-        dependsOn(testAggregateTestReportTask)
+    checkAllTask.configure {
+        dependsOn(aggregateTestReportTasks)
     }
 
     checkFunctionalTask.configure {
@@ -44,7 +43,7 @@ if (aggregateTestReports) {
         dependsOn(integrationTestParallelAggregateTestReportTask)
     }
 
-    checkAllTask.configure {
-        dependsOn(aggregateTestReportTasks)
+    checkTask.configure {
+        dependsOn(testAggregateTestReportTask)
     }
 }

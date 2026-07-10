@@ -8,8 +8,9 @@ import org.gradle.api.initialization.Settings
 /**
  * Applies and centralizes settings-level dependency-analysis configuration.
  */
+@SuppressWarnings("unused")
 @CompileStatic
-class DependencyAnalysisSettingsPlugin implements Plugin<Settings> {
+class DagpSettingsPlugin implements Plugin<Settings> {
 
     @Override
     void apply(final Settings settings) {

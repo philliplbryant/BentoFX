@@ -6,11 +6,13 @@ plugins {
 }
 
 def checkTask = tasks.named('check')
+
 def checkIntegrationTask = tasks.register(CHECK_INTEGRATION_TASK_NAME) {
     description = 'Runs integration tests for all applicable subprojects.'
     group = VERIFICATION_GROUP
     shouldRunAfter(checkTask)
 }
+
 def checkFunctionalTask = tasks.register(CHECK_FUNCTIONAL_TASK_NAME) {
     description = 'Runs functional tests for all applicable subprojects.'
     group = VERIFICATION_GROUP

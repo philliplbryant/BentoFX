@@ -1,5 +1,6 @@
 package software.coley.gradle.conventions.test
 
+@SuppressWarnings("unused")
 final class TestSuites {
     public static final String FUNCTIONAL_TEST = 'functionalTest'
     public static final String INTEGRATION_TEST = 'integrationTest'

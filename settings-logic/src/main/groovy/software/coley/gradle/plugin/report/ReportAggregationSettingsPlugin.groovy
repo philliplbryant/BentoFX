@@ -14,6 +14,7 @@ import java.util.stream.Stream
  * Project isolation-safe plugin to determine paths for the projects used for
  * report aggregation.
  */
+@SuppressWarnings("unused")
 @CompileStatic
 class ReportAggregationSettingsPlugin implements Plugin<Settings> {
 

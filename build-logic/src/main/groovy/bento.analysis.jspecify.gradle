@@ -24,15 +24,15 @@ nullaway {
     jspecifyMode = true
 }
 
+tasks.register('checkJSpecify') { checkTask ->
+    checkTask.group = VERIFICATION_GROUP
+    checkTask.description = 'Runs JSpecify nullness analysis through Error Prone and NullAway.'
+    checkTask.dependsOn(tasks.withType(JavaCompile))
+}
+
 tasks.withType(JavaCompile).configureEach { compileTask ->
     compileTask.options.errorprone.disableWarningsInGeneratedCode = true
     compileTask.options.errorprone.nullaway {
         error()
     }
-}
-
-tasks.register('checkJSpecify') { checkTask ->
-    checkTask.group = VERIFICATION_GROUP
-    checkTask.description = 'Runs JSpecify nullness analysis through Error Prone and NullAway.'
-    checkTask.dependsOn(tasks.withType(JavaCompile))
 }

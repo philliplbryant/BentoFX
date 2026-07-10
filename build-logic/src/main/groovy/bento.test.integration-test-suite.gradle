@@ -1,5 +1,6 @@
 import software.coley.gradle.buildservice.SimpleBuildService
 
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
 import static software.coley.gradle.lifecycle.TestLifecycle.*
@@ -17,12 +18,20 @@ def nonParallelBuildService =
             maxParallelUsages = 1
         }
 
+def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
+def jacocoEnabled = enableJacoco(project)
 def testSuiteName = INTEGRATION_TEST
 def testSuiteDirName = 'it'
 def testSuiteTestSuffix = 'IT'
-def jacocoEnabled = enableJacoco(project)
-def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
-def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
+
+dependencyAnalysis {
+    abi {
+        exclusions {
+            excludeSourceSets(testSuiteName)
+        }
+    }
+}
 
 testing {
     suites {
@@ -62,14 +71,6 @@ testing {
 def integrationTestTask = tasks.named('integrationTest', Test)
 def integrationTestClassesTask = tasks.named('integrationTestClasses')
 
-dependencyAnalysis {
-    abi {
-        exclusions {
-            excludeSourceSets(testSuiteName)
-        }
-    }
-}
-
 integrationTestTask.configure {
     def suiteSourceSet = sourceSets.named(testSuiteName).get()
     testClassesDirs = suiteSourceSet.output.classesDirs
@@ -86,7 +87,7 @@ def jacocoExecutionData = integrationTestTask.map { testTask ->
 }
 
 def jacocoIntegrationTestReportTask = tasks.register('jacocoIntegrationTestReport', JacocoReport) { reportTask ->
-    reportTask.group = 'verification'
+    reportTask.group = VERIFICATION_GROUP
     reportTask.description = 'Generates JaCoCo coverage report for the integration test task.'
     reportTask.dependsOn(integrationTestTask)
     reportTask.executionData(jacocoExecutionData)

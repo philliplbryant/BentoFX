@@ -7,10 +7,10 @@ plugins {
 
 def collectCoverage = enableJacoco(project)
 
-def testCodeCoverageReportTask = tasks.named('testCodeCoverageReport', JacocoReport)
 def integrationTestCodeCoverageReportTask = tasks.named('integrationTestCodeCoverageReport', JacocoReport)
 def integrationTestParallelCodeCoverageReportTask = tasks.named('integrationTestParallelCodeCoverageReport', JacocoReport)
 def functionalTestCodeCoverageReportTask = tasks.named('functionalTestCodeCoverageReport', JacocoReport)
+def testCodeCoverageReportTask = tasks.named('testCodeCoverageReport', JacocoReport)
 
 def aggregateCoverageReportTasks = [
         testCodeCoverageReportTask,

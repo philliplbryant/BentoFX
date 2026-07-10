@@ -8,6 +8,7 @@ import javax.inject.Inject
  * Extension class for sharing lazily calculated values among precompiled
  * convention script plugins.
  */
+@SuppressWarnings("unused")
 abstract class BentoConventionExtension {
     /**
      * The fully qualified project name, normalized as a valid for use as an
