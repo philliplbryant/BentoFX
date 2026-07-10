@@ -5,16 +5,6 @@ plugins {
     id 'base'
     alias libs.plugins.jreleaser
     alias libs.plugins.benmanes.versions
-    alias libs.plugins.dependencyAnalysis.gradlePlugin
-}
-
-dependencyAnalysis {
-    usage {
-        analysis {
-            checkSuperClasses(true)
-        }
-    }
-    useTypesafeProjectAccessors(true)
 }
 
 jreleaser {

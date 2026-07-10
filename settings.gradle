@@ -12,6 +12,17 @@ pluginManagement {
 
 plugins {
     id 'software.report.aggregated-projects'
+//    alias(libs.plugins.dependencyAnalysis.buildHealth)
+    id 'com.autonomousapps.build-health' version '3.16.1'
+}
+
+dependencyAnalysis {
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+    useTypesafeProjectAccessors(true)
 }
 
 dependencyResolutionManagement {

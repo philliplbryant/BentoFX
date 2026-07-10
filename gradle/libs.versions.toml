@@ -99,8 +99,11 @@ test-runtime = ["junit-engine", "junit-launcher"]
 benmanes-versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes-versions" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 # noinspection UnusedVersionCatalogEntry
-errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
+dependencyAnalysis-buildHealth = { id = "com.autonomousapps.build-health", version.ref = "dependency-analysis-gradle-plugin" }
+# noinspection UnusedVersionCatalogEntry
 dependencyAnalysis-gradlePlugin = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis-gradle-plugin" }
+# noinspection UnusedVersionCatalogEntry
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
 javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 # noinspection UnusedVersionCatalogEntry
