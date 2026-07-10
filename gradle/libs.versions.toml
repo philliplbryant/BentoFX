@@ -46,6 +46,7 @@ nullaway-plugin = "3.1.0"
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 benmanes-versions-gradlePlugin-dependency = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "benmanes-versions" }
 byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
+dependencyAnalysis-buildHealth-gradlePlugin-dependency = { module = "com.autonomousapps.build-health:com.autonomousapps.build-health.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.dependency-analysis:com.autonomousapps.dependency-analysis.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }

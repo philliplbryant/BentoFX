@@ -12,7 +12,7 @@ pluginManagement {
 
 plugins {
     id 'bento.report.aggregation-settings'
-    id 'com.autonomousapps.build-health' version '3.16.1'
+    id 'bento.analysis.dependency-settings'
 }
 
 dependencyAnalysis {

@@ -23,12 +23,21 @@ java {
     }
 }
 
+dependencies {
+    implementation libs.dependencyAnalysis.buildHealth.gradlePlugin.dependency
+}
+
 gradlePlugin {
     plugins {
         reportAggregationProjectsSettingsPlugin {
             id = 'bento.report.aggregation-settings'
             implementationClass =
                     'software.coley.gradle.plugin.report.ReportAggregationSettingsPlugin'
+        }
+        dependencyAnalysisSettingsPlugin {
+            id = 'bento.analysis.dependency-settings'
+            implementationClass =
+                    'software.coley.gradle.plugin.analysis.DependencyAnalysisSettingsPlugin'
         }
     }
 }
