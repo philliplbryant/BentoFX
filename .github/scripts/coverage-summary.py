@@ -20,6 +20,7 @@ EXCLUDED_PATH_PARTS = {
     "demos",
     "gradle",
     "report-aggregation",
+    "settings-logic",
 }
 
 JACOCO_COUNTER_TYPES = {
