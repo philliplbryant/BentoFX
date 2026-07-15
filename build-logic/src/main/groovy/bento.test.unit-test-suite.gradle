@@ -1,6 +1,6 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
+import static software.coley.gradle.lifecycle.TestLifecycle.*
 
 plugins {
     id 'jacoco'
