@@ -76,10 +76,9 @@ testing {
 }
 
 dependencies {
-    def versionCatalog = versionCatalogs.named('libs')
-    add("${testSuiteName}Implementation", versionCatalog.findLibrary('testfx').get())
-    add("${testSuiteName}Implementation", versionCatalog.findLibrary('testfx-core').get())
-    add("${testSuiteName}RuntimeOnly", versionCatalog.findLibrary('testfx-monocle').get())
+    add("${testSuiteName}Implementation", libs.testfx)
+    add("${testSuiteName}Implementation", libs.testfx.core)
+    add("${testSuiteName}RuntimeOnly", libs.testfx.monocle)
 }
 
 def functionalTestClassesTask = tasks.named('functionalTestClasses')

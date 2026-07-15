@@ -1,7 +1,8 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static software.coley.gradle.conventions.test.TestSuites.INTEGRATION_TEST_PARALLEL
 import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NAME
-import static software.coley.gradle.lifecycle.TestLifecycle.*
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.enableJacoco
 
 plugins {
     id 'jacoco'

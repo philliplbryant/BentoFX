@@ -1,5 +1,7 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
-import static software.coley.gradle.lifecycle.TestLifecycle.*
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_ALL_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_INTEGRATION_TASK_NAME
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_FUNCTIONAL_TASK_NAME
 
 plugins {
     id 'base'

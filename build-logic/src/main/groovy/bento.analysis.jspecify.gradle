@@ -5,13 +5,13 @@ plugins {
     id 'net.ltgt.nullaway'
 }
 
-def versionCatalog = versionCatalogs.named('libs')
-
 dependencies {
-    errorprone versionCatalog.findLibrary('errorprone').get()
-    errorprone versionCatalog.findLibrary('nullaway').get()
-    compileOnly versionCatalog.findLibrary('jspecify').get()
-    testCompileOnly versionCatalog.findLibrary('jspecify').get()
+    errorprone libs.errorprone
+    errorprone libs.nullaway
+
+    compileOnly libs.jspecify
+
+    testCompileOnly libs.jspecify
 }
 
 nullaway {
