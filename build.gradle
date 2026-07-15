@@ -8,6 +8,11 @@ plugins {
 }
 
 jreleaser {
+    def versionCatalog = versionCatalogs.named('libs')
+    project {
+        group = 'software.coley.bento-fx'
+        version = versionCatalog.findVersion("bentofx").get().requiredVersion
+    }
     signing {
         pgp {
             active = 'RELEASE'
@@ -45,8 +50,6 @@ jreleaser {
 // Using this task to upgrade Gradle keeps the gradle-wrapper.properties,
 // distribution JAR, and wrapper scripts (./gradle and ./gradlew.bat) in sync.
 tasks.named("wrapper", Wrapper).configure {
-    def versionCatalog = versionCatalogs.named('libs')
-
     // The Gradle version and checksum are specified in libs.versions.toml
     gradleVersion =
             versionCatalog.findVersion("gradle").get().requiredVersion
