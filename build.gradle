@@ -7,14 +7,6 @@ plugins {
     alias libs.plugins.benmanes.versions
 }
 
-// Attempting to use the version catalog API here results in the following error:
-//   BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_' Cannot invoke "org.codehaus.groovy.control.SourceUnit.getErrorCollector()" because "source" is null
-//           > Cannot invoke "org.codehaus.groovy.control.SourceUnit.getErrorCollector()" because "source" is null
-//def versionCatalog = versionCatalogs.named('libs')
-
-group = 'software.coley.bento-fx'
-version = libs.versions.bentofx.get()
-
 jreleaser {
     signing {
         pgp {
