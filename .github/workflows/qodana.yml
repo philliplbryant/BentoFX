@@ -32,6 +32,8 @@ jobs:
           args: |
             --linter qodana-jvm-community
             --within-docker false
+            --baseline .github/analysis/qodana-baseline.sarif.json
+            --fail-threshold 0
           upload-result: true
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}

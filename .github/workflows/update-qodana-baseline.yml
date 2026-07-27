@@ -1,0 +1,82 @@
+name: Update Qodana Baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      open_pull_request:
+        description: Open a pull request updating the committed baseline
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-baseline:
+    name: Generate Qodana baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout current master
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Run Qodana without a baseline
+        id: qodana
+        continue-on-error: true
+        uses: JetBrains/qodana-action@v2026.1
+        with:
+          args: |
+            --linter qodana-jvm-community
+            --within-docker false
+          upload-result: false
+
+      - name: Verify Qodana generated SARIF
+        shell: bash
+        run: |
+          SARIF_FILE="${{ runner.temp }}/qodana/results/qodana.sarif.json"
+
+          if [[ ! -f "$SARIF_FILE" ]]; then
+            echo "::error::Qodana did not generate $SARIF_FILE"
+            exit 1
+          fi
+
+      - name: Upload baseline artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: qodana-baseline
+          path: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Copy SARIF into repository
+        if: inputs.open_pull_request
+        shell: bash
+        run: |
+          mkdir -p .github/analysis
+          cp \
+            "${{ runner.temp }}/qodana/results/qodana.sarif.json" \
+            ".github/analysis/qodana-baseline.sarif.json"
+
+      - name: Create baseline pull request
+        if: inputs.open_pull_request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
+          branch: automation/update-qodana-baseline
+          delete-branch: true
+          add-paths: |
+            .github/analysis/qodana-baseline.sarif.json
+          commit-message: Update Qodana baseline
+          title: Update Qodana baseline
+          body: |
+            Updates `.github/analysis/qodana-baseline.sarif.json` from a
+            fresh Qodana analysis of the current `master` branch.
+
+            Review the changed findings before merging this pull request.
