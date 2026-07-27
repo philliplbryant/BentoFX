@@ -1,3 +1,5 @@
+import org.jreleaser.gradle.plugin.tasks.AbstractJReleaserDefaultTask
+
 import static org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 
 plugins {
@@ -7,8 +9,16 @@ plugins {
     alias libs.plugins.benmanes.versions
 }
 
+def versionCatalog = versionCatalogs.named('libs')
+
+// JReleaser also requires defining the following system properties (can be
+// defined in [USER_HOME]/.jreleaser/config.properties):
+//    JRELEASER_GPG_PASSPHRASE=passphrase
+//    JRELEASER_GPG_SECRET_KEY=key
+//    JRELEASER_MAVENCENTRAL_USERNAME=username
+//    JRELEASER_MAVENCENTRAL_PASSWORD=password
 jreleaser {
-    def versionCatalog = versionCatalogs.named('libs')
+
     project {
         group = 'software.coley.bento-fx'
         version = versionCatalog.findVersion("bentofx").get().requiredVersion
@@ -50,8 +60,6 @@ jreleaser {
 // Using this task to upgrade Gradle keeps the gradle-wrapper.properties,
 // distribution JAR, and wrapper scripts (./gradle and ./gradlew.bat) in sync.
 tasks.named("wrapper", Wrapper).configure {
-    def versionCatalog = versionCatalogs.named('libs')
-
     // The Gradle version and checksum are specified in libs.versions.toml
     gradleVersion =
             versionCatalog.findVersion("gradle-wrapper").get().requiredVersion
@@ -61,4 +69,14 @@ tasks.named("wrapper", Wrapper).configure {
     // Use `ALL` instead of `BIN` to provide support for developers using the Gradle scripts.
     distributionType = BIN
     networkTimeout = 60000
+}
+
+// TODO BENTO-13: Remove this configuration once JReleaser fixes the plugin
+tasks.withType(AbstractJReleaserDefaultTask).configureEach {
+    def jreleaserVersion =
+            versionCatalog.findVersion("jreleaser").get().requiredVersion
+    notCompatibleWithConfigurationCache(
+            "JReleaser Gradle plugin version $jreleaserVersion invokes " +
+                    "Task.project at execution time."
+    )
 }
