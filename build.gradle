@@ -54,7 +54,7 @@ tasks.named("wrapper", Wrapper).configure {
 
     // The Gradle version and checksum are specified in libs.versions.toml
     gradleVersion =
-            versionCatalog.findVersion("gradle").get().requiredVersion
+            versionCatalog.findVersion("gradle-wrapper").get().requiredVersion
     distributionSha256Sum =
             versionCatalog.findVersion("gradle-checksum").get().requiredVersion
 
