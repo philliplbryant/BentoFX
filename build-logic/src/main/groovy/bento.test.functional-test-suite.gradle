@@ -96,6 +96,10 @@ functionalTestTask.configure {
     modularity.inferModulePath.set(false)
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
 def jacocoExecutionData = functionalTestTask.map { testTask ->
     testTask.extensions.getByType(JacocoTaskExtension).destinationFile
 }

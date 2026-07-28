@@ -75,6 +75,11 @@ allClassesTask.configure {
     dependsOn(integrationTestParallelClassesTask)
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
+
 def jacocoExecutionData = integrationTestParallelTask.map { testTask ->
     testTask.extensions.getByType(JacocoTaskExtension).destinationFile
 }

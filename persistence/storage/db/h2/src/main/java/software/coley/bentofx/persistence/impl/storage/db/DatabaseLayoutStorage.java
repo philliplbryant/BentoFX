@@ -65,7 +65,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	}
 
 	@Override
-	public InputStream openInputStream() throws IOException {
+	public InputStream openInputStream() {
 
 		try (final EntityManager em = emf.createEntityManager()) {
 
@@ -86,10 +86,6 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 							DockingLayoutEntity.class,
 							key
 					);
-
-			if(entity == null) {
-				throw new IOException("Could not find the DockingLayoutEntity");
-			}
 
 			return new ByteArrayInputStream(entity.payload);
 		}

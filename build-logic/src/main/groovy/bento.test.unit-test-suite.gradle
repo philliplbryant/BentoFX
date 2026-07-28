@@ -15,6 +15,10 @@ def testClassesTask = tasks.named('testClasses')
 def testSuiteName = 'test'
 def testTask = tasks.named(testSuiteName, Test)
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
 def jacocoTestReportTask = tasks.named('jacocoTestReport', JacocoReport) { reportTask ->
     reportTask.group = VERIFICATION_GROUP
     reportTask.description = 'Generates JaCoCo coverage report for the test task.'

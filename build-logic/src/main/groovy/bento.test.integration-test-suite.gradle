@@ -82,6 +82,10 @@ allClassesTask.configure {
     dependsOn(integrationTestClassesTask)
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
 def jacocoExecutionData = integrationTestTask.map { testTask ->
     testTask.extensions.getByType(JacocoTaskExtension).destinationFile
 }

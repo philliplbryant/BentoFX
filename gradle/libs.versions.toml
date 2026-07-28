@@ -33,6 +33,8 @@ zaxxer-hikari-cp = "7.1.0"
 buildconfig = "6.0.10"
 dependency-analysis-gradle-plugin = "3.17.0"
 errorprone-plugin = "5.1.0"
+# noinspection UnusedVersionCatalogEntry
+jacoco = "0.8.15"
 javafx-plugin = "0.1.0"
 jreleaser = "1.25.0"
 nullaway-plugin = "3.1.0"
