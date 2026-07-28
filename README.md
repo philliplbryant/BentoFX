@@ -1,6 +1,5 @@
 [![CI/CD](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
 [![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql?query=branch%3Amaster)
-[![Qodana](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml?query=branch%3Amaster)
 [![Update Qodana Baseline](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml?query=branch%3Amaster)
 
 # BentoFX
