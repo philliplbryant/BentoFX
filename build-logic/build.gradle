@@ -34,7 +34,6 @@ dependencies {
         )
     }
 
-    implementation libs.benmanes.versions.gradlePlugin.dependency
     implementation libs.errorprone.gradlePlugin.dependency
     implementation libs.javafx.gradlePlugin.dependency
     implementation libs.jreleaser.gradlePlugin.dependency

@@ -139,3 +139,38 @@ gradlew build buildHealth checkAll -PcollectCoverage=true -PtestReportMode=ci
 ```
 
 The GitHub workflow runs the CI-style command, uploads JaCoCo HTML/XML reports as artifacts, and writes source-line and coverage statistics to the workflow summary.
+
+## Checking Dependency Updates
+
+BentoFX uses the Gradle Versions Plugin to report newer dependency, plugin, and
+Gradle releases. The `io.github.ben-manes.versions.settings` plugin is applied
+once directly in `settings.gradle`, so the root report covers all projects in
+the main build,
+including dependencies and plugins declared by the settings script.
+
+Run the dependency update report from the repository root:
+
+```shell
+gradlew dependencyUpdates
+```
+
+The report is printed to the console and written to:
+
+```text
+build/dependencyUpdates/report.txt
+```
+
+The task reports available updates only; it does not modify build scripts or
+`gradle/libs.versions.toml`. Review each suggested release and update the
+corresponding version-catalog entry manually.
+
+The root report covers the main BentoFX multi-project build. Gradle treats the
+`build-logic` and `settings-logic` included builds as separate builds, so their
+internal dependencies are not merged into this report.
+
+Use `--refresh-dependencies` when you need Gradle to ignore cached dependency
+metadata while checking for newly published releases:
+
+```shell
+gradlew dependencyUpdates --refresh-dependencies
+```
