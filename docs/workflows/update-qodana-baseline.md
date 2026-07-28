@@ -4,7 +4,7 @@ The **Update Qodana Baseline** workflow regenerates the accepted Qodana
 findings for a selected branch. The baseline is stored at:
 
 ```text
-.github/analysis/qodana-baseline.sarif.json
+.github/analysis/qodana-baseline-sarif.json
 ```
 
 ## When to update the baseline
@@ -30,7 +30,7 @@ baseline, and generates a new `qodana.sarif.json`. It then:
 
 - uploads the generated file as the `qodana-baseline` workflow artifact; and
 - commits it to the selected branch as
-  `.github/analysis/qodana-baseline.sarif.json`.
+  `../../.github/analysis/qodana-baseline-sarif.json`.
 
 If the generated baseline is identical to the committed baseline, the workflow
 finishes without creating a commit.
@@ -46,7 +46,7 @@ To install it manually:
 1. Open the completed workflow run.
 2. Download the **qodana-baseline** artifact.
 3. Extract `qodana.sarif.json`.
-4. Replace `.github/analysis/qodana-baseline.sarif.json` with that file.
+4. Replace `../../.github/analysis/qodana-baseline-sarif.json` with that file.
 5. Review and commit the change on your branch.
 
 ## Review the update
