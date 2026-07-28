@@ -1,10 +1,28 @@
+<p style="text-align: center;">
+  <table width="100%">
+    <tr>
+      <td align="center">
+        <a href="https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml">
+          <img src="https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master" alt="CI/CD">
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/philliplbryant/BentoFX/actions/workflows/codeql.yml">
+          <img src="https://github.com/philliplbryant/BentoFX/actions/workflows/codeql.yml/badge.svg?branch=master" alt="CodeQL">
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml">
+          <img src="https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml/badge.svg?branch=master" alt="Update Qodana Baseline">
+        </a>
+      </td>
+    </tr>
+  </table>
+</p>
+
 # BentoFX
 
 A docking system for JavaFX.
-
-[![CI/CD](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml)
-[[![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/codeql/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/CodeQL)]([![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql))
-[![Update Qodana Baseline](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml)
 
 ## Usage
 
