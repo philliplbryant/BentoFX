@@ -3,15 +3,14 @@ name: Update Qodana Baseline
 on:
   workflow_dispatch:
     inputs:
-      open_pull_request:
-        description: Open a pull request updating the committed baseline
+      commit_baseline:
+        description: Commit the updated baseline back to the selected branch
         required: true
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update-baseline:
@@ -20,10 +19,10 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout current master
+      - name: Checkout selected branch
         uses: actions/checkout@v6
         with:
-          ref: master
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - name: Run Qodana without a baseline
@@ -55,7 +54,7 @@ jobs:
           retention-days: 30
 
       - name: Copy SARIF into repository
-        if: inputs.open_pull_request
+        if: inputs.commit_baseline
         shell: bash
         run: |
           mkdir -p .github/analysis
@@ -63,20 +62,18 @@ jobs:
             "${{ runner.temp }}/qodana/results/qodana.sarif.json" \
             ".github/analysis/qodana-baseline.sarif.json"
 
-      - name: Create baseline pull request
-        if: inputs.open_pull_request
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: master
-          branch: automation/update-qodana-baseline
-          delete-branch: true
-          add-paths: |
-            .github/analysis/qodana-baseline.sarif.json
-          commit-message: Update Qodana baseline
-          title: Update Qodana baseline
-          body: |
-            Updates `.github/analysis/qodana-baseline.sarif.json` from a
-            fresh Qodana analysis of the current `master` branch.
+      - name: Commit updated baseline
+        if: inputs.commit_baseline
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/analysis/qodana-baseline.sarif.json
 
-            Review the changed findings before merging this pull request.
+          if git diff --cached --quiet; then
+            echo "Qodana baseline is already current."
+            exit 0
+          fi
+
+          git commit -m "Update Qodana baseline"
+          git push origin "HEAD:${{ github.ref_name }}"
