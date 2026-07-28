@@ -13,11 +13,16 @@ import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 
@@ -64,6 +69,7 @@ final class BentoLayoutStateCaptor {
             //  including those in drag drop stages. Create a list of all root
             //  branches, remove the DragDropStage root branches from that list,
             //  and only save the remaining root branches.
+            @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
             final List<DockContainerRootBranch> nonDragDropStageRootBranches
                     = new ArrayList<>(bento.getRootContainers());
 
