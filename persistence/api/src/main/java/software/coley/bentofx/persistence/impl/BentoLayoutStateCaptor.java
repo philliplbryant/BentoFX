@@ -1,7 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Parent;
-import javafx.stage.Stage;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +25,11 @@ import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import static software.coley.bentofx.persistence.impl.StageUtils.getAllStages;
 
@@ -39,309 +40,379 @@ import static software.coley.bentofx.persistence.impl.StageUtils.getAllStages;
  */
 final class BentoLayoutStateCaptor {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(BentoLayoutStateCaptor.class);
+	private static final Logger logger =
+			LoggerFactory.getLogger(BentoLayoutStateCaptor.class);
 
-    private final BentoProvider bentoProvider;
+	private final BentoProvider bentoProvider;
 
-    BentoLayoutStateCaptor(final BentoProvider bentoProvider) {
-        this.bentoProvider = Objects.requireNonNull(bentoProvider);
-    }
+	BentoLayoutStateCaptor(final BentoProvider bentoProvider) {
+		this.bentoProvider = Objects.requireNonNull(bentoProvider);
+	}
 
-    /**
-     * Captures the current JavaFX/BentoFX runtime graph as serializable state.
-     * This method must run on the JavaFX application thread because it reads
-     * live JavaFX and BentoFX objects.
-     *
-     * @return captured Bento states.
-     */
-    List<BentoState> captureBentoStates() {
+	/**
+	 * Captures the current state of every available Bento.
+	 *
+	 * <p>Drag-and-drop stages are handled separately from ordinary root
+	 * branches. A root branch belonging to a {@link DragDropStage} is saved
+	 * as part of that stage and is therefore excluded from the Bento's ordinary
+	 * root-branch states.</p>
+	 *
+	 * @return an unmodifiable list containing the captured state of each Bento
+	 */
+	List<BentoState> captureBentoStates() {
 
-        final List<BentoState> bentoStateList =
-                new ArrayList<>();
+		final List<DragDropStageRoot> dragDropStageRoots =
+				getAllStages().stream()
+						.filter(DragDropStage.class::isInstance)
+						.map(DragDropStage.class::cast)
+						.map(this::toDragDropStageRoot)
+						.flatMap(Optional::stream)
+						.toList();
 
-        for (Bento bento : bentoProvider.getAllBentos()) {
+		return bentoProvider.getAllBentos().stream()
+				.map(bento -> captureBentoState(
+						bento,
+						dragDropStageRoots
+				))
+				.toList();
+	}
 
-            final BentoStateBuilder bentoStateBuilder =
-                    new BentoStateBuilder(bento.getIdentifier());
+	/**
+	 * Captures the current state of a Bento.
+	 *
+	 * <p>Matching drag-and-drop stages are added to the resulting state first.
+	 * Their root branches are collected so they can be excluded from the
+	 * ordinary root branches saved for the Bento.</p>
+	 *
+	 * @param bento the Bento whose state is being captured
+	 * @param dragDropStageRoots all drag-and-drop stages whose scene roots are
+	 * {@link DockContainerRootBranch} instances
+	 *
+	 * @return the captured state of the supplied Bento
+	 */
+	private BentoState captureBentoState(
+			final Bento bento,
+			final List<DragDropStageRoot> dragDropStageRoots
+	) {
 
-            //  bento.getRootContainers() returns a list of all root branches,
-            //  including those in drag drop stages. Create a list of all root
-            //  branches, remove the DragDropStage root branches from that list,
-            //  and only save the remaining root branches.
-            @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-            final List<DockContainerRootBranch> nonDragDropStageRootBranches
-                    = new ArrayList<>(bento.getRootContainers());
+		final BentoStateBuilder stateBuilder =
+				new BentoStateBuilder(bento.getIdentifier());
 
-            for (final Stage stage : getAllStages()) {
+		final Set<DockContainerRootBranch> dragDropRoots =
+				new HashSet<>();
 
-                if (stage instanceof final DragDropStage dragDropStage) {
+		dragDropStageRoots.stream()
+				.filter(stageRoot -> bento.matchesIdentity(
+						stageRoot.rootBranch().getBento()
+				))
+				.forEach(stageRoot -> {
+					buildAndAddDragDropStage(
+							stageRoot.stage(),
+							stateBuilder
+					);
 
-                    final Parent parent =
-                            dragDropStage.getScene().getRoot();
+					dragDropRoots.add(stageRoot.rootBranch());
+				});
 
-                    if (parent instanceof final DockContainerRootBranch rootBranch &&
-                            bento.matchesIdentity(rootBranch.getBento())) {
+		bento.getRootContainers().stream()
+				.filter(rootBranch -> !dragDropRoots.contains(rootBranch))
+				.map(this::buildRootBranchState)
+				.forEach(stateBuilder::addRootBranchState);
 
-                        // Remove the DragDropStage root branch from the
-                        // list of all root branches
-                        nonDragDropStageRootBranches.remove(rootBranch);
+		return stateBuilder.build();
+	}
 
-                        buildAndAddDragDropStage(
-                                dragDropStage,
-                                bentoStateBuilder
-                        );
-                    }
-                }
-            }
+	/**
+	 * Creates a drag-and-drop stage/root association when the stage's scene
+	 * root is a {@link DockContainerRootBranch}.
+	 *
+	 * @param stage the drag-and-drop stage to inspect
+	 *
+	 * @return an association containing the stage and its root branch, or an
+	 * empty {@link Optional} when the scene root is not a
+	 * {@link DockContainerRootBranch}
+	 */
+	private Optional<DragDropStageRoot> toDragDropStageRoot(
+			final DragDropStage stage
+	) {
 
-            // Save the remaining root branches
-            for (final DockContainerRootBranch rootBranch :
-                    nonDragDropStageRootBranches) {
-                bentoStateBuilder.addRootBranchState(
-                        buildRootBranchState(rootBranch)
-                );
-            }
+		final Parent sceneRoot = stage.getScene().getRoot();
 
-            bentoStateList.add(bentoStateBuilder.build());
-        }
+		if (sceneRoot instanceof
+				final DockContainerRootBranch rootBranch) {
 
-        return List.copyOf(bentoStateList);
-    }
+			return Optional.of(
+					new DragDropStageRoot(
+							stage,
+							rootBranch
+					)
+			);
+		}
 
-    /**
-     * Saves the state of a {@link DragDropStage} to a {@link BentoStateBuilder}.
-     *
-     * @param dragDropStage     the {@link DragDropStage} whose state is to be saved.
-     * @param bentoStateBuilder the {@link BentoStateBuilder} to which the
-     *                          {@link DragDropStage} state is to be saved.
-     */
-    private void buildAndAddDragDropStage(
-            DragDropStage dragDropStage,
-            BentoStateBuilder bentoStateBuilder
-    ) {
-        // A DragDropStage can only have one rootBranch
-        final DockContainerRootBranch rootBranch =
-                getDockContainerRootBranch(dragDropStage);
+		return Optional.empty();
+	}
 
-        if (rootBranch == null) {
-            logger.debug("Ignoring unknown root branch {}", dragDropStage);
-        } else {
-            final DockContainerRootBranchState rootBranchState =
-                    buildRootBranchState(rootBranch);
+	/**
+	 * Associates a drag-and-drop stage with the root branch displayed by its
+	 * scene.
+	 *
+	 * @param stage the drag-and-drop stage
+	 * @param rootBranch the root branch displayed by the stage
+	 */
+	private record DragDropStageRoot(
+			DragDropStage stage,
+			DockContainerRootBranch rootBranch
+	) {
+	}
 
-            bentoStateBuilder.addDragDropStageState(
-                    new DragDropStageStateBuilder(
-                            dragDropStage.isAutoCloseWhenEmpty()
-                    )
-                            .setTitle(dragDropStage.getTitle())
-                            .setX(dragDropStage.getX())
-                            .setY(dragDropStage.getY())
-                            .setWidth(dragDropStage.getWidth())
-                            .setHeight(dragDropStage.getHeight())
-                            .setModality(dragDropStage.getModality())
-                            .setOpacity(dragDropStage.getOpacity())
-                            .setIconified(dragDropStage.isIconified())
-                            .setFullScreen(dragDropStage.isFullScreen())
-                            .setMaximized(dragDropStage.isMaximized())
-                            .setAlwaysOnTop(dragDropStage.isAlwaysOnTop())
-                            .setResizable(dragDropStage.isResizable())
-                            .setShowing(dragDropStage.isShowing())
-                            .setFocused(dragDropStage.isFocused())
-                            .setDockContainerRootBranchState(
-                                    rootBranchState
-                            )
-                            .build()
-            );
-        }
-    }
+	/**
+	 * Saves the state of a {@link DragDropStage} to a
+	 * {@link BentoStateBuilder}.
+	 *
+	 * @param dragDropStage the {@link DragDropStage} whose state is to be
+	 * saved.
+	 * @param bentoStateBuilder the {@link BentoStateBuilder} to which the
+	 * {@link DragDropStage} state is to be saved.
+	 */
+	private void buildAndAddDragDropStage(
+			DragDropStage dragDropStage,
+			BentoStateBuilder bentoStateBuilder
+	) {
+		// A DragDropStage can only have one rootBranch
+		final DockContainerRootBranch rootBranch =
+				getDockContainerRootBranch(dragDropStage);
 
-    /**
-     * {@return the {@link DockContainerRootBranch} for the specified
-     * {@link DragDropStage}, {@code null} when the stage root is not a
-     * {@link DockContainerRootBranch}.}
-     * @param stage the {@link DragDropStage} whose {@link DockContainerRootBranch}
-     *              is to be found.
-     */
-    private @Nullable DockContainerRootBranch getDockContainerRootBranch(
-            final DragDropStage stage
-    ) {
-        final Parent parent = stage.getScene().getRoot();
-        if (parent instanceof final DockContainerRootBranch rootBranch) {
-            return rootBranch;
-        } else {
-            logger.debug("Ignoring unknown parent {}", parent);
-            return null;
-        }
-    }
+		if (rootBranch == null) {
+			logger.debug("Ignoring unknown root branch {}", dragDropStage);
+		} else {
+			final DockContainerRootBranchState rootBranchState =
+					buildRootBranchState(rootBranch);
 
-    /**
-     * Builds a {@link DockContainerRootBranchState} for a
-     * {@link DockContainerRootBranch}.
-     * @param branch the {@link DockContainerRootBranch} whose
-     * {@link DockContainerRootBranchState} is to be built.
-     * @return the {@link DockContainerRootBranchState}.
-     */
-    private DockContainerRootBranchState buildRootBranchState(
-            final DockContainerRootBranch branch
-    ) {
-        final DockContainerRootBranchStateBuilder builder =
-                new DockContainerRootBranchStateBuilder(
-                        branch.getIdentifier()
-                );
+			bentoStateBuilder.addDragDropStageState(
+					new DragDropStageStateBuilder(
+							dragDropStage.isAutoCloseWhenEmpty()
+					)
+							.setTitle(dragDropStage.getTitle())
+							.setX(dragDropStage.getX())
+							.setY(dragDropStage.getY())
+							.setWidth(dragDropStage.getWidth())
+							.setHeight(dragDropStage.getHeight())
+							.setModality(dragDropStage.getModality())
+							.setOpacity(dragDropStage.getOpacity())
+							.setIconified(dragDropStage.isIconified())
+							.setFullScreen(dragDropStage.isFullScreen())
+							.setMaximized(dragDropStage.isMaximized())
+							.setAlwaysOnTop(dragDropStage.isAlwaysOnTop())
+							.setResizable(dragDropStage.isResizable())
+							.setShowing(dragDropStage.isShowing())
+							.setFocused(dragDropStage.isFocused())
+							.setDockContainerRootBranchState(
+									rootBranchState
+							)
+							.build()
+			);
+		}
+	}
 
-        builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
+	/**
+	 * {@return the {@link DockContainerRootBranch} for the specified
+	 * {@link DragDropStage}, {@code null} when the stage root is not a
+	 * {@link DockContainerRootBranch}.}
+	 *
+	 * @param stage the {@link DragDropStage} whose {@link DockContainerRootBranch}
+	 * is to be found.
+	 */
+	private @Nullable DockContainerRootBranch getDockContainerRootBranch(
+			final DragDropStage stage
+	) {
+		final Parent parent = stage.getScene().getRoot();
+		if (parent instanceof final DockContainerRootBranch rootBranch) {
+			return rootBranch;
+		} else {
+			logger.debug("Ignoring unknown parent {}", parent);
+			return null;
+		}
+	}
 
-        builder.setOrientation(branch.orientationProperty().get());
+	/**
+	 * Builds a {@link DockContainerRootBranchState} for a
+	 * {@link DockContainerRootBranch}.
+	 *
+	 * @param branch the {@link DockContainerRootBranch} whose
+	 * {@link DockContainerRootBranchState} is to be built.
+	 *
+	 * @return the {@link DockContainerRootBranchState}.
+	 */
+	private DockContainerRootBranchState buildRootBranchState(
+			final DockContainerRootBranch branch
+	) {
+		final DockContainerRootBranchStateBuilder builder =
+				new DockContainerRootBranchStateBuilder(
+						branch.getIdentifier()
+				);
 
-        // Divider positions (supports multiple)
-        final double[] positions = branch.getDividerPositions();
+		builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
 
-        for (int i = 0; i < positions.length; i++) {
+		builder.setOrientation(branch.orientationProperty().get());
 
-            builder.addDividerPosition(i, positions[i]);
-        }
+		// Divider positions (supports multiple)
+		final double[] positions = branch.getDividerPositions();
 
-        for (final DockContainer dockContainer : branch.getChildContainers()) {
-            builder.addDockContainerState(buildDockContainerState(dockContainer));
-        }
+		for (int i = 0; i < positions.length; i++) {
 
-        return builder.build();
-    }
+			builder.addDividerPosition(i, positions[i]);
+		}
 
-    /**
-     * Builds a {@link DockContainerState} for a {@link DockContainer}. If the
-     * {@link DockContainer} is not a branch or leaf, which should not happen,
-     * builds an empty leaf to keep the state valid.
-     * @param dockContainer the {@link DockContainer} whose
-     * {@link DockContainerState} is to be built.
-     * @return the {@link DockContainerState}.
-     */
-    private DockContainerState buildDockContainerState(
-            final DockContainer dockContainer
-    ) {
+		for (final DockContainer dockContainer : branch.getChildContainers()) {
+			builder.addDockContainerState(buildDockContainerState(dockContainer));
+		}
 
-        return switch (dockContainer) {
-            case final DockContainerBranch branch -> buildBranchState(branch);
-            case final DockContainerLeaf leaf -> buildLeafState(leaf);
-        };
-    }
+		return builder.build();
+	}
 
-    /**
-     * Builds a {@link DockContainerBranchState} for a {@link DockContainerBranch}.
-     * @param branch the {@link DockContainerBranch} whose
-     * {@link DockContainerBranchState} is to be built.
-     * @return the {@link DockContainerBranchState}.
-     */
-    private DockContainerBranchState buildBranchState(
-            final DockContainerBranch branch
-    ) {
-        final String id = nonEmptyOr(
-                branch.getIdentifier(),
-                "branch-" + System.identityHashCode(branch)
-        );
+	/**
+	 * Builds a {@link DockContainerState} for a {@link DockContainer}. If the
+	 * {@link DockContainer} is not a branch or leaf, which should not happen,
+	 * builds an empty leaf to keep the state valid.
+	 *
+	 * @param dockContainer the {@link DockContainer} whose
+	 * {@link DockContainerState} is to be built.
+	 *
+	 * @return the {@link DockContainerState}.
+	 */
+	private DockContainerState buildDockContainerState(
+			final DockContainer dockContainer
+	) {
 
-        final DockContainerBranchStateBuilder builder =
-                new DockContainerBranchStateBuilder(
-                        id
-                );
+		return switch (dockContainer) {
+			case final DockContainerBranch branch -> buildBranchState(branch);
+			case final DockContainerLeaf leaf -> buildLeafState(leaf);
+		};
+	}
 
-        builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
+	/**
+	 * Builds a {@link DockContainerBranchState} for a {@link DockContainerBranch}.
+	 *
+	 * @param branch the {@link DockContainerBranch} whose
+	 * {@link DockContainerBranchState} is to be built.
+	 *
+	 * @return the {@link DockContainerBranchState}.
+	 */
+	private DockContainerBranchState buildBranchState(
+			final DockContainerBranch branch
+	) {
+		final String id = nonEmptyOr(
+				branch.getIdentifier(),
+				"branch-" + System.identityHashCode(branch)
+		);
 
-        builder.setOrientation(branch.orientationProperty().get());
+		final DockContainerBranchStateBuilder builder =
+				new DockContainerBranchStateBuilder(
+						id
+				);
 
-        // Divider positions (supports multiple)
-        final double[] positions = branch.getDividerPositions();
+		builder.setPruneWhenEmpty(branch.doPruneWhenEmpty());
 
-        for (int i = 0; i < positions.length; i++) {
+		builder.setOrientation(branch.orientationProperty().get());
 
-            builder.addDividerPosition(i, positions[i]);
-        }
+		// Divider positions (supports multiple)
+		final double[] positions = branch.getDividerPositions();
 
-        for (final DockContainer dockContainer : branch.getChildContainers()) {
-            builder.addDockContainerState(buildDockContainerState(dockContainer));
-        }
+		for (int i = 0; i < positions.length; i++) {
 
-        for (final Dockable dockable : branch.getDockables()) {
-            builder.addChildDockableState(buildDockable(dockable));
-        }
+			builder.addDividerPosition(i, positions[i]);
+		}
 
-        return builder.build();
-    }
+		for (final DockContainer dockContainer : branch.getChildContainers()) {
+			builder.addDockContainerState(buildDockContainerState(dockContainer));
+		}
 
-    /**
-     * Builds a {@link DockContainerLeafState} for a {@link DockContainerLeaf}.
-     * @param leaf the {@link DockContainerLeaf} whose
-     * {@link DockContainerLeafState} is to be built.
-     * @return the {@link DockContainerLeafState}.
-     */
-    private DockContainerLeafState buildLeafState(
-            final DockContainerLeaf leaf
-    ) {
+		for (final Dockable dockable : branch.getDockables()) {
+			builder.addChildDockableState(buildDockable(dockable));
+		}
 
-        final String id = leaf.getIdentifier();
+		return builder.build();
+	}
 
-        final DockContainerLeafStateBuilder leafStateBuilder =
-                new DockContainerLeafStateBuilder(id);
+	/**
+	 * Builds a {@link DockContainerLeafState} for a {@link DockContainerLeaf}.
+	 *
+	 * @param leaf the {@link DockContainerLeaf} whose
+	 * {@link DockContainerLeafState} is to be built.
+	 *
+	 * @return the {@link DockContainerLeafState}.
+	 */
+	private DockContainerLeafState buildLeafState(
+			final DockContainerLeaf leaf
+	) {
 
-        leafStateBuilder.setPruneWhenEmpty(leaf.doPruneWhenEmpty());
+		final String id = leaf.getIdentifier();
 
-        leafStateBuilder.setSide(leaf.getSide());
+		final DockContainerLeafStateBuilder leafStateBuilder =
+				new DockContainerLeafStateBuilder(id);
 
-        leafStateBuilder.setResizableWithParent(leaf.isResizable());
+		leafStateBuilder.setPruneWhenEmpty(leaf.doPruneWhenEmpty());
 
-        leafStateBuilder.setCanSplit(leaf.isCanSplit());
+		leafStateBuilder.setSide(leaf.getSide());
 
-        leafStateBuilder.setUncollapsedSizePx(leaf.getUncollapsedSize());
+		leafStateBuilder.setResizableWithParent(leaf.isResizable());
 
-        leafStateBuilder.setCollapsed(leaf.isCollapsed());
+		leafStateBuilder.setCanSplit(leaf.isCanSplit());
 
-        final Dockable selected = leaf.getSelectedDockable();
+		leafStateBuilder.setUncollapsedSizePx(leaf.getUncollapsedSize());
 
-        if (selected != null) {
+		leafStateBuilder.setCollapsed(leaf.isCollapsed());
 
-            leafStateBuilder.setSelectedDockableStateIdentifier(
-                    selected.getIdentifier()
-            );
-        }
+		final Dockable selected = leaf.getSelectedDockable();
 
-        // Dockables
-        for (final Dockable dockable : leaf.getDockables()) {
+		if (selected != null) {
 
-            try {
-                leafStateBuilder.addChildDockableState(
-                        buildDockable(dockable)
-                );
-            } catch (final Exception ex) {
+			leafStateBuilder.setSelectedDockableStateIdentifier(
+					selected.getIdentifier()
+			);
+		}
 
-                logger.error("Failed to persist dockable in leaf {}", id, ex);
-            }
-        }
+		// Dockables
+		for (final Dockable dockable : leaf.getDockables()) {
 
-        return leafStateBuilder.build();
-    }
+			try {
+				leafStateBuilder.addChildDockableState(
+						buildDockable(dockable)
+				);
+			} catch (final Exception ex) {
 
-    /**
-     * Builds a {@link DockableState} for a {@link Dockable}.
-     * @param dockable the {@link Dockable} whose {@link DockableState} is to
-     * be built.
-     * @return the {@link DockableState}.
-     */
-    private DockableState buildDockable(final Dockable dockable) {
-        return new DockableStateBuilder(dockable.getIdentifier())
-                .build();
-    }
+				logger.error("Failed to persist dockable in leaf {}", id, ex);
+			}
+		}
 
-    /**
-     * Returns the non-blank value of a {@link String}.
-     * @param value the {@link String} whose non-blankness is to be returned.
-     * @param fallback the value to return when the {@link String} is blank.
-     * @return the non-blank value of a {@link String}.
-     */
-    private static String nonEmptyOr(
-            final String value,
-            final String fallback
-    ) {
-        return !value.isBlank() ? value : fallback;
-    }
+		return leafStateBuilder.build();
+	}
+
+	/**
+	 * Builds a {@link DockableState} for a {@link Dockable}.
+	 *
+	 * @param dockable the {@link Dockable} whose {@link DockableState} is to
+	 * be built.
+	 *
+	 * @return the {@link DockableState}.
+	 */
+	private DockableState buildDockable(final Dockable dockable) {
+		return new DockableStateBuilder(dockable.getIdentifier())
+				.build();
+	}
+
+	/**
+	 * Returns the non-blank value of a {@link String}.
+	 *
+	 * @param value the {@link String} whose non-blankness is to be returned.
+	 * @param fallback the value to return when the {@link String} is blank.
+	 *
+	 * @return the non-blank value of a {@link String}.
+	 */
+	private static String nonEmptyOr(
+			final String value,
+			final String fallback
+	) {
+		return !value.isBlank() ? value : fallback;
+	}
 }
