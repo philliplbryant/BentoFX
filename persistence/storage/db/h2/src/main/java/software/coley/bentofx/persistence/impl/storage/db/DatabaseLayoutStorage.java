@@ -7,7 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -61,7 +65,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	}
 
 	@Override
-	public InputStream openInputStream() {
+	public InputStream openInputStream() throws IOException {
 
 		try (final EntityManager em = emf.createEntityManager()) {
 
@@ -82,6 +86,10 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 							DockingLayoutEntity.class,
 							key
 					);
+
+			if(entity == null) {
+				throw new IOException("Could not find the DockingLayoutEntity");
+			}
 
 			return new ByteArrayInputStream(entity.payload);
 		}

@@ -9,25 +9,21 @@ gradle-checksum = "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9
 java-jdk = "21"
 
 # Libraries
-assertj = "3.27.7"
-byte-buddy = "1.18.10"
+assertj = "4.0.0-M1"
+byte-buddy = "1.18.11"
 errorprone = "2.50.0"
 h2 = "2.4.240"
-hibernate = "7.4.4.Final"
-hibernate-hikari-cp = "7.4.4.Final"
-hibernate-validator = "9.1.0.Final"
-jackson = "2.22.0"
-jakarta-annotation = "3.0.0"
-jakarta-cdi = "4.1.0"
-jakarta-el = "4.0.2"
-jakarta-persistence = "3.2.0"
-jakarta-transaction = "2.0.1"
+hibernate-orm = "7.4.5.Final"
+hibernate-validator = "9.1.3.Final"
+jackson = "2.22.1"
+jakarta-ee = "11.0.0"
+expressly = "6.0.0"
 javafx = "21.0.9"
-jaxb = "4.0.8"
+jaxb = "4.0.9"
 jspecify = "1.0.0"
-junit = "6.1.1"
+junit = "6.1.2"
 moxy = "5.0.1"
-nullaway = "0.13.7"
+nullaway = "0.13.8"
 slf4j = "2.0.18"
 testfx = "4.0.18"
 testfx-monocle = "21.0.2"
@@ -36,7 +32,7 @@ zaxxer-hikari-cp = "7.1.0"
 # Plugins
 benmanes-versions = "0.54.0"
 buildconfig = "6.0.10"
-dependency-analysis-gradle-plugin = "3.16.1"
+dependency-analysis-gradle-plugin = "3.17.0"
 errorprone-plugin = "5.1.0"
 javafx-plugin = "0.1.0"
 jreleaser = "1.25.0"
@@ -49,18 +45,21 @@ byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
 dependencyAnalysis-buildHealth-gradlePlugin-dependency = { module = "com.autonomousapps.build-health:com.autonomousapps.build-health.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.dependency-analysis:com.autonomousapps.dependency-analysis.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
-hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
-hibernate-hikari-cp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate-hikari-cp" }
-hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
+hibernate-bom = { module = "org.hibernate.orm:hibernate-platform", version.ref = "hibernate-orm" }
+hibernate-core = { module = "org.hibernate.orm:hibernate-core" }
+hibernate-hikari-cp = { module = "org.hibernate.orm:hibernate-hikaricp" }
+hibernate-validator = { module = "org.hibernate.validator:hibernate-validator" }
+hibernate-validator-bom = { module = "org.hibernate.validator:hibernate-validator-bom", version.ref = "hibernate-validator" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml" }
-jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
-jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-cdi" }
-jakarta-el = { module = "org.glassfish:jakarta.el", version.ref = "jakarta-el" }
-jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
-jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
+jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api" }
+jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api" }
+jakarta-ee-bom = { module = "jakarta.platform:jakarta.jakartaee-bom", version.ref = "jakarta-ee" }
+jakarta-el = { module = "org.glassfish.expressly:expressly", version.ref = "expressly" }
+jakarta-persistence = { module = "jakarta.persistence:jakarta.persistence-api" }
+jakarta-transaction = { module = "jakarta.transaction:jakarta.transaction-api" }
 jakarta-xmlbinding-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api" }
 jakarta-xmlbinding-impl = {module = "org.glassfish.jaxb:jaxb-runtime" }
 # noinspection UnusedVersionCatalogEntry

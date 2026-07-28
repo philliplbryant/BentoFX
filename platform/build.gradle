@@ -19,9 +19,27 @@ dependencies {
      * by those platform declarations.
      */
 
+    api platform(libs.jakarta.ee.bom.get()) {
+        version {
+            strictly(libs.versions.jakarta.ee.get())
+        }
+    }
+
     api platform(libs.jaxb.bom.get()) {
         version {
             strictly(libs.versions.jaxb.get())
+        }
+    }
+
+    api platform(libs.hibernate.bom.get()) {
+        version {
+            strictly(libs.versions.hibernate.orm.get())
+        }
+    }
+
+    api platform(libs.hibernate.validator.bom.get()) {
+        version {
+            strictly(libs.versions.hibernate.validator.get())
         }
     }
 

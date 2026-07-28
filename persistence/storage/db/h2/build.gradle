@@ -22,7 +22,6 @@ dependencies {
     implementation libs.hibernate.hikari.cp
     implementation libs.hibernate.validator
     implementation libs.jakarta.cdi.api
-    implementation libs.jakarta.el
     implementation libs.jakarta.transaction
     implementation libs.jakarta.xmlbinding.api
     implementation libs.slf4j.api
@@ -31,6 +30,7 @@ dependencies {
     compileOnly libs.hibernate.core
 
     runtimeOnly libs.h2
+    runtimeOnly libs.jakarta.el
     runtimeOnly libs.jakarta.xmlbinding.impl
 
     integrationTestRuntimeOnly libs.slf4j.simple
