@@ -1,10 +1,10 @@
-# BentoFX
-
-A docking system for JavaFX.
-
 [![CI/CD](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml)
 [![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql))
 [![Update Qodana Baseline](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml)
+
+# BentoFX
+
+A docking system for JavaFX.
 
 ## Usage
 
