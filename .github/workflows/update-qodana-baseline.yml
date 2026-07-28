@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       commit_baseline:
-        description: Commit the updated baseline back to the selected branch
+        description: Commit the updated baseline to the selected branch
         required: true
         type: boolean
         default: true
@@ -62,18 +62,19 @@ jobs:
             "${{ runner.temp }}/qodana/results/qodana.sarif.json" \
             ".github/analysis/qodana-baseline.sarif.json"
 
-      - name: Commit updated baseline
+      - name: Commit updated baseline to selected branch
         if: inputs.commit_baseline
         shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/analysis/qodana-baseline.sarif.json
-
-          if git diff --cached --quiet; then
-            echo "Qodana baseline is already current."
+          if git diff --quiet -- .github/analysis/qodana-baseline.sarif.json; then
+            echo "The Qodana baseline is unchanged."
             exit 0
           fi
 
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/analysis/qodana-baseline.sarif.json
           git commit -m "Update Qodana baseline"
-          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "HEAD:${TARGET_BRANCH}"
