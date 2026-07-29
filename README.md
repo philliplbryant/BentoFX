@@ -1,7 +1,7 @@
 [![Build](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
 [![Qodana](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml?query=branch%3Amaster)
 [![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql?query=branch%3Amaster)
-[![codecov](https://codecov.io/gh/philliplbryant/BentoFX/branch/master/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
+[![Codecov](https://codecov.io/gh/philliplbryant/BentoFX/branch/master/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
 [![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
 [![License: MIT](https://img.shields.io/github/license/philliplbryant/BentoFX.svg)](LICENSE)
 
