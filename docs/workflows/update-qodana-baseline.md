@@ -1,7 +1,8 @@
-# Updating the Qodana Baseline
+# Updating the Qodana baseline
 
-The **Update Qodana Baseline** workflow regenerates the accepted Qodana
-findings for a selected branch. The baseline is stored at:
+The **Update Qodana Baseline** GitHub Actions workflow regenerates the Qodana baseline for a selected branch. The workflow definition is stored on the repository's default branch so that GitHub displays it in the Actions tab, but the analysis and optional commit are performed on the branch selected when the workflow is started.
+
+The committed baseline is stored at:
 
 ```text
 .github/analysis/qodana-baseline-sarif.json
