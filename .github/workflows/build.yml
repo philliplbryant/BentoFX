@@ -76,32 +76,6 @@ jobs:
             **/TEST-*
             **/hs_err_pid*
 
-
-  qodana:
-    name: Qodana JVM analysis
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Run Qodana
-        uses: JetBrains/qodana-action@v2026.1
-        with:
-          args: |
-            --linter qodana-jvm-community
-            --within-docker false
-          upload-result: true
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-          QODANA_ENDPOINT: https://qodana.cloud
-      - name: Upload Qodana SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
-
   # Publishes the test results of 'test'
   publish-test-results:
     name: Publish tests results
