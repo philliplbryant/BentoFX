@@ -61,7 +61,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          if-no-files-found: ignore
           name: Coverage reports
           retention-days: 21
           path: |
@@ -71,7 +70,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          if-no-files-found: ignore
           name: Test artifacts
           retention-days: 21
           path: |
@@ -93,13 +91,11 @@ jobs:
         with:
           path: artifacts
       - name: Publish test results
-        if: hashFiles('artifacts/**/TEST-*.xml') != ''
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: Unit Test results
-          fail_on: nothing
           files: |
-            artifacts/**/TEST-*.xml
+            **/TEST-*
 
   # Builds the projects and attempts to publish a release if the current project version
   # does not match any existing tags in the repository.
