@@ -13,7 +13,6 @@ plugins {
 
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
-def jacocoEnabled = enableJacoco(project)
 def testSuiteName = INTEGRATION_TEST_PARALLEL
 def testSuiteDirName = 'itp'
 def testSuiteTestSuffix = 'ITP'
@@ -100,7 +99,5 @@ def jacocoIntegrationTestParallelReportTask = tasks.register('jacocoIntegrationT
 
 checkIntegrationTask.configure {
     dependsOn(integrationTestParallelTask)
-    if (jacocoEnabled) {
-        dependsOn(jacocoIntegrationTestParallelReportTask)
-    }
+    dependsOn(jacocoIntegrationTestParallelReportTask)
 }

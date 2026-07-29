@@ -20,7 +20,6 @@ def nonParallelBuildService =
 
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
-def jacocoEnabled = enableJacoco(project)
 def testSuiteName = INTEGRATION_TEST
 def testSuiteDirName = 'it'
 def testSuiteTestSuffix = 'IT'
@@ -106,7 +105,5 @@ def jacocoIntegrationTestReportTask = tasks.register('jacocoIntegrationTestRepor
 
 checkIntegrationTask.configure {
     dependsOn(integrationTestTask)
-    if (jacocoEnabled) {
-        dependsOn(jacocoIntegrationTestReportTask)
-    }
+    dependsOn(jacocoIntegrationTestReportTask)
 }

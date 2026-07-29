@@ -20,7 +20,6 @@ def nonParallelBuildService =
 
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 def checkFunctionalTask = tasks.named(CHECK_FUNCTIONAL_TASK_NAME)
-def jacocoEnabled = enableJacoco(project)
 def testSuiteName = FUNCTIONAL_TEST
 def testSuiteDirName = 'ft'
 def testSuiteTestSuffix = 'FT'
@@ -120,7 +119,5 @@ def jacocoFunctionalTestReportTask = tasks.register('jacocoFunctionalTestReport'
 
 checkFunctionalTask.configure {
     dependsOn(functionalTestTask)
-    if (jacocoEnabled) {
-        dependsOn(jacocoFunctionalTestReportTask)
-    }
+    dependsOn(jacocoFunctionalTestReportTask)
 }

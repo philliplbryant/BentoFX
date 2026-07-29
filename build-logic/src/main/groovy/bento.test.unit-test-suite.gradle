@@ -10,7 +10,6 @@ plugins {
 
 def allClassesTask = tasks.named(ALL_CLASSES_TASK_NAME)
 def checkTask = tasks.named('check')
-def jacocoEnabled = enableJacoco(project)
 def testClassesTask = tasks.named('testClasses')
 def testSuiteName = 'test'
 def testTask = tasks.named(testSuiteName, Test)
@@ -36,7 +35,5 @@ allClassesTask.configure {
 
 checkTask.configure {
     dependsOn(testTask)
-    if (jacocoEnabled) {
-        dependsOn(jacocoTestReportTask)
-    }
+    dependsOn(jacocoTestReportTask)
 }

@@ -5,8 +5,6 @@ plugins {
     id 'jacoco-report-aggregation'
 }
 
-def collectCoverage = enableJacoco(project)
-
 def integrationTestCodeCoverageReportTask = tasks.named('integrationTestCodeCoverageReport', JacocoReport)
 def integrationTestParallelCodeCoverageReportTask = tasks.named('integrationTestParallelCodeCoverageReport', JacocoReport)
 def functionalTestCodeCoverageReportTask = tasks.named('functionalTestCodeCoverageReport', JacocoReport)
@@ -30,21 +28,19 @@ aggregateCoverageReportTasks.each { reportTaskProvider ->
     }
 }
 
-if (collectCoverage) {
-    tasks.named('check') {
-        dependsOn(testCodeCoverageReportTask)
-    }
+tasks.named('check') {
+    dependsOn(testCodeCoverageReportTask)
+}
 
-    tasks.named(CHECK_ALL_TASK_NAME) {
-        dependsOn(aggregateCoverageReportTasks)
-    }
+tasks.named(CHECK_ALL_TASK_NAME) {
+    dependsOn(aggregateCoverageReportTasks)
+}
 
-    tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
-        dependsOn(functionalTestCodeCoverageReportTask)
-    }
+tasks.named(CHECK_FUNCTIONAL_TASK_NAME) {
+    dependsOn(functionalTestCodeCoverageReportTask)
+}
 
-    tasks.named(CHECK_INTEGRATION_TASK_NAME) {
-        dependsOn(integrationTestCodeCoverageReportTask)
-        dependsOn(integrationTestParallelCodeCoverageReportTask)
-    }
+tasks.named(CHECK_INTEGRATION_TASK_NAME) {
+    dependsOn(integrationTestCodeCoverageReportTask)
+    dependsOn(integrationTestParallelCodeCoverageReportTask)
 }
