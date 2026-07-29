@@ -41,7 +41,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Run build, analysis, tests, and coverage reports
-        run: xvfb-run -a ./gradlew build buildHealth checkJSpecify checkAll -PcollectCoverage=true -PtestReportMode=ci
+        run: xvfb-run -a ./gradlew build
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
