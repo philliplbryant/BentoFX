@@ -10,6 +10,20 @@ plugins {
 
 def versionCatalog = versionCatalogs.named('libs')
 
+// TODO BENTO-13: Might also need to use --no-configuration-cache when
+//  executing some JReleaser tasks. The JReleaser plugin is not compatible with
+//  configuration cache and using the `notCompatibleWithConfigurationCache`
+//  SOMETIMES causes an error deleting the build/jreleaser directory.
+//  See https://github.com/jreleaser/jreleaser/issues/2150
+tasks.withType(AbstractJReleaserDefaultTask).configureEach {
+    def jreleaserVersion =
+            versionCatalog.findVersion("jreleaser").get().requiredVersion
+    notCompatibleWithConfigurationCache(
+            "JReleaser Gradle plugin version $jreleaserVersion invokes " +
+                    "Task.project at execution time."
+    )
+}
+
 // JReleaser also requires defining the following system properties (can be
 // defined in [USER_HOME]/.jreleaser/config.properties):
 //    JRELEASER_GPG_PASSPHRASE=passphrase
@@ -17,7 +31,6 @@ def versionCatalog = versionCatalogs.named('libs')
 //    JRELEASER_MAVENCENTRAL_USERNAME=username
 //    JRELEASER_MAVENCENTRAL_PASSWORD=password
 jreleaser {
-
     project {
         group = 'software.coley.bento-fx'
         version = versionCatalog.findVersion("bentofx").get().requiredVersion
@@ -68,14 +81,4 @@ tasks.named("wrapper", Wrapper).configure {
     // Use `ALL` instead of `BIN` to provide support for developers using the Gradle scripts.
     distributionType = BIN
     networkTimeout = 60000
-}
-
-// TODO BENTO-13: Remove this configuration once JReleaser fixes the plugin
-tasks.withType(AbstractJReleaserDefaultTask).configureEach {
-    def jreleaserVersion =
-            versionCatalog.findVersion("jreleaser").get().requiredVersion
-    notCompatibleWithConfigurationCache(
-            "JReleaser Gradle plugin version $jreleaserVersion invokes " +
-                    "Task.project at execution time."
-    )
 }

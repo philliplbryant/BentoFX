@@ -24,20 +24,26 @@ java {
 }
 
 dependencies {
+    implementation libs.ben.manes.versions.gradlePlugin.dependency
     implementation libs.dependencyAnalysis.buildHealth.gradlePlugin.dependency
 }
 
 gradlePlugin {
     plugins {
+        dagpSettingsPlugin {
+            id = 'bento.analysis.dagp-settings'
+            implementationClass =
+                    'software.coley.gradle.plugin.analysis.DagpSettingsPlugin'
+        }
         reportAggregationProjectsSettingsPlugin {
             id = 'bento.report.aggregation-settings'
             implementationClass =
                     'software.coley.gradle.plugin.report.ReportAggregationSettingsPlugin'
         }
-        dagpSettingsPlugin {
-            id = 'bento.analysis.dagp-settings'
+        benManesVersionsSettingsPlugin {
+            id = 'bento.analysis.ben-manes-versions-settings'
             implementationClass =
-                    'software.coley.gradle.plugin.analysis.DagpSettingsPlugin'
+                    'software.coley.gradle.plugin.analysis.BenManesVersionsSettingsPlugin'
         }
     }
 }

@@ -11,9 +11,9 @@ pluginManagement {
 }
 
 plugins {
-    id 'io.github.ben-manes.versions.settings' version '0.56.0'
-    id 'bento.report.aggregation-settings'
+    id 'bento.analysis.ben-manes-versions-settings'
     id 'bento.analysis.dagp-settings'
+    id 'bento.report.aggregation-settings'
 }
 
 dependencyResolutionManagement {
