@@ -1,14 +1,36 @@
+import org.jreleaser.gradle.plugin.tasks.AbstractJReleaserDefaultTask
+
 import static org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 
 plugins {
     // Apply the base plugin to add `clean` to the root project.
     id 'base'
     alias libs.plugins.jreleaser
-    alias libs.plugins.benmanes.versions
 }
 
+def versionCatalog = versionCatalogs.named('libs')
+
+// TODO BENTO-13: Might also need to use --no-configuration-cache when
+//  executing some JReleaser tasks. The JReleaser plugin is not compatible with
+//  configuration cache and using the `notCompatibleWithConfigurationCache`
+//  SOMETIMES causes an error deleting the build/jreleaser directory.
+//  See https://github.com/jreleaser/jreleaser/issues/2150
+tasks.withType(AbstractJReleaserDefaultTask).configureEach {
+    def jreleaserVersion =
+            versionCatalog.findVersion("jreleaser").get().requiredVersion
+    notCompatibleWithConfigurationCache(
+            "JReleaser Gradle plugin version $jreleaserVersion invokes " +
+                    "Task.project at execution time."
+    )
+}
+
+// JReleaser also requires defining the following system properties (can be
+// defined in [USER_HOME]/.jreleaser/config.properties):
+//    JRELEASER_GPG_PASSPHRASE=passphrase
+//    JRELEASER_GPG_SECRET_KEY=key
+//    JRELEASER_MAVENCENTRAL_USERNAME=username
+//    JRELEASER_MAVENCENTRAL_PASSWORD=password
 jreleaser {
-    def versionCatalog = versionCatalogs.named('libs')
     project {
         group = 'software.coley.bento-fx'
         version = versionCatalog.findVersion("bentofx").get().requiredVersion
@@ -52,7 +74,7 @@ jreleaser {
 tasks.named("wrapper", Wrapper).configure {
     // The Gradle version and checksum are specified in libs.versions.toml
     gradleVersion =
-            versionCatalog.findVersion("gradle").get().requiredVersion
+            versionCatalog.findVersion("gradle-wrapper").get().requiredVersion
     distributionSha256Sum =
             versionCatalog.findVersion("gradle-checksum").get().requiredVersion
 

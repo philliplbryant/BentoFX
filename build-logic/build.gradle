@@ -10,7 +10,6 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
 
-    implementation libs.benmanes.versions.gradlePlugin.dependency
     implementation libs.javafx.gradlePlugin.dependency
     implementation libs.jreleaser.gradlePlugin.dependency
 }

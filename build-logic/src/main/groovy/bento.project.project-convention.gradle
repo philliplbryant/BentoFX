@@ -7,7 +7,6 @@ import static software.coley.gradle.lifecycle.BuildLifecycle.ALL_CLASSES_TASK_NA
 
 plugins {
     id 'java-library'
-    id 'com.github.ben-manes.versions'
     id 'bento.project.build-lifecycle'
     id 'bento.test.unit-test-suite'
 }

@@ -1,6 +1,11 @@
-[![CI/CD](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
+[![Build](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
+[![Qodana](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml?query=branch%3Amaster)
 [![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql?query=branch%3Amaster)
-[![Update Qodana Baseline](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/update-qodana-baseline.yml?query=branch%3Amaster)
+[![Codecov](https://codecov.io/gh/philliplbryant/BentoFX/branch/master/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
+[![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
+[![License: MIT](https://img.shields.io/github/license/philliplbryant/BentoFX.svg)](LICENSE)
+
+<!-- TODO BENTO-13: Add the Sonar Quality Gate badge between CodeQL and Codecov after importing the repository into SonarQube Cloud and copying the generated badge Markdown. -->
 
 # BentoFX
 

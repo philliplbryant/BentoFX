@@ -1,4 +1,4 @@
-name: CI/CD
+name: Build
 
 on:
   push:
@@ -31,17 +31,41 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Setup JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
           check-latest: true
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Run tests
-        run: ./gradlew test
+      - name: Run build, analysis, tests, and coverage reports
+        run: xvfb-run -a ./gradlew build buildHealth checkJSpecify checkAll -PcollectCoverage=true -PtestReportMode=ci
+      - name: Write coverage summary
+        if: always()
+        run: python3 .github/scripts/coverage-summary.py
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: |
+            report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/functionalTestCodeCoverageReport/functionalTestCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
+          name: bentofx-aggregated
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coverage reports
+          retention-days: 21
+          path: |
+            **/reports/jacoco/**
+            **/reports/tests/**
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -51,32 +75,6 @@ jobs:
           path: |
             **/TEST-*
             **/hs_err_pid*
-
-
-  qodana:
-    name: Qodana JVM analysis
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Run Qodana
-        uses: JetBrains/qodana-action@v2026.1
-        with:
-          args: |
-            --linter qodana-jvm-community
-            --within-docker false
-          upload-result: true
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-          QODANA_ENDPOINT: https://qodana.cloud
-      - name: Upload Qodana SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
 
   # Publishes the test results of 'test'
   publish-test-results:
@@ -104,18 +102,20 @@ jobs:
   build-and-release:
     name: Publish release
     needs: test
-    if: inputs.is-a-release && github.repository == 'Col-E/BentoFX' && github.ref == 'refs/heads/master'
+    if: ${{ inputs['is-a-release'] && github.repository == 'Col-E/BentoFX' && github.ref == 'refs/heads/master' }}
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Required depth for JReleaser
       - name: Setup Java JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -147,8 +147,12 @@ jobs:
           git show-ref --tags --verify -- "refs/tags/${{ env.PROJECT_VERSION }}"
           exit 1
       # Make release with JReleaser, only running when the project version does not exist as a tag on the repository.
+      # The publish and release tasks are separated since we otherwise have 'org.gradle.parallel=true' which
+      # can cause a race condition when publishing to Maven Central before the longer signing process finishes.
       - name: Publish release
-        run: ./gradlew publish jreleaserFullRelease
+        run: |
+          ./gradlew publish
+          ./gradlew jreleaserFullRelease
         env:
           JRELEASER_PROJECT_VERSION: ${{ env.PROJECT_VERSION }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
