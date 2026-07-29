@@ -1,4 +1,4 @@
-[![CI/CD](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
+[![Build](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
 [![Qodana](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml?query=branch%3Amaster)
 [![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql?query=branch%3Amaster)
 [![codecov](https://codecov.io/gh/philliplbryant/BentoFX/branch/master/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
