@@ -125,7 +125,7 @@ Per-project coverage tasks are available when the matching test-suite convention
 For example:
 
 ```bash
-gradlew checkAll -PcollectCoverage=true
+gradlew checkAll
 ```
 
 The [report aggregation project](./report-aggregation/build.gradle) creates aggregate test and coverage reports for the project list declared in that build file. The project list is intentionally explicit so locally commenting out a dependency is the simplest way to temporarily focus the reports on a subset of modules.
@@ -135,7 +135,7 @@ Aggregate test reports are also property-gated. Pass `-PtestReportMode=ci` to wi
 A CI-style local run is:
 
 ```bash
-gradlew build buildHealth checkAll -PcollectCoverage=true -PtestReportMode=ci
+gradlew build buildHealth checkAll
 ```
 
 The GitHub workflow runs the CI-style command, uploads JaCoCo HTML/XML reports as artifacts, and writes source-line and coverage statistics to the workflow summary.
