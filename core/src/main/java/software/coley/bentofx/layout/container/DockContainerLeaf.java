@@ -1,11 +1,6 @@
 package software.coley.bentofx.layout.container;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -18,7 +13,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.Bento;
-import software.coley.bentofx.Identifiable;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.control.HeaderPane;
 import software.coley.bentofx.control.canvas.PixelCanvas;
@@ -329,17 +323,18 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 *
 	 * @return {@link #isCollapsed()} after toggling.
 	 */
+    @SuppressWarnings("NullAway") // FIXME
 	public boolean toggleCollapse(@Nullable Dockable selectedDockable) {
 		boolean result;
 		if (isCollapsed()) {
-			parent.setContainerCollapsed(this, false);
+            parent.setContainerCollapsed(this, false);
 			result = isCollapsed();
 
 			// If we were collapsed, and no longer are, select the given dockable.
 			if (!result)
 				selectDockable(selectedDockable);
 		} else {
-			parent.setContainerCollapsed(this, true);
+            parent.setContainerCollapsed(this, true);
 			result = isCollapsed();
 
 			// If we were uncollapsed but now are collapsed, clear the selected dockable.
@@ -399,7 +394,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	/**
 	 * @return Uncollapsed size of this container.
 	 */
-	protected double getUncollapsedSize() {
+	public double getUncollapsedSize() {
 		return switch (getSide()) {
 			case TOP, BOTTOM -> uncollapsedHeight.get();
 			case LEFT, RIGHT -> uncollapsedWidth.get();
@@ -537,11 +532,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	@Override
 	public String getIdentifier() {
 		return identifier;
-	}
-
-	@Override
-	public boolean matchesIdentity(Identifiable other) {
-		return identifier.equals(other.getIdentifier());
 	}
 
 	@Override

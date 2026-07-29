@@ -1,0 +1,26 @@
+plugins {
+    alias(libs.plugins.javafx)
+    id 'bento.project.project-convention'
+    id 'bento.release.publish-convention'
+}
+
+description = 'BentoFX Persistence for XML'
+
+javafx {
+    modules = ['javafx.graphics']
+    configurations = ['implementation']
+}
+
+dependencies {
+
+    api projects.persistence.api
+
+    implementation projects.persistence.codec.common
+
+    implementation libs.jackson.databind
+    implementation libs.jackson.xml
+
+    compileOnly libs.jackson.annotations
+
+    testImplementation testFixtures(projects.persistence.testFixtures)
+}

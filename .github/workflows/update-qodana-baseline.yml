@@ -22,7 +22,7 @@ jobs:
       - name: Checkout selected branch
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
 
       - name: Run Qodana without a baseline

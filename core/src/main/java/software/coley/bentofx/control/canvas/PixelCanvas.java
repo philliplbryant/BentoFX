@@ -94,6 +94,7 @@ public class PixelCanvas extends Region {
 	/**
 	 * Commits any pending state in the canvas buffer to the display.
 	 */
+    @SuppressWarnings("NullAway") // FIXME
 	public void commit() {
 		if (lastDrawHash == currentDrawHash) return;
 		lastDrawHash = currentDrawHash;
