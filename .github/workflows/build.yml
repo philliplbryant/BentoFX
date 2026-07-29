@@ -45,6 +45,18 @@ jobs:
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: |
+            report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/functionalTestCodeCoverageReport/functionalTestCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,
+            report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
+          name: bentofx-aggregated
+          token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload coverage reports
         if: always()
         uses: actions/upload-artifact@v4
