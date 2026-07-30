@@ -14,41 +14,41 @@ A docking system for JavaFX.
 
 - [Requirements](#requirements)
 - [Core Framework](#core-framework)
-  * [Usage](#core-usage)
-    * [Gradle (Groovy DSL)](#core-gradle-groovy-dsl)
-    * [Gradle (Kotlin DSL)](#core-gradle-kotlin-dsl)
-    * [Maven](#core-maven)
-  * [Overview](#overview)
-    * [Containers](#containers)
-    * [Controls](#controls)
-    * [Dockables](#dockables)
-  * [Basic Example](#basic-example)
-    * [Construct the Default Docking Layout](#construct-the-default-layout)
-    * [Show the Layout](#show-it)
+  - [Usage](#core-usage)
+    - [Gradle (Groovy DSL)](#core-gradle-groovy-dsl)
+    - [Gradle (Kotlin DSL)](#core-gradle-kotlin-dsl)
+    - [Maven](#core-maven)
+  - [Overview](#overview)
+    - [Containers](#containers)
+    - [Controls](#controls)
+    - [Dockables](#dockables)
+  - [Basic Example](#basic-example)
+    - [Construct the Default Docking Layout](#construct-the-default-layout)
+    - [Show the Layout](#show-it)
 - [Persistence Framework](#persistence)
-  * [Usage](#persistence-usage)
-    * [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
-    * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
-    * [Maven](#persistence-maven)
-  * [Overview](#persistence-overview)
-    * [Provider Interfaces](#provider-interfaces)
-    * [Application Responsibilities](#application-responsibilities)
-    * [Application Design for Persistence](#application-design-for-persistence)
-    * [Choosing Stable Identifiers](#choosing-stable-identifiers)
-    * [Provider Responsibilities](#provider-responsibilities)
-    * [Provider Lifecycle](#provider-lifecycle)
-    * [Recommended Application Startup Flow](#recommended-application-startup-flow)
-    * [Saving the Layout](#saving-the-layout)
-    * [Restoring the Layout](#restoring-the-layout)
-    * [Runtime Considerations](#runtime-considerations)
-      * [JavaFX Application Thread](#javafx-application-thread)
-      * [Application Evolution](#application-evolution)
-    * [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
-  * [Extending Persistence](#extending-persistence)
-  * [Persistence Example](#persistence-example)
+  - [Usage](#persistence-usage)
+    - [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
+    - [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
+    - [Maven](#persistence-maven)
+  - [Overview](#persistence-overview)
+    - [Provider Interfaces](#provider-interfaces)
+    - [Application Responsibilities](#application-responsibilities)
+    - [Application Design for Persistence](#application-design-for-persistence)
+    - [Choosing Stable Identifiers](#choosing-stable-identifiers)
+    - [Provider Responsibilities](#provider-responsibilities)
+    - [Provider Lifecycle](#provider-lifecycle)
+    - [Recommended Application Startup Flow](#recommended-application-startup-flow)
+    - [Saving the Layout](#saving-the-layout)
+    - [Restoring the Layout](#restoring-the-layout)
+    - [Runtime Considerations](#runtime-considerations)
+      - [JavaFX Application Thread](#javafx-application-thread)
+      - [Application Evolution](#application-evolution)
+    - [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
+  - [Extending Persistence](#extending-persistence)
+  - [Persistence Example](#persistence-example)
 - [Additional Documentation](#additional-documentation)
-    * [Contributing Guide](CONTRIBUTING.md)
-    * [Maintainers Guide](MAINTAINERS.md)
+    - [Contributing Guide](CONTRIBUTING.md)
+    - [Maintainers Guide](MAINTAINERS.md)
 
 ## Requirements
 
@@ -83,7 +83,7 @@ implementation("software.coley.bentofx:core:${version}")
 </dependency>
 ```
 
-### Overview
+<h3 id="overview">Overview</h3>
 
 ![overview](assets/overview.png)
 
@@ -97,7 +97,7 @@ In terms of hierarchy, the `Node` structure of Bento goes like:
 Each level of `*DockContainer` in the given hierarchy and `Dockable` instances can be constructed via a `Bento`
 instance's builder offered by `bento.dockBuilding()`.
 
-#### Containers
+<h4 id="containers">Containers</h4>
 
 ![containers](assets/containers.png)
 
@@ -109,7 +109,7 @@ display `Dockable` items and handle drag-n-drop operations.
 | `DockContainerBranch` | Used to show multiple child `DockContainer` instances in a `SplitPane` display. Orientation and child node scaling are thus specified the same way as with `SplitPane`. |
 | `DockContainerLeaf`   | Used to show any number of `Dockable` instance rendered by a `HeaderPane`.                                                                                              |
 
-#### Controls
+<h4 id="controls">Controls</h4>
 
 ![controls](assets/controls.png)
 
@@ -126,7 +126,7 @@ in [`bento.css`](demos/basic/src/main/resources/bento.css).
 | `Headers`                   | Child of `HeaderPane` that acts as a `HBox`/`VBox` holding multiple `Headers`.                                                                    |
 | `ButtonHBar` / `ButtonVBar` | Child of `HeaderPane` used to show buttons for the `DockContainerLeaf` for things like context menus and selection of overflowing `Header` items. |
 
-#### Dockables
+<h4 id="dockables">Dockables</h4>
 
 The `Dockable` can be thought of as the model behind each of a `HeaderPane`'s `Header` _(Much like a `Tab` of
 a `TabPane`)_.
@@ -134,7 +134,7 @@ It outlines capabilities like whether the `Header` can be draggable, where it ca
 display,
 and the associated JavaFX `Node` to display when placed into a `DockContainerLeaf`.
 
-### Basic Example
+<h3 id="basic-example">Basic Example</h3>
 ![containers](assets/example.png)
 
 In this example we create a layout structure that loosely models how an IDE is laid out.
@@ -222,7 +222,7 @@ leafWorkspaceHeaders.addDockables(
 );
 ```
 
-#### Show it
+<h4 id="show-it">Show it</h4>
 
 ```java
 Scene scene = new Scene(branchRoot);
