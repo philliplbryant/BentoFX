@@ -1,10 +1,7 @@
 [![Build](https://github.com/Col-E/BentoFX/actions/workflows/build.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/build.yml)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=philliplbryant_BentoFX&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=philliplbryant_BentoFX)
 [![Codecov](https://codecov.io/gh/Col-E/BentoFX/graph/badge.svg)](https://codecov.io/gh/Col-E/BentoFX)
-[![CodeQL](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql)
-[![Qodana](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
-
-<!-- TODO BENTO-13: Add the Sonar Quality Gate badge between CodeQL and Codecov after importing the repository into SonarQube Cloud and copying the generated badge Markdown. -->
 
 # BentoFX
 
@@ -49,6 +46,9 @@ A docking system for JavaFX.
 - [Additional Documentation](#additional-documentation)
     - [Contributing Guide](CONTRIBUTING.md)
     - [Maintainers Guide](MAINTAINERS.md)
+
+For information about continuous integration, code quality, security analysis,
+release status, and maintainer workflows, see the [Maintainers Guide](MAINTAINERS.md#project-health).
 
 ## Requirements
 

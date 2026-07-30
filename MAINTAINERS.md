@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [Project Health](#project-health)
 - [GitHub Workflows](#github-workflows)
   - [Build](#build-workflow)
   - [Qodana](#qodana-workflow)
@@ -9,8 +10,19 @@
 - [Releases](#releases)
 - [Repository Administration](#repository-administration)
 
-This guide complements `CONTRIBUTING.md` and documents tasks requiring repository
+This guide complements [CONTRIBUTING.md](CONTRIBUTING.md) and documents tasks requiring repository
 write access or maintainer judgment.
+
+## Project Health
+
+| Service | Health | Purpose |
+|---------|--------|---------|
+| **[GitHub Actions](https://github.com/Col-E/BentoFX/actions)** | [![Build](https://github.com/Col-E/BentoFX/actions/workflows/build.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/build.yml) | Build and test status |
+| **[SonarCloud](https://sonarcloud.io/summary/new_code?id=philliplbryant_BentoFX)** | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=philliplbryant_BentoFX&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=philliplbryant_BentoFX) | Quality Gate, Maintainability, Reliability, and Security |
+| **[Codecov](https://codecov.io/gh/Col-E/BentoFX)** | [![Codecov](https://codecov.io/gh/Col-E/BentoFX/graph/badge.svg)](https://codecov.io/gh/Col-E/BentoFX) | Coverage reports and historical trends |
+| **[CodeQL](https://github.com/Col-E/BentoFX/security/code-scanning)** | **[Security Results](https://github.com/Col-E/BentoFX/security/code-scanning)** | GitHub code scanning results |
+| **[Qodana](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml)** | **[Inspection Results](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml)** | JetBrains inspections and static analysis |
+| **[Maven Central](https://central.sonatype.com/artifact/software.coley.bento-fx/core)** | [![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core) | Published artifacts and latest release |
 
 ## GitHub Workflows
 

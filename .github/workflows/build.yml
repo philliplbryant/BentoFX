@@ -18,6 +18,7 @@ permissions:
   checks: write
   pull-requests: write
   security-events: write
+  actions: read
 
 jobs:
   test:
@@ -45,6 +46,13 @@ jobs:
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
+      - name: SonarQube Scan
+        if: github.repository == 'Col-E/BentoFX'
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: -Dsonar.coverage.jacoco.xmlReportPaths=report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/functionalTestCodeCoverageReport/functionalTestCodeCoverageReport.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -77,8 +85,6 @@ jobs:
           path: |
             **/TEST-*
             **/hs_err_pid*
-
-  # Publishes the test results of 'test'
   publish-test-results:
     name: Publish tests results
     needs: test
