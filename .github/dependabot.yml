@@ -12,6 +12,13 @@ updates:
     labels:
       - "dependencies"
       - "gradle"
+    ignore:
+      - dependency-name: "org.openjfx:*"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin"
+        update-types:
+          - "version-update:semver-major"
     groups:
       testing:
         patterns:
