@@ -43,12 +43,9 @@ A docking system for JavaFX.
     - [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
   - [Extending Persistence](#extending-persistence)
   - [Persistence Example](#persistence-example)
-- [Additional Documentation](#additional-documentation)
+- [Next Steps](#next-steps)
     - [Contributing Guide](CONTRIBUTING.md)
     - [Maintainers Guide](MAINTAINERS.md)
-
-For information about continuous integration, code quality, security analysis,
-release status, and maintainer workflows, see the [Maintainers Guide](MAINTAINERS.md#project-health).
 
 ## Requirements
 
@@ -795,7 +792,7 @@ For details on applying a restored docking layout, refer to `BoxApp.applyDocking
 
 For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout(WindowEvent)` in the [persistence demo](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java).
 
-## Additional Documentation
+## Next Steps
 
-- [Contributing Guide](CONTRIBUTING.md)
-- [Maintainers Guide](MAINTAINERS.md)
+- The **[Contributing Guide](CONTRIBUTING.md)** explains how to build BentoFX, develop new features, and submit pull requests.
+- The **[Maintainers Guide](MAINTAINERS.md)** covers repository administration, project health, CI/CD, and releases.
