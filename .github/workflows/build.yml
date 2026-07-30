@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
@@ -87,7 +87,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Required depth for JReleaser
       - name: Setup Java JDK
