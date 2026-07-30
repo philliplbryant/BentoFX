@@ -1,9 +1,11 @@
-[![Build](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml?query=branch%3Amaster)
-[![Qodana](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml/badge.svg?branch=master)](https://github.com/philliplbryant/BentoFX/actions/workflows/qodana.yml?query=branch%3Amaster)
-[![CodeQL](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/github-code-scanning/codeql?query=branch%3Amaster)
-[![Codecov](https://codecov.io/gh/philliplbryant/BentoFX/branch/master/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
+[![Build](https://github.com/Col-E/BentoFX/actions/workflows/build.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/build.yml)
+[![Codecov](https://codecov.io/gh/Col-E/BentoFX/graph/badge.svg)](https://codecov.io/gh/Col-E/BentoFX)
+[![CodeQL](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql)
+[![Qodana](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/Col-E/BentoFX?label=GitHub%20Release)](https://github.com/Col-E/BentoFX/releases/latest)
+[![Contributors](https://img.shields.io/github/contributors/Col-E/BentoFX)](https://github.com/Col-E/BentoFX/graphs/contributors)
 [![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
-[![License: MIT](https://img.shields.io/github/license/philliplbryant/BentoFX.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/Col-E/BentoFX.svg)](https://github.com/Col-E/BentoFX/blob/master/LICENSE)
 
 <!-- TODO BENTO-13: Add the Sonar Quality Gate badge between CodeQL and Codecov after importing the repository into SonarQube Cloud and copying the generated badge Markdown. -->
 
