@@ -13,7 +13,10 @@
 
 A docking system for JavaFX.
 
-## Usage
+## Documentation
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Maintainers Guide](MAINTAINERS.md)
 
 Requirements:
 
