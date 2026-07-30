@@ -8,10 +8,9 @@
 
 # Remaining Tasks
 
-1. Configure SonarQube workflow on GitHub.
-2. Create a snapshots repo in JRE Nexus to test the JReleaser plugin.
-3. Update all documentation.
-4. Claude Code 
+1. Create a snapshots repo in JRE Nexus to test the JReleaser plugin.
+2. Update all documentation.
+3. Claude Code 
    1. Analyze code coverage reports.
       1. Create additional tests to increase coverage.
       2. Consider coverage for both normal and exceptional flows.
