@@ -10,7 +10,7 @@ java-jdk = "21"
 
 # Libraries
 assertj = "4.0.0-M1"
-javafx = "21.0.9"
+javafx = "21.0.12"
 jspecify = "1.0.1"
 junit = "6.1.2"
 testfx = "4.0.18"
