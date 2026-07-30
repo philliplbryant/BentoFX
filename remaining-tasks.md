@@ -6,7 +6,7 @@
   ol li:before { content: counters(item, ".") " "; counter-increment: item; }
 </style>
 
-# Remaining BentoFX Persistence Tasks
+# Remaining Tasks
 
 1. Create a snapshots repo in JRE Nexus to test the JReleaser plugin.
 2. Configure SonarQube workflow on GitHub.
