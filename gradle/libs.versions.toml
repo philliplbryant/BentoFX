@@ -11,7 +11,7 @@ java-jdk = "21"
 # Libraries
 assertj = "4.0.0-M1"
 javafx = "21.0.9"
-jspecify = "1.0.0"
+jspecify = "1.0.1"
 junit = "6.1.2"
 testfx = "4.0.18"
 testfx-monocle = "21.0.2"
