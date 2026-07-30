@@ -1,17 +1,26 @@
 # BentoFX Maintainers Guide
 
+## Table of Contents
+
+- [GitHub Workflows](#github-workflows)
+  - [Build](#build-workflow)
+  - [Qodana](#qodana-workflow)
+  - [Update Qodana Baseline](#update-qodana-baseline)
+- [Releases](#releases)
+- [Repository Administration](#repository-administration)
+
 This guide complements `CONTRIBUTING.md` and documents tasks requiring repository
 write access or maintainer judgment.
 
 ## GitHub Workflows
 
-### Build
+<h3 id="build-workflow">Build</h3>
 Ensure the Build workflow is passing before merging pull requests.
 
-### Qodana
+<h3 id="qodana-workflow">Qodana</h3>
 Review new findings and determine whether they should be fixed or intentionally accepted.
 
-### Update Qodana Baseline
+<h3 id="update-qodana-baseline">Update Qodana Baseline</h3>
 Run this workflow only when intentionally updating the accepted baseline. Review the
 generated baseline before committing because accepted findings will no longer be reported.
 

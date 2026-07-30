@@ -1,5 +1,21 @@
 # Contributing to BentoFX
 
+## Table of Contents
+
+- [License](#license)
+- [Coding Guidelines](#coding-guidelines)
+- [Automated Testing](#automated-testing)
+  - [Unit Tests](#unit-tests)
+  - [Integration Tests](#integration-tests)
+  - [Parallel Integration Tests](#parallel-integration-tests)
+  - [Functional Tests](#functional-tests)
+- [JSpecify Nullness Analysis](#jspecify-nullness-analysis)
+- [Code Coverage](#code-coverage)
+- [GitHub Workflows](#github-workflows)
+  - [Build](#build-workflow)
+  - [Automated Dependency Updates](#automated-dependency-updates)
+  - [Checking for Dependency Updates](#checking-for-dependency-updates)
+
 ## License
 
 BentoFX is licensed under the MIT License. Anything you contribute will thus also be under the MIT license.
@@ -20,7 +36,7 @@ I know some features are large in scope, just break down what you can where poss
 
 Automated tests are categorized as defined below, based on their purposes and the conditions under which they can be reliably executed.
 
-**Unit Tests (Test)**: 
+<h3 id="unit-tests">Unit Tests (Test)</h3> 
 
 Projects that apply the [project convention](./build-logic/src/main/groovy/bento.project.project-convention.gradle) are configured to run unit tests.  
 Unit test classes must have names ending with `Test` and be located in the `src/test/java` directory. These tests are run in parallel.
@@ -39,7 +55,7 @@ Unit tests:
 
 ---
 
-**Integration Tests (IT)**:
+<h3 id="integration-tests">Integration Tests (IT)</h3>
 
 Projects that apply the [integration test convention](./build-logic/src/main/groovy/bento.test.integration-test-suite.gradle) are enabled to run integration tests.  
 Integration test classes must have names ending with `IT` and be located in the `src/it/java` directory. These tests are not run in parallel.
@@ -57,7 +73,7 @@ Integration tests:
 
 ---
 
-**Parallel Integration Tests (ITP)**:
+<h3 id="parallel-integration-tests">Parallel Integration Tests (ITP)</h3>
 
 Projects that apply the [integration test parallel convention](./build-logic/src/main/groovy/bento.test.integration-test-parallel-suite.gradle) are enabled to run integration tests in parallel.  
 Parallel integration test classes must have names ending with `ITP` and be located in the `src/itp/java` directory. These tests are run in parallel.
@@ -76,7 +92,7 @@ Parallel integration tests:
 
 ---
 
-**Functional Tests (FT)**:
+<h3 id="functional-tests">Functional Tests (FT)</h3>
 
 Projects that apply the [functional test convention](./build-logic/src/main/groovy/bento.test.functional-test-suite.gradle) are enabled to run functional tests.  
 Functional test classes must have names ending with `FT` and be located in the `src/ft/java` directory. These tests are not run in parallel.
@@ -131,7 +147,7 @@ The [report aggregation project](./report-aggregation/build.gradle) creates aggr
 
 ## GitHub Workflows
 
-### Build
+<h3 id="build-workflow">Build</h3>
 
 A CI-style local build is:
 
@@ -141,11 +157,11 @@ gradlew build buildHealth checkAll checkJSpecify
 
 The GitHub workflow runs this build command, uploads JaCoCo HTML/XML reports as artifacts, and writes source-line and coverage statistics to the workflow summary.
 
-### Automated Dependency Updates
+<h3 id="automated-dependency-updates">Automated Dependency Updates</h3>
 
 BentoFX uses GitHub Dependabot to keep Gradle dependencies and GitHub Actions up to date. Dependency update pull requests are reviewed and tested by the project's CI workflows before being merged.
 
-### Checking for Dependency Updates
+<h3 id="checking-for-dependency-updates">Checking for Dependency Updates</h3>
 
 BentoFX also uses the Gradle Versions Plugin to report newer dependency, plugin, 
 and Gradle releases. The `io.github.ben-manes.versions.settings` plugin is 

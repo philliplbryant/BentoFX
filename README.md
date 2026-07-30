@@ -2,10 +2,7 @@
 [![Codecov](https://codecov.io/gh/Col-E/BentoFX/graph/badge.svg)](https://codecov.io/gh/Col-E/BentoFX)
 [![CodeQL](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/github-code-scanning/codeql)
 [![Qodana](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml/badge.svg)](https://github.com/Col-E/BentoFX/actions/workflows/qodana.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/Col-E/BentoFX?label=GitHub%20Release)](https://github.com/Col-E/BentoFX/releases/latest)
-[![Contributors](https://img.shields.io/github/contributors/Col-E/BentoFX)](https://github.com/Col-E/BentoFX/graphs/contributors)
 [![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
-[![License: MIT](https://img.shields.io/github/license/Col-E/BentoFX.svg)](https://github.com/Col-E/BentoFX/blob/master/LICENSE)
 
 <!-- TODO BENTO-13: Add the Sonar Quality Gate badge between CodeQL and Codecov after importing the repository into SonarQube Cloud and copying the generated badge Markdown. -->
 
@@ -13,15 +10,10 @@
 
 A docking system for JavaFX.
 
-## Documentation
-
-- [Contributing Guide](CONTRIBUTING.md)
-- [Maintainers Guide](MAINTAINERS.md)
-
 ## Table of Contents
 
-* [Requirements](#requirements)
-* [Core Framework](#core-framework)
+- [Requirements](#requirements)
+- [Core Framework](#core-framework)
   * [Usage](#core-usage)
     * [Gradle (Groovy DSL)](#core-gradle-groovy-dsl)
     * [Gradle (Kotlin DSL)](#core-gradle-kotlin-dsl)
@@ -33,7 +25,7 @@ A docking system for JavaFX.
   * [Basic Example](#basic-example)
     * [Construct the Default Docking Layout](#construct-the-default-layout)
     * [Show the Layout](#show-it)
-* [Persistence Framework](#persistence)
+- [Persistence Framework](#persistence)
   * [Usage](#persistence-usage)
     * [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
     * [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
@@ -54,6 +46,9 @@ A docking system for JavaFX.
     * [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
   * [Extending Persistence](#extending-persistence)
   * [Persistence Example](#persistence-example)
+- [Additional Documentation](#additional-documentation)
+    * [Contributing Guide](CONTRIBUTING.md)
+    * [Maintainers Guide](MAINTAINERS.md)
 
 ## Requirements
 
@@ -314,8 +309,8 @@ runtimeOnly("org.slf4j:slf4j-jdk14:${slf4j-version}")
 
 For additional implementation details and diagrams, see:
 
-* [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md)
-* [Bento Layout Persistence Diagrams](docs/persistence/docking-layout-persistence-diagrams.md)
+- [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md)
+- [Bento Layout Persistence Diagrams](docs/persistence/docking-layout-persistence-diagrams.md)
 
 The persistence framework has two responsibilities:
 
@@ -773,10 +768,10 @@ Codecs are extended similarly by implementing `LayoutCodecProvider` and `LayoutC
 
 For complete examples, refer to these modules:
 
-* [JSON Codec](./persistence/codec/json)
-* [XML Codec](./persistence/codec/xml)
-* [H2 Database Storage](./persistence/storage/db/h2)
-* [File Storage](./persistence/storage/file)
+- [JSON Codec](./persistence/codec/json)
+- [XML Codec](./persistence/codec/xml)
+- [H2 Database Storage](./persistence/storage/db/h2)
+- [File Storage](./persistence/storage/file)
 
 Additional API and usage documentation can be found in [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md) and [Bento layout persistence diagrams](docs/persistence/docking-layout-persistence-diagrams.md).
 
@@ -799,3 +794,8 @@ To run the persistence demo:
 For details on applying a restored docking layout, refer to `BoxApp.applyDockingLayout(DockingLayout)` in the [persistence demo](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java).
 
 For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout(WindowEvent)` in the [persistence demo](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java).
+
+## Additional Documentation
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Maintainers Guide](MAINTAINERS.md)
