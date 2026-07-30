@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout selected branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
@@ -28,7 +28,7 @@ jobs:
       - name: Run Qodana without a baseline
         id: qodana
         continue-on-error: true
-        uses: JetBrains/qodana-action@v2026.1
+        uses: JetBrains/qodana-action@v2026.2
         with:
           args: |
             --linter qodana-jvm-community
