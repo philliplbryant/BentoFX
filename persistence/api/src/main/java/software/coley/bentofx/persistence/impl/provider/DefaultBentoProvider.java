@@ -3,11 +3,14 @@ package software.coley.bentofx.persistence.impl.provider;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link BentoProvider} that merely collects and
@@ -17,8 +20,8 @@ import java.util.WeakHashMap;
  */
 public class DefaultBentoProvider implements BentoProvider {
 
-    private final Map<String, Bento> bentoMap =
-            new WeakHashMap<>();
+    private final Map<String, WeakReference<Bento>> bentoMap =
+            new ConcurrentHashMap<>();
 
     public DefaultBentoProvider() {
     }
@@ -30,16 +33,25 @@ public class DefaultBentoProvider implements BentoProvider {
     }
 
     public void addBento(final Bento bento) {
-        bentoMap.put(bento.getIdentifier(), bento);
+        bentoMap.put(
+                bento.getIdentifier(),
+                new WeakReference<>(bento)
+        );
     }
 
     @Override
     public Optional<Bento> getBento(String identifier) {
-        return Optional.ofNullable(bentoMap.get(identifier));
+        final WeakReference<Bento> bentoReference = bentoMap.get(identifier);
+        return Optional.ofNullable(
+                bentoReference == null ? null : bentoReference.get()
+        );
     }
 
     @Override
     public Collection<Bento> getAllBentos() {
-        return new ArrayList<>(bentoMap.values());
+        return bentoMap.values().stream()
+                .map(WeakReference::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }
