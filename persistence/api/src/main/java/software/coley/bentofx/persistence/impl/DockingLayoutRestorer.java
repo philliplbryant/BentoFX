@@ -8,6 +8,7 @@ import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.BentoStateTimeoutException;
 import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
@@ -113,6 +114,17 @@ public class DockingLayoutRestorer implements LayoutRestorer {
                     )
             );
 
+        } catch (final BentoStateTimeoutException e) {
+            // Deliberately not handled like the failure below. A timeout means
+            // the JavaFX thread never ran the restore, not that the persisted
+            // layout is bad. Substituting the default layout here would discard
+            // a layout that is very likely fine, and the next automatic save
+            // would then write that default over the saved copy. Fail loudly
+            // instead and leave the persisted layout untouched.
+            throw new IllegalStateException(
+                    "Timed out restoring the docking layout",
+                    e
+            );
         } catch (final BentoStateException e) {
             logger.warn(
                     "An error occurred while attempting to restore the layout",

@@ -13,7 +13,11 @@ import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -122,7 +126,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
                 new AutoSaveThreadFactory()
         );
         scheduledSaveTask = this.scheduler.scheduleAtFixedRate(
-                this::autoSave,
+                () -> autoSave(false),
                 autoSaveInterval,
                 autoSaveInterval,
                 autoSaveTimeUnit
@@ -171,7 +175,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
         try {
             if (isAutoSaveEnabled) {
-                autoSave();
+                autoSave(true);
             }
         } finally {
             disableAutoSave();
@@ -179,12 +183,31 @@ public abstract class AbstractAutoCloseableLayoutSaver
     }
 
     /**
+     * Saves the layout while the application is shutting down.
+     *
+     * <p>Separate from {@link #saveLayout()} so an implementation can apply a
+     * tighter budget to any wait it performs on another thread. The thread
+     * calling {@link #close()} may not be a daemon, so a long wait here can
+     * delay or block application exit. The default implementation simply
+     * delegates to {@link #saveLayout()}.</p>
+     *
+     * @throws BentoStateException when the layout cannot be saved.
+     */
+    protected void saveLayoutForShutdown() throws BentoStateException {
+        saveLayout();
+    }
+
+    /**
      * Called when the scheduled interval to automatically save the docking
      * layout expires, this method ensures the layout is only saved when
      * {@link DockEvent}s have occurred since the last save, indicating
      * changes have been made that need to be saved.
+     *
+     * @param isShuttingDown {@code true} when called from {@link #close()}, which
+     * routes the save through {@link #saveLayoutForShutdown()} so a tighter
+     * budget can apply while the application is exiting.
      */
-    private void autoSave() {
+    private void autoSave(final boolean isShuttingDown) {
         try {
             if (wasDockEventReceived.getAndSet(false)) {
                 logger.debug(
@@ -192,17 +215,20 @@ public abstract class AbstractAutoCloseableLayoutSaver
                                 "attempting to save layout."
                 );
 
-                saveLayout();
+                if (isShuttingDown) {
+                    saveLayoutForShutdown();
+                } else {
+                    saveLayout();
+                }
             } else {
-
                 logger.debug(
                         "No dock events have been received; " +
                                 "will not attempt to save layout."
                 );
             }
 
-        } catch (final BentoStateException e) {
-            logger.warn(
+        } catch (final BentoStateException | RuntimeException e) {
+            logger.error(
                     "Could not auto-save docking layout",
                     e
             );

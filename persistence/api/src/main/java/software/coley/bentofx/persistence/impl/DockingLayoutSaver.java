@@ -58,9 +58,31 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
     @Override
     public void saveLayout() throws BentoStateException {
+        saveLayout(PersistenceThreading.FX_CAPTURE_TIMEOUT_MILLIS);
+    }
+
+    @Override
+    protected void saveLayoutForShutdown() throws BentoStateException {
+        // A shorter budget while the application is exiting: the thread calling
+        // close() may not be a daemon, so waiting the full capture budget could
+        // hold up shutdown. Losing the final save beats wedging the exit.
+        saveLayout(PersistenceThreading.FX_CLOSE_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Captures the layout on the JavaFX application thread, then encodes and
+     * writes it away from that thread.
+     *
+     * @param fxTimeoutMillis how long to wait for the JavaFX application thread
+     * to capture the layout.
+     * @throws BentoStateException when capturing, encoding or writing fails.
+     */
+    private void saveLayout(final long fxTimeoutMillis)
+            throws BentoStateException {
         final List<BentoState> bentoStateList =
                 PersistenceThreading.callOnFxThread(
-                        bentoLayoutStateCaptor::captureBentoStates
+                        bentoLayoutStateCaptor::captureBentoStates,
+                        fxTimeoutMillis
                 );
 
         callOffFxThread(() -> {
