@@ -22,9 +22,21 @@ import software.coley.bentofx.persistence.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.api.state.DockableState;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static software.coley.bentofx.persistence.impl.StageUtils.getXInScreenBounds;
 import static software.coley.bentofx.persistence.impl.StageUtils.getYInScreenBounds;
@@ -352,6 +364,18 @@ final class DockingLayoutStateRestorer {
 
         applyDividerPositions(
                 branchState.getDividerPositions().entrySet(),
+                branch
+        );
+
+        // Mirrors restoreRootBranchContainer. Both are needed: getLeaves and
+        // getLeafStates only look at direct children, so each branch has to
+        // collapse its own leaves. Every branch below the root is built here, so
+        // the two calls together cover every leaf at every depth. Without this
+        // one, a layout deeper than root-to-leaf silently lost the collapsed
+        // state of every leaf it contained.
+        conditionallyCollapseLeaves(
+                getLeaves(branch),
+                getLeafStates(branchState),
                 branch
         );
 
