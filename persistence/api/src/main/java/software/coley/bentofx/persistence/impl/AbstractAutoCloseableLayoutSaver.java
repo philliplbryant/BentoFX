@@ -40,6 +40,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider}
  * already have auto-save running.</p>
  *
+ * <p><b>Thread safety.</b> {@link #enableAutoSave(Long, TimeUnit)},
+ * {@link #disableAutoSave()} and {@link #close()} may be called from any thread
+ * and are mutually exclusive; the auto-save lifecycle state they share is guarded
+ * by a private lock. {@link #close()} is idempotent. What is <em>not</em>
+ * serialised is saving itself: {@link #close()} deliberately performs its final
+ * save before taking that lock, because a save waits on the JavaFX application
+ * thread and that thread may itself be calling in here. A subclass overriding
+ * {@link #saveLayout()} or {@link #saveLayoutForShutdown()} must therefore assume
+ * it can be entered from the scheduler thread and from a caller of
+ * {@link #close()}, and make its own state safe accordingly.</p>
+ *
  * @author Phil Bryant
  */
 public abstract class AbstractAutoCloseableLayoutSaver
@@ -52,11 +63,43 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
     private final AtomicBoolean wasDockEventReceived =
             new AtomicBoolean(false);
-    private final Set<Bento> listenerBentos = new HashSet<>();
     private final AtomicBoolean closed = new AtomicBoolean();
 
-    private boolean isAutoSaveEnabled;
+    /**
+     * Guards the auto-save lifecycle: {@link #isAutoSaveEnabled},
+     * {@link #scheduler}, {@link #scheduledSaveTask} and {@link #listenerBentos}.
+     *
+     * <p>These are touched from at least three threads - whichever thread arms or
+     * disarms auto-save, the scheduler thread, and whichever thread calls
+     * {@link #close()} - so enabling, disabling and closing have to be mutually
+     * exclusive. Without it, interleaved calls could leave a scheduler running
+     * with no handle to cancel it, or leave {@link #listenerBentos} out of step
+     * with the registrations actually held on each {@link Bento}'s event bus,
+     * leaking listeners past close.</p>
+     *
+     * <p><b>A save must never run while this lock is held.</b> Saving hands work
+     * to the JavaFX application thread and waits for it, and the JavaFX thread may
+     * itself call {@link #enableAutoSave(Long, TimeUnit)} or {@link #close()} -
+     * holding the lock across a save would deadlock the two against each other.
+     * {@link #close()} therefore saves first and only then takes the lock to tear
+     * down.</p>
+     */
+    private final Object autoSaveLock = new Object();
+
+    /** Guarded by {@link #autoSaveLock}. */
+    private final Set<Bento> listenerBentos = new HashSet<>();
+
+    /**
+     * Written under {@link #autoSaveLock}; {@code volatile} so
+     * {@link #isAutoSaveEnabled()} can read it without contending for the lock,
+     * which matters because that reader may be the JavaFX thread.
+     */
+    private volatile boolean isAutoSaveEnabled;
+
+    /** Guarded by {@link #autoSaveLock}. */
     private @Nullable ScheduledExecutorService scheduler;
+
+    /** Guarded by {@link #autoSaveLock}. */
     private @Nullable ScheduledFuture<?> scheduledSaveTask;
 
 	/**
@@ -136,29 +179,42 @@ public abstract class AbstractAutoCloseableLayoutSaver
             final Long autoSaveInterval,
             final TimeUnit autoSaveTimeUnit
     ) {
-        if (closed.get()) {
-            throw new IllegalStateException("Cannot enable auto-save after saver has been closed");
-        }
-
-        final Long requestedAutoSaveInterval =
+        final long requestedAutoSaveInterval =
                 Objects.requireNonNull(autoSaveInterval);
         if (requestedAutoSaveInterval <= 0) {
             throw new IllegalArgumentException("autoSaveInterval must be greater than zero");
         }
 
-        disableAutoSave();
+        final TimeUnit requestedTimeUnit =
+                Objects.requireNonNull(autoSaveTimeUnit);
 
-        this.isAutoSaveEnabled = true;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(
-                new AutoSaveThreadFactory()
-        );
-        scheduledSaveTask = this.scheduler.scheduleAtFixedRate(
-                () -> autoSave(false),
-                autoSaveInterval,
-                autoSaveInterval,
-                autoSaveTimeUnit
-        );
-        addListeners();
+        synchronized (autoSaveLock) {
+            // Checked inside the lock, together with the state it protects. Read
+            // outside, a close running concurrently could set the flag after the
+            // check and have its teardown undone by the scheduler started below.
+            if (closed.get()) {
+                throw new IllegalStateException("Cannot enable auto-save after saver has been closed");
+            }
+
+            disableAutoSaveInternal();
+
+            final ScheduledExecutorService newScheduler =
+                    Executors.newSingleThreadScheduledExecutor(
+                            new AutoSaveThreadFactory()
+                    );
+            this.scheduler = newScheduler;
+            this.scheduledSaveTask = newScheduler.scheduleAtFixedRate(
+                    () -> autoSave(false),
+                    requestedAutoSaveInterval,
+                    requestedAutoSaveInterval,
+                    requestedTimeUnit
+            );
+            addListeners();
+
+            // Set last: the flag says auto-save is fully armed, so nothing should
+            // observe it as true while the scheduler or listeners are half set up.
+            this.isAutoSaveEnabled = true;
+        }
     }
 
     /**
@@ -167,6 +223,21 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * @see #enableAutoSave(Long, TimeUnit)  to enable automatic saving.
      */
     public void disableAutoSave() {
+        synchronized (autoSaveLock) {
+            disableAutoSaveInternal();
+        }
+    }
+
+    /**
+     * Tears down the scheduler and listeners.
+     *
+     * <p>Must be called holding {@link #autoSaveLock}. Exists separately from
+     * {@link #disableAutoSave()} so {@link #enableAutoSave(Long, TimeUnit)} can
+     * reset state within a single critical section rather than releasing the lock
+     * between disabling and re-arming - a gap in which another thread could
+     * observe auto-save as neither on nor off, or interleave its own teardown.</p>
+     */
+    private void disableAutoSaveInternal() {
 
         this.isAutoSaveEnabled = false;
 
@@ -209,6 +280,13 @@ public abstract class AbstractAutoCloseableLayoutSaver
             // mean a directly constructed saver never flushed at all. autoSave
             // still short-circuits when no dock events have been received, so a
             // close with nothing to save remains cheap.
+            //
+            // Note this runs OUTSIDE autoSaveLock, on purpose. The save waits on
+            // the JavaFX application thread, which may itself be calling into
+            // enableAutoSave or close; holding the lock across it would deadlock.
+            // The compareAndSet above already makes this branch run once, so no
+            // second close can save concurrently, and disableAutoSaveInternal
+            // below is what actually needs the lock.
             autoSave(true);
         } finally {
             disableAutoSave();
@@ -268,6 +346,13 @@ public abstract class AbstractAutoCloseableLayoutSaver
         }
     }
 
+    /**
+     * Registers this saver on the event bus of every available {@link Bento}.
+     *
+     * <p>Must be called holding {@link #autoSaveLock}: {@code listenerBentos} is
+     * the only record of which buses hold a registration, so a concurrent
+     * add/remove could leave it disagreeing with reality and leak a listener.</p>
+     */
     private void addListeners() {
         for (final Bento bento : bentoProvider.getAllBentos()) {
             if (listenerBentos.add(bento)) {
@@ -276,6 +361,12 @@ public abstract class AbstractAutoCloseableLayoutSaver
         }
     }
 
+    /**
+     * Unregisters this saver from every {@link Bento} it registered with.
+     *
+     * <p>Must be called holding {@link #autoSaveLock} - see
+     * {@link #addListeners()}.</p>
+     */
     private void removeListeners() {
         for (final Bento bento : listenerBentos) {
             bento.events().removeEventListener(this);
