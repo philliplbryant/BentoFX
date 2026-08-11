@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Parent;
+import javafx.scene.control.SplitPane;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -355,7 +356,14 @@ final class BentoLayoutStateCaptor {
 
 		leafStateBuilder.setSide(leaf.getSide());
 
-		leafStateBuilder.setResizableWithParent(leaf.isResizable());
+		// SplitPane.isResizableWithParent, not leaf.isResizable(). The latter is
+		// Region.isResizable(), which is hard-coded to true for every Region, so
+		// it captured true no matter what the user had configured. The restorer
+		// applies this through SplitPane.setResizableWithParent, so that is the
+		// property that has to be read back here.
+		leafStateBuilder.setResizableWithParent(
+				SplitPane.isResizableWithParent(leaf)
+		);
 
 		leafStateBuilder.setCanSplit(leaf.isCanSplit());
 
