@@ -27,14 +27,26 @@ public class BentoState extends IdentifiableState {
         this.dragDropStageStates = List.copyOf(dragDropStageStates);
     }
 
+    /**
+     * {@return an immutable {@link List} of the
+     * {@link DockContainerRootBranchState}s for the {@code Bento}'s root
+     * branches. Empty when none were specified.}
+     */
     public List<DockContainerRootBranchState> getRootBranchStates() {
         return rootBranchStates;
     }
 
+    /**
+     * {@return an immutable {@link List} of the {@link DragDropStageState}s for
+     * the {@code Bento}'s drag/drop stages. Empty when none were specified.}
+     */
     public List<DragDropStageState> getDragDropStageStates() {
         return dragDropStageStates;
     }
 
+    /**
+     * Builds a {@link BentoState}.
+     */
     public static class BentoStateBuilder {
 
         private final String identifier;
@@ -79,6 +91,9 @@ public class BentoState extends IdentifiableState {
             return this;
         }
 
+        /**
+         * {@return the {@link BentoState} built from this builder.}
+         */
         public BentoState build() {
             return new BentoState(
                     identifier,

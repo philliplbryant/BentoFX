@@ -22,6 +22,20 @@ public class DockContainerBranchState extends DockContainerState {
     private final Map<Integer, Double> dividerPositions;
     private final List<DockContainerState> childDockContainerStates;
 
+    /**
+     * Constructor.
+     * @param identifier the {@code DockContainerBranch} identifier.
+     * @param pruneWhenEmpty whether empty branches should be pruned,
+     * {@code null} leaves it unspecified.
+     * @param childDockableStates the {@link DockableState}s for the
+     * {@code Dockable}s the branch holds directly.
+     * @param orientation the branch orientation, {@code null} leaves it
+     * unspecified.
+     * @param dividerPositions divider index to divider position, each between
+     * 0.0 and 1.0 (inclusive).
+     * @param childDockContainerStates the {@link DockContainerState}s for the
+     * branch's direct children, in order.
+     */
     protected DockContainerBranchState(
             final String identifier,
             final @Nullable Boolean pruneWhenEmpty,
@@ -49,14 +63,27 @@ public class DockContainerBranchState extends DockContainerState {
         return Optional.ofNullable(orientation);
     }
 
+    /**
+     * {@return an immutable {@link Map} of divider index to divider position,
+     * each position between 0.0 and 1.0 (inclusive). Empty when no divider
+     * positions were specified.}
+     */
     public Map<Integer, Double> getDividerPositions() {
         return dividerPositions;
     }
 
+    /**
+     * {@return an immutable {@link List} of the {@link DockContainerState}s for
+     * the branch's direct children, in order. Empty when the branch has no
+     * children.}
+     */
     public List<DockContainerState> getChildDockContainerStates() {
         return childDockContainerStates;
     }
 
+    /**
+     * Builds a {@link DockContainerBranchState}.
+     */
     public static class DockContainerBranchStateBuilder {
 
         private final String identifier;
@@ -69,11 +96,19 @@ public class DockContainerBranchState extends DockContainerState {
         private final List<DockContainerState> childDockContainerStates =
                 new ArrayList<>();
 
+        /**
+         * Constructor.
+         * @param identifier the {@code DockContainerBranch} identifier.
+         */
         public DockContainerBranchStateBuilder(final String identifier) {
 
             this.identifier = requireNonNull(identifier);
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param dockableState the {@link DockableState} to add.
+         */
         public DockContainerBranchStateBuilder addChildDockableState(final DockableState dockableState) {
             this.childDockableStates.add(requireNonNull(dockableState));
             return this;
@@ -130,6 +165,9 @@ public class DockContainerBranchState extends DockContainerState {
             return this;
         }
 
+        /**
+         * {@return the {@link DockContainerBranchState} built from this builder.}
+         */
         public DockContainerBranchState build() {
             return new DockContainerBranchState(
                     identifier,

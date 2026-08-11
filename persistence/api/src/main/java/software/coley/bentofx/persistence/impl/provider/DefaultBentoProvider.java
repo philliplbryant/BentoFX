@@ -23,15 +23,32 @@ public class DefaultBentoProvider implements BentoProvider {
     private final Map<String, WeakReference<Bento>> bentoMap =
             new ConcurrentHashMap<>();
 
+    /**
+     * Constructs a provider holding no {@code Bento}s. Add them with
+     * {@link #addBento(Bento)}.
+     */
     public DefaultBentoProvider() {
     }
 
+    /**
+     * Constructor.
+     * @param bentos the {@code Bento}s to collect.
+     */
     public DefaultBentoProvider(final Bento... bentos) {
         for(final Bento bento : bentos) {
             addBento(bento);
         }
     }
 
+    /**
+     * Collects a {@code Bento}, keyed on its identifier.
+     *
+     * <p>A {@code Bento} whose identifier is already held replaces the existing
+     * entry, since the identifier is what gives a {@code Bento} its identity
+     * here.</p>
+     *
+     * @param bento the {@code Bento} to collect.
+     */
     public void addBento(final Bento bento) {
         bentoMap.put(
                 bento.getIdentifier(),

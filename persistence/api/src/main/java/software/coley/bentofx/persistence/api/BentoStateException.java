@@ -8,10 +8,19 @@ package software.coley.bentofx.persistence.api;
  */
 public class BentoStateException extends Exception {
 
+    /**
+     * Constructor.
+     * @param message describes what could not be saved or restored, and why.
+     */
     public BentoStateException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructor.
+     * @param message describes what could not be saved or restored, and why.
+     * @param throwable the underlying failure.
+     */
     public BentoStateException(
             final String message,
             final Throwable throwable

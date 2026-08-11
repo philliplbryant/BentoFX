@@ -199,6 +199,9 @@ public class DragDropStageState {
         return Optional.ofNullable(dockContainerRootBranchState);
     }
 
+    /**
+     * Builds a {@link DragDropStageState}.
+     */
     public static class DragDropStageStateBuilder {
 
         private final Boolean isAutoClosedWhenEmpty;
@@ -218,6 +221,12 @@ public class DragDropStageState {
         private @Nullable Boolean isShowing;
         private @Nullable Boolean isFocused;
 
+        /**
+         * Constructor.
+         * @param isAutoClosedWhenEmpty whether the stage closes itself once it
+         * holds no {@code Dockable}s. Required, unlike every other property on
+         * this builder.
+         */
         public DragDropStageStateBuilder(
                 final Boolean isAutoClosedWhenEmpty
         ) {
@@ -404,6 +413,9 @@ public class DragDropStageState {
             return this;
         }
 
+        /**
+         * {@return the {@link DragDropStageState} built from this builder.}
+         */
         public DragDropStageState build() {
             return new DragDropStageState(
                     title,

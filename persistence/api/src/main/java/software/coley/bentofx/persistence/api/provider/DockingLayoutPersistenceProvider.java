@@ -14,6 +14,15 @@ import software.coley.bentofx.persistence.api.LayoutSaver;
  */
 public interface DockingLayoutPersistenceProvider {
 
+    /**
+     * {@return a {@link LayoutSaver} with the specified identifier, already
+     * saving automatically.}
+     * @param layoutIdentifier the identifier to use to distinguish the
+     * {@link LayoutSaver} from other {@link LayoutSaver}s.
+     * @param bentoProvider used to acquire {@code Bento}.
+     * @throws BentoStateException when the {@link LayoutSaver} cannot be
+     * returned.
+     */
     default LayoutSaver getLayoutSaver(
             final String layoutIdentifier,
             final BentoProvider bentoProvider
@@ -24,6 +33,20 @@ public interface DockingLayoutPersistenceProvider {
         );
     }
 
+    /**
+     * {@return a {@link LayoutSaver} for the specified profile, already saving
+     * automatically.}
+     *
+     * <p>Starting auto-save is the implementation's responsibility: a saver is
+     * not permitted to arm itself from its own constructor, so a saver obtained
+     * any other way is not auto-saving until the caller asks it to.</p>
+     *
+     * @param layoutPersistenceProfile identifies the {@link LayoutSaver} to
+     * return.
+     * @param bentoProvider used to acquire {@code Bento}.
+     * @throws BentoStateException when the {@link LayoutSaver} cannot be
+     * returned.
+     */
     LayoutSaver getLayoutSaver(
             final LayoutPersistenceProfile layoutPersistenceProfile,
             final BentoProvider bentoProvider

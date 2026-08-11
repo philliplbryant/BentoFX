@@ -35,6 +35,9 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         );
     }
 
+    /**
+     * Builds a {@link DockContainerRootBranchState}.
+     */
     public static class DockContainerRootBranchStateBuilder {
 
         private final String identifier;
@@ -45,22 +48,40 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
                 new LinkedHashMap<>();
         private final List<DockContainerState> childDockContainerStates = new ArrayList<>();
 
+        /**
+         * Constructor.
+         * @param identifier the {@code DockContainerRootBranch} identifier.
+         */
         public DockContainerRootBranchStateBuilder(
                 final String identifier
         ) {
             this.identifier = requireNonNull(identifier);
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param dockableState the {@link DockableState} to add.
+         */
         public DockContainerRootBranchStateBuilder addChildDockableState(final DockableState dockableState) {
             this.childDockableStates.add(requireNonNull(dockableState));
             return this;
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param pruneWhenEmpty whether empty branches should be pruned,
+         * {@code null} leaves prune-when-empty unspecified.
+         */
         public DockContainerRootBranchStateBuilder setPruneWhenEmpty(final @Nullable Boolean pruneWhenEmpty) {
             this.pruneWhenEmpty = pruneWhenEmpty;
             return this;
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param orientation the branch orientation, {@code null} leaves
+         * {@link Orientation} unspecified.
+         */
         public DockContainerRootBranchStateBuilder setOrientation(
                 final @Nullable Orientation orientation
         ) {
@@ -68,6 +89,11 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             return this;
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param dividerIndex the index of the divider.
+         * @param dividerPosition the divider position, between 0.0 and 1.0 (inclusive).
+         */
         public DockContainerRootBranchStateBuilder addDividerPosition(
                 final Integer dividerIndex,
                 final Double dividerPosition
@@ -79,6 +105,10 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             return this;
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param dockContainerState the {@link DockContainerState} to add.
+         */
         public DockContainerRootBranchStateBuilder addDockContainerState(
                 final DockContainerState dockContainerState
         ) {
@@ -86,6 +116,9 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
             return this;
         }
 
+        /**
+         * {@return the {@link DockContainerRootBranchState} built from this builder.}
+         */
         public DockContainerRootBranchState build() {
             return new DockContainerRootBranchState(
                     identifier,

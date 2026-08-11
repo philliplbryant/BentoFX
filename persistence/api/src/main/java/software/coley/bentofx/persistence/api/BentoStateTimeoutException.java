@@ -18,10 +18,19 @@ package software.coley.bentofx.persistence.api;
  */
 public class BentoStateTimeoutException extends BentoStateException {
 
+    /**
+     * Constructor.
+     * @param message describes which task timed out, and after how long.
+     */
     public BentoStateTimeoutException(final String message) {
         super(message);
     }
 
+    /**
+     * Constructor.
+     * @param message describes which task timed out, and after how long.
+     * @param throwable the underlying failure.
+     */
     public BentoStateTimeoutException(
             final String message,
             final Throwable throwable

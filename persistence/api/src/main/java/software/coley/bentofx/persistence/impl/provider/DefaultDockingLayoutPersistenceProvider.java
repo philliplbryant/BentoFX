@@ -36,6 +36,11 @@ public class DefaultDockingLayoutPersistenceProvider
     private final List<LayoutCodecProvider> layoutCodecProviders;
     private final List<LayoutStorageProvider> layoutStorageProviders;
 
+    /**
+     * Constructs a provider whose codec and storage providers are discovered
+     * once, now, with {@code ServiceLoader}. A provider registered after this
+     * runs will not be seen.
+     */
     public DefaultDockingLayoutPersistenceProvider() {
         this(
                 loadProviders(LayoutCodecProvider.class),
@@ -43,6 +48,15 @@ public class DefaultDockingLayoutPersistenceProvider
         );
     }
 
+    /**
+     * Constructor taking the providers explicitly, bypassing
+     * {@code ServiceLoader} discovery.
+     *
+     * @param layoutCodecProviders the {@link LayoutCodecProvider}s to choose a
+     * codec from.
+     * @param layoutStorageProviders the {@link LayoutStorageProvider}s to choose
+     * a storage from.
+     */
     public DefaultDockingLayoutPersistenceProvider(
             final List<LayoutCodecProvider> layoutCodecProviders,
             final List<LayoutStorageProvider> layoutStorageProviders

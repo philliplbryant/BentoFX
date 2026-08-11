@@ -130,6 +130,9 @@ public class DockableState extends IdentifiableState {
         return Optional.ofNullable(dockableConsumer);
     }
 
+    /**
+     * Builds a {@link DockableState}.
+     */
     public static class DockableStateBuilder {
 
         private final String identifier;

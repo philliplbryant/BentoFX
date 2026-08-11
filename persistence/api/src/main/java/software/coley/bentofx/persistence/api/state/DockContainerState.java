@@ -19,6 +19,14 @@ public class DockContainerState extends IdentifiableState {
     @Nullable
     private final Boolean pruneWhenEmpty;
 
+    /**
+     * Constructor.
+     * @param identifier the {@code DockContainer} identifier.
+     * @param pruneWhenEmpty whether the container should be pruned when it holds
+     * nothing, {@code null} leaves it unspecified.
+     * @param childDockableStates the {@link DockableState}s for the
+     * {@code Dockable}s the container holds directly.
+     */
     protected DockContainerState(
             final String identifier,
             final @Nullable Boolean pruneWhenEmpty,
@@ -44,18 +52,34 @@ public class DockContainerState extends IdentifiableState {
         return Optional.ofNullable(pruneWhenEmpty);
     }
 
+    /**
+     * Builds a {@link DockContainerState}.
+     */
     public static class DockContainerStateBuilder {
 
+        /** The {@code DockContainer} identifier. */
         protected final String identifier;
+
+        /** States for the {@code Dockable}s the container holds directly. */
         protected final List<DockableState> childDockableStates = new ArrayList<>();
+
+        /** Whether to prune the container when it holds nothing. */
         protected @Nullable Boolean pruneWhenEmpty;
 
+        /**
+         * Constructor.
+         * @param identifier the {@code DockContainer} identifier.
+         */
         public DockContainerStateBuilder(
                 final String identifier
         ) {
             this.identifier = requireNonNull(identifier);
         }
 
+        /**
+         * {@return this builder for chaining method calls.}
+         * @param dockableState the {@link DockableState} to add.
+         */
         public DockContainerStateBuilder addChildDockableState(final DockableState dockableState) {
             this.childDockableStates.add(requireNonNull(dockableState));
             return this;
@@ -71,6 +95,9 @@ public class DockContainerState extends IdentifiableState {
             return this;
         }
 
+        /**
+         * {@return the {@link DockContainerState} built from this builder.}
+         */
         public DockContainerState build() {
             return new DockContainerState(
                     identifier,
