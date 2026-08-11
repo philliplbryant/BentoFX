@@ -29,6 +29,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * try-with-resources block to automatically call {@link #close()} to save the
  * docking layout when the try block exits.
  *
+ * <p><b>Auto-save must be started explicitly</b>, by calling
+ * {@link #enableAutoSave(Long, TimeUnit)} once the instance is fully
+ * constructed. It is deliberately not started by the constructor: doing so
+ * handed {@code this} to a scheduler thread and registered it on every
+ * {@link Bento}'s event bus before subclass fields had been assigned, so a save
+ * firing in that window could observe a half-built object. Subclasses cannot fix
+ * that themselves - the superclass constructor always runs first. Instances
+ * obtained from
+ * {@link software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider}
+ * already have auto-save running.</p>
+ *
  * @author Phil Bryant
  */
 public abstract class AbstractAutoCloseableLayoutSaver
@@ -48,13 +59,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
     private @Nullable ScheduledExecutorService scheduler;
     private @Nullable ScheduledFuture<?> scheduledSaveTask;
 
-    private long autoSaveInterval =
-            DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES;
-
-    private TimeUnit autoSaveTimeUnit =
-            TimeUnit.MINUTES;
-
-    /**
+	/**
      * The {@link BentoProvider} containing the {@link Bento} instances whose
      * {@link DockEvent}s will be used to determine whether the docking layout
      * should be saved.
@@ -63,10 +68,12 @@ public abstract class AbstractAutoCloseableLayoutSaver
 
 
     /**
-     * Constructs an {@code AbstractAutoCloseableLayoutSaver} and listens for
-     * {@link DockEvent}s originating from the specified {@link Bento} to
-     * determine whether the docking layout should be saved at scheduled
-     * intervals and/or when exiting a try-with-resources block.
+     * Constructs an {@code AbstractAutoCloseableLayoutSaver}.
+     *
+     * <p>Auto-save is <b>not</b> started here - see the class documentation for
+     * why. Call {@link #enableAutoSave(Long, TimeUnit)} once construction is
+     * complete, or use {@link #startAutoSave(AbstractAutoCloseableLayoutSaver)}
+     * which does that for you.</p>
      *
      * @param bentoProvider The {@link BentoProvider} containing the
      *                      {@link Bento} instances whose {@link DockEvent}s
@@ -78,7 +85,30 @@ public abstract class AbstractAutoCloseableLayoutSaver
     ) {
 
         this.bentoProvider = Objects.requireNonNull(bentoProvider);
-        enableAutoSave(autoSaveInterval, autoSaveTimeUnit);
+    }
+
+    /**
+     * Starts auto-save on a fully constructed saver at the default interval and
+     * returns it, so a factory can build and arm an instance in one expression.
+     *
+     * <p>This is the safe counterpart to enabling auto-save from the constructor:
+     * by the time this runs, every constructor in the hierarchy has completed, so
+     * the scheduler thread and the {@link Bento} event buses only ever see a
+     * fully initialised object.</p>
+     *
+     * @param saver the saver to start auto-saving.
+     * @param <T> the saver type, preserved so callers do not have to cast.
+     * @return the supplied saver, with auto-save running.
+     */
+    public static <T extends AbstractAutoCloseableLayoutSaver> T startAutoSave(
+            final T saver
+    ) {
+        Objects.requireNonNull(saver);
+        saver.enableAutoSave(
+                DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES,
+                TimeUnit.MINUTES
+        );
+        return saver;
     }
 
     /**
@@ -115,9 +145,6 @@ public abstract class AbstractAutoCloseableLayoutSaver
         if (requestedAutoSaveInterval <= 0) {
             throw new IllegalArgumentException("autoSaveInterval must be greater than zero");
         }
-
-        this.autoSaveInterval = requestedAutoSaveInterval;
-        this.autoSaveTimeUnit = Objects.requireNonNull(autoSaveTimeUnit);
 
         disableAutoSave();
 
@@ -174,9 +201,15 @@ public abstract class AbstractAutoCloseableLayoutSaver
         }
 
         try {
-            if (isAutoSaveEnabled) {
-                autoSave(true);
-            }
+            // Deliberately not gated on isAutoSaveEnabled. Saving on close and
+            // saving on a timer are independent concerns, and the class
+            // documentation promises try-with-resources will save on exit. Gating
+            // meant disableAutoSave() silently also disabled save-on-exit, and
+            // now that the constructor no longer starts auto-save it would also
+            // mean a directly constructed saver never flushed at all. autoSave
+            // still short-circuits when no dock events have been received, so a
+            // close with nothing to save remains cheap.
+            autoSave(true);
         } finally {
             disableAutoSave();
         }

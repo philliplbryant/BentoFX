@@ -6,8 +6,16 @@ import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.*;
+import software.coley.bentofx.persistence.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutPersistenceComponentProvider;
+import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.impl.AbstractAutoCloseableLayoutSaver;
 import software.coley.bentofx.persistence.impl.DockingLayoutRestorer;
 import software.coley.bentofx.persistence.impl.DockingLayoutSaver;
 
@@ -76,7 +84,12 @@ public class DefaultDockingLayoutPersistenceProvider
                         layoutCodec.getIdentifier()
                 );
 
-        return new DockingLayoutSaver(layoutCodec, layoutStorage, bentoProvider);
+        // Construct first, then arm. AbstractAutoCloseableLayoutSaver no longer
+        // starts auto-save from its constructor, because that published a
+        // half-built object to a scheduler thread and to every Bento event bus.
+        return AbstractAutoCloseableLayoutSaver.startAutoSave(
+                new DockingLayoutSaver(layoutCodec, layoutStorage, bentoProvider)
+        );
     }
 
     @Override
