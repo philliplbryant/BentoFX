@@ -67,27 +67,23 @@ public class BentoState extends IdentifiableState {
 
         /**
          * {@return this builder for chaining method calls.}
-         * @param rootBranchStates the {@link DockContainerRootBranchState} to add.
+         * @param rootBranchState the {@link DockContainerRootBranchState} to add.
          */
         public BentoStateBuilder addRootBranchState(
-                final DockContainerRootBranchState... rootBranchStates
+                final DockContainerRootBranchState rootBranchState
         ) {
-            this.rootBranchStates.addAll(
-                    List.of(requireNonNull(rootBranchStates))
-            );
+            this.rootBranchStates.add(requireNonNull(rootBranchState));
             return this;
         }
 
         /**
          * {@return this builder for chaining method calls.}
-         * @param dragDropStageStates the {@link DragDropStageState} to add.
+         * @param dragDropStageState the {@link DragDropStageState} to add.
          */
         public BentoStateBuilder addDragDropStageState(
-                final DragDropStageState... dragDropStageStates
+                final DragDropStageState dragDropStageState
         ) {
-            this.dragDropStageStates.addAll(
-                    List.of(requireNonNull(dragDropStageStates))
-            );
+            this.dragDropStageStates.add(requireNonNull(dragDropStageState));
             return this;
         }
 
