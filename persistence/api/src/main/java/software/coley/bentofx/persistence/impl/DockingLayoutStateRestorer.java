@@ -164,19 +164,32 @@ final class DockingLayoutStateRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        // Create the DockContainerRootBranch and add it to the DragDropStage
-        stageState.getDockContainerRootBranchState().ifPresent(
-                dockContainerRootBranchState -> {
-
-                    final DockContainerRootBranch rootContainer =
-                            restoreRootBranchContainer(
-                                    dockBuilding,
-                                    dockContainerRootBranchState
+        // Every restored stage gets a scene, even when the persisted state held no
+        // root branch. A scene-less Stage is a live hazard rather than a harmless
+        // empty one: the captor dereferences the scene on the next save, and core's
+        // own WINDOW_HIDDEN/WINDOW_SHOWN filters on DragDropStage do the same as
+        // soon as anything shows it - which callers do unconditionally for every
+        // stage in the returned layout. Falling back to an empty root keeps the
+        // stage inert instead.
+        final DockContainerRootBranch rootContainer =
+                stageState.getDockContainerRootBranchState()
+                        .map(dockContainerRootBranchState ->
+                                restoreRootBranchContainer(
+                                        dockBuilding,
+                                        dockContainerRootBranchState
+                                )
+                        )
+                        .orElseGet(() -> {
+                            logger.warn(
+                                    "Restored drag/drop stage '{}' has no " +
+                                            "persisted root branch; giving it " +
+                                            "an empty one.",
+                                    stageState.getTitle().orElse("<untitled>")
                             );
+                            return dockBuilding.root();
+                        });
 
-                    dragDropStage.setScene(new Scene(rootContainer));
-                }
-        );
+        dragDropStage.setScene(new Scene(rootContainer));
 
         // Restore the DragDropStage's icons
         if (stageIconImageProvider != null) {

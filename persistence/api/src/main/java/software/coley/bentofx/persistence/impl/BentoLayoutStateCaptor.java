@@ -1,7 +1,9 @@
 package software.coley.bentofx.persistence.impl;
 
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
+import javafx.stage.Stage;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,27 +132,26 @@ final class BentoLayoutStateCaptor {
 	 * @param stage the drag-and-drop stage to inspect
 	 *
 	 * @return an association containing the stage and its root branch, or an
-	 * empty {@link Optional} when the scene root is not a
-	 * {@link DockContainerRootBranch}
+	 * empty {@link Optional} when the stage has no scene, or its scene root is not
+	 * a {@link DockContainerRootBranch}
 	 */
 	private Optional<DragDropStageRoot> toDragDropStageRoot(
 			final DragDropStage stage
 	) {
 
-		final Parent sceneRoot = stage.getScene().getRoot();
+		final DockContainerRootBranch rootBranch =
+				getDockContainerRootBranch(stage);
 
-		if (sceneRoot instanceof
-				final DockContainerRootBranch rootBranch) {
-
-			return Optional.of(
-					new DragDropStageRoot(
-							stage,
-							rootBranch
-					)
-			);
+		if (rootBranch == null) {
+			return Optional.empty();
 		}
 
-		return Optional.empty();
+		return Optional.of(
+				new DragDropStageRoot(
+						stage,
+						rootBranch
+				)
+		);
 	}
 
 	/**
@@ -217,8 +218,13 @@ final class BentoLayoutStateCaptor {
 
 	/**
 	 * {@return the {@link DockContainerRootBranch} for the specified
-	 * {@link DragDropStage}, {@code null} when the stage root is not a
-	 * {@link DockContainerRootBranch}.}
+	 * {@link DragDropStage}, {@code null} when the stage has no scene or its scene
+	 * root is not a {@link DockContainerRootBranch}.}
+	 *
+	 * <p>The null-scene case is not hypothetical. A {@link Stage} carries no scene
+	 * until one is assigned, and this module's own restorer can hand back a
+	 * scene-less {@link DragDropStage} when the persisted state held no root
+	 * branch.</p>
 	 *
 	 * @param stage the {@link DragDropStage} whose {@link DockContainerRootBranch}
 	 * is to be found.
@@ -226,13 +232,24 @@ final class BentoLayoutStateCaptor {
 	private @Nullable DockContainerRootBranch getDockContainerRootBranch(
 			final DragDropStage stage
 	) {
-		final Parent parent = stage.getScene().getRoot();
-		if (parent instanceof final DockContainerRootBranch rootBranch) {
-			return rootBranch;
-		} else {
-			logger.debug("Ignoring unknown parent {}", parent);
+		final Scene scene = stage.getScene();
+
+		if (scene == null) {
+			logger.debug(
+					"Ignoring drag/drop stage with no scene: {}",
+					stage
+			);
 			return null;
 		}
+
+		final Parent parent = scene.getRoot();
+
+		if (parent instanceof final DockContainerRootBranch rootBranch) {
+			return rootBranch;
+		}
+
+		logger.debug("Ignoring unknown parent {}", parent);
+		return null;
 	}
 
 	/**
