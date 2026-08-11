@@ -1,6 +1,11 @@
 package software.coley.bentofx.layout.container;
 
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -400,6 +405,34 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 			case LEFT, RIGHT -> uncollapsedWidth.get();
 			case null -> throw new IllegalStateException("Container with null side should not be collapsed");
 		};
+	}
+
+	/**
+	 * Sets the size this container will occupy when it is uncollapsed. The public
+	 * counterpart to {@link #getUncollapsedSize()}, intended for restoring a size
+	 * that was recorded earlier - for instance by a layout persistence layer
+	 * re-applying a saved layout.
+	 * <p/>
+	 * While this container is uncollapsed the tracking properties are bound to its
+	 * live width and height, so a value set here would be overwritten immediately
+	 * and is ignored. Call this only while {@link #isCollapsed()} is {@code true},
+	 * which is when the tracking properties are unbound and the value is the one
+	 * that will be restored on expansion.
+	 *
+	 * @param size
+	 * 		Size to occupy once uncollapsed.
+	 *
+	 * @return {@code true} when the size was applied, {@code false} when it was
+	 * ignored because this container is not collapsed.
+	 *
+	 * @see #getUncollapsedSize()
+	 */
+	public boolean setUncollapsedSize(double size) {
+		if (uncollapsedWidth.isBound() || uncollapsedHeight.isBound())
+			return false;
+
+		updateCollapsedSize(size);
+		return true;
 	}
 
 	/**

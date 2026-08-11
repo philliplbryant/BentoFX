@@ -633,7 +633,42 @@ final class DockingLayoutStateRestorer {
                 leafState.isCollapsed().ifPresent(isCollapsed ->
                         branch.setContainerCollapsed(leaf, isCollapsed)
                 );
+
+                restoreUncollapsedSize(leafState, leaf);
             }
         }
+    }
+
+    /**
+     * Restores the size a collapsed {@link DockContainerLeaf} will occupy once the
+     * user expands it again.
+     *
+     * <p>Order matters, which is why this runs after
+     * {@link DockContainerBranch#setContainerCollapsed}. While a leaf is
+     * uncollapsed its uncollapsed-size properties are bound to its live width and
+     * height, so a value written before the collapse would be discarded.
+     * Collapsing unbinds them, and only then can the persisted size be applied.
+     * For a leaf that is not collapsed there is nothing to restore: its size comes
+     * from the layout and the divider positions.</p>
+     *
+     * @param leafState the persisted state holding the uncollapsed size.
+     * @param leaf      the {@link DockContainerLeaf} to apply the size to.
+     */
+    private static void restoreUncollapsedSize(
+            final DockContainerLeafState leafState,
+            final DockContainerLeaf leaf
+    ) {
+        if (!leaf.isCollapsed()) {
+            return;
+        }
+
+        leafState.getUncollapsedSizePx().ifPresent(uncollapsedSizePx -> {
+            if (!leaf.setUncollapsedSize(uncollapsedSizePx)) {
+                logger.debug(
+                        "Could not restore the uncollapsed size for leaf {}.",
+                        leaf.getIdentifier()
+                );
+            }
+        });
     }
 }
