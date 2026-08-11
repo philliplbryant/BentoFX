@@ -384,7 +384,21 @@ final class BentoLayoutStateCaptor {
 
 		leafStateBuilder.setCanSplit(leaf.isCanSplit());
 
-		leafStateBuilder.setUncollapsedSizePx(leaf.getUncollapsedSize());
+		// Only ask for the uncollapsed size when the leaf has a side. A leaf's side
+		// is legitimately nullable - setSide(@Nullable Side) is public and
+		// documented as "null to not display any headers" - but core's
+		// getUncollapsedSize() switches on the side and throws for the null case.
+		// That throw happens here, outside the per-dockable guard below, so a single
+		// headerless leaf anywhere in the tree aborted the save for every Bento. The
+		// field is optional in DockContainerLeafState, so omitting it is a supported
+		// outcome rather than a loss; and a leaf with no headers cannot be collapsed
+		// by core in the first place, which is what the size is for.
+		//
+		// Guarding on isCollapsed() instead would be wrong: an uncollapsed leaf's
+		// size is exactly the value we want recorded for a later collapse.
+		if (leaf.getSide() != null) {
+			leafStateBuilder.setUncollapsedSizePx(leaf.getUncollapsedSize());
+		}
 
 		leafStateBuilder.setCollapsed(leaf.isCollapsed());
 
