@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface DockContainerLeafMenuFactoryProvider {
 
     /**
-     * {@return an {@link Optional} caontaining the
+     * {@return an {@link Optional} containing the
      * {@link DockContainerLeafMenuFactory} for the identifier, an empty
      * {@code Optional} when no {@link DockContainerLeafMenuFactory} is
      * available for the identifier.}

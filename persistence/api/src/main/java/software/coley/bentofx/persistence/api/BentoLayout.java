@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Defines the layout of a {code Bento} for persisting it.
+ * Defines the layout of a {@code Bento} for persisting it.
  *
  * @author Phil Bryant
  */

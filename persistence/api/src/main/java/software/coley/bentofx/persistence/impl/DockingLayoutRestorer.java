@@ -38,7 +38,7 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     private final DockingLayoutStateRestorer dockingLayoutStateRestorer;
 
     /**
-     * Constructs a {code DockingLayoutRestorer}.
+     * Constructs a {@code DockingLayoutRestorer}.
      *
      * @param layoutCodec                          the {@link LayoutCodec} to use to decode the persisted
      *                                             layout.

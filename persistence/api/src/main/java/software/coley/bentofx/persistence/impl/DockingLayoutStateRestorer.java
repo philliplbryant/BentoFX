@@ -304,8 +304,9 @@ final class DockingLayoutStateRestorer {
     }
 
     /**
-     * Restores a {@link DockContainer} from a {@link DockContainerBranchState
+     * Restores a {@link DockContainer} from a {@link DockContainerBranchState}
      * or {@link DockContainerLeafState}.
+     *
      * @param dockBuilding       the {@link DockBuilding} used to create the restored
      *                           {@link DockContainer}.
      * @param dockContainerState the {@link DockContainerState} defining the
@@ -363,15 +364,11 @@ final class DockingLayoutStateRestorer {
             final DockContainer container =
                     restoreDockContainer(dockBuilding, dockContainerState);
 
+            // A null container means restoreDockContainer did not recognise the
+            // state type, which it has already logged. Skip it silently here, as
+            // restoreChildDockContainers does.
             if (container != null) {
                 branch.addContainer(container);
-            } else {
-
-                logger.warn(
-                        "Attempting to restore null DockContainer from " +
-                                "DockContainerState: {}",
-                        dockContainerState.getClass()
-                );
             }
         }
 
@@ -562,7 +559,7 @@ final class DockingLayoutStateRestorer {
      * Applies divider positions to a branch, deferred until after the initial
      * layout pass.
      *
-     * @param dividerPositions the diver positions to be applied.
+     * @param dividerPositions the divider positions to be applied.
      * @param branch           the {@link DockContainerBranch} containing the
      *                         {@code Divider}s.
      */

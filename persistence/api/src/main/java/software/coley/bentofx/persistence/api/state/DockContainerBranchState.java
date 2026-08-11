@@ -3,7 +3,11 @@ package software.coley.bentofx.persistence.api.state;
 import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -37,7 +41,7 @@ public class DockContainerBranchState extends DockContainerState {
     }
 
     /**
-     * {@return 2n {@link Optional} containing the branch {@link Orientation},
+     * {@return an {@link Optional} containing the branch {@link Orientation},
      * an empty {@link Optional} when the {@link Orientation} has not been
      * specified.}
      */

@@ -122,7 +122,7 @@ public class DockableState extends IdentifiableState {
 
     /**
      * {@return an {@link Optional} containing the {@link Consumer} to call when
-     * the {@link Dockable} has been added to the docking layout, , an empty
+     * the {@link Dockable} has been added to the docking layout, an empty
      * {@code Optional} when no {@link Consumer} was provided when building this
      * {@link DockableState}.}
      */

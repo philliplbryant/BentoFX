@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * docking layout when the try block exits.
  *
  * <p><b>Auto-save must be started explicitly</b>, by calling
- * {@link #enableAutoSave(Long, TimeUnit)} once the instance is fully
+ * {@link #enableAutoSave(long, TimeUnit)} once the instance is fully
  * constructed. It is deliberately not started by the constructor: doing so
  * handed {@code this} to a scheduler thread and registered it on every
  * {@link Bento}'s event bus before subclass fields had been assigned, so a save
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider}
  * already have auto-save running.</p>
  *
- * <p><b>Thread safety.</b> {@link #enableAutoSave(Long, TimeUnit)},
+ * <p><b>Thread safety.</b> {@link #enableAutoSave(long, TimeUnit)},
  * {@link #disableAutoSave()} and {@link #close()} may be called from any thread
  * and are mutually exclusive; the auto-save lifecycle state they share is guarded
  * by a private lock. {@link #close()} is idempotent. What is <em>not</em>
@@ -79,7 +79,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      *
      * <p><b>A save must never run while this lock is held.</b> Saving hands work
      * to the JavaFX application thread and waits for it, and the JavaFX thread may
-     * itself call {@link #enableAutoSave(Long, TimeUnit)} or {@link #close()} -
+     * itself call {@link #enableAutoSave(long, TimeUnit)} or {@link #close()} -
      * holding the lock across a save would deadlock the two against each other.
      * {@link #close()} therefore saves first and only then takes the lock to tear
      * down.</p>
@@ -114,7 +114,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * Constructs an {@code AbstractAutoCloseableLayoutSaver}.
      *
      * <p>Auto-save is <b>not</b> started here - see the class documentation for
-     * why. Call {@link #enableAutoSave(Long, TimeUnit)} once construction is
+     * why. Call {@link #enableAutoSave(long, TimeUnit)} once construction is
      * complete, or use {@link #startAutoSave(AbstractAutoCloseableLayoutSaver)}
      * which does that for you.</p>
      *
@@ -176,12 +176,10 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * @see #disableAutoSave() to disable automatic saving.
      */
     public void enableAutoSave(
-            final Long autoSaveInterval,
+            final long autoSaveInterval,
             final TimeUnit autoSaveTimeUnit
     ) {
-        final long requestedAutoSaveInterval =
-                Objects.requireNonNull(autoSaveInterval);
-        if (requestedAutoSaveInterval <= 0) {
+        if (autoSaveInterval <= 0) {
             throw new IllegalArgumentException("autoSaveInterval must be greater than zero");
         }
 
@@ -205,8 +203,8 @@ public abstract class AbstractAutoCloseableLayoutSaver
             this.scheduler = newScheduler;
             this.scheduledSaveTask = newScheduler.scheduleAtFixedRate(
                     () -> autoSave(false),
-                    requestedAutoSaveInterval,
-                    requestedAutoSaveInterval,
+                    autoSaveInterval,
+                    autoSaveInterval,
                     requestedTimeUnit
             );
             addListeners();
@@ -220,7 +218,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
     /**
      * Disables functionality to automatically save the docking layout.
      *
-     * @see #enableAutoSave(Long, TimeUnit)  to enable automatic saving.
+     * @see #enableAutoSave(long, TimeUnit) to enable automatic saving.
      */
     public void disableAutoSave() {
         synchronized (autoSaveLock) {
@@ -232,7 +230,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * Tears down the scheduler and listeners.
      *
      * <p>Must be called holding {@link #autoSaveLock}. Exists separately from
-     * {@link #disableAutoSave()} so {@link #enableAutoSave(Long, TimeUnit)} can
+     * {@link #disableAutoSave()} so {@link #enableAutoSave(long, TimeUnit)} can
      * reset state within a single critical section rather than releasing the lock
      * between disabling and re-arming - a gap in which another thread could
      * observe auto-save as neither on nor off, or interleave its own teardown.</p>

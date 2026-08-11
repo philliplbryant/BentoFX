@@ -68,7 +68,7 @@ public class BentoState extends IdentifiableState {
 
         /**
          * {@return this builder for chaining method calls.}
-         * @param dragDropStageStates the {@link DragDropStageState} to add.         *
+         * @param dragDropStageStates the {@link DragDropStageState} to add.
          */
         public BentoStateBuilder addDragDropStageState(
                 final DragDropStageState... dragDropStageStates

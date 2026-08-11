@@ -56,7 +56,7 @@ final class PersistenceThreading {
     static final long FX_CLOSE_TIMEOUT_MILLIS = 3_000L;
 
     private PersistenceThreading() {
-        // Utility class.
+        throw new IllegalStateException("Utility class");
     }
 
     /**

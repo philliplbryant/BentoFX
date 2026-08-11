@@ -24,7 +24,7 @@ module bento.fx.persistence.api {
     requires javafx.controls;
     requires org.slf4j;
 
-	exports software.coley.bentofx.persistence.api.codec;
+    exports software.coley.bentofx.persistence.api.codec;
     exports software.coley.bentofx.persistence.api.provider;
     exports software.coley.bentofx.persistence.api.storage;
     exports software.coley.bentofx.persistence.api;
