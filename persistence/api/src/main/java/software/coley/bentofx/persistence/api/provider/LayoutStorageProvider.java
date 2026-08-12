@@ -18,6 +18,13 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
     /**
      * Returns a {@link LayoutStorage} that can be used to persist a Bento
      * layout.
+     * <p>
+     * Each call must return a fresh instance, even for arguments it has already
+     * been given. The caller takes ownership of what it is handed and closes it
+     * (see {@link LayoutStorage#close()}), so an implementation that caches and
+     * returns one instance per layout would have a closed saver take the
+     * restorer's storage down with it.
+     *
      * @return a {@link LayoutStorage} that can be used to persist a Bento
      * layout.
      */

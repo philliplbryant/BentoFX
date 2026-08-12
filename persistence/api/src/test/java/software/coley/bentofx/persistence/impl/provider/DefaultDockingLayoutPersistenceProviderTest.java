@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,12 +31,18 @@ class DefaultDockingLayoutPersistenceProviderTest {
     private static final String FILE_STORAGE_IDENTIFIER = "file";
     private static final String DATABASE_STORAGE_IDENTIFIER = "h2";
 
-    private static final String DATABASEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION = "databaseProvider.getLayoutIdentifier()";
+    private static final String DATABASE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION =
+            "databaseProvider.getLayoutIdentifier()";
     private static final String EXCEPTION_THROWN_BY_PROVIDER_GET_DESCRIPTION =
             "exception thrown by () -> provider.getLayoutSaver(\"default\", new DefaultBentoProvider())";
-    private static final String FILEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION = "fileProvider.getLayoutIdentifier()";
-    private static final String JSONPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION = "jsonProvider.getCreatedCodecCount()";
-    private static final String XMLPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION = "xmlProvider.getCreatedCodecCount()";
+    private static final String FILE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION =
+            "fileProvider.getLayoutIdentifier()";
+    private static final String JSON_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION =
+            "jsonProvider.getCreatedCodecCount()";
+    private static final String XML_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION =
+            "xmlProvider.getCreatedCodecCount()";
+    private static final String STORAGE_PROVIDER_GET_CREATED_LAYOUT_STORAGES_DESCRIPTION =
+            "storageProvider.getCreatedLayoutStorages()";
 
     @Test
     void usesSingleCodecAndStorageProvidersWithoutExplicitSelection() throws BentoStateException {
@@ -80,16 +87,16 @@ class DefaultDockingLayoutPersistenceProviderTest {
         );
 
         assertThat(jsonProvider.getCreatedCodecCount())
-                .describedAs(JSONPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION)
+                .describedAs(JSON_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION)
                 .isZero();
         assertThat(xmlProvider.getCreatedCodecCount())
-                .describedAs(XMLPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION)
+                .describedAs(XML_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION)
                 .isEqualTo(1);
         assertThat(fileProvider.getLayoutIdentifier())
-                .describedAs(FILEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION)
+                .describedAs(FILE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
                 .isNull();
         assertThat(databaseProvider.getLayoutIdentifier())
-                .describedAs(DATABASEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION)
+                .describedAs(DATABASE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
                 .isEqualTo(DEFAULT_LAYOUT_IDENTIFIER);
         assertThat(databaseProvider.getCodecIdentifier())
                 .describedAs("databaseProvider.getCodecIdentifier()")
@@ -112,19 +119,19 @@ class DefaultDockingLayoutPersistenceProviderTest {
         provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
 
         assertThat(jsonProvider.getCreatedCodecCount())
-                .describedAs(JSONPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION)
+                .describedAs(JSON_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION)
                 .isZero();
         assertThat(xmlProvider.getCreatedCodecCount())
-                .describedAs(XMLPROVIDER_GET_CREATEDCODECCOUNT_DESCRIPTION)
+                .describedAs(XML_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION)
                 .isEqualTo(1);
         assertThat(fileProvider.getLayoutIdentifier())
-                .describedAs(FILEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION)
+                .describedAs(FILE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
                 .isEqualTo(DEFAULT_LAYOUT_IDENTIFIER);
         assertThat(fileProvider.getCodecIdentifier())
                 .describedAs("fileProvider.getCodecIdentifier()")
                 .isEqualTo(XML_CODEC_IDENTIFIER);
         assertThat(databaseProvider.getLayoutIdentifier())
-                .describedAs(DATABASEPROVIDER_GET_LAYOUTIDENTIFIER_DESCRIPTION)
+                .describedAs(DATABASE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
                 .isNull();
     }
 
@@ -147,8 +154,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
         layoutSaver.close();
         layoutSaver.close();
 
-        assertThat(storageProvider.getLayoutStorage().getCloseCount())
-                .describedAs("storageProvider.getLayoutStorage().getCloseCount()")
+        assertThat(storageProvider.getCreatedLayoutStorages())
+                .describedAs(STORAGE_PROVIDER_GET_CREATED_LAYOUT_STORAGES_DESCRIPTION)
+                .singleElement()
+                .extracting(CloseTrackingLayoutStorage::getCloseCount)
                 .isEqualTo(1);
     }
 
@@ -176,9 +185,50 @@ class DefaultDockingLayoutPersistenceProviderTest {
         layoutRestorer.close();
         layoutRestorer.close();
 
-        assertThat(storageProvider.getLayoutStorage().getCloseCount())
-                .describedAs("storageProvider.getLayoutStorage().getCloseCount()")
+        assertThat(storageProvider.getCreatedLayoutStorages())
+                .describedAs(STORAGE_PROVIDER_GET_CREATED_LAYOUT_STORAGES_DESCRIPTION)
+                .singleElement()
+                .extracting(CloseTrackingLayoutStorage::getCloseCount)
                 .isEqualTo(1);
+    }
+
+    @Test
+    void closingAProviderCreatedSaverLeavesTheRestorersStorageOpen() throws BentoStateException {
+        final TestLayoutCodecProvider codecProvider =
+                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final CloseTrackingLayoutStorageProvider storageProvider =
+                new CloseTrackingLayoutStorageProvider(FILE_STORAGE_IDENTIFIER);
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(codecProvider),
+                        List.of(storageProvider)
+                );
+
+        final LayoutSaver layoutSaver =
+                provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
+        provider.getLayoutRestorer(
+                DEFAULT_LAYOUT_IDENTIFIER,
+                new DefaultBentoProvider(),
+                actualId -> Optional.empty(),
+                null,
+                null
+        );
+
+        layoutSaver.close();
+
+        // A storage each, and closing the saver must not reach the restorer's.
+        // Collapsing the provider's two getLayoutStorage calls into one shared
+        // instance is what this guards against: a saver that outlives nothing
+        // would still shut the storage the restorer reads from.
+        final List<CloseTrackingLayoutStorage> createdLayoutStorages =
+                storageProvider.getCreatedLayoutStorages();
+        assertThat(createdLayoutStorages)
+                .describedAs(STORAGE_PROVIDER_GET_CREATED_LAYOUT_STORAGES_DESCRIPTION)
+                .hasSize(2);
+        assertThat(createdLayoutStorages.get(1).getCloseCount())
+                .describedAs("close count of the restorer's storage")
+                .isZero();
     }
 
     @Test
@@ -252,10 +302,15 @@ class DefaultDockingLayoutPersistenceProviderTest {
     }
 
 
+    /**
+     * Hands out a fresh storage per call, the way a real
+     * {@link LayoutStorageProvider} does, and keeps every instance it created so
+     * a test can tell which component closed which.
+     */
     private static final class CloseTrackingLayoutStorageProvider implements LayoutStorageProvider {
         private final String identifier;
-        private final CloseTrackingLayoutStorage layoutStorage =
-                new CloseTrackingLayoutStorage();
+        private final List<CloseTrackingLayoutStorage> createdLayoutStorages =
+                new ArrayList<>();
 
         private CloseTrackingLayoutStorageProvider(final String identifier) {
             this.identifier = identifier;
@@ -271,11 +326,14 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 final String layoutIdentifier,
                 final String codecIdentifier
         ) {
+            final CloseTrackingLayoutStorage layoutStorage =
+                    new CloseTrackingLayoutStorage();
+            createdLayoutStorages.add(layoutStorage);
             return layoutStorage;
         }
 
-        private CloseTrackingLayoutStorage getLayoutStorage() {
-            return layoutStorage;
+        private List<CloseTrackingLayoutStorage> getCreatedLayoutStorages() {
+            return createdLayoutStorages;
         }
     }
 

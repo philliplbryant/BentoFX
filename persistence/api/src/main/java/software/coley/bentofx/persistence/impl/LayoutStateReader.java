@@ -31,6 +31,19 @@ final class LayoutStateReader implements AutoCloseable {
     }
 
     /**
+     * Returns {@code true} if a persisted layout exists in storage; otherwise,
+     * returns {@code false}. Exposed here rather than letting callers hold the
+     * {@link LayoutStorage} themselves, so that the reader is the only owner of
+     * the instance it closes.
+     *
+     * @return {@code true} if a persisted layout exists in storage; otherwise,
+     * {@code false}.
+     */
+    boolean layoutExists() {
+        return layoutStorage.exists();
+    }
+
+    /**
      * Reads and decodes persisted layout state. This method should run away
      * from the JavaFX application thread because it performs storage and codec
      * operations.

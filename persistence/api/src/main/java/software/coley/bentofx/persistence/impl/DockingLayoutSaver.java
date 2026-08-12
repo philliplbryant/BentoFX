@@ -30,7 +30,10 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
      * @param layoutCodec   the {@link LayoutCodec} to use to encode the persisted
      *                      layout.
      * @param layoutStorage the {@link LayoutStorage} to use to write the
-     *                      persisted layout.
+     *                      persisted layout. This saver takes ownership of it
+     *                      and closes it from {@link #close()}, so the same
+     *                      instance must not also be given to a
+     *                      {@link software.coley.bentofx.persistence.api.LayoutRestorer}.
      * @param bentoProvider the {@link BentoProvider} to use to get {@link Bento}
      *                      instances from their identifiers.
      */

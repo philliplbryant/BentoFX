@@ -20,6 +20,12 @@
       2. Include documentation.
       3. Include Gradle build files.
       4. Include GitHub workflows.
+      5. Initially perform on a per-module basis
+         - [x] persistenc/api
+         - [ ] persistence/codec
+         - [ ] persistence/storage
+         - [ ] persistence/test-fixtures
+         - [ ] demos/persistence
    2. Analyze code coverage reports.
       1. Exclude files in core and demos/basic.
       2. Create additional tests to increase coverage.

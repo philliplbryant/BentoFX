@@ -33,7 +33,6 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     private static final Logger logger =
             LoggerFactory.getLogger(DockingLayoutRestorer.class);
 
-    private final LayoutStorage layoutStorage;
     private final LayoutStateReader layoutStateReader;
     private final DockingLayoutStateRestorer dockingLayoutStateRestorer;
 
@@ -43,7 +42,10 @@ public class DockingLayoutRestorer implements LayoutRestorer {
      * @param layoutCodec                          the {@link LayoutCodec} to use to decode the persisted
      *                                             layout.
      * @param layoutStorage                        the {@link LayoutStorage} to use to read the
-     *                                             persisted layout.
+     *                                             persisted layout. This restorer takes ownership
+     *                                             of it and closes it from {@link #close()}, so the
+     *                                             same instance must not also be given to a
+     *                                             {@link software.coley.bentofx.persistence.api.LayoutSaver}.
      * @param bentoProvider                        the {@link BentoProvider} to use to get {@link Bento}
      *                                             instances
      *                                             from their identifier.
@@ -67,7 +69,6 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider
     ) {
         this(
-                layoutStorage,
                 new LayoutStateReader(layoutCodec, layoutStorage),
                 new DockingLayoutStateRestorer(
                         bentoProvider,
@@ -79,18 +80,16 @@ public class DockingLayoutRestorer implements LayoutRestorer {
     }
 
     DockingLayoutRestorer(
-            final LayoutStorage layoutStorage,
             final LayoutStateReader layoutStateReader,
             final DockingLayoutStateRestorer dockingLayoutStateRestorer
     ) {
-        this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.layoutStateReader = Objects.requireNonNull(layoutStateReader);
         this.dockingLayoutStateRestorer = Objects.requireNonNull(dockingLayoutStateRestorer);
     }
 
     @Override
     public boolean doesLayoutExist() {
-        return layoutStorage.exists();
+        return layoutStateReader.layoutExists();
     }
 
     @Override

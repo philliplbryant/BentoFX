@@ -92,6 +92,12 @@ public class DefaultDockingLayoutPersistenceProvider
         final LayoutCodec layoutCodec =
                 layoutCodecProvider.getLayoutCodec();
 
+        // A storage instance of this saver's own, not one shared with the
+        // restorer this provider hands out for the same profile. Whichever
+        // component receives a LayoutStorage closes it (see
+        // LayoutStorage.close()), so sharing one would let closing the saver
+        // shut the storage the restorer still reads from. Both calls name the
+        // same layout, so they still address the same persisted layout.
         final LayoutStorage layoutStorage =
                 layoutStorageProvider.getLayoutStorage(
                         layoutPersistenceProfile.layoutIdentifier(),
@@ -131,6 +137,8 @@ public class DefaultDockingLayoutPersistenceProvider
         final LayoutCodec layoutCodec =
                 layoutCodecProvider.getLayoutCodec();
 
+        // This restorer's own storage instance, for the ownership reason spelled
+        // out in getLayoutSaver above.
         final LayoutStorage layoutStorage =
                 layoutStorageProvider.getLayoutStorage(
                         layoutPersistenceProfile.layoutIdentifier(),
