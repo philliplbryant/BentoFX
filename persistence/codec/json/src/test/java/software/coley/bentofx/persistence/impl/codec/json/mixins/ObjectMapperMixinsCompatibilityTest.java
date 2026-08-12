@@ -20,24 +20,9 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.TOP;
 import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_LIST_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.BENTO_IDENTIFIER;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.BRANCH_IDENTIFIER;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.DOCKABLE_IDENTIFIER;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.LEAF_IDENTIFIER;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.ROOT_IDENTIFIER;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.STAGE_TITLE;
-import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
+import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.*;
 
 class ObjectMapperMixinsCompatibilityTest {
 
@@ -178,8 +163,8 @@ class ObjectMapperMixinsCompatibilityTest {
 		final JsonNodeFactory factory = JsonNodeFactory.instance;
 
 		final ObjectNode divider = factory.objectNode();
-		divider.put(FIELD_INDEX, 0);
-		divider.put(FIELD_POSITION, 0.42);
+		divider.set(FIELD_INDEX, factory.numberNode(0));
+		divider.set(FIELD_POSITION, factory.numberNode(0.42));
 
 		final ArrayNode dividerPositions = factory.arrayNode();
 		dividerPositions.add(divider);
@@ -192,7 +177,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ObjectNode branch = factory.objectNode();
 		branch.set(FIELD_TYPE, factory.textNode(BRANCH_ELEMENT_NAME));
 		branch.set(FIELD_IDENTIFIER, factory.textNode(BRANCH_IDENTIFIER));
-		branch.put(FIELD_PRUNE_WHEN_EMPTY, false);
+		branch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		branch.set(FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name()));
 		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
 		branch.set(FIELD_CHILDREN, children);
@@ -202,7 +187,7 @@ class ObjectMapperMixinsCompatibilityTest {
 
 		final ObjectNode rootBranch = factory.objectNode();
 		rootBranch.set(FIELD_IDENTIFIER, factory.textNode(ROOT_IDENTIFIER));
-		rootBranch.put(FIELD_PRUNE_WHEN_EMPTY, false);
+		rootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		rootBranch.set(FIELD_ORIENTATION, factory.textNode(VERTICAL.name()));
 		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
 		rootBranch.set(BRANCH_LIST_ELEMENT_NAME, branches);
@@ -210,20 +195,20 @@ class ObjectMapperMixinsCompatibilityTest {
 
 		final ObjectNode dragDropStage = factory.objectNode();
 		dragDropStage.set(FIELD_TITLE, factory.textNode(STAGE_TITLE));
-		dragDropStage.put(FIELD_X, 10.0);
-		dragDropStage.put(FIELD_Y, 20.0);
-		dragDropStage.put(FIELD_WIDTH, 800.0);
-		dragDropStage.put(FIELD_HEIGHT, 600.0);
-		dragDropStage.put(FIELD_MODALITY, NONE.name());
-		dragDropStage.put(FIELD_OPACITY, 0.9);
-		dragDropStage.put(FIELD_ICONIFIED, false);
-		dragDropStage.put(FIELD_FULL_SCREEN, false);
-		dragDropStage.put(FIELD_MAXIMIZED, true);
-		dragDropStage.put(FIELD_ALWAYS_ON_TOP, false);
-		dragDropStage.put(FIELD_RESIZABLE, true);
-		dragDropStage.put(FIELD_SHOWING, true);
-		dragDropStage.put(FIELD_FOCUSED, true);
-		dragDropStage.put(FIELD_AUTO_CLOSE_WHEN_EMPTY, true);
+		dragDropStage.set(FIELD_X, factory.numberNode(10.0));
+		dragDropStage.set(FIELD_Y, factory.numberNode(20.0));
+		dragDropStage.set(FIELD_WIDTH, factory.numberNode(800.0));
+		dragDropStage.set(FIELD_HEIGHT, factory.numberNode(600.0));
+		dragDropStage.set(FIELD_MODALITY, factory.textNode(NONE.name()));
+		dragDropStage.set(FIELD_OPACITY, factory.numberNode(0.9));
+		dragDropStage.set(FIELD_ICONIFIED, factory.booleanNode(false));
+		dragDropStage.set(FIELD_FULL_SCREEN, factory.booleanNode(false));
+		dragDropStage.set(FIELD_MAXIMIZED, factory.booleanNode(true));
+		dragDropStage.set(FIELD_ALWAYS_ON_TOP, factory.booleanNode(false));
+		dragDropStage.set(FIELD_RESIZABLE, factory.booleanNode(true));
+		dragDropStage.set(FIELD_SHOWING, factory.booleanNode(true));
+		dragDropStage.set(FIELD_FOCUSED, factory.booleanNode(true));
+		dragDropStage.set(FIELD_AUTO_CLOSE_WHEN_EMPTY, factory.booleanNode(true));
 		dragDropStage.set(ROOT_BRANCH_ELEMENT_NAME, rootBranch.deepCopy());
 
 		final ArrayNode rootBranches = factory.arrayNode();
@@ -241,7 +226,10 @@ class ObjectMapperMixinsCompatibilityTest {
 		bentos.add(bento);
 
 		final ObjectNode metadata = factory.objectNode();
-		metadata.put(FIELD_SCHEMA_VERSION, DockingLayoutDto.getCurrentSchemaVersion());
+		metadata.set(
+				FIELD_SCHEMA_VERSION,
+				factory.numberNode(DockingLayoutDto.getCurrentSchemaVersion())
+		);
 
 		final ObjectNode dockingLayout = factory.objectNode();
 		dockingLayout.set(FIELD_METADATA, metadata);
@@ -257,13 +245,13 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ObjectNode leaf = factory.objectNode();
 		leaf.set(FIELD_TYPE, factory.textNode(LEAF_ELEMENT_NAME));
 		leaf.set(FIELD_IDENTIFIER, factory.textNode(LEAF_IDENTIFIER));
-		leaf.put(FIELD_PRUNE_WHEN_EMPTY, true);
+		leaf.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(true));
 		leaf.set(FIELD_SELECTED_DOCKABLE_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
 		leaf.set(FIELD_SIDE, factory.textNode(TOP.name()));
-		leaf.put(FIELD_IS_RESIZABLE_WITH_PARENT, true);
-		leaf.put(FIELD_IS_CAN_SPLIT, true);
-		leaf.put(FIELD_UNCOLLAPSED_SIZE_PX, 321.0);
-		leaf.put(FIELD_IS_COLLAPSED, false);
+		leaf.set(FIELD_IS_RESIZABLE_WITH_PARENT, factory.booleanNode(true));
+		leaf.set(FIELD_IS_CAN_SPLIT, factory.booleanNode(true));
+		leaf.set(FIELD_UNCOLLAPSED_SIZE_PX, factory.numberNode(321.0));
+		leaf.set(FIELD_IS_COLLAPSED, factory.booleanNode(false));
 
 		final ObjectNode dockable = factory.objectNode();
 		dockable.set(FIELD_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
