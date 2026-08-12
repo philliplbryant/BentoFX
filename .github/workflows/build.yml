@@ -2,23 +2,25 @@ name: Build
 
 on:
   push:
+    # Every branch, but not tags: JReleaser pushes a tag as part of a release,
+    # and an unfiltered push trigger would fire on it and rebuild what was just
+    # released.
     branches:
-      - master
+      - '**'
   pull_request:
-    branches:
-      - master
   workflow_dispatch:
     inputs:
       is-a-release:
         description: Publish release? (Only works on master, and for untagged versions)
         type: boolean
 
-permissions:
-  contents: write
-  checks: write
-  pull-requests: write
-  security-events: write
-  actions: read
+# Building every branch means a quick series of pushes would otherwise stack up
+# whole matrix builds that nobody is waiting on. Let a newer push supersede the
+# run it replaces - except on master, where cancelling could abort a release
+# partway through publishing.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   test:
@@ -30,6 +32,8 @@ jobs:
         java-version: [ 21 ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -40,7 +44,7 @@ jobs:
           java-version: 21
           check-latest: true
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.2.0
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
       - name: Run build, analysis, tests, and coverage reports
         run: xvfb-run -a ./gradlew build buildHealth checkAll checkJSpecify
       - name: Write coverage summary
@@ -48,13 +52,13 @@ jobs:
         run: python3 .github/scripts/coverage-summary.py
       - name: SonarQube Scan
         if: github.repository == 'philliplbryant/BentoFX'
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: -Dsonar.coverage.jacoco.xmlReportPaths=report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/functionalTestCodeCoverageReport/functionalTestCodeCoverageReport.xml
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           disable_search: true
           fail_ci_if_error: true
@@ -91,7 +95,9 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       checks: write
+      contents: read
       pull-requests: write
     steps:
       - name: Download artifacts
@@ -100,7 +106,7 @@ jobs:
           path: artifacts
       - name: Publish test results
         if: hashFiles('artifacts/**/TEST-*.xml') != ''
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
         with:
           check_name: Unit Test results
           fail_on: nothing
@@ -130,7 +136,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.2.0
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
       # Set environment variable for the project version: "var_to_set=$(command_to_run)" >> sink
       #  - For maven:  echo "PROJECT_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
       #  - For gradle: echo "PROJECT_VERSION=$(./gradlew properties | grep -Po '(?<=version: ).*')" >> $GITHUB_ENV
