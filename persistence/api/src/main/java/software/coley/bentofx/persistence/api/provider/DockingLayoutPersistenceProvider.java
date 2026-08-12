@@ -7,8 +7,13 @@ import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for creating
- * {@link LayoutSaver} and {@link LayoutRestorer} implementations.
+ * Creates the {@link LayoutSaver} and {@link LayoutRestorer} an application uses to
+ * persist and restore its docking layout.
+ *
+ * <p>Obtain an instance from
+ * {@link software.coley.bentofx.persistence.api.DockingLayoutPersistence#provider()}
+ * rather than constructing one; implementations live in packages this module does
+ * not export.</p>
  *
  * @author Phil Bryant
  */

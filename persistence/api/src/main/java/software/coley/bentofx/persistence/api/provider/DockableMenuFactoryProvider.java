@@ -5,8 +5,14 @@ import software.coley.bentofx.dockable.DockableMenuFactory;
 import java.util.Optional;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for resolving
- * {@link DockableMenuFactory} instances.
+ * Resolves {@link DockableMenuFactory} instances by identifier.
+ *
+ * <p>Offered for applications to implement; nothing in the persistence framework
+ * consumes it. Unlike its siblings here it is not even a parameter - no
+ * {@link DockingLayoutPersistenceProvider} method accepts one. It exists so that a
+ * {@link DockableStateProvider} implementation has a ready-made shape for looking
+ * up the menu factory to attach to a {@code Dockable} it rebuilds. If the
+ * application does not call it, nothing will.</p>
  *
  * @author Phil Bryant
  */

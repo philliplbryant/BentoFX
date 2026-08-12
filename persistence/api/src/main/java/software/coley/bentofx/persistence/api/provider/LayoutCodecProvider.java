@@ -3,12 +3,13 @@ package software.coley.bentofx.persistence.api.provider;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for getting
- * {@link LayoutCodec} implementations.
+ * Supplies the {@link LayoutCodec} that decides the format a layout is written in.
  *
- * <p>The provider is the {@code ServiceLoader}-discoverable type. The
- * {@link LayoutCodec} returned by this provider does not need to be directly
- * discoverable.
+ * <p>Discovered at runtime, so an application changes format by changing which
+ * codec implementation it depends on - see
+ * {@link LayoutPersistenceComponentProvider}. The provider is the discoverable
+ * type; the {@link LayoutCodec} it returns does not need to be discoverable
+ * itself.</p>
  *
  * @author Phil Bryant
  */

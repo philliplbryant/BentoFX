@@ -5,8 +5,12 @@ import javafx.scene.image.Image;
 import java.util.Collection;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for creating
- * {@code Stage} icon {@link Image}s.
+ * Supplies the icon {@link Image}s for a restored {@code Stage}.
+ *
+ * <p>Implemented and supplied by the application, which passes an instance to
+ * {@link DockingLayoutPersistenceProvider}'s {@code getLayoutRestorer}. It is
+ * optional - passing {@code null} there leaves a restored {@code Stage}'s
+ * icons unset.</p>
  *
  * @author Phil Bryant
  */

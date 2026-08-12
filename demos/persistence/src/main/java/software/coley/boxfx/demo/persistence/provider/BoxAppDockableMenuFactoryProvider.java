@@ -10,9 +10,10 @@ import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvid
 import java.util.Optional;
 
 /**
- * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link DockableMenuFactoryProvider} that returns the same, sample menu for
- * all {@link Dockable}.
+ * This demo's {@link DockableMenuFactoryProvider}, returning the same sample menu
+ * for every {@link Dockable}.
+ *
+ * <p>Constructed by, and called only from, {@link BoxAppDockableStateProvider}.</p>
  */
 public class BoxAppDockableMenuFactoryProvider implements DockableMenuFactoryProvider {
 

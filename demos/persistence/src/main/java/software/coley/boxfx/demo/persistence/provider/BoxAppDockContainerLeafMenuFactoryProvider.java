@@ -11,8 +11,9 @@ import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFact
 import java.util.Optional;
 
 /**
- * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link DockContainerLeafMenuFactoryProvider}.
+ * This demo's {@link DockContainerLeafMenuFactoryProvider}.
+ *
+ * <p>Constructed by the application and passed to {@code getLayoutRestorer}.</p>
  *
  * @author Phil Bryant
  */

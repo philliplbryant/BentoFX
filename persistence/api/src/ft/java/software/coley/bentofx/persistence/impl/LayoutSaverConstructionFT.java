@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -268,8 +269,8 @@ class LayoutSaverConstructionFT {
 
             @Override
             public LayoutStorage getLayoutStorage(
-                    final String layoutIdentifier,
-                    final String codecIdentifier
+                    final @NonNull String layoutIdentifier,
+                    final @NonNull String codecIdentifier
             ) {
                 return storage;
             }

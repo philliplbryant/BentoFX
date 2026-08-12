@@ -3,12 +3,13 @@ package software.coley.bentofx.persistence.api.provider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for getting
- * {@link LayoutStorage} implementations.
+ * Supplies the {@link LayoutStorage} that decides where a layout is written to.
  *
- * <p>The provider is the {@code ServiceLoader}-discoverable type. The
- * {@link LayoutStorage} returned by this provider does not need to be directly
- * discoverable.
+ * <p>Discovered at runtime, so an application changes where layouts are kept by
+ * changing which storage implementation it depends on - see
+ * {@link LayoutPersistenceComponentProvider}. The provider is the discoverable
+ * type; the {@link LayoutStorage} it returns does not need to be discoverable
+ * itself.</p>
  *
  * @author Phil Bryant
  */

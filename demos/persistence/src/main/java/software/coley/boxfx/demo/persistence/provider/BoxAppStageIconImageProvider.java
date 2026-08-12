@@ -12,8 +12,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link StageIconImageProvider}.
+ * This demo's {@link StageIconImageProvider}, loading the application icons from
+ * resources.
+ *
+ * <p>Constructed by the application and passed to {@code getLayoutRestorer}.</p>
  *
  * @author Phil Bryant
  */

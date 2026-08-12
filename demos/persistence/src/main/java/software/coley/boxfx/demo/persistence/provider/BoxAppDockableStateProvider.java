@@ -27,8 +27,10 @@ import static javafx.scene.paint.Color.BLACK;
 import static software.coley.boxfx.demo.persistence.provider.DockableProperties.*;
 
 /**
- * {@code ServiceLoader} compatible Service Provider implementation of
- * {@link DockableStateProvider}.
+ * This demo's {@link DockableStateProvider}, rebuilding the content of each
+ * {@link Dockable} in a restored layout.
+ *
+ * <p>Constructed by the application and passed to {@code getLayoutRestorer}.</p>
  *
  * @author Phil Bryant
  */

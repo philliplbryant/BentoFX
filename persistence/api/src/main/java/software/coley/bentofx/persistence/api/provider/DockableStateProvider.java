@@ -6,8 +6,13 @@ import software.coley.bentofx.persistence.api.state.DockableState;
 import java.util.Optional;
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for getting or
- * creating {@link DockableState} instances and other user interface components.
+ * Gets or creates the {@link DockableState} instances, and the user interface
+ * components they carry, for a layout being restored.
+ *
+ * <p>Implemented and supplied by the application, which passes an instance to
+ * {@link DockingLayoutPersistenceProvider}'s {@code getLayoutRestorer}. A
+ * persisted layout records which {@link Dockable}s were open, not what was inside
+ * them, so rebuilding their content is necessarily the application's job.</p>
  *
  * @author Phil Bryant
  */

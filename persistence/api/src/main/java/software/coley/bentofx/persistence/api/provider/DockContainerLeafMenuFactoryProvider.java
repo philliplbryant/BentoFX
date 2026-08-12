@@ -6,8 +6,13 @@ import java.util.Optional;
 
 
 /**
- * {@code ServiceLoader} compatible Service Provider Interface for creating
- * {@code DockContainerLeafMenuFactory} implementations.
+ * Supplies the {@link DockContainerLeafMenuFactory} for a restored
+ * {@code DockContainerLeaf}.
+ *
+ * <p>Implemented and supplied by the application, which passes an instance to
+ * {@link DockingLayoutPersistenceProvider}'s {@code getLayoutRestorer}. It is
+ * optional - passing {@code null} there leaves restored leaves without a
+ * menu.</p>
  *
  * @author Phil Bryant
  */
