@@ -35,6 +35,14 @@ class PersistenceThreadingFT {
 	 */
 	private static final long LATCH_TIMEOUT_SECONDS = 10L;
 
+	/**
+	 * How long the JavaFX application thread is deliberately held in the one test
+	 * that expects a late task to still succeed. Long enough that the call under
+	 * test submits its task while the thread is still busy, and far shorter than
+	 * the budget that call allows.
+	 */
+	private static final long FX_BUSY_MILLIS = 50L;
+
 	@Test
 	void callOnFxThreadRunsImmediatelyWhenAlreadyOnFxThread(FxRobot robot) {
 		final AtomicReference<Boolean> ranOnFxThread = new AtomicReference<>();
@@ -238,25 +246,15 @@ class PersistenceThreadingFT {
 		final CountDownLatch fxThreadOccupied = new CountDownLatch(1);
 		final CountDownLatch releaseFxThread = new CountDownLatch(1);
 
-		occupyFxThread(fxThreadOccupied, releaseFxThread);
+		// Hold the JavaFX thread only briefly, so it frees itself well inside the
+		// budget the call below gives it.
+		occupyFxThread(fxThreadOccupied, releaseFxThread, FX_BUSY_MILLIS);
 
 		assertThat(
 				fxThreadOccupied.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 		)
 				.describedAs("JavaFX thread became occupied")
 				.isTrue();
-
-		// Free the JavaFX thread well inside a generous budget.
-		final Thread releaser = new Thread(() -> {
-			try {
-				Thread.sleep(50L);
-			} catch (final InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			releaseFxThread.countDown();
-		}, "fx-thread-releaser");
-		releaser.setDaemon(true);
-		releaser.start();
 
 		try {
 			final Boolean ranOnFxThread = PersistenceThreading.callOnFxThread(
@@ -269,7 +267,6 @@ class PersistenceThreadingFT {
 					.isTrue();
 		} finally {
 			releaseFxThread.countDown();
-			releaser.join(TimeUnit.SECONDS.toMillis(LATCH_TIMEOUT_SECONDS));
 		}
 	}
 
@@ -305,14 +302,42 @@ class PersistenceThreadingFT {
 			final CountDownLatch fxThreadOccupied,
 			final CountDownLatch releaseFxThread
 	) {
+		occupyFxThread(
+				fxThreadOccupied,
+				releaseFxThread,
+				TimeUnit.SECONDS.toMillis(LATCH_TIMEOUT_SECONDS)
+		);
+	}
+
+	/**
+	 * Occupies the JavaFX application thread until {@code releaseFxThread} is
+	 * counted down or {@code holdMillis} elapses, whichever comes first.
+	 *
+	 * @param fxThreadOccupied counted down once the JavaFX thread is actually
+	 * blocked, so callers do not race the submission.
+	 * @param releaseFxThread awaited on the JavaFX thread; count it down to let
+	 * the thread continue. Always count it down in a {@code finally} block:
+	 * leaving the JavaFX thread blocked would break every later test.
+	 * @param holdMillis upper bound on the hold. For most callers this is the
+	 * safety valve - a failing test must not leave the JavaFX thread blocked for
+	 * the rest of the suite - and expiring means something went wrong. For a test
+	 * that wants the thread to free itself, it is the release, and expiring is
+	 * the expected outcome.
+	 */
+	private static void occupyFxThread(
+			final CountDownLatch fxThreadOccupied,
+			final CountDownLatch releaseFxThread,
+			final long holdMillis
+	) {
 		Platform.runLater(() -> {
 			fxThreadOccupied.countDown();
 			try {
-				if (!releaseFxThread.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-					// Safety valve. Without this a failing test could leave the
-					// JavaFX thread blocked for the rest of the suite.
-					Thread.currentThread().interrupt();
-				}
+				// Bounded, and expiry is deliberately not treated as an error:
+				// returning frees the thread exactly as counting the latch down
+				// would. Interrupting it instead - the earlier safety valve - left
+				// the interrupt flag set on the JavaFX thread for whatever ran
+				// next.
+				releaseFxThread.await(holdMillis, TimeUnit.MILLISECONDS);
 			} catch (final InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
