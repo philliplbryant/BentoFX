@@ -106,8 +106,10 @@ was least reliable, and the only thing that settled any of them was running code
 | [T15](#t15) | `DockingLayoutRestorer.layoutStorage` aliases the reader's instance | **Resolved** with M5 |
 | [T16](#t16) | Tab/space inconsistency in `module-info.java` | **Fixed** 2026-08-11 |
 
-MINOR and NIT items are numbered here for reference only; the sections below are
-prose bullets in the same order.
+Every identifier in the four tables above links to that finding's own numbered
+section below. The anchors are explicit rather than derived from the heading text,
+because this document appends a finding's outcome to its heading when it is fixed,
+and a text-derived link would break silently the moment that happened.
 
 ---
 
@@ -1411,211 +1413,298 @@ narrow rather than blanket.
 
 ## MINOR
 
-- <a id="n1"></a>**`StageUtils.getAllScreenBounds` initialises maxima with `Double.MIN_VALUE`** —
-  `impl/StageUtils.java:99-100`. `Double.MIN_VALUE` is the smallest *positive*
-  double (≈4.9e-324), not the most negative. It works only because real screens
-  have positive `maxX`/`maxY`. Also returns a nonsense rectangle if
-  `Screen.getScreens()` is empty. Fix: `Double.NEGATIVE_INFINITY`.
-- <a id="n2"></a>**`StageUtils` position helpers take boxed `Double`** — `impl/StageUtils.java:47-50, 72-75`.
-  Both auto-unbox immediately (`double boundedX = stageX;`), so a null argument is
-  an NPE from a `public` method in an exported package. Fix: primitive `double`.
-- <a id="n3"></a>**`BentoStateBuilder` omits the null check every sibling builder has** —
-  `api/state/BentoState.java:53`. Bare assignment where
-  `DockContainerLeafStateBuilder:97`, `DockContainerBranchStateBuilder:70`,
-  `DockableStateBuilder:152`, and `DragDropStageStateBuilder:224` all use
-  `requireNonNull`. Failure surfaces later, at `build()`. Fix: `requireNonNull(identifier)`.
-- <a id="n4"></a>~~**`DockContainerStateBuilder.setPruneWhenEmpty` takes primitive `boolean`** —
-  `api/state/DockContainerState.java:69` — while all four subclass builders take
-  `@Nullable Boolean` for the same tri-state property. Inconsistent, and the
-  primitive form cannot express "unspecified".~~ **Moot** 2026-08-12: M4 deleted the
-  builder, and with it this setter. The four subclass builders were already
-  consistent with each other.
-- <a id="n5"></a>**`DockContainerRootBranchStateBuilder` duplicates every field of
-  `DockContainerBranchStateBuilder`** — `api/state/DockContainerRootBranchState.java:40-87`
-  re-declares `identifier`, `childDockableStates`, `pruneWhenEmpty`, `orientation`,
-  `dividerPositions`, `childDockContainerStates` and all six mutators. They have
-  already drifted: the parent's mutators carry Javadoc, the root's carry none. Fix:
-  have the root builder delegate to or extend the branch builder.
-- <a id="n6"></a>**`restoreDockable` discards the resolved state's own identifier** —
-  `impl/DockingLayoutStateRestorer.java:436-451`. It builds the `Dockable` from the
-  `dockableIdentifier` parameter and never compares it to
-  `dockableState.getIdentifier()`. A provider returning a mismatched state is
-  silently accepted. Fix: log a warning on mismatch.
-- <a id="n7"></a>**`DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts its
-  signature** — `api/state/DragDropStageState.java:186-192`. The doc describes "an
-  `Optional` ... an empty `Optional` when unspecified"; the method returns a
-  non-null `Boolean` that is `requireNonNull`-checked at `:69`. Copy-paste from the
-  surrounding accessors.
-- <a id="n8"></a>**`ServiceLoader` results are cached once, at construction, via the thread
-  context class loader** — `impl/provider/DefaultDockingLayoutPersistenceProvider.java:123-128`.
-  Providers registered after the first construction are never seen, and the
-  no-arg `ServiceLoader.load` form uses the TCCL, which finds nothing in some
-  container and JPMS layouts — surfacing as the "No LayoutCodecProvider
-  implementation was found" message at `:136-139` rather than as a loader problem.
-  Fix: pass an explicit `ClassLoader`, or document the eager one-shot behaviour.
-- <a id="n9"></a>~~**Missing Javadoc on public API.** No doc comments on: all six
-  `DockContainerLeafState` accessors (`:58-80`) and all nine of its builder methods
-  (`:100-149`); `DockContainerBranchState.getDividerPositions()`/`getChildDockContainerStates()`
-  (`:48-54`); `BentoState.getRootBranchStates()`/`getDragDropStageStates()` (`:30-36`);
-  `IdentifiableState.getIdentifier()` (`:20`); `BentoLayout.getRootBranches()`/`getDragDropStages()`
-  (`:37-43`) and its whole builder (`:45-78`); `DockingLayout.getBentoLayouts()` (`:22`)
-  and builder (`:27-42`); `DockingLayout`/`BentoLayout` `build()` methods;
-  `LayoutSaver.saveLayout()` (`:11`); both `BentoStateException` constructors (`:11-20`);
-  `DockingLayoutPersistenceProvider.getLayoutSaver` — both overloads (`:17-30`);
-  `DragDropStageStateBuilder`'s constructor and `build()` (`:221-226`, `:407`).~~
-  **Fixed** 2026-08-11, and the enumeration above turned out to be both too long and
-  too short.
+#### <a id="n1"></a>N1. `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima
 
-  Too long by one: `LayoutSaver.saveLayout()` had already been documented by the B4
-  fix, which added the thread-ordering contract to it.
+`impl/StageUtils.java:99-100`. `Double.MIN_VALUE` is the smallest *positive*
+double (≈4.9e-324), not the most negative. It works only because real screens
+have positive `maxX`/`maxY`. Also returns a nonsense rectangle if
+`Screen.getScreens()` is empty. Fix: `Double.NEGATIVE_INFINITY`.
 
-  Too short by rather more, which is the part worth recording. Rather than work the
-  list, I turned `-missing` on temporarily and let the tool enumerate — and it found
-  members the hand-written list had missed: every builder *class* declaration
-  (`BentoStateBuilder`, `DockableStateBuilder`, both `DockContainer*StateBuilder`s,
-  `DockContainerStateBuilder`), the whole of `DockContainerRootBranchStateBuilder`
-  (all six members, the N5 duplicate the list overlooked entirely), the `protected`
-  constructors of `IdentifiableState`, `DockContainerState` and
-  `DockContainerBranchState`, `DockContainerStateBuilder`'s three `protected` fields,
-  and `DefaultBentoProvider`/`DefaultDockingLayoutPersistenceProvider`'s public
-  constructors plus `addBento`. `BentoStateTimeoutException`'s two constructors were
-  missing too — that class did not exist when the review was written.
+#### <a id="n2"></a>N2. `StageUtils` position helpers take boxed `Double`, NPE on null
 
-  So the finding under-counted by roughly two to one. The lesson matches N10's: a
-  gap that only a tool can enumerate reliably should be enumerated by the tool, and
-  the reason nobody had is that the build was configured not to look. The sweep is
-  now verified the same way it was scoped — `-missing` reports **zero** undocumented
-  public or protected members in this module.
+`impl/StageUtils.java:47-50, 72-75`.
+Both auto-unbox immediately (`double boundedX = stageX;`), so a null argument is
+an NPE from a `public` method in an exported package. Fix: primitive `double`.
 
-  Two judgement calls inside the sweep. `DockContainerStateBuilder` got documented
-  even though M4 argues for deleting it, because three lines now is cheaper than
-  leaving the one hole a future `-missing` run would flag; if M4 lands, the docs go
-  with the class. (M4 landed 2026-08-12, and they did.) `DefaultBentoProvider.addBento` records that a duplicate identifier
-  silently replaces the existing entry — that is the B1 follow-up, so the behaviour is
-  now at least written down where a caller will see it.
-- <a id="n10"></a>~~**An unterminated `{@link}` will break Javadoc generation** —
-  `impl/DockingLayoutStateRestorer.java:282-283`: `{@link DockContainerBranchState`
-  has no closing brace, so the following `or {@link DockContainerLeafState}` is
-  swallowed into the tag. Under doclint this is an error, not a warning. (The class
-  is package-private, so whether it fails your build depends on the Javadoc task's
-  visibility setting.)~~ **Fixed** 2026-08-11: brace closed, plus the blank `*` line
-  before `@param` that every sibling comment in the file has.
+#### <a id="n3"></a>N3. `BentoStateBuilder` omits the null check its siblings have
 
-  One correction to the finding while closing it. It would **not** have failed this
-  build under any visibility setting, because
-  `build-logic/.../bento.project.project-convention.gradle:89-91` passes
-  `-Xdoclint:none` to every `javadoc` task, so the whole project generates docs with
-  linting off. `:persistence:api:javadoc` therefore passed before this fix as well as
-  after, and the passing task is not evidence the fix works — the evidence is that the
-  braces now balance. The hazard is real for anyone who generates docs without that
-  flag, but "will break Javadoc generation" overstated it for this repo.
+`api/state/BentoState.java:53`. Bare assignment where
+`DockContainerLeafStateBuilder:97`, `DockContainerBranchStateBuilder:70`,
+`DockableStateBuilder:152`, and `DragDropStageStateBuilder:224` all use
+`requireNonNull`. Failure surfaces later, at `build()`. Fix: `requireNonNull(identifier)`.
 
-  **The build now checks this, which is the actual fix.** A one-character brace repair
-  leaves the next one free to happen, so `persistence/api/build.gradle` gained two
-  things: `Xdoclint:all,-missing` on the published `javadoc` task, and a separate
-  `javadocLint` task wired into `check`. Two, not one, because doclint on the
-  published task reads public and protected members only — and this finding was on a
-  **package-private** class, so that task could not have caught it. Verified rather
-  than assumed: re-breaking the brace left `javadoc` passing and failed `javadocLint`
-  with `error: unterminated inline tag`. `javadocLint` runs at private visibility and
-  discards its output; it exists to fail, not to publish.
+#### <a id="n4"></a>N4. `DockContainerStateBuilder.setPruneWhenEmpty` takes primitive `boolean`
 
-  Scoped to this module rather than the shared convention on purpose. Enabling doclint
-  in `bento.project.project-convention` fails `:core:javadoc` with eight pre-existing
-  `<p/>` self-closing-element errors (`BentoUtils` ×3, `DockableDragDropBehavior` ×2,
-  `DragDropStage` ×2, `DockContainerLeaf` ×1), and `core/` is not this module's to
-  change. Each is a one-character fix — `<p/>` to `<p>` — so promoting the check
-  repo-wide is cheap whenever the `core/` owner wants it, and the comment in
-  `build.gradle` says so.
+~~`api/state/DockContainerState.java:69` — while all four subclass builders take
+`@Nullable Boolean` for the same tri-state property. Inconsistent, and the
+primitive form cannot express "unspecified".~~ **Moot** 2026-08-12: M4 deleted the
+builder, and with it this setter. The four subclass builders were already
+consistent with each other.
+
+#### <a id="n5"></a>N5. `DockContainerRootBranchStateBuilder` duplicates the branch builder
+
+`api/state/DockContainerRootBranchState.java:40-87`
+re-declares `identifier`, `childDockableStates`, `pruneWhenEmpty`, `orientation`,
+`dividerPositions`, `childDockContainerStates` and all six mutators. They have
+already drifted: the parent's mutators carry Javadoc, the root's carry none. Fix:
+have the root builder delegate to or extend the branch builder.
+
+#### <a id="n6"></a>N6. `restoreDockable` discards the resolved state's own identifier
+
+`impl/DockingLayoutStateRestorer.java:436-451`. It builds the `Dockable` from the
+`dockableIdentifier` parameter and never compares it to
+`dockableState.getIdentifier()`. A provider returning a mismatched state is
+silently accepted. Fix: log a warning on mismatch.
+
+#### <a id="n7"></a>N7. `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature
+
+`api/state/DragDropStageState.java:186-192`. The doc describes "an
+`Optional` ... an empty `Optional` when unspecified"; the method returns a
+non-null `Boolean` that is `requireNonNull`-checked at `:69`. Copy-paste from the
+surrounding accessors.
+
+#### <a id="n8"></a>N8. `ServiceLoader` cached once at construction, via the TCCL
+
+`impl/provider/DefaultDockingLayoutPersistenceProvider.java:123-128`.
+Providers registered after the first construction are never seen, and the
+no-arg `ServiceLoader.load` form uses the TCCL, which finds nothing in some
+container and JPMS layouts — surfacing as the "No LayoutCodecProvider
+implementation was found" message at `:136-139` rather than as a loader problem.
+Fix: pass an explicit `ClassLoader`, or document the eager one-shot behaviour.
+
+#### <a id="n9"></a>N9. Missing Javadoc across the public API (enumerated in the section)
+
+~~No doc comments on: all six
+`DockContainerLeafState` accessors (`:58-80`) and all nine of its builder methods
+(`:100-149`); `DockContainerBranchState.getDividerPositions()`/`getChildDockContainerStates()`
+(`:48-54`); `BentoState.getRootBranchStates()`/`getDragDropStageStates()` (`:30-36`);
+`IdentifiableState.getIdentifier()` (`:20`); `BentoLayout.getRootBranches()`/`getDragDropStages()`
+(`:37-43`) and its whole builder (`:45-78`); `DockingLayout.getBentoLayouts()` (`:22`)
+and builder (`:27-42`); `DockingLayout`/`BentoLayout` `build()` methods;
+`LayoutSaver.saveLayout()` (`:11`); both `BentoStateException` constructors (`:11-20`);
+`DockingLayoutPersistenceProvider.getLayoutSaver` — both overloads (`:17-30`);
+`DragDropStageStateBuilder`'s constructor and `build()` (`:221-226`, `:407`).~~
+**Fixed** 2026-08-11, and the enumeration above turned out to be both too long and
+too short.
+
+Too long by one: `LayoutSaver.saveLayout()` had already been documented by the B4
+fix, which added the thread-ordering contract to it.
+
+Too short by rather more, which is the part worth recording. Rather than work the
+list, I turned `-missing` on temporarily and let the tool enumerate — and it found
+members the hand-written list had missed: every builder *class* declaration
+(`BentoStateBuilder`, `DockableStateBuilder`, both `DockContainer*StateBuilder`s,
+`DockContainerStateBuilder`), the whole of `DockContainerRootBranchStateBuilder`
+(all six members, the N5 duplicate the list overlooked entirely), the `protected`
+constructors of `IdentifiableState`, `DockContainerState` and
+`DockContainerBranchState`, `DockContainerStateBuilder`'s three `protected` fields,
+and `DefaultBentoProvider`/`DefaultDockingLayoutPersistenceProvider`'s public
+constructors plus `addBento`. `BentoStateTimeoutException`'s two constructors were
+missing too — that class did not exist when the review was written.
+
+So the finding under-counted by roughly two to one. The lesson matches N10's: a
+gap that only a tool can enumerate reliably should be enumerated by the tool, and
+the reason nobody had is that the build was configured not to look. The sweep is
+now verified the same way it was scoped — `-missing` reports **zero** undocumented
+public or protected members in this module.
+
+Two judgement calls inside the sweep. `DockContainerStateBuilder` got documented
+even though M4 argues for deleting it, because three lines now is cheaper than
+leaving the one hole a future `-missing` run would flag; if M4 lands, the docs go
+with the class. (M4 landed 2026-08-12, and they did.) `DefaultBentoProvider.addBento` records that a duplicate identifier
+silently replaces the existing entry — that is the B1 follow-up, so the behaviour is
+now at least written down where a caller will see it.
+
+#### <a id="n10"></a>N10. Unterminated `{@link}` will break Javadoc generation
+
+~~`impl/DockingLayoutStateRestorer.java:282-283`: `{@link DockContainerBranchState`
+has no closing brace, so the following `or {@link DockContainerLeafState}` is
+swallowed into the tag. Under doclint this is an error, not a warning. (The class
+is package-private, so whether it fails your build depends on the Javadoc task's
+visibility setting.)~~ **Fixed** 2026-08-11: brace closed, plus the blank `*` line
+before `@param` that every sibling comment in the file has.
+
+One correction to the finding while closing it. It would **not** have failed this
+build under any visibility setting, because
+`build-logic/.../bento.project.project-convention.gradle:89-91` passes
+`-Xdoclint:none` to every `javadoc` task, so the whole project generates docs with
+linting off. `:persistence:api:javadoc` therefore passed before this fix as well as
+after, and the passing task is not evidence the fix works — the evidence is that the
+braces now balance. The hazard is real for anyone who generates docs without that
+flag, but "will break Javadoc generation" overstated it for this repo.
+
+**The build now checks this, which is the actual fix.** A one-character brace repair
+leaves the next one free to happen, so `persistence/api/build.gradle` gained two
+things: `Xdoclint:all,-missing` on the published `javadoc` task, and a separate
+`javadocLint` task wired into `check`. Two, not one, because doclint on the
+published task reads public and protected members only — and this finding was on a
+**package-private** class, so that task could not have caught it. Verified rather
+than assumed: re-breaking the brace left `javadoc` passing and failed `javadocLint`
+with `error: unterminated inline tag`. `javadocLint` runs at private visibility and
+discards its output; it exists to fail, not to publish.
+
+Scoped to this module rather than the shared convention on purpose. Enabling doclint
+in `bento.project.project-convention` fails `:core:javadoc` with eight pre-existing
+`<p/>` self-closing-element errors (`BentoUtils` ×3, `DockableDragDropBehavior` ×2,
+`DragDropStage` ×2, `DockContainerLeaf` ×1), and `core/` is not this module's to
+change. Each is a one-character fix — `<p/>` to `<p>` — so promoting the check
+repo-wide is cheap whenever the `core/` owner wants it, and the comment in
+`build.gradle` says so.
 
 ---
 
 ## NIT
 
-- <a id="t1"></a>~~`impl/BentoLayoutStateCaptor.java:135-153` and `:225-235` — `toDragDropStageRoot`
-  and `getDockContainerRootBranch` do the identical scene-root `instanceof` check,
-  and `captureBentoState` calls the first then `buildAndAddDragDropStage` calls the
-  second on the same stage. One of the two is redundant.~~ **Resolved** with B9:
-  `toDragDropStageRoot` now delegates to `getDockContainerRootBranch`, so the check
-  and its new null-scene guard exist in one place.
-- <a id="t2"></a>~~`impl/DockingLayoutStateRestorer.java:343-350` — logs "Attempting to restore null
-  DockContainer" for a case `restoreDockContainer:299-305` has already logged.
-  Double-reported, and the message describes an attempt rather than the skip that
-  actually happens.~~ **Fixed** 2026-08-11: the `else` branch is gone. The only path
-  that yields `null` is the `default ->` arm, which already logs the unrecognised
-  type, so `restoreBranch` now skips silently exactly as its sibling caller
-  `restoreChildDockContainers` always did — with a comment saying why, so nobody
-  reads the bare `if` as a missing diagnostic.
-- <a id="t3"></a>~~`api/state/DockContainerBranchState.java:40` — "{@return 2n {@link Optional}"
-  should be "an".~~ **Fixed** 2026-08-11.
-- <a id="t4"></a>~~`api/provider/DockContainerLeafMenuFactoryProvider.java:17` — "caontaining".~~
-  **Fixed** 2026-08-11.
-- <a id="t5"></a>~~`api/state/DockableState.java:125` — "docking layout, , an empty".~~
-  **Fixed** 2026-08-11.
-- <a id="t6"></a>~~`api/state/BentoState.java:71` — stray `*` inside the `@param` text.~~
-  **Fixed** 2026-08-11.
-- <a id="t7"></a>~~`impl/DockingLayoutStateRestorer.java:528` — "the diver positions" → "divider".~~
-  **Fixed** 2026-08-11.
-- <a id="t8"></a>~~`impl/DockingLayoutRestorer.java:40` and `api/BentoLayout.java:12` — `{code X}`
-  missing the `@` (`{@code X}`), so it renders as literal text.~~
-  **Fixed** 2026-08-11, both files.
-- <a id="t9"></a>~~`impl/AbstractAutoCloseableLayoutSaver.java:101-103` — `enableAutoSave(Long, TimeUnit)`
-  takes a boxed `Long` in a public signature, then `requireNonNull`s it; `long`
-  would make the contract clearer. Its `@see` at `:136` has a stray double space.~~
-  **Fixed** 2026-08-11: the parameter is `long`, the `requireNonNull` and the local
-  it fed are gone, and the five `{@link #enableAutoSave(Long, TimeUnit)}` references
-  plus the `@see` were updated to match — a Javadoc reference naming the old boxed
-  signature would no longer resolve. Every existing call site already passed a `1L`
-  literal, so nothing else changed. Worth noting this is a **source-incompatible
-  change** for any caller holding a `Long`, which is only reachable at all because
-  `impl` is exported (M1).
-- <a id="t10"></a>~~`impl/AbstractAutoCloseableLayoutSaver.java:77` — the constructor passes the
-  fields `autoSaveInterval`/`autoSaveTimeUnit` into a method that assigns them back
-  to themselves.~~ **Resolved** with B2: the constructor no longer calls
-  `enableAutoSave`, and the two fields it fed are gone entirely — the interval now
-  lives only in the caller's argument and the scheduled task.
-- <a id="t11"></a>~~`impl/StageUtils.java:17-19` throws from its private constructor while
-  `impl/PersistenceThreading.java:22-24` just comments — pick one convention.~~
-  **Fixed** 2026-08-11 in favour of throwing, because that is what the rest of the
-  repo already does — six of the seven private utility constructors across
-  `persistence/` throw `IllegalStateException("Utility class")`, so
-  `PersistenceThreading` was the lone outlier and it moved rather than the six.
-- <a id="t12"></a>~~`impl/PersistenceThreading.java:84` — `java.util.concurrent.Future` written
-  fully-qualified in the signature although `java.util.concurrent.*` types are
-  imported individually above; import `Future`.~~ **Resolved** with B4, which
-  rewrote that file's imports.
-- <a id="t13"></a>~~`api/state/BentoState.java:60, 73` — `addRootBranchState`/`addDragDropStageState`
-  are singular verbs taking varargs; `requireNonNull` there checks the array, not
-  its elements (`List.of` catches null elements, so this is cosmetic).~~
-  **Fixed** 2026-08-11 by dropping the varargs rather than renaming the methods, which
-  closes both halves at once: the singular verb becomes accurate, and
-  `requireNonNull` now guards the element it appears to guard.
+#### <a id="t1"></a>T1. Duplicated scene-root `instanceof` check in the captor
 
-  Dropping varargs rather than pluralising the names because singular-and-single-arg is
-  what the rest of the module already does - `addChildDockableState`,
-  `addDockContainerState`, `addRootBranch`, `addDragDropStage` and `addBentoLayout` are
-  all one-argument adders, so these two were the outliers in both respects. Renaming
-  them to `addRootBranchStates`/`addDragDropStageStates` would have fixed the grammar
-  and left them the only varargs adders in the module.
+~~`impl/BentoLayoutStateCaptor.java:135-153` and `:225-235` — `toDragDropStageRoot`
+and `getDockContainerRootBranch` do the identical scene-root `instanceof` check,
+and `captureBentoState` calls the first then `buildAndAddDragDropStage` calls the
+second on the same stage. One of the two is redundant.~~ **Resolved** with B9:
+`toDragDropStageRoot` now delegates to `getDockContainerRootBranch`, so the check
+and its new null-scene guard exist in one place.
 
-  No call site changed. All eighteen across `main`, `test`, `ft` and the codec's `itp`
-  pass exactly one argument, including
-  `BentoLayoutStateCaptor:123`'s `forEach(stateBuilder::addRootBranchState)` - that
-  method reference binds to a one-argument `Consumer` either way. Checked before
-  editing rather than after, since a caller passing two would have made this a
-  genuinely breaking change instead of a signature tidy-up. It is still
-  source-incompatible in principle for an outside caller passing two or more, which is
-  worth a release-note line for the same reason T9 is.
-- <a id="t14"></a>`impl/AbstractAutoCloseableLayoutSaver.java:31` — implementing
-  `DockEventListener` publicly puts `onDockEvent` on the saver's public surface.
-- <a id="t15"></a>~~`impl/DockingLayoutRestorer.java:35` — the `layoutStorage` field duplicates the
-  instance already held by `layoutStateReader`; it exists only for
-  `doesLayoutExist()`, which reads fine but means two fields alias one object with
-  only one of them owning `close()`.~~ **Resolved** with M5, which decided the
-  ownership question this was waiting on: the field is gone and `doesLayoutExist()`
-  now goes through `LayoutStateReader.layoutExists()`.
-- <a id="t16"></a>~~`module-info.java:27` — indented with a tab while lines `:28-33` use spaces.~~
-  **Fixed** 2026-08-11.
+#### <a id="t2"></a>T2. Double-logged "Attempting to restore null DockContainer"
+
+~~`impl/DockingLayoutStateRestorer.java:343-350` — logs "Attempting to restore null
+DockContainer" for a case `restoreDockContainer:299-305` has already logged.
+Double-reported, and the message describes an attempt rather than the skip that
+actually happens.~~ **Fixed** 2026-08-11: the `else` branch is gone. The only path
+that yields `null` is the `default ->` arm, which already logs the unrecognised
+type, so `restoreBranch` now skips silently exactly as its sibling caller
+`restoreChildDockContainers` always did — with a comment saying why, so nobody
+reads the bare `if` as a missing diagnostic.
+
+#### <a id="t3"></a>T3. "{@return 2n" typo in `DockContainerBranchState`
+
+~~`api/state/DockContainerBranchState.java:40` — "{@return 2n {@link Optional}"
+should be "an".~~ **Fixed** 2026-08-11.
+
+#### <a id="t4"></a>T4. "caontaining" typo in `DockContainerLeafMenuFactoryProvider`
+
+~~`api/provider/DockContainerLeafMenuFactoryProvider.java:17` — "caontaining".~~
+**Fixed** 2026-08-11.
+
+#### <a id="t5"></a>T5. Doubled comma in `DockableState` Javadoc
+
+~~`api/state/DockableState.java:125` — "docking layout, , an empty".~~
+**Fixed** 2026-08-11.
+
+#### <a id="t6"></a>T6. Stray `*` in a `BentoState` `@param`
+
+~~`api/state/BentoState.java:71` — stray `*` inside the `@param` text.~~
+**Fixed** 2026-08-11.
+
+#### <a id="t7"></a>T7. "the diver positions" typo in the restorer
+
+~~`impl/DockingLayoutStateRestorer.java:528` — "the diver positions" → "divider".~~
+**Fixed** 2026-08-11.
+
+#### <a id="t8"></a>T8. `{code X}` missing its `@` in two files
+
+~~`impl/DockingLayoutRestorer.java:40` and `api/BentoLayout.java:12` — `{code X}`
+missing the `@` (`{@code X}`), so it renders as literal text.~~
+**Fixed** 2026-08-11, both files.
+
+#### <a id="t9"></a>T9. `enableAutoSave` takes a boxed `Long`; stray double space in `@see`
+
+~~`impl/AbstractAutoCloseableLayoutSaver.java:101-103` — `enableAutoSave(Long, TimeUnit)`
+takes a boxed `Long` in a public signature, then `requireNonNull`s it; `long`
+would make the contract clearer. Its `@see` at `:136` has a stray double space.~~
+**Fixed** 2026-08-11: the parameter is `long`, the `requireNonNull` and the local
+it fed are gone, and the five `{@link #enableAutoSave(Long, TimeUnit)}` references
+plus the `@see` were updated to match — a Javadoc reference naming the old boxed
+signature would no longer resolve. Every existing call site already passed a `1L`
+literal, so nothing else changed. Worth noting this is a **source-incompatible
+change** for any caller holding a `Long`, which is only reachable at all because
+`impl` is exported (M1).
+
+#### <a id="t10"></a>T10. Constructor passes its own fields back into `enableAutoSave`
+
+~~`impl/AbstractAutoCloseableLayoutSaver.java:77` — the constructor passes the
+fields `autoSaveInterval`/`autoSaveTimeUnit` into a method that assigns them back
+to themselves.~~ **Resolved** with B2: the constructor no longer calls
+`enableAutoSave`, and the two fields it fed are gone entirely — the interval now
+lives only in the caller's argument and the scheduled task.
+
+#### <a id="t11"></a>T11. Inconsistent private-constructor convention in the two utility classes
+
+~~`impl/StageUtils.java:17-19` throws from its private constructor while
+`impl/PersistenceThreading.java:22-24` just comments — pick one convention.~~
+**Fixed** 2026-08-11 in favour of throwing, because that is what the rest of the
+repo already does — six of the seven private utility constructors across
+`persistence/` throw `IllegalStateException("Utility class")`, so
+`PersistenceThreading` was the lone outlier and it moved rather than the six.
+
+#### <a id="t12"></a>T12. `java.util.concurrent.Future` written fully qualified
+
+~~`impl/PersistenceThreading.java:84` — `java.util.concurrent.Future` written
+fully-qualified in the signature although `java.util.concurrent.*` types are
+imported individually above; import `Future`.~~ **Resolved** with B4, which
+rewrote that file's imports.
+
+#### <a id="t13"></a>T13. Varargs `requireNonNull` checks the array, not its elements
+
+~~`api/state/BentoState.java:60, 73` — `addRootBranchState`/`addDragDropStageState`
+are singular verbs taking varargs; `requireNonNull` there checks the array, not
+its elements (`List.of` catches null elements, so this is cosmetic).~~
+**Fixed** 2026-08-11 by dropping the varargs rather than renaming the methods, which
+closes both halves at once: the singular verb becomes accurate, and
+`requireNonNull` now guards the element it appears to guard.
+
+Dropping varargs rather than pluralising the names because singular-and-single-arg is
+what the rest of the module already does - `addChildDockableState`,
+`addDockContainerState`, `addRootBranch`, `addDragDropStage` and `addBentoLayout` are
+all one-argument adders, so these two were the outliers in both respects. Renaming
+them to `addRootBranchStates`/`addDragDropStageStates` would have fixed the grammar
+and left them the only varargs adders in the module.
+
+No call site changed. All eighteen across `main`, `test`, `ft` and the codec's `itp`
+pass exactly one argument, including
+`BentoLayoutStateCaptor:123`'s `forEach(stateBuilder::addRootBranchState)` - that
+method reference binds to a one-argument `Consumer` either way. Checked before
+editing rather than after, since a caller passing two would have made this a
+genuinely breaking change instead of a signature tidy-up. It is still
+source-incompatible in principle for an outside caller passing two or more, which is
+worth a release-note line for the same reason T9 is.
+
+#### <a id="t14"></a>T14. `DockEventListener` implemented publicly, exposing `onDockEvent`
+
+`impl/AbstractAutoCloseableLayoutSaver.java:31` — implementing
+`DockEventListener` publicly puts `onDockEvent` on the saver's public surface.
+
+To be clear about scope, since `DockEventListener` is a `core` type and `core` is
+deliberately almost untouched by this branch: **fixing this needs no `core`
+change.** `EventBus.addEventListener`/`removeEventListener`
+(`core/.../EventBus.java:92, 100`) take any `DockEventListener`, so the saver can
+hold one in a private final field and register that instead of `this` - the
+interface stays exactly as `core` declares it and only the saver's own shape
+changes. The one trap is identity: `removeEventListener` is a `List.remove`, so
+the listener has to be a stored field, not a fresh lambda per call, or
+`removeListeners()` silently stops unregistering and leaks the saver into every
+`Bento`'s bus.
+
+Two things have also shrunk it since it was written. M1 unexported both `impl`
+packages, so `onDockEvent` is no longer on any *externally* reachable surface -
+it is a public method on an internal class, which is a tidiness question rather
+than an API one. And the interface has to be public wherever it is implemented,
+so this is only ever fixable by composition, never by narrowing the method.
+Still open, and still worth doing with T9's release note if the `impl` shapes get
+another pass; it is no longer blocking anything.
+
+#### <a id="t15"></a>T15. `DockingLayoutRestorer.layoutStorage` aliases the reader's instance
+
+~~`impl/DockingLayoutRestorer.java:35` — the `layoutStorage` field duplicates the
+instance already held by `layoutStateReader`; it exists only for
+`doesLayoutExist()`, which reads fine but means two fields alias one object with
+only one of them owning `close()`.~~ **Resolved** with M5, which decided the
+ownership question this was waiting on: the field is gone and `doesLayoutExist()`
+now goes through `LayoutStateReader.layoutExists()`.
+
+#### <a id="t16"></a>T16. Tab/space inconsistency in `module-info.java`
+
+~~`module-info.java:27` — indented with a tab while lines `:28-33` use spaces.~~
+**Fixed** 2026-08-11.
 
 ---
 
