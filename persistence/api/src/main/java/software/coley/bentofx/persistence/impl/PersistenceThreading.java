@@ -19,6 +19,11 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
  * JavaFX object access on the JavaFX application thread while allowing codec
  * and storage work to run off that thread.
  *
+ * <p>Off that thread is not the same as asynchronous. Both entry points here are
+ * synchronous: they hand work to another thread and wait for it. In particular
+ * {@link #callOffFxThread} blocks the JavaFX application thread when that is the
+ * caller - see its documentation.</p>
+ *
  * <p>Handing work to the JavaFX application thread is not guaranteed to
  * complete. Once the toolkit has shut down, {@link Platform#runLater} accepts a
  * task and silently never runs it, and JavaFX offers no public way to ask
@@ -54,6 +59,40 @@ final class PersistenceThreading {
      * shutdown. Losing the final save is the better trade.</p>
      */
     static final long FX_CLOSE_TIMEOUT_MILLIS = 3_000L;
+
+    /**
+     * Name given to the {@link #OFF_FX_EXECUTOR} thread.
+     *
+     * <p>The whole point of naming the thread is, when a save or restore
+     * freezes the UI, a thread dump has to show which thread the JavaFX thread
+     * is waiting on, and a default {@code pool-N-thread-1} says nothing about
+     * whose I/O it is.</p>
+     *
+     * <p>Package-private rather than private so tests can reuse it.</p>
+     */
+    static final String OFF_FX_EXECUTOR_THREAD_NAME = "bentofx-persistence-io-thread";
+
+    /**
+     * Runs codec and storage work handed off by the JavaFX application thread.
+     *
+     * <p>One shared executor rather than one per call. Every caller blocks on
+     * its own result, so the work was already serialized and a thread per call
+     * bought nothing but the cost of creating it - plus, on Java 19+, an
+     * {@code ExecutorService.close()} that blocks until the thread terminates.
+     * The thread is a daemon so a storage write that never returns cannot hold
+     * up JVM exit, and it is named so it is identifiable in a thread dump.</p>
+     *
+     * <p>Deliberately never shut down: one idle daemon thread for the lifetime
+     * of the JVM is cheaper than giving this utility a lifecycle that every
+     * saver and restorer sharing it would have to agree on.</p>
+     */
+    private static final ExecutorService OFF_FX_EXECUTOR =
+            newSingleThreadExecutor(runnable -> {
+                final Thread thread =
+                        new Thread(runnable, OFF_FX_EXECUTOR_THREAD_NAME);
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private PersistenceThreading() {
         throw new IllegalStateException("Utility class");
@@ -140,7 +179,16 @@ final class PersistenceThreading {
      * for the result. If the current thread is already not the JavaFX
      * application thread, the task is executed immediately.
      *
-     * <p>No timeout applies here. The task runs on an executor this method owns,
+     * <p><b>The calling thread blocks until the task completes, including when
+     * that caller is the JavaFX application thread.</b> Moving the work to
+     * another thread keeps JavaFX state out of reach of the codec and storage
+     * implementations, but it does not free the JavaFX thread: a save or restore
+     * invoked from a window close handler or an exit-time {@code close()}
+     * freezes the UI for as long as the I/O takes. Callers on the JavaFX thread
+     * that cannot afford that need to arrange their own asynchrony - this method
+     * has a synchronous contract.</p>
+     *
+     * <p>No timeout applies here. The task runs on an executor this class owns,
      * so unlike {@link #callOnFxThread} there is no possibility of the task
      * never being picked up; the work is codec and storage I/O whose duration
      * belongs to the storage implementation.</p>
@@ -157,9 +205,7 @@ final class PersistenceThreading {
             return call(task);
         }
 
-        try (final ExecutorService executorService = newSingleThreadExecutor()) {
-            return get(executorService.submit(task));
-        }
+        return get(OFF_FX_EXECUTOR.submit(task));
     }
 
     private static <T> T call(final Callable<T> task)

@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.*;
+import static software.coley.bentofx.persistence.impl.PersistenceThreading.OFF_FX_EXECUTOR_THREAD_NAME;
 
 @ExtendWith(ApplicationExtension.class)
 class PersistenceThreadingFT {
@@ -103,6 +104,38 @@ class PersistenceThreadingFT {
 		assertThat(ranOnFxThread)
 				.describedAs(RAN_ON_FX_THREAD)
 				.isFalse();
+	}
+
+	/**
+	 * Successive hand-offs must reuse one shared worker rather than create a
+	 * thread per call. Also pins the naming, which is what makes the thread
+	 * identifiable in a dump of a frozen UI.
+	 */
+	@Test
+	void callOffFxThreadReusesOneSharedThreadAcrossCalls(FxRobot robot) {
+
+		final AtomicReference<Thread> firstThread = new AtomicReference<>();
+		final AtomicReference<Thread> secondThread = new AtomicReference<>();
+
+		robot.interact(() -> {
+			try {
+				firstThread.set(PersistenceThreading.callOffFxThread(Thread::currentThread));
+				secondThread.set(PersistenceThreading.callOffFxThread(Thread::currentThread));
+			} catch (final BentoStateException e) {
+				throw new AssertionError(e);
+			}
+		});
+
+		assertThat(firstThread.get())
+				.describedAs("thread running the first hand-off")
+				.isNotNull()
+				.isSameAs(secondThread.get());
+		assertThat(firstThread.get().getName())
+				.describedAs("worker thread name")
+				.isEqualTo(OFF_FX_EXECUTOR_THREAD_NAME);
+		assertThat(firstThread.get().isDaemon())
+				.describedAs("worker thread is a daemon")
+				.isTrue();
 	}
 
 	/*
