@@ -1,8 +1,19 @@
 version: "1.0"
 
-linter: jetbrains/qodana-jvm-community:2026.1
+linter: jetbrains/qodana-jvm
 
 projectJDK: "21"
 
 profile:
   name: qodana.starter
+
+coverage:
+  reportProblems: false
+
+exclude:
+  - name: All
+    paths:
+      - build
+      # TODO BENTO-13: Enable analysis on these modules
+      - core
+      - demos/basic

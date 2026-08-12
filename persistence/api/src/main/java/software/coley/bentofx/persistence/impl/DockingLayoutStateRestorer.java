@@ -295,11 +295,9 @@ final class DockingLayoutStateRestorer {
         for (final DockContainerState childState :
                 rootBranchState.getChildDockContainerStates()) {
 
-            final DockContainer dockContainer =
-                    restoreDockContainer(dockBuilding, childState);
-            if (dockContainer != null) {
-                rootBranch.addContainer(dockContainer);
-            }
+            rootBranch.addContainer(
+                    restoreDockContainer(dockBuilding, childState)
+            );
         }
     }
 
@@ -307,14 +305,20 @@ final class DockingLayoutStateRestorer {
      * Restores a {@link DockContainer} from a {@link DockContainerBranchState}
      * or {@link DockContainerLeafState}.
      *
+     * <p>Those two are the only possibilities: {@link DockContainerState} is
+     * sealed to them, so the switch below is exhaustive and this method always
+     * returns a container. It used to carry a {@code default} arm that logged an
+     * unrecognized state type and returned {@code null}, which turned a
+     * programming error into a container quietly missing from the restored
+     * layout.</p>
+     *
      * @param dockBuilding       the {@link DockBuilding} used to create the restored
      *                           {@link DockContainer}.
      * @param dockContainerState the {@link DockContainerState} defining the
      *                           persisted layout for the {@link DockContainer}.
-     * @return the restored {@link DockContainer}, {@code null} if the
-     * {@link DockContainer} could not be restored.
+     * @return the restored {@link DockContainer}.
      */
-    private @Nullable DockContainer restoreDockContainer(
+    private DockContainer restoreDockContainer(
             final DockBuilding dockBuilding,
             final DockContainerState dockContainerState
     ) {
@@ -322,13 +326,6 @@ final class DockingLayoutStateRestorer {
         return switch (dockContainerState) {
             case final DockContainerBranchState branchState -> restoreBranch(dockBuilding, branchState);
             case final DockContainerLeafState leafState -> restoreLeaf(dockBuilding, leafState);
-            default -> {
-                logger.warn(
-                        "Unknown DockContainerState type: {}",
-                        dockContainerState.getClass()
-                );
-                yield null;
-            }
         };
     }
 
@@ -361,15 +358,9 @@ final class DockingLayoutStateRestorer {
         for (final DockContainerState dockContainerState :
                 branchState.getChildDockContainerStates()) {
 
-            final DockContainer container =
-                    restoreDockContainer(dockBuilding, dockContainerState);
-
-            // A null container means restoreDockContainer did not recognise the
-            // state type, which it has already logged. Skip it silently here, as
-            // restoreChildDockContainers does.
-            if (container != null) {
-                branch.addContainer(container);
-            }
+            branch.addContainer(
+                    restoreDockContainer(dockBuilding, dockContainerState)
+            );
         }
 
         applyDividerPositions(

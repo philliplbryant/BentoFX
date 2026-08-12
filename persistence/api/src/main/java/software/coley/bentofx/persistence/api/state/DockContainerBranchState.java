@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Phil Bryant
  */
-public class DockContainerBranchState extends DockContainerState {
+public non-sealed class DockContainerBranchState extends DockContainerState {
 
     private final @Nullable Orientation orientation;
     private final Map<Integer, Double> dividerPositions;

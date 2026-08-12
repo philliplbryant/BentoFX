@@ -5,14 +5,29 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,11 +162,6 @@ public final class BentoStateMapper {
 
 				case final DockContainerLeafState dockContainerLeafState ->
 						rootBranchDto.leaf = toDto(dockContainerLeafState);
-
-				default -> logger.warn(
-						"Unsupported DockContainerBranchState type: {}",
-						dockContainerState
-				);
 			}
 		}
 

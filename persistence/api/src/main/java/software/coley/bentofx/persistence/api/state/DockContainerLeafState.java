@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author Phil Bryant
  */
-public class DockContainerLeafState extends DockContainerState {
+public non-sealed class DockContainerLeafState extends DockContainerState {
 
     @Nullable
     private final Side side;

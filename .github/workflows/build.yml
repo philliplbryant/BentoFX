@@ -47,7 +47,7 @@ jobs:
         if: always()
         run: python3 .github/scripts/coverage-summary.py
       - name: SonarQube Scan
-        if: github.repository == 'Col-E/BentoFX'
+        if: github.repository == 'philliplbryant/BentoFX'
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
