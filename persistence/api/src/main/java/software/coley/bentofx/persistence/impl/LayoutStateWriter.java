@@ -5,6 +5,7 @@ import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
@@ -42,9 +43,12 @@ final class LayoutStateWriter implements AutoCloseable {
         try (final OutputStream out = layoutStorage.openOutputStream()) {
 
             layoutCodec.encode(bentoStateList, out);
-        } catch (final Exception ex) {
+        } catch (final IOException e) {
 
-            throw new BentoStateException("Failed to encode BentoState", ex);
+            throw new BentoStateException(
+                    "Could not write persisted layout state",
+                    e
+            );
         }
     }
 

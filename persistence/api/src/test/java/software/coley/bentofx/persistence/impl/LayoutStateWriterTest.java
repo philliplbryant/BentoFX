@@ -9,7 +9,11 @@ import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -24,7 +28,7 @@ class LayoutStateWriterTest {
     private static final String LAYOUT_IDENTIFIER = "main";
     private static final String CODEC_FAILURE_MESSAGE = "codec failed";
     private static final String STORAGE_FAILURE_MESSAGE = "storage failed";
-    private static final String WRITE_FAILURE_MESSAGE = "Failed to encode BentoState";
+    private static final String WRITE_FAILURE_MESSAGE = "Could not write persisted layout state";
     private static final String WRITE_EXCEPTION_DESCRIPTION =
             "exception thrown by LayoutStateWriter.writeLayout(List.of())";
     private static final String OUTPUT_STREAM_CONTENT_DESCRIPTION = "storage output stream content";
@@ -48,7 +52,7 @@ class LayoutStateWriterTest {
     }
 
     @Test
-    void wrapsEncodingFailures() {
+    void propagatesEncodingFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
         final BentoStateException expectedCause = new BentoStateException(CODEC_FAILURE_MESSAGE);
         codec.setEncodeException(expectedCause);
@@ -58,9 +62,7 @@ class LayoutStateWriterTest {
                     new LayoutStateWriter(codec, storage).writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION)
-                    .isInstanceOf(BentoStateException.class)
-                    .hasMessage(WRITE_FAILURE_MESSAGE)
-                    .hasCause(expectedCause);
+                    .isSameAs(expectedCause);
         }
     }
 

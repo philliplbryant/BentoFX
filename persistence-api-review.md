@@ -62,7 +62,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M3](#m3) | `callOffFxThread` blocks the FX thread, one thread per call | **Fixed** 2026-08-12 (thread per call); blocking documented, not removed |
 | [M4](#m4) | Public `DockContainerStateBuilder` builds state restore discards | **Fixed** 2026-08-12 |
 | [M5](#m5) | `LayoutStorage` ownership unspecified; two components each close it | **Fixed** 2026-08-12 (incl. T15) |
-| [M6](#m6) | `LayoutStateWriter` mislabels storage failures as encode failures | **Open** |
+| [M6](#m6) | `LayoutStateWriter` mislabels storage failures as encode failures | **Fixed** 2026-08-12 |
 | [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Open** |
 | [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Open** |
 | [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Open** |
@@ -1171,7 +1171,7 @@ in the class still pass, so it is specific to this defect. Verified by
 `:persistence:api:test`, `:persistence:api:functionalTest`,
 `:persistence:codec:common:test`, `checkJSpecify` and `javadoc`.
 
-### <a id="m6"></a>M6. `LayoutStateWriter` mislabels storage failures as encode failures and re-wraps typed exceptions
+### <a id="m6"></a>M6. `LayoutStateWriter` mislabels storage failures as encode failures and re-wraps typed exceptions - FIXED 2026-08-12
 
 `impl/LayoutStateWriter.java:42-48`
 
@@ -1197,6 +1197,41 @@ sides of the same round trip report failures differently.
 Smallest fix: mirror the reader. Catch `IOException` with a "Could not write
 persisted layout state" message and let `BentoStateException` propagate
 unwrapped.
+
+**Fixed** 2026-08-12 exactly as sketched, so the two sides of the round trip now
+read the same way.
+
+Worth recording why narrowing `catch (Exception)` to `catch (IOException)` costs
+nothing, because that is the part that looks risky and is the reason a reviewer
+might leave the broad catch alone. The only checked exceptions in the block are
+`IOException` from `openOutputStream` and the implicit `close()`, and
+`BentoStateException` from `encode`; the broad catch was therefore only *adding*
+`RuntimeException`. And it was not adding safety, because
+`PersistenceThreading.call` and `unwrap` already convert anything that is not a
+`BentoStateException` into `BentoStateException("Persistence task failed", e)` on
+both of the paths `writeLayout` runs on. The writer's broad catch was duplicating
+that conversion one layer too low, where the only message available to it was the
+wrong one. `LayoutStateReader` has always relied on that same outer conversion,
+which is precisely why it could afford to catch only `IOException` - so mirroring
+it removes an inconsistency rather than creating an exposure.
+
+The immediate payoff is the codec's own diagnostic. `JsonLayoutCodec` and
+`XmlLayoutCodec` already throw "Failed to encode BentoState as JSON"/"as XML";
+the writer was catching those and re-wrapping them in the strictly less specific
+"Failed to encode BentoState", so the message naming the actual format was one
+cause deeper than the one the user saw first. It now surfaces directly.
+
+The two existing tests encoded the old behaviour and both had to change, which is
+the honest signal that this was a behavioural fix and not a message tidy-up:
+`wrapsEncodingFailures` became `propagatesEncodingFailures` and asserts
+`isSameAs` the codec's exception, mirroring `propagatesDecodingFailures` in
+`LayoutStateReaderTest`; `wrapsStorageFailures` keeps its shape and now expects
+the storage-flavoured message. Together they pin both halves of the finding - a
+storage failure says storage, and a codec failure arrives intact. Verified to
+fail first by restoring the old `catch (Exception)` and message: both fail, the
+other two tests in the class pass. Verified by `:persistence:api:test`,
+`:persistence:api:functionalTest`, `:persistence:codec:common:test`, the JSON and
+XML codec suites, `checkJSpecify` and `javadoc`.
 
 ### <a id="m7"></a>M7. Branch state captures the recursive flattened dockable list; the restorer ignores it; the root branch has the mirror-image gap
 
@@ -1651,10 +1686,9 @@ N1/N2 are no longer *external* API problems, only internal ones.
 
 The majors that remain are largely independent. M7 and M10 are the two remaining
 capture/restore asymmetries and pair naturally with the general round-trip test
-argued for in theme 1. M6 is the remaining `LayoutStateWriter` contract clean-up;
-M5, the `LayoutStorage` half of that pair, is done. The MINOR list is mostly
-mechanical and could be swept in one pass; N9 and N10, the two Javadoc items and
-the largest of them, are now done.
+argued for in theme 1. M5 and M6, the `LayoutStorage`/`LayoutStateWriter` contract
+clean-ups, are both done. The MINOR list is mostly mechanical and could be swept in
+one pass; N9 and N10, the two Javadoc items and the largest of them, are now done.
 
 The NIT list has now had that sweep, less one item held back deliberately because it
 is not mechanical: T14 (`DockEventListener` on the public surface) is an API-shape
