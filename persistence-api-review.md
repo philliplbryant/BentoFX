@@ -26,7 +26,7 @@ minor and nit lists are hygiene.
 Three findings turned out to be partly or wholly wrong once tested, and every
 correction is recorded in its own entry rather than quietly dropped:
 
-- **B10 was not a defect at all.** Measured behaviour is correct, and the predicted
+- **B10 was not a defect at all.** Measured behavior is correct, and the predicted
   symptom was the opposite of what actually happens.
 - **B9's hazard needs the stage to be *shown***, not merely to exist — my first test
   for it was vacuous as a result.
