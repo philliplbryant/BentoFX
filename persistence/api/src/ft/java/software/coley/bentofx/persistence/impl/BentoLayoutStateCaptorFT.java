@@ -28,6 +28,7 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.RIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 @ExtendWith(ApplicationExtension.class)
 class BentoLayoutStateCaptorFT {
@@ -38,6 +39,11 @@ class BentoLayoutStateCaptorFT {
     private static final String LEAF_ID = "leaf-state-captor";
     private static final String LEAF_DOCKABLE_ID = "leaf-dockable-state-captor";
     private static final String CAPTOR_STAGE_TITLE = "Bento Layout State Captor";
+    private static final String FAILING_BENTO_ID = "bento-uncapturable-dockable";
+    private static final String FAILING_ROOT_BRANCH_ID = "root-uncapturable-dockable";
+    private static final String FAILING_LEAF_ID = "leaf-uncapturable-dockable";
+    private static final String CAPTURABLE_DOCKABLE_ID = "dockable-capturable";
+    private static final String UNCAPTURABLE_DOCKABLE_ID = "dockable-uncapturable";
 
     private @Nullable Stage stage;
 
@@ -179,6 +185,105 @@ class BentoLayoutStateCaptorFT {
                     .containsExactly(LEAF_DOCKABLE_ID);
         } finally {
             robot.interact(stage::hide);
+        }
+    }
+
+    /**
+     * A dockable that cannot be captured must abort the save rather than be
+     * dropped from it. Capture runs before anything is written, so throwing
+     * leaves the previously persisted layout intact; swallowing the failure
+     * reported success and then truncated that file with a layout missing a pane.
+     */
+    @Test
+    void captureBentoStatesFailsRatherThanSilentlyDropAnUncapturableDockable(
+            final FxRobot robot
+    ) {
+        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+        final AtomicReference<Throwable> thrownReference =
+                new AtomicReference<>();
+
+        assertThat(stage)
+                .describedAs("stage")
+                .isNotNull();
+
+        robot.interact(() -> {
+            final Bento bento = new Bento(FAILING_BENTO_ID);
+            final DockBuilding dockBuilding = bento.dockBuilding();
+
+            final DockContainerRootBranch rootBranch =
+                    dockBuilding.root(FAILING_ROOT_BRANCH_ID);
+
+            final DockContainerLeaf leaf = dockBuilding.leaf(FAILING_LEAF_ID);
+            leaf.setSide(RIGHT);
+
+            // A capturable dockable, added first so it is the selected one. That
+            // keeps the failure below in the dockables loop rather than in
+            // buildLeafState's selected-identifier lookup, which would throw
+            // first and prove nothing about the loop.
+            final Dockable capturable =
+                    dockBuilding.dockable(CAPTURABLE_DOCKABLE_ID);
+            leaf.addDockable(capturable);
+            leaf.selectDockable(capturable);
+
+            final UncapturableDockable uncapturable =
+                    new UncapturableDockable(bento, UNCAPTURABLE_DOCKABLE_ID);
+            leaf.addDockable(uncapturable);
+
+            rootBranch.addContainer(leaf);
+
+            stage.setScene(new Scene(rootBranch));
+            stage.show();
+
+            bentoProvider.addBento(bento);
+
+            // Armed only now, so building the tree and showing the stage - both
+            // of which read identifiers - stay unaffected.
+            uncapturable.startFailing();
+
+            thrownReference.set(catchThrowable(() ->
+                    new BentoLayoutStateCaptor(bentoProvider)
+                            .captureBentoStates()
+            ));
+        });
+
+        try {
+            assertThat(thrownReference.get())
+                    .describedAs("exception thrown by captureBentoStates()")
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining(UNCAPTURABLE_DOCKABLE_ID);
+        } finally {
+            robot.interact(stage::hide);
+        }
+    }
+
+    /**
+     * A {@link Dockable} whose identifier can be made to fail on demand, standing
+     * in for any future capture step that throws for one dockable.
+     */
+    private static final class UncapturableDockable extends Dockable {
+
+        private boolean failing;
+
+        private UncapturableDockable(
+                final Bento bento,
+                final String identifier
+        ) {
+            super(bento, identifier);
+        }
+
+        private void startFailing() {
+            failing = true;
+        }
+
+        @Override
+        public String getIdentifier() {
+            if (failing) {
+                throw new IllegalStateException(
+                        "Could not read the identifier of "
+                                + UNCAPTURABLE_DOCKABLE_ID
+                );
+            }
+            return super.getIdentifier();
         }
     }
 }

@@ -65,7 +65,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M6](#m6) | `LayoutStateWriter` mislabels storage failures as encode failures | **Fixed** 2026-08-12 |
 | [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Fixed** 2026-08-12 |
 | [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Fixed** 2026-08-12 |
-| [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Open** |
+| [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Fixed** 2026-08-12 |
 | [M10](#m10) | `isShowing` captured but never applied | **Open** |
 | [M11](#m11) | Capture depends on scene attachment; saving before display loses the layout | **Open** |
 | [M12](#m12) | Capturing a leaf with no side throws, aborting the whole save | **Fixed** 2026-08-11 |
@@ -87,24 +87,24 @@ was least reliable, and the only thing that settled any of them was running code
 
 ### NIT
 
-| | Finding | Status |
-|---|---|---|
-| [T1](#t1) | Duplicated scene-root `instanceof` check in the captor | **Resolved** with B9 |
-| [T2](#t2) | Double-logged "Attempting to restore null DockContainer" | **Fixed** 2026-08-11 |
-| [T3](#t3) | "{@return 2n" typo in `DockContainerBranchState` | **Fixed** 2026-08-11 |
-| [T4](#t4) | "caontaining" typo in `DockContainerLeafMenuFactoryProvider` | **Fixed** 2026-08-11 |
-| [T5](#t5) | Doubled comma in `DockableState` Javadoc | **Fixed** 2026-08-11 |
-| [T6](#t6) | Stray `*` in a `BentoState` `@param` | **Fixed** 2026-08-11 |
-| [T7](#t7) | "the diver positions" typo in the restorer | **Fixed** 2026-08-11 |
-| [T8](#t8) | `{code X}` missing its `@` in two files | **Fixed** 2026-08-11 |
-| [T9](#t9) | `enableAutoSave` takes a boxed `Long`; stray double space in `@see` | **Fixed** 2026-08-11 |
-| [T10](#t10) | Constructor passes its own fields back into `enableAutoSave` | **Resolved** with B2 |
-| [T11](#t11) | Inconsistent private-constructor convention in the two utility classes | **Fixed** 2026-08-11 |
-| [T12](#t12) | `java.util.concurrent.Future` written fully qualified | **Resolved** with B4 |
-| [T13](#t13) | Varargs `requireNonNull` checks the array, not its elements | **Fixed** 2026-08-11 |
-| [T14](#t14) | `DockEventListener` implemented publicly, exposing `onDockEvent` | **Open** |
-| [T15](#t15) | `DockingLayoutRestorer.layoutStorage` aliases the reader's instance | **Resolved** with M5 |
-| [T16](#t16) | Tab/space inconsistency in `module-info.java` | **Fixed** 2026-08-11 |
+| | Finding | Status                                        |
+|---|---|-----------------------------------------------|
+| [T1](#t1) | Duplicated scene-root `instanceof` check in the captor | **Resolved** with B9                          |
+| [T2](#t2) | Double-logged "Attempting to restore null DockContainer" | **Fixed** 2026-08-11                          |
+| [T3](#t3) | "{@return 2n" typo in `DockContainerBranchState` | **Fixed** 2026-08-11                          |
+| [T4](#t4) | "caontaining" typo in `DockContainerLeafMenuFactoryProvider` | **Fixed** 2026-08-11                          |
+| [T5](#t5) | Doubled comma in `DockableState` Javadoc | **Fixed** 2026-08-11                          |
+| [T6](#t6) | Stray `*` in a `BentoState` `@param` | **Fixed** 2026-08-11                          |
+| [T7](#t7) | "the diver positions" typo in the restorer | **Fixed** 2026-08-11                          |
+| [T8](#t8) | `{code X}` missing its `@` in two files | **Fixed** 2026-08-11                          |
+| [T9](#t9) | `enableAutoSave` takes a boxed `Long`; stray double space in `@see` | **Fixed** 2026-08-11                          |
+| [T10](#t10) | Constructor passes its own fields back into `enableAutoSave` | **Resolved** with B2                          |
+| [T11](#t11) | Inconsistent private-constructor convention in the two utility classes | **Fixed** 2026-08-11                          |
+| [T12](#t12) | `java.util.concurrent.Future` written fully qualified | **Resolved** with B4                          |
+| [T13](#t13) | Varargs `requireNonNull` checks the array, not its elements | **Fixed** 2026-08-11                          |
+| [T14](#t14) | `DockEventListener` implemented publicly, exposing `onDockEvent` | **Resolved** (Issue in core module; won't do) |
+| [T15](#t15) | `DockingLayoutRestorer.layoutStorage` aliases the reader's instance | **Resolved** with M5                          |
+| [T16](#t16) | Tab/space inconsistency in `module-info.java` | **Fixed** 2026-08-11                          |
 
 Every identifier in the four tables above links to that finding's own numbered
 section below. The anchors are explicit rather than derived from the heading text,
@@ -1382,7 +1382,7 @@ between them restore both collapsed and uncollapsed leaves. Verified by
 `:persistence:codec:common:integrationTestParallel`, both codec suites,
 `checkJSpecify` and `javadoc`.
 
-### <a id="m9"></a>M9. A failing dockable is silently dropped from the saved layout
+### <a id="m9"></a>M9. A failing dockable is silently dropped from the saved layout - FIXED 2026-08-12
 
 `impl/BentoLayoutStateCaptor.java:376-386`
 
@@ -1401,6 +1401,59 @@ concrete today and will hide real failures when `buildDockable` grows.
 Smallest fix: let the exception propagate (the method already sits under
 `saveLayout`'s `BentoStateException` contract), or accumulate failures and throw
 after the loop so a partial save is never silently written.
+
+**Fixed** 2026-08-12 by the first option: the `try`/`catch` is gone and the loop is
+two lines. Accumulate-and-throw was considered and dropped - the first failure
+already aborts the save before anything is written, so collecting the rest buys a
+longer message in exchange for a list and a second loop, and one cause with a stack
+trace is as actionable as five.
+
+Traced all three save paths before deleting, because "let it propagate" is only safe
+if propagation is caught somewhere sensible. It is, on all three: the timer path
+goes through `AbstractAutoCloseableLayoutSaver.autoSave`, which catches
+`BentoStateException | RuntimeException` and logs at error (B3's fix), so the
+scheduler survives; `close()` routes through that same `autoSave(true)` inside a
+`try` whose `finally` still runs `disableAutoSave()`, so a throwing capture cannot
+leave a saver half-closed; and an explicit `saveLayout()` surfaces it to the caller
+as a `BentoStateException`, since `PersistenceThreading.call`/`unwrap` converts
+anything that is not one already.
+
+Propagation is the *fix* rather than merely the tidier option because of ordering:
+`DockingLayoutSaver.saveLayout` runs the entire capture on the JavaFX thread and
+only then hands `writeLayout` to the off-thread executor. A capture that throws
+therefore never reaches `FileLayoutStorage.openOutputStream`, the truncating
+`Files.newOutputStream` never runs, and the last good file is still on disk.
+Swallowing inverted precisely that - it reported success, then overwrote a good
+layout with one missing a pane.
+
+One thing this loses, worth stating rather than glossing: the old `logger.error`
+named the leaf and a bare propagating exception does not. The stack trace names
+`buildLeafState` and `buildDockable`, which is where a future capture step would
+fail, and restoring the identifier would mean wrapping in an unchecked type only for
+`PersistenceThreading` to wrap it again - two layers for one string. Propagating the
+*checked* `BentoStateException` with that context is not available at all:
+`captureBentoState` maps `buildRootBranchState` inside a stream, and a checked
+exception cannot cross that lambda without restructuring the whole recursion.
+
+A comment now sits where the catch was, saying why the loop is unguarded, and saying
+explicitly that the narrow `getUncollapsedSize` guard M12 added a few lines above is
+not a precedent for a general catch here - that one covers a single known,
+legitimate state and omits an optional field, where this one dropped a whole pane.
+
+New test in `BentoLayoutStateCaptorFT`:
+`captureBentoStatesFailsRatherThanSilentlyDropAnUncapturableDockable`. It puts a
+`Dockable` subclass whose `getIdentifier()` throws on demand into a leaf and asserts
+`captureBentoStates()` throws instead of returning state. Two details keep it aimed
+at the loop rather than something adjacent: the failure is armed only after the tree
+is built and the stage shown, because core reads identifiers while wiring headers;
+and a second, capturable dockable is added first and left selected, so
+`buildLeafState`'s selected-identifier lookup succeeds and the throw can only come
+from the dockables loop. Verified to fail first by reinstating the catch - it reports
+`Expecting actual not to be null`, meaning capture returned normally with the pane
+missing, which is the defect stated exactly. Verified by `:persistence:api:test`,
+`:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`checkJSpecify` and `javadoc`.
 
 ### <a id="m10"></a>M10. `isShowing` is captured but never applied
 

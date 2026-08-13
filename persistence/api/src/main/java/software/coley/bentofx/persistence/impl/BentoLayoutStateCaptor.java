@@ -412,17 +412,15 @@ final class BentoLayoutStateCaptor {
 			);
 		}
 
-		// Dockables
+		// Dockables.
+		// Deliberately not catching Exception here. A dockable that cannot be
+		// captured has to abort the save, not be dropped from it. Capture runs
+		// to completion before anything is written, so a failure here means the
+		// persisted layout is left exactly as it was - whereas swallowing the
+		// failure reported a successful save and then truncated the last good
+		// file with a layout missing a pane.
 		for (final Dockable dockable : leaf.getDockables()) {
-
-			try {
-				leafStateBuilder.addChildDockableState(
-						buildDockable(dockable)
-				);
-			} catch (final Exception ex) {
-
-				logger.error("Failed to persist dockable in leaf {}", id, ex);
-			}
+			leafStateBuilder.addChildDockableState(buildDockable(dockable));
 		}
 
 		return leafStateBuilder.build();
