@@ -10,10 +10,11 @@ plugins {
 
 def versionCatalog = versionCatalogs.named('libs')
 
-// TODO BENTO-13: Might also need to use --no-configuration-cache when
-//  executing some JReleaser tasks. The JReleaser plugin is not compatible with
-//  configuration cache and using the `notCompatibleWithConfigurationCache`
-//  SOMETIMES causes an error deleting the build/jreleaser directory.
+// TODO BENTO-13: Might need to comment out this configuration and use
+//  --no-configuration-cache when executing some JReleaser tasks.
+//  The JReleaser plugin is not compatible with configuration cache and using
+//  the `notCompatibleWithConfigurationCache` SOMETIMES causes an error deleting
+//  the build/jreleaser directory.
 //  See https://github.com/jreleaser/jreleaser/issues/2150
 tasks.withType(AbstractJReleaserDefaultTask).configureEach {
     def jreleaserVersion =

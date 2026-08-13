@@ -49,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * never shows a restored stage and an unshown stage is not captured</p>
  *
  * @author Phil Bryant
- * {@see restoreDockingLayoutCarriesThePersistedShowingFlagToTheCaller}
  */
 @ExtendWith(ApplicationExtension.class)
 class LayoutRoundTripFT {
