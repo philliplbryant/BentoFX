@@ -1,8 +1,10 @@
 package software.coley.bentofx.persistence.impl;
 
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Popup;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.jspecify.annotations.Nullable;
@@ -67,6 +69,67 @@ class StageUtilsFT {
             secondStage.hide();
             firstStage.hide();
         });
+    }
+
+    /**
+     * Tests a position already on screen comes back untouched, and one off either
+     * edge is pulled back to the boundary.
+     *
+     * <p>Expectations are derived from {@link Screen} rather than hard-coded, so
+     * this holds on any monitor arrangement. </p>
+     */
+    @Test
+    void positionHelpersClampToTheBoundaryEnclosingEveryScreen(
+            final FxRobot robot
+    ) {
+        final Stage stage = getFirstStage();
+        final Rectangle2D screens = boundaryEnclosingEveryScreen();
+        final double farOutside = 10_000;
+
+        final double onScreenX = screens.getMinX() + 10;
+        assertThat(StageUtils.getXInScreenBounds(stage, onScreenX))
+                .describedAs("getXInScreenBounds(stage, a position already on screen)")
+                .isEqualTo(onScreenX);
+        assertThat(StageUtils.getXInScreenBounds(stage, screens.getMinX() - farOutside))
+                .describedAs("getXInScreenBounds(stage, a position left of every screen)")
+                .isEqualTo(screens.getMinX());
+        assertThat(StageUtils.getXInScreenBounds(stage, screens.getMaxX() + farOutside))
+                .describedAs("getXInScreenBounds(stage, a position right of every screen)")
+                .isEqualTo(screens.getMaxX() - stage.getWidth());
+
+        final double onScreenY = screens.getMinY() + 10;
+        assertThat(StageUtils.getYInScreenBounds(stage, onScreenY))
+                .describedAs("getYInScreenBounds(stage, a position already on screen)")
+                .isEqualTo(onScreenY);
+        assertThat(StageUtils.getYInScreenBounds(stage, screens.getMinY() - farOutside))
+                .describedAs("getYInScreenBounds(stage, a position above every screen)")
+                .isEqualTo(screens.getMinY());
+        assertThat(StageUtils.getYInScreenBounds(stage, screens.getMaxY() + farOutside))
+                .describedAs("getYInScreenBounds(stage, a position below every screen)")
+                .isEqualTo(screens.getMaxY() - stage.getHeight());
+
+        robot.interact(() -> {
+            getPopup().hide();
+            getSecondStage().hide();
+            stage.hide();
+        });
+    }
+
+    private static Rectangle2D boundaryEnclosingEveryScreen() {
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        for (final Screen screen : Screen.getScreens()) {
+            final Rectangle2D bounds = screen.getVisualBounds();
+            minX = Math.min(bounds.getMinX(), minX);
+            minY = Math.min(bounds.getMinY(), minY);
+            maxX = Math.max(bounds.getMaxX(), maxX);
+            maxY = Math.max(bounds.getMaxY(), maxY);
+        }
+
+        return new Rectangle2D(minX, minY, maxX - minX, maxY - minY);
     }
 
     private Stage getFirstStage() {
