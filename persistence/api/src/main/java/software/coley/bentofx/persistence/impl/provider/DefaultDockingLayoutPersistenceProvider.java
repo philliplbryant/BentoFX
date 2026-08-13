@@ -40,6 +40,13 @@ public class DefaultDockingLayoutPersistenceProvider
      * Constructs a provider whose codec and storage providers are discovered
      * once, now, with {@code ServiceLoader}. A provider registered after this
      * runs will not be seen.
+     *
+     * <p>Discovery uses the class loader of the service interface, so it follows
+     * the module graph that declares the {@code uses} clauses rather than whatever
+     * thread happens to construct this. An implementation living in a class loader
+     * that this module cannot see - a container or plugin loader - will not be
+     * found, and has to be passed to
+     * {@link #DefaultDockingLayoutPersistenceProvider(List, List)} instead.</p>
      */
     public DefaultDockingLayoutPersistenceProvider() {
         this(
@@ -155,8 +162,25 @@ public class DefaultDockingLayoutPersistenceProvider
         );
     }
 
+    /**
+     * Discovers implementations of a service interface.
+     *
+     * <p>The loader is passed explicitly. The one-argument
+     * {@code ServiceLoader.load} is defined as using the <em>thread context</em>
+     * class loader, which makes discovery depend on which thread constructed this
+     * object - and in a container that leaves it unset, or sets it to a loader
+     * that cannot see this module's dependencies, nothing is found. The failure
+     * then reads as "no implementation exists" rather than "the loader could not
+     * see it". The service interface's own loader is the deterministic choice,
+     * because it is the module graph declaring the {@code uses} clause that is
+     * meant to resolve the {@code provides}.</p>
+     *
+     * @param providerType the service interface to discover implementations of.
+     * @param <T> the service interface type.
+     * @return the discovered implementations.
+     */
     private static <T> List<T> loadProviders(final Class<T> providerType) {
-        return ServiceLoader.load(providerType)
+        return ServiceLoader.load(providerType, providerType.getClassLoader())
                 .stream()
                 .map(ServiceLoader.Provider::get)
                 .toList();
@@ -168,9 +192,14 @@ public class DefaultDockingLayoutPersistenceProvider
             final @Nullable String requestedIdentifier
     ) throws BentoStateException {
         if (providers.isEmpty()) {
+            // Naming the loader as a possibility, because an implementation that
+            // is present but invisible produces this same empty list, and the
+            // message otherwise reads as a definite "it does not exist".
             throw new BentoStateException(
                     "No " + providerType.getSimpleName() + " implementation was found. " +
-                            "Add a runtime dependency that provides " + providerType.getSimpleName() + "."
+                            "Add a runtime dependency that provides " + providerType.getSimpleName() + ". " +
+                            "If one is present but in a class loader this module cannot see, " +
+                            "pass it to the DefaultDockingLayoutPersistenceProvider(List, List) constructor."
             );
         }
 

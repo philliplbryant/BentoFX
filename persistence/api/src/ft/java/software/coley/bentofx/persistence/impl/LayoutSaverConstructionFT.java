@@ -178,7 +178,7 @@ class LayoutSaverConstructionFT {
         // Auto-save is off, so nothing is listening for dock events. Mark the
         // layout dirty the same way a listener would, so close() has something
         // to flush.
-        saver.onDockEvent(
+        saver.markLayoutDirty(
                 new DockEvent.RootContainerAdded(
                         dockBuilding.root("root-construction-close-event")
                 )

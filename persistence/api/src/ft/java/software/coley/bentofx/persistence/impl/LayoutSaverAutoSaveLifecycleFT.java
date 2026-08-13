@@ -1,7 +1,6 @@
 package software.coley.bentofx.persistence.impl;
 
 import javafx.application.Platform;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -219,7 +218,7 @@ class LayoutSaverAutoSaveLifecycleFT {
 
             // Give close() real work to do, so it actually reaches the JavaFX
             // thread rather than short-circuiting on "no dock events received".
-            saver.onDockEvent(
+            saver.markLayoutDirty(
                     new DockEvent.RootContainerAdded(
                             bento.dockBuilding().root("root-lifecycle-deadlock")
                     )
@@ -379,9 +378,9 @@ class LayoutSaverAutoSaveLifecycleFT {
         }
 
         @Override
-        public void onDockEvent(final @NonNull DockEvent event) {
+        void markLayoutDirty(final DockEvent event) {
             events.incrementAndGet();
-            super.onDockEvent(event);
+            super.markLayoutDirty(event);
         }
 
         private int eventCount() {

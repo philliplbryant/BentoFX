@@ -184,8 +184,10 @@ public class DragDropStageState {
     }
 
     /**
-     * {@return an {@link Optional} specifying whether the stage should close
-     * automatically when empty, an empty {@link Optional} when unspecified.}
+     * {@return whether the stage should close automatically when empty.}
+     *
+     * <p>Mandatory field and is {@code requireNonNull}-checked, so it has
+     * no "unspecified" case to represent.</p>
      */
     public Boolean isAutoClosedWhenEmpty() {
         return isAutoClosedWhenEmpty;

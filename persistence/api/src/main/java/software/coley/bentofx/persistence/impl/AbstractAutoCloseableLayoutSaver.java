@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Phil Bryant
  */
 public abstract class AbstractAutoCloseableLayoutSaver
-        implements LayoutSaver, DockEventListener {
+        implements LayoutSaver {
 
     private static final Logger logger =
             LoggerFactory.getLogger(AbstractAutoCloseableLayoutSaver.class);
@@ -64,6 +64,15 @@ public abstract class AbstractAutoCloseableLayoutSaver
     private final AtomicBoolean wasDockEventReceived =
             new AtomicBoolean(false);
     private final AtomicBoolean closed = new AtomicBoolean();
+
+    /**
+     * Listener registered on each {@link Bento}'s event bus.
+     *
+     * <p>Held in a field, not created per call: {@code removeEventListener} is a
+     * list removal, so add and remove must be handed the same instance or the
+     * registration leaks past {@link #close()}.</p>
+     */
+    private final DockEventListener dockEventListener = this::markLayoutDirty;
 
     /**
      * Guards the auto-save lifecycle: {@link #isAutoSaveEnabled},
@@ -256,8 +265,15 @@ public abstract class AbstractAutoCloseableLayoutSaver
         removeListeners();
     }
 
-    @Override
-    public void onDockEvent(final DockEvent event) {
+    /**
+     * Marks the layout as changed, so the next auto-save has something to do.
+     *
+     * <p>Package-private rather than public: this is what the event bus calls
+     * through {@link #dockEventListener}, not part of this saver's surface.</p>
+     *
+     * @param event the {@link DockEvent} that changed the layout.
+     */
+    void markLayoutDirty(final DockEvent event) {
         logger.trace("Dock event received: {}", event);
         this.wasDockEventReceived.set(true);
     }
@@ -354,7 +370,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
     private void addListeners() {
         for (final Bento bento : bentoProvider.getAllBentos()) {
             if (listenerBentos.add(bento)) {
-                bento.events().addEventListener(this);
+                bento.events().addEventListener(dockEventListener);
             }
         }
     }
@@ -367,7 +383,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      */
     private void removeListeners() {
         for (final Bento bento : listenerBentos) {
-            bento.events().removeEventListener(this);
+            bento.events().removeEventListener(dockEventListener);
         }
 
         listenerBentos.clear();

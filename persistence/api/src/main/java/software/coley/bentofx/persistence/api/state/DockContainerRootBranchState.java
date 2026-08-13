@@ -3,12 +3,8 @@ package software.coley.bentofx.persistence.api.state;
 import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Represents the layout state of a {@code DockContainerRootBranch}.
@@ -37,16 +33,19 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
 
     /**
      * Builds a {@link DockContainerRootBranchState}.
+     *
+     * <p>A root branch state holds nothing a {@link DockContainerBranchState} does
+     * not, so this collects into a
+     * {@link DockContainerBranchState.DockContainerBranchStateBuilder} rather than
+     * repeating its six fields and their null checks. The mutators stay, one line
+     * each, because they have to return <em>this</em> type for chaining:
+     * inheriting them instead would hand callers a {@code build()} returning the
+     * wrong state, and making the return type generic over a self type is a steep
+     * price for two subclasses.</p>
      */
     public static class DockContainerRootBranchStateBuilder {
 
-        private final String identifier;
-        private final List<DockableState> childDockableStates = new ArrayList<>();
-        private @Nullable Boolean pruneWhenEmpty;
-        private @Nullable Orientation orientation;
-        private final Map<Integer, Double> dividerPositions =
-                new LinkedHashMap<>();
-        private final List<DockContainerState> childDockContainerStates = new ArrayList<>();
+        private final DockContainerBranchStateBuilder branchStateBuilder;
 
         /**
          * Constructor.
@@ -55,7 +54,8 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         public DockContainerRootBranchStateBuilder(
                 final String identifier
         ) {
-            this.identifier = requireNonNull(identifier);
+            this.branchStateBuilder =
+                    new DockContainerBranchStateBuilder(identifier);
         }
 
         /**
@@ -63,7 +63,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
          * @param dockableState the {@link DockableState} to add.
          */
         public DockContainerRootBranchStateBuilder addChildDockableState(final DockableState dockableState) {
-            this.childDockableStates.add(requireNonNull(dockableState));
+            branchStateBuilder.addChildDockableState(dockableState);
             return this;
         }
 
@@ -73,7 +73,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
          * {@code null} leaves prune-when-empty unspecified.
          */
         public DockContainerRootBranchStateBuilder setPruneWhenEmpty(final @Nullable Boolean pruneWhenEmpty) {
-            this.pruneWhenEmpty = pruneWhenEmpty;
+            branchStateBuilder.setPruneWhenEmpty(pruneWhenEmpty);
             return this;
         }
 
@@ -85,7 +85,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         public DockContainerRootBranchStateBuilder setOrientation(
                 final @Nullable Orientation orientation
         ) {
-            this.orientation = orientation;
+            branchStateBuilder.setOrientation(orientation);
             return this;
         }
 
@@ -98,10 +98,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
                 final Integer dividerIndex,
                 final Double dividerPosition
         ) {
-            dividerPositions.put(
-                    requireNonNull(dividerIndex),
-                    requireNonNull(dividerPosition)
-            );
+            branchStateBuilder.addDividerPosition(dividerIndex, dividerPosition);
             return this;
         }
 
@@ -112,7 +109,7 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         public DockContainerRootBranchStateBuilder addDockContainerState(
                 final DockContainerState dockContainerState
         ) {
-            this.childDockContainerStates.add(requireNonNull(dockContainerState));
+            branchStateBuilder.addDockContainerState(dockContainerState);
             return this;
         }
 
@@ -120,13 +117,19 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
          * {@return the {@link DockContainerRootBranchState} built from this builder.}
          */
         public DockContainerRootBranchState build() {
+            // Building the branch state first and copying across, so the collected
+            // values are read back through one set of accessors rather than by
+            // reaching into the delegate's fields.
+            final DockContainerBranchState branchState =
+                    branchStateBuilder.build();
+
             return new DockContainerRootBranchState(
-                    identifier,
-                    pruneWhenEmpty,
-                    childDockableStates,
-                    orientation,
-                    dividerPositions,
-                    childDockContainerStates
+                    branchState.getIdentifier(),
+                    branchState.doPruneWhenEmpty().orElse(null),
+                    branchState.getChildDockableStates(),
+                    branchState.getOrientation().orElse(null),
+                    branchState.getDividerPositions(),
+                    branchState.getChildDockContainerStates()
             );
         }
     }

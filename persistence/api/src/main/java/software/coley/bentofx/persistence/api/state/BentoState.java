@@ -62,7 +62,7 @@ public class BentoState extends IdentifiableState {
          * @param identifier the {@code Bento} identifier.
          */
         public BentoStateBuilder(final String identifier) {
-            this.identifier = identifier;
+            this.identifier = requireNonNull(identifier);
         }
 
         /**

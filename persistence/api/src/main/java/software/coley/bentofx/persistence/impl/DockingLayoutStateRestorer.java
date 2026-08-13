@@ -516,6 +516,23 @@ final class DockingLayoutStateRestorer {
 
         if (dockableState != null) {
 
+            // The dockable is built from the identifier that was asked for, not
+            // from the resolved state's own, so a provider answering with a state
+            // for some other dockable would be applied to this one under this
+            // identifier. Reporting rather than substituting: the persisted layout
+            // asked for this identifier, and honoring it keeps the restored tree
+            // matching what was saved.
+            if (!dockableIdentifier.equals(dockableState.getIdentifier())) {
+                logger.warn(
+                        "The DockableStateProvider answered the request for " +
+                                "dockable '{}' with the state for '{}'; applying " +
+                                "it to '{}' as persisted.",
+                        dockableIdentifier,
+                        dockableState.getIdentifier(),
+                        dockableIdentifier
+                );
+            }
+
             dockable = dockBuilding.dockable(dockableIdentifier);
 
             dockableState.getTitle().ifPresent(

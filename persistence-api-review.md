@@ -76,35 +76,35 @@ was least reliable, and the only thing that settled any of them was running code
 |---|---|---|
 | [N1](#n1) | `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima | **Fixed** 2026-08-12 |
 | [N2](#n2) | `StageUtils` position helpers take boxed `Double`, NPE on null | **Fixed** 2026-08-12 |
-| [N3](#n3) | `BentoStateBuilder` omits the null check its siblings have | **Open** |
+| [N3](#n3) | `BentoStateBuilder` omits the null check its siblings have | **Fixed** 2026-08-13 |
 | [N4](#n4) | `DockContainerStateBuilder.setPruneWhenEmpty` takes primitive `boolean` | **Moot** 2026-08-12 - builder deleted by M4 |
-| [N5](#n5) | `DockContainerRootBranchStateBuilder` duplicates the branch builder | **Open** |
-| [N6](#n6) | `restoreDockable` discards the resolved state's own identifier | **Open** |
-| [N7](#n7) | `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature | **Open** |
-| [N8](#n8) | `ServiceLoader` cached once at construction, via the TCCL | **Open** |
+| [N5](#n5) | `DockContainerRootBranchStateBuilder` duplicates the branch builder | **Fixed** 2026-08-13 |
+| [N6](#n6) | `restoreDockable` discards the resolved state's own identifier | **Fixed** 2026-08-13 |
+| [N7](#n7) | `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature | **Fixed** 2026-08-13 |
+| [N8](#n8) | `ServiceLoader` cached once at construction, via the TCCL | **Fixed** 2026-08-13 |
 | [N9](#n9) | Missing Javadoc across the public API (enumerated in the section) | **Fixed** 2026-08-11 |
 | [N10](#n10) | Unterminated `{@link}` will break Javadoc generation | **Fixed** 2026-08-11 |
 
 ### NIT
 
-| | Finding | Status                                        |
-|---|---|-----------------------------------------------|
-| [T1](#t1) | Duplicated scene-root `instanceof` check in the captor | **Resolved** with B9                          |
-| [T2](#t2) | Double-logged "Attempting to restore null DockContainer" | **Fixed** 2026-08-11                          |
-| [T3](#t3) | "{@return 2n" typo in `DockContainerBranchState` | **Fixed** 2026-08-11                          |
-| [T4](#t4) | "caontaining" typo in `DockContainerLeafMenuFactoryProvider` | **Fixed** 2026-08-11                          |
-| [T5](#t5) | Doubled comma in `DockableState` Javadoc | **Fixed** 2026-08-11                          |
-| [T6](#t6) | Stray `*` in a `BentoState` `@param` | **Fixed** 2026-08-11                          |
-| [T7](#t7) | "the diver positions" typo in the restorer | **Fixed** 2026-08-11                          |
-| [T8](#t8) | `{code X}` missing its `@` in two files | **Fixed** 2026-08-11                          |
-| [T9](#t9) | `enableAutoSave` takes a boxed `Long`; stray double space in `@see` | **Fixed** 2026-08-11                          |
-| [T10](#t10) | Constructor passes its own fields back into `enableAutoSave` | **Resolved** with B2                          |
-| [T11](#t11) | Inconsistent private-constructor convention in the two utility classes | **Fixed** 2026-08-11                          |
-| [T12](#t12) | `java.util.concurrent.Future` written fully qualified | **Resolved** with B4                          |
-| [T13](#t13) | Varargs `requireNonNull` checks the array, not its elements | **Fixed** 2026-08-11                          |
-| [T14](#t14) | `DockEventListener` implemented publicly, exposing `onDockEvent` | **Resolved** (Issue in core module; won't do) |
-| [T15](#t15) | `DockingLayoutRestorer.layoutStorage` aliases the reader's instance | **Resolved** with M5                          |
-| [T16](#t16) | Tab/space inconsistency in `module-info.java` | **Fixed** 2026-08-11                          |
+| | Finding | Status                                                |
+|---|---|-------------------------------------------------------|
+| [T1](#t1) | Duplicated scene-root `instanceof` check in the captor | **Resolved** with B9                                  |
+| [T2](#t2) | Double-logged "Attempting to restore null DockContainer" | **Fixed** 2026-08-11                                  |
+| [T3](#t3) | "{@return 2n" typo in `DockContainerBranchState` | **Fixed** 2026-08-11                                  |
+| [T4](#t4) | "caontaining" typo in `DockContainerLeafMenuFactoryProvider` | **Fixed** 2026-08-11                                  |
+| [T5](#t5) | Doubled comma in `DockableState` Javadoc | **Fixed** 2026-08-11                                  |
+| [T6](#t6) | Stray `*` in a `BentoState` `@param` | **Fixed** 2026-08-11                                  |
+| [T7](#t7) | "the diver positions" typo in the restorer | **Fixed** 2026-08-11                                  |
+| [T8](#t8) | `{code X}` missing its `@` in two files | **Fixed** 2026-08-11                                  |
+| [T9](#t9) | `enableAutoSave` takes a boxed `Long`; stray double space in `@see` | **Fixed** 2026-08-11                                  |
+| [T10](#t10) | Constructor passes its own fields back into `enableAutoSave` | **Resolved** with B2                                  |
+| [T11](#t11) | Inconsistent private-constructor convention in the two utility classes | **Fixed** 2026-08-11                                  |
+| [T12](#t12) | `java.util.concurrent.Future` written fully qualified | **Resolved** with B4                                  |
+| [T13](#t13) | Varargs `requireNonNull` checks the array, not its elements | **Fixed** 2026-08-11                                  |
+| [T14](#t14) | `DockEventListener` implemented publicly, exposing `onDockEvent` | **Fixed** 2026-08-13 |
+| [T15](#t15) | `DockingLayoutRestorer.layoutStorage` aliases the reader's instance | **Resolved** with M5                                  |
+| [T16](#t16) | Tab/space inconsistency in `module-info.java` | **Fixed** 2026-08-11                                  |
 
 Every identifier in the four tables above links to that finding's own numbered
 section below. The anchors are explicit rather than derived from the heading text,
@@ -1740,12 +1740,17 @@ negative coordinates. Verified by `:persistence:api:test`,
 `:persistence:codec:common:integrationTestParallel`, both codec suites,
 `:demos:persistence:compileJava`, `checkJSpecify` and `javadoc`.
 
-#### <a id="n3"></a>N3. `BentoStateBuilder` omits the null check its siblings have
+#### <a id="n3"></a>N3. `BentoStateBuilder` omits the null check its siblings have - FIXED 2026-08-13
 
 `api/state/BentoState.java:53`. Bare assignment where
 `DockContainerLeafStateBuilder:97`, `DockContainerBranchStateBuilder:70`,
 `DockableStateBuilder:152`, and `DragDropStageStateBuilder:224` all use
 `requireNonNull`. Failure surfaces later, at `build()`. Fix: `requireNonNull(identifier)`.
+
+**Fixed** 2026-08-13 exactly as stated; the file already static-imports
+`requireNonNull`, so it is one word. No test, deliberately: none of the four sibling
+builders has one either, and a test here would restate a one-line constructor check
+on a value the module is already `@NullMarked` for rather than exercise anything.
 
 #### <a id="n4"></a>N4. `DockContainerStateBuilder.setPruneWhenEmpty` takes primitive `boolean`
 
@@ -1755,7 +1760,7 @@ primitive form cannot express "unspecified".~~ **Moot** 2026-08-12: M4 deleted t
 builder, and with it this setter. The four subclass builders were already
 consistent with each other.
 
-#### <a id="n5"></a>N5. `DockContainerRootBranchStateBuilder` duplicates the branch builder
+#### <a id="n5"></a>N5. `DockContainerRootBranchStateBuilder` duplicates the branch builder - FIXED 2026-08-13
 
 `api/state/DockContainerRootBranchState.java:40-87`
 re-declares `identifier`, `childDockableStates`, `pruneWhenEmpty`, `orientation`,
@@ -1763,21 +1768,70 @@ re-declares `identifier`, `childDockableStates`, `pruneWhenEmpty`, `orientation`
 already drifted: the parent's mutators carry Javadoc, the root's carry none. Fix:
 have the root builder delegate to or extend the branch builder.
 
-#### <a id="n6"></a>N6. `restoreDockable` discards the resolved state's own identifier
+**Fixed** 2026-08-13 by delegation. The six fields and their null checks are gone;
+the builder now holds a `DockContainerBranchStateBuilder` and forwards to it, and
+`build()` builds the branch state and copies it across through its accessors rather
+than reaching into the delegate's fields.
+
+Delegation rather than the other option the finding offers, because *extending*
+`DockContainerBranchStateBuilder` breaks chaining: every inherited mutator returns
+the parent type, so `new DockContainerRootBranchStateBuilder(id).setOrientation(V)
+.build()` would yield a `DockContainerBranchState`, and `BentoStateTest` chains
+exactly like that. Fixing that needs either covariant overrides of all six mutators -
+the duplication back again, wearing `@Override` - or a recursive self-type generic on
+an exported builder, which is a steep price for two subclasses. Delegation also
+avoids leaving a wrongly-typed `build()` reachable on the subclass. The mutators stay
+as one-line forwards for the same chaining reason.
+
+The drift the finding names has already been repaired separately: the root builder's
+mutators carry Javadoc now, from N9's sweep. So this was structural duplication only,
+and the argument for removing it is future drift rather than present damage.
+
+New test `DockContainerRootBranchStateBuilderTest`, which did not exist - and that
+absence is how the duplicate could drift unnoticed in the first place, since the
+branch builder had `DockContainerBranchStateBuilderTest` and the root builder had
+nothing. It mirrors that test: every field survives the hand-off, the returned
+collections are immutable, and a build is unaffected by later builder mutation (worth
+pinning, because `build()` now goes through an intermediate state). Verified to fail
+by dropping `orientation` in the hand-off.
+
+#### <a id="n6"></a>N6. `restoreDockable` discards the resolved state's own identifier - FIXED 2026-08-13
 
 `impl/DockingLayoutStateRestorer.java:436-451`. It builds the `Dockable` from the
 `dockableIdentifier` parameter and never compares it to
 `dockableState.getIdentifier()`. A provider returning a mismatched state is
 silently accepted. Fix: log a warning on mismatch.
 
-#### <a id="n7"></a>N7. `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature
+**Fixed** 2026-08-13 as stated: a `logger.warn` naming both identifiers when they
+differ. Reporting rather than switching to the resolved state's identifier, because
+the persisted layout asked for this identifier and honouring it keeps the restored
+tree matching what was saved - substituting would quietly rename a pane instead.
+
+No test, for the reason recorded under M8: asserting on log output needs a Logback
+`ListAppender` and this module has only `slf4j-simple` at `functionalTest` runtime, so
+it would mean a new test dependency to observe one log statement that changes no
+restore behaviour.
+
+#### <a id="n7"></a>N7. `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature - FIXED 2026-08-13
 
 `api/state/DragDropStageState.java:186-192`. The doc describes "an
 `Optional` ... an empty `Optional` when unspecified"; the method returns a
 non-null `Boolean` that is `requireNonNull`-checked at `:69`. Copy-paste from the
 surrounding accessors.
 
-#### <a id="n8"></a>N8. `ServiceLoader` cached once at construction, via the TCCL
+**Fixed** 2026-08-13: the Javadoc now says what the method does and why it is the odd
+one out - it is the only mandatory field, taken as the builder's constructor argument
+rather than one of its setters, so it has no "unspecified" case to describe.
+
+Deliberately *not* changing `Boolean` to `boolean`, though that is arguably the more
+honest signature and is what N2 concluded for a parameter in the same position. The
+finding names this a Javadoc contradiction and fixing the doc resolves it; changing
+the return type of an exported accessor is source-incompatible for anyone calling a
+`Boolean` method on the result, which is a separate decision with its own release-note
+cost. Worth doing if the exported surface gets another pass - the boxed type is what
+invited the wrong doc.
+
+#### <a id="n8"></a>N8. `ServiceLoader` cached once at construction, via the TCCL - FIXED 2026-08-13
 
 `impl/provider/DefaultDockingLayoutPersistenceProvider.java:123-128`.
 Providers registered after the first construction are never seen, and the
@@ -1785,6 +1839,37 @@ no-arg `ServiceLoader.load` form uses the TCCL, which finds nothing in some
 container and JPMS layouts — surfacing as the "No LayoutCodecProvider
 implementation was found" message at `:136-139` rather than as a loader problem.
 Fix: pass an explicit `ClassLoader`, or document the eager one-shot behaviour.
+
+**Fixed** 2026-08-13, all three parts, though one of them turned out to be already
+done.
+
+The loader is now explicit: `ServiceLoader.load(providerType,
+providerType.getClassLoader())`. The service interface's own loader is the
+deterministic choice because it is the module graph declaring the `uses` clause that
+is meant to resolve the `provides`, and it removes the dependence on which thread
+happened to construct the provider.
+
+Worth being straight about the trade-off, since the TCCL is not simply a mistake: it
+is what lets a container expose plugin-loader services to library code. An
+implementation living in a loader this module cannot see will no longer be discovered.
+That case is covered - it has to be, and already was - by the two-argument constructor
+that takes the providers directly, which is now cross-referenced from the no-arg
+constructor's Javadoc as the escape hatch.
+
+The misleading message is addressed too, which is the part the finding actually
+describes as the symptom: "No X implementation was found" now continues with the
+possibility that one is present but in an invisible loader, and points at the explicit
+constructor. Phrased to be true regardless of how the instance was built, so it needs
+no flag recording whether discovery ran.
+
+The eager one-shot half needed nothing: the no-arg constructor's Javadoc already said
+"discovered once, now ... A provider registered after this runs will not be seen",
+from N9's sweep. It has gained the loader note beside it.
+
+No test. Exercising the loader change means constructing a class loader that can and
+cannot see a provider, which is a JPMS test harness rather than a MINOR fix, and the
+existing `failsWhenNoCodecProvidersAreAvailable` already pins the message with
+`hasMessageContaining`, so the appended sentence cannot break it.
 
 #### <a id="n9"></a>N9. Missing Javadoc across the public API (enumerated in the section)
 
@@ -1982,7 +2067,7 @@ genuinely breaking change instead of a signature tidy-up. It is still
 source-incompatible in principle for an outside caller passing two or more, which is
 worth a release-note line for the same reason T9 is.
 
-#### <a id="t14"></a>T14. `DockEventListener` implemented publicly, exposing `onDockEvent`
+#### <a id="t14"></a>T14. `DockEventListener` implemented publicly, exposing `onDockEvent` - FIXED 2026-08-13
 
 `impl/AbstractAutoCloseableLayoutSaver.java:31` — implementing
 `DockEventListener` publicly puts `onDockEvent` on the saver's public surface.
@@ -2003,8 +2088,41 @@ packages, so `onDockEvent` is no longer on any *externally* reachable surface -
 it is a public method on an internal class, which is a tidiness question rather
 than an API one. And the interface has to be public wherever it is implemented,
 so this is only ever fixable by composition, never by narrowing the method.
-Still open, and still worth doing with T9's release note if the `impl` shapes get
-another pass; it is no longer blocking anything.
+**Fixed** 2026-08-13 by composition, with `core` untouched. The status table briefly
+carried this as won't-do "issue is in the core module"; the defect is in how
+`persistence` *uses* a `core` type rather than in `core` itself, which is what
+reopened it.
+
+`AbstractAutoCloseableLayoutSaver` no longer implements `DockEventListener`. It holds
+one in a private final field - `this::markLayoutDirty` - and registers that on each
+`Bento`'s bus, so `core`'s interface is unchanged and only the saver's own shape
+moved. `onDockEvent` became package-private `markLayoutDirty`, which also names what
+it does: set the dirty flag the next auto-save reads.
+
+The identity trap is real and now carries a comment saying so. Because
+`EventBus.removeEventListener` is a `List.remove`, add and remove must be handed the
+same instance; inlining `this::markLayoutDirty` at the two call sites creates two
+distinct lambdas, removal silently does nothing, and the saver leaks into every
+`Bento`'s bus past `close()`. This is the one respect in which the composition version
+is *more* fragile than what it replaced, where `this` was inherently stable. It is
+covered: `concurrentEnableAndDisableLeavesNoListenerRegistered` was verified to fail
+when the lambda is created per call, which is exactly the mistake a later edit would
+make.
+
+Three test sites used the method, which is why this was never purely an internal
+rename. `LayoutSaverConstructionFT:181` and `LayoutSaverAutoSaveLifecycleFT:222` both
+call it directly to mark the layout dirty without a live listener - the first cannot
+fire a real event instead, since its premise is that auto-save is off and nothing is
+listening. `EventCountingSaver` overrides it to count events reaching the saver, and
+that has to stay an override rather than become a second bus listener: the test
+distinguishes events reaching the *saver* from events reaching the *bus*, which is the
+whole point of it. All three needed only the rename, because the FTs share the
+package - package-private is enough, and no `protected` extension point had to be
+introduced to keep them working.
+
+No new test. The method is one flag write with no branch, and the behaviour that could
+actually break - the registration lifecycle - was already covered by the listener test
+above, which is what verified the trap.
 
 #### <a id="t15"></a>T15. `DockingLayoutRestorer.layoutStorage` aliases the reader's instance
 
@@ -2092,17 +2210,16 @@ theme 1 is no longer blocked behind any of them, and would now guard finished
 behaviour rather than drive a fix - the better time to write it, and the main piece of
 outstanding work on this branch beyond the list below.
 
-What remains is five MINOR items - N3, N5, N6, N7 and N8 - mechanical enough to sweep
-in one pass, plus T14, held back as an API-shape question (see its entry: it needs no
-`core` change). N9 and N10, the two Javadoc items and the largest of the MINOR list,
-are done.
+The MINOR and NIT lists are closed as well, the MINOR items swept in one pass as
+anticipated. **Every finding in this review is now resolved**, so the outstanding work
+on this branch is the round-trip test above rather than anything on the list.
 
-The NIT list has now had that sweep, less one item held back deliberately because it
-is not mechanical: T14 (`DockEventListener` on the public surface) is an API-shape
-question that belongs with M1. T15 (the aliased `layoutStorage` field) was held back
-alongside it pending M5's ownership decision, and landed with M5 once that decision
-was made. T13 was initially held back with them as cosmetic, but it turned out to
-have a fix that needed no design call - see its entry.
+The three NIT items held back from the original sweep, because none of them was
+mechanical, all landed in the end. T14 (`DockEventListener` on the public surface) was
+the API-shape question belonging with M1, and went in by composition once it was clear
+it needed no `core` change. T15 (the aliased `layoutStorage` field) waited on M5's
+ownership decision and landed with it. T13 was held back with them as cosmetic, but
+turned out to have a fix that needed no design call - see its entry.
 
 ## Changes made
 
