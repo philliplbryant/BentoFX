@@ -1,9 +1,13 @@
 package software.coley.bentofx.persistence.impl;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Region;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -274,10 +278,9 @@ final class DockingLayoutStateRestorer {
                 rootBranchState.getDividerPositions().entrySet(),
                 rootBranch
         );
-        conditionallyCollapseLeaves(
-                getLeaves(rootBranch),
-                getLeafStates(rootBranchState),
-                rootBranch
+        collapseLeavesOnceLaidOut(
+                rootBranch,
+                getLeafStates(rootBranchState)
         );
 
         return rootBranch;
@@ -399,10 +402,9 @@ final class DockingLayoutStateRestorer {
         // the two calls together cover every leaf at every depth. Without this
         // one, a layout deeper than root-to-leaf silently lost the collapsed
         // state of every leaf it contained.
-        conditionallyCollapseLeaves(
-                getLeaves(branch),
-                getLeafStates(branchState),
-                branch
+        collapseLeavesOnceLaidOut(
+                branch,
+                getLeafStates(branchState)
         );
 
         return branch;
@@ -596,6 +598,72 @@ final class DockingLayoutStateRestorer {
                     )
             );
         }
+    }
+
+    /**
+     * Collapses the branch's leaves once the branch has actually been laid out.
+     *
+     * <p>Waiting on layout. Collapsing measures the leaf's headers and those are
+     * zero until a layout pass has run, which pinned the leaf to about the width
+     * of a divider instead of its header. The caller attaches the restored tree
+     * to a {@code Scene} only after this returns, so a {@code Platform.runLater}
+     * can still run first; it did, on roughly one restore in four.</p>
+     *
+     * <p>Only the collapse waits. Divider positions stay as they were, applied
+     * whether or not the tree is ever attached.</p>
+     *
+     * @param branch the branch whose leaves may need collapsing.
+     * @param leafStates the states of the branch's direct leaf children.
+     */
+    private static void collapseLeavesOnceLaidOut(
+            final DockContainerBranch branch,
+            final Collection<DockContainerLeafState> leafStates
+    ) {
+        runOnceLaidOut(branch, () ->
+                conditionallyCollapseLeaves(
+                        getLeaves(branch),
+                        leafStates,
+                        branch
+                )
+        );
+    }
+
+    /**
+     * Runs {@code action} as soon as {@code region} has non-empty layout bounds,
+     * immediately when it already has them.
+     *
+     * @param region the region to wait on.
+     * @param action the work needing laid-out geometry.
+     */
+    private static void runOnceLaidOut(
+            final Region region,
+            final Runnable action
+    ) {
+        if (isLaidOut(region.getLayoutBounds())) {
+            action.run();
+            return;
+        }
+
+        region.layoutBoundsProperty().addListener(
+                new ChangeListener<>() {
+                    @Override
+                    public void changed(
+                            final ObservableValue<? extends Bounds> observable,
+                            final Bounds previousBounds,
+                            final Bounds currentBounds
+                    ) {
+                        if (isLaidOut(currentBounds)) {
+                            // One shot: later resizes are the user's, not ours.
+                            observable.removeListener(this);
+                            action.run();
+                        }
+                    }
+                }
+        );
+    }
+
+    private static boolean isLaidOut(final Bounds bounds) {
+        return bounds.getWidth() > 0 && bounds.getHeight() > 0;
     }
 
     /**

@@ -51,7 +51,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [B7](#b7) | `uncollapsedSizePx` captured, never restored | **Fixed** 2026-08-10 (`f718d18`, incl. `core/`) |
 | [B8](#b8) | Auto-save scheduler state unguarded across threads | **Fixed** 2026-08-11 (`f94bc20`)                |
 | [B9](#b9) | Captor NPEs on a scene-less `Stage`, and the restorer can produce one | **Fixed** 2026-08-11 (`598c742`)                |
-| [B10](#b10) | Deferred dividers overwrite synchronously-applied collapse geometry | **Fixed** 2026-08-11 (not a defect - withdrawn) |
+| [B10](#b10) | Deferred dividers overwrite synchronously-applied collapse geometry | **Fixed** 2026-08-13 (withdrawn 08-11, reopened by the round-trip test) |
 
 ### MAJOR
 
@@ -653,7 +653,7 @@ unreachable through persistence — but a `DragDropStage` constructed directly a
 shown without a scene still breaks on hide. Worth raising with the `core/` owner
 separately.
 
-### <a id="b10"></a>B10. Deferred divider positions overwrite synchronously-applied collapse geometry — NOT A DEFECT (withdrawn 2026-08-11)
+### <a id="b10"></a>B10. Deferred divider positions overwrite synchronously-applied collapse geometry — WITHDRAWN 2026-08-11, REOPENED AND FIXED 2026-08-13
 
 `impl/DockingLayoutStateRestorer.java:239-247` and `:532-545`
 
@@ -725,6 +725,40 @@ No FT was added. The probe passes against today's code, so it would guard a
 regression rather than pin a fix, and it is ~150 lines of timing-sensitive setup for
 behaviour that already works. The three round-trip FTs from B5, B6 and B7 already
 cover this area from the directions that did find real defects.
+
+**Reopened and FIXED 2026-08-13.** The withdrawal was wrong, and the last paragraph
+above is exactly why: declining to write the test is what let this stand. The general
+round-trip test (theme 1) found it on its first run.
+
+The withdrawal reasoned about *ordering* between this module's queue and core's, and
+that reasoning still holds. It missed a second failure mode entirely: the collapse can
+compute the wrong geometry regardless of ordering, because
+`DockContainerLeaf.getCollapsedSize()` (`core/.../DockContainerLeaf.java:391-397`)
+reads the headers' **live** width or height, and those are `0` until a layout pass has
+measured them. `restoreLayout` hands the tree back unattached and the application
+attaches it afterwards, so at collapse time there may have been no layout pass at all
+- and a `Platform.runLater` does not wait for one, it just waits for the next pulse.
+
+Symptom: a restored collapsed leaf is pinned to roughly the width of a divider - about
+3px - instead of its header, so the pane comes back as a sliver.
+`LayoutRoundTripFT` reported it as
+`dividerPositions.0` differing, actual `0.0037593984962406013` against expected
+`0.05388471177944862`, on roughly **one run in four**. That rate is the reason a
+one-shot manual probe concluded "works fine".
+
+Fixed by gating only the collapse on real layout bounds: `conditionallyCollapseLeaves`
+now runs from `collapseLeavesOnceLaidOut`, which fires immediately when the branch
+already has non-empty `layoutBounds` and otherwise attaches a one-shot listener.
+Divider positions were deliberately left exactly as they were, deferred by one pulse
+and applied whether or not the tree is ever attached - gating those too broke
+`DockingLayoutRestorerFT.restoreLayoutBuildsRootBranchesAndDragDropStages`, which
+asserts divider positions on a tree it never attaches or shows. That test was the
+useful signal that the fix had been scoped too widely.
+
+Measured rather than argued, in both directions: 0 failures in 19 runs with the gate
+(10 targeted plus 5 full functional-test suites plus 4 earlier), and 2 failures in 8
+runs with the gate removed. At the observed 25% rate, 19 clean runs by luck is about
+0.4%.
 
 ---
 
@@ -2169,6 +2203,28 @@ Two themes account for most of the serious findings:
    the collapse, or binding discards it) means a field-by-field round-trip test can
    pass while the code is still wrong about *when*. A general test should exercise
    state transitions, not just final values.
+
+   **Written 2026-08-13 as `LayoutRoundTripFT`, and it paid for itself immediately.**
+   It captures a deliberately non-default tree - nested branches, a collapsed leaf
+   with an uncollapsed size, sides, `canSplit`, `pruneWhenEmpty`,
+   `resizableWithParent`, a non-first selected tab, real divider positions - restores
+   it, re-attaches it, captures again, and compares the two states with
+   `usingRecursiveComparison`. Reflective rather than hand-written on purpose: a new
+   state field is then compared automatically, where a hand-written comparison would
+   skip it and reproduce this exact theme. Confirmed to have teeth by dropping
+   `canSplit` from the restorer, which it caught by path even though nothing in it
+   mentions `canSplit` explicitly.
+
+   On its first run it found a live defect this review had already dismissed - see
+   B10, reopened. That is the theme's own argument landing: the withdrawal there
+   rested on "no FT was added, the behaviour already works", and a general round-trip
+   test is exactly what separates "works" from "works three times in four".
+
+   Two properties stay out of its scope, both documented on the test. A
+   `DragDropStage`'s geometry belongs to the window manager rather than the layout, so
+   it does not round-trip exactly; and `isShowing` cannot be tested this way at all,
+   because the module never shows a restored stage and an unshown stage is not
+   captured - M10's own test covers that one.
 
 2. **Concurrency in the auto-save path — now closed.** The saver started a thread
    from its constructor (B2), shared unguarded mutable state with it (B8), could
