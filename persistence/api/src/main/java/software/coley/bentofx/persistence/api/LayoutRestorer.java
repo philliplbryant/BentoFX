@@ -21,6 +21,14 @@ public interface LayoutRestorer extends AutoCloseable {
      * without error. Otherwise, returns the {@link DockingLayout} returned by
      * the {@code Supplier<DockingLayout>}.
      *
+     * <p><b>The returned containers are not attached to a {@code Scene}, and must
+     * be attached before the next save.</b> A
+     * {@code DockContainerRootBranch} registers itself with its {@code Bento} only
+     * once it has a {@code Scene}, so until the application places them a capture
+     * sees no layout at all - which is why an auto-save that fires in that window
+     * has nothing to write. See {@link BentoLayout#getRootBranches()} and
+     * {@link LayoutSaver#saveLayout()}.</p>
+     *
      * @param defaultLayoutSupplier the {@code Supplier<DockingLayout>} to use
      *                              when the {@link DockingLayout} does not
      *                              exist or cannot be restored without error.

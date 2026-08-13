@@ -23,6 +23,7 @@ import software.coley.bentofx.persistence.testfixtures.codec.ThreadRecordingLayo
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.storage.ThreadRecordingLayoutStorage;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -132,7 +133,7 @@ class DockingLayoutSaverFT {
     }
 
     @Test
-    void saveLayoutStillWritesWhenNoBentosExist() throws BentoStateException {
+    void saveLayoutDoesNotWriteWhenNoBentosExist() throws BentoStateException {
         final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final BentoProvider emptyBentoProvider = new DefaultBentoProvider();
@@ -148,10 +149,53 @@ class DockingLayoutSaverFT {
         assertThat(codec.getEncodedStates())
                 .describedAs("codec.getEncodedStates()")
                 .isEmpty();
+        // Inverted for M11, along with this test's name. It previously required
+        // that an empty capture still be written, which is the behaviour that let
+        // a save taken before anything was attached truncate a good layout.
         assertThat(storage.toByteArray())
                 .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
-                .isNotEmpty();
+                .isEmpty();
     }
+
+    /**
+     * The M11 case proper: a {@code Bento} exists, but none of its root branches
+     * have a {@code Scene}, so the capture finds nothing. The layout already on
+     * disk has to survive that.
+     */
+    @Test
+    void saveLayoutKeepsThePersistedLayoutWhenNothingIsAttached()
+            throws BentoStateException {
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+
+        final byte[] previouslySavedLayout =
+                "a-good-layout".getBytes(StandardCharsets.UTF_8);
+        storage.write(previouslySavedLayout);
+
+        // A root branch that is never given a Scene - which is exactly what this
+        // module's own restorer hands back. Until the application attaches it,
+        // bento.getRootContainers() does not report it.
+        final Bento bento = new Bento();
+        bento.dockBuilding().root("root-never-attached");
+
+        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+        bentoProvider.addBento(bento);
+
+        try (DockingLayoutSaver saver = new DockingLayoutSaver(
+                codec, storage, bentoProvider
+        )) {
+
+            saver.saveLayout();
+        }
+
+        assertThat(codec.getEncodedStates())
+                .describedAs("codec.getEncodedStates()")
+                .isEmpty();
+        assertThat(storage.toByteArray())
+                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .isEqualTo(previouslySavedLayout);
+    }
+
     @Test
     void saveLayoutEncodesAndWritesAwayFromFxThreadWhenCalledOnFxThread(FxRobot robot) {
         final Bento bento = new Bento();
@@ -164,8 +208,19 @@ class DockingLayoutSaverFT {
         final BentoProvider bentoProvider = new DefaultBentoProvider(bento);
 
         final AtomicReference<Thread> fxThread = new AtomicReference<>();
+        final AtomicReference<Stage> stageRef = new AtomicReference<>();
 
         robot.interact(() -> {
+            // The root branch needs a Scene before the save. This test is about
+            // which thread encodes and writes, so it needs a write to happen at
+            // all, and a capture only sees root branches their Bento knows about -
+            // registration that happens from a scene listener in core. Without
+            // this the save now correctly finds nothing and skips the write (M11).
+            final Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.show();
+            stageRef.set(stage);
+
             fxThread.set(Thread.currentThread());
             try (DockingLayoutSaver saver = new DockingLayoutSaver(
                     codec, storage, bentoProvider
@@ -175,6 +230,8 @@ class DockingLayoutSaverFT {
                 throw new AssertionError(e);
             }
         });
+
+        robot.interact(() -> stageRef.get().hide());
 
         assertThat(fxThread.get())
                 .describedAs("fxThread.get()")

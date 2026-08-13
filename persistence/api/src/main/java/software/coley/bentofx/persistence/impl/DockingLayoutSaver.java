@@ -1,5 +1,7 @@
 package software.coley.bentofx.persistence.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
@@ -20,6 +22,9 @@ import static software.coley.bentofx.persistence.impl.PersistenceThreading.callO
  * @author Phil Bryant
  */
 public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(DockingLayoutSaver.class);
 
     private final BentoLayoutStateCaptor bentoLayoutStateCaptor;
     private final LayoutStateWriter layoutStateWriter;
@@ -76,6 +81,9 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
      * Captures the layout on the JavaFX application thread, then encodes and
      * writes it away from that thread.
      *
+     * <p>A capture that found nothing is not written - see
+     * {@link #hasNothingToSave}.</p>
+     *
      * @param fxTimeoutMillis how long to wait for the JavaFX application thread
      * to capture the layout.
      * @throws BentoStateException when capturing, encoding or writing fails.
@@ -88,10 +96,49 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
                         fxTimeoutMillis
                 );
 
+        if (hasNothingToSave(bentoStateList)) {
+            logger.debug(
+                    "Captured no root branches or drag/drop stages; leaving the " +
+                            "persisted layout as it is rather than overwriting it " +
+                            "with an empty one."
+            );
+            return;
+        }
+
         callOffFxThread(() -> {
             layoutStateWriter.writeLayout(bentoStateList);
             return Boolean.TRUE;
         });
+    }
+
+    /**
+     * {@return {@code true} when the capture found no layout at all.}
+     *
+     * <p>A {@code DockContainerRootBranch} registers itself with its {@link Bento}
+     * only once it has a {@code Scene}, so a capture taken while nothing is
+     * attached yields an empty state - most easily between this module's own
+     * restore, which hands branches back unattached, and the application placing
+     * them. Writing that would truncate a good layout to nothing, and the next
+     * restore would come back empty.
+     *
+     * <p>Skipping is safe against the case it looks like it might get wrong, an
+     * application that legitimately closed everything: a running application
+     * showing anything at all has at least one attached root branch, so
+     * "absolutely nothing anywhere" means not-ready or shutting down rather than
+     * deliberately empty. The cost of being wrong is asymmetric too - a stale
+     * layout is recoverable, an erased one is not.
+     *
+     * @param bentoStateList the captured states.
+     */
+    private static boolean hasNothingToSave(
+            final List<BentoState> bentoStateList
+    ) {
+        // allMatch on an empty list is true, which is the wanted answer for a
+        // provider that reported no Bentos at all.
+        return bentoStateList.stream().allMatch(bentoState ->
+                bentoState.getRootBranchStates().isEmpty()
+                        && bentoState.getDragDropStageStates().isEmpty()
+        );
     }
 
 

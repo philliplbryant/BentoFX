@@ -17,6 +17,15 @@ public interface LayoutSaver extends AutoCloseable {
      * once the toolkit has stopped, work handed to it is accepted and never
      * run.</p>
      *
+     * <p><b>Only attached containers are saved.</b> A capture sees a
+     * {@code DockContainerRootBranch} only once that branch has a {@code Scene},
+     * because that is when it registers itself with its {@code Bento}. Containers
+     * handed back by {@link LayoutRestorer#restoreLayout} arrive unattached, so a
+     * save taken between restoring a layout and placing it finds nothing.
+     * Implementations are expected not to overwrite a persisted layout with an
+     * empty capture, but what survives is then the <em>older</em> layout - attach
+     * before saving. See {@link BentoLayout#getRootBranches()}.</p>
+     *
      * @throws BentoStateException when the layout cannot be saved.
      */
     void saveLayout() throws BentoStateException;

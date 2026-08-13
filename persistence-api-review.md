@@ -67,7 +67,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Fixed** 2026-08-12 |
 | [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Fixed** 2026-08-12 |
 | [M10](#m10) | `isShowing` captured but never applied | **Fixed** 2026-08-12 |
-| [M11](#m11) | Capture depends on scene attachment; saving before display loses the layout | **Open** |
+| [M11](#m11) | Capture depends on scene attachment; saving before display loses the layout | **Fixed** 2026-08-12 |
 | [M12](#m12) | Capturing a leaf with no side throws, aborting the whole save | **Fixed** 2026-08-11 |
 
 ### MINOR
@@ -1531,7 +1531,7 @@ immune to the next field. Verified by `:persistence:api:test`,
 `:persistence:codec:common:integrationTestParallel`, both codec suites,
 `:demos:persistence:compileJava`, `checkJSpecify` and `javadoc`.
 
-### <a id="m11"></a>M11. Capture depends on scene attachment, so saving before display loses the layout
+### <a id="m11"></a>M11. Capture depends on scene attachment, so saving before display loses the layout - FIXED 2026-08-12
 
 `impl/BentoLayoutStateCaptor.java:117-120`
 
@@ -1550,6 +1550,52 @@ Smallest fix: document it on `LayoutSaver.saveLayout()` and on
 `LayoutRestorer.restoreLayout` ("returned containers must be attached to a scene
 before the next save"), and consider having `saveLayout()` skip the write when
 every `Bento` reports zero root containers rather than persisting an empty layout.
+
+**Fixed** 2026-08-12 with both halves, and the "consider" half is the one that
+matters - documentation warns, it does not prevent. The hazard survives being
+documented because an application cannot reliably avoid the window: restoring a
+layout *itself* fires `DockEvent`s on the Bento's bus (`DockableAdded`,
+`ContainerChildAdded`), the saver is registered as a listener, so restore sets
+`wasDockEventReceived` and the very next timer tick has both a reason to save and
+nothing attached to find. That is not a rare interleaving, it is the normal
+sequence.
+
+`DockingLayoutSaver.saveLayout` therefore skips the write when the capture found no
+root branches and no drag/drop stages anywhere, and logs at debug. `allMatch` over an
+empty list is `true`, which is the wanted answer for a provider reporting no Bentos
+at all. The case this could plausibly get wrong - an application that legitimately
+closed everything - is covered by the observation that a running application showing
+anything has at least one attached root branch, so "nothing anywhere" means
+not-ready or shutting down; and the costs are asymmetric anyway, since a stale
+layout is recoverable and an erased one is not.
+
+Documentation went on `LayoutSaver.saveLayout()` and `LayoutRestorer.restoreLayout`
+as prescribed. Worth noting that `BentoLayout.getRootBranches()` already carried this
+explanation, so the coupling was documented where the containers are handed over but
+on neither interface an application actually calls - which is the gap the finding
+names.
+
+**Two existing tests asserted the behaviour this changes**, which is the part worth
+reviewing rather than taking on trust. `saveLayoutStillWritesWhenNoBentosExist`
+required an empty capture to be written - that *is* the defect, written down as an
+expectation - so it is renamed `saveLayoutDoesNotWriteWhenNoBentosExist` with the
+storage assertion inverted and a comment recording that it was inverted and why. It
+dates from the original bulk import (`724baae`), so it characterised existing
+behaviour rather than recording a decision. Separately,
+`saveLayoutEncodesAndWritesAwayFromFxThreadWhenCalledOnFxThread` broke for a reason
+unrelated to its purpose: it is about *which thread* encodes and writes, but its
+fixture built a root branch and never gave it a `Scene`, so under the guard there was
+no write left to observe. It now attaches a `Scene` before saving, which its own
+subject matter needs anyway.
+
+New test `saveLayoutKeepsThePersistedLayoutWhenNothingIsAttached` covers the M11 case
+proper rather than the no-Bentos edge: a `Bento` exists, its root branch was never
+attached, a good layout is already in storage, and that layout is still
+byte-for-byte intact after the save. Both guard tests were verified to fail with the
+guard disabled. Verified by `:persistence:api:test`,
+`:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`:demos:persistence:compileJava`, `checkJSpecify` and `javadoc`.
 
 ### <a id="m12"></a>M12. Capturing a leaf with no side throws, aborting the whole save — FIXED 2026-08-11
 
@@ -2041,12 +2087,15 @@ widens the exposed surface as it goes. It also narrows what several other findin
 cost: M4's publicly instantiable `DockContainerState` and the `StageUtils` half of
 N1/N2 are no longer *external* API problems, only internal ones.
 
-**M11 is the only MAJOR left.** Both capture/restore asymmetries (M7 and M10) are
-closed, as are the two contract clean-ups (M5 and M6), so the general round-trip test
-argued for in theme 1 is no longer blocked behind any of them - it would now be
-guarding finished behaviour rather than driving a fix, which is the better time to
-write it. The MINOR list is mostly mechanical and could be swept in one pass; N9 and
-N10, the two Javadoc items and the largest of them, are now done.
+**Every BLOCKER and MAJOR is now closed.** The general round-trip test argued for in
+theme 1 is no longer blocked behind any of them, and would now guard finished
+behaviour rather than drive a fix - the better time to write it, and the main piece of
+outstanding work on this branch beyond the list below.
+
+What remains is five MINOR items - N3, N5, N6, N7 and N8 - mechanical enough to sweep
+in one pass, plus T14, held back as an API-shape question (see its entry: it needs no
+`core` change). N9 and N10, the two Javadoc items and the largest of the MINOR list,
+are done.
 
 The NIT list has now had that sweep, less one item held back deliberately because it
 is not mechanical: T14 (`DockEventListener` on the public surface) is an API-shape
