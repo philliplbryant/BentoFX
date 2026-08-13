@@ -299,9 +299,17 @@ final class DockingLayoutStateRestorer {
         for (final DockContainerState childState :
                 rootBranchState.getChildDockContainerStates()) {
 
-            rootBranch.addContainer(
-                    restoreDockContainer(dockBuilding, childState)
-            );
+            final DockContainer child =
+                    restoreDockContainer(dockBuilding, childState);
+
+            if (!rootBranch.addContainer(child)) {
+                logger.warn(
+                        "Could not add container '{}' to root branch '{}'; " +
+                                "that part of the layout is missing.",
+                        child.getIdentifier(),
+                        rootBranch.getIdentifier()
+                );
+            }
         }
     }
 
@@ -362,9 +370,17 @@ final class DockingLayoutStateRestorer {
         for (final DockContainerState dockContainerState :
                 branchState.getChildDockContainerStates()) {
 
-            branch.addContainer(
-                    restoreDockContainer(dockBuilding, dockContainerState)
-            );
+            final DockContainer child =
+                    restoreDockContainer(dockBuilding, dockContainerState);
+
+            if (!branch.addContainer(child)) {
+                logger.warn(
+                        "Could not add container '{}' to branch '{}'; that " +
+                                "part of the layout is missing.",
+                        child.getIdentifier(),
+                        branch.getIdentifier()
+                );
+            }
         }
 
         applyDividerPositions(
@@ -434,9 +450,27 @@ final class DockingLayoutStateRestorer {
             final Dockable dockable = restoreDockable(dockBuilding, dockableId);
 
             if (dockable != null) {
-                leaf.addDockable(dockable);
-                if (dockableId.equals(selectedId)) {
-                    leaf.selectDockable(dockable);
+                if (leaf.addDockable(dockable)) {
+                    // Only worth attempting when the dockable actually landed in
+                    // the leaf - selectDockable rejects anything the leaf does
+                    // not contain, so a failed add guarantees a failed select
+                    // and a second, redundant warning.
+                    if (dockableId.equals(selectedId)
+                            && !leaf.selectDockable(dockable)) {
+                        logger.warn(
+                                "Could not select dockable '{}' in leaf '{}'; " +
+                                        "the leaf will open on another tab.",
+                                dockableId,
+                                leaf.getIdentifier()
+                        );
+                    }
+                } else {
+                    logger.warn(
+                            "Could not add dockable '{}' to leaf '{}'; it is " +
+                                    "missing from the restored layout.",
+                            dockableId,
+                            leaf.getIdentifier()
+                    );
                 }
             } else {
                 logger.warn(
@@ -604,9 +638,25 @@ final class DockingLayoutStateRestorer {
         for (final DockContainerLeafState leafState : leafStates) {
             final DockContainerLeaf leaf = leaves.get(leafState.getIdentifier());
             if (leaf != null) {
-                leafState.isCollapsed().ifPresent(isCollapsed ->
-                        branch.setContainerCollapsed(leaf, isCollapsed)
-                );
+                leafState.isCollapsed().ifPresent(isCollapsed -> {
+                    branch.setContainerCollapsed(leaf, isCollapsed);
+
+                    // Deliberately comparing the resulting state rather than the
+                    // method's return value. setContainerCollapsed also returns
+                    // false when the leaf is already in the requested state,
+                    // which is the normal case for every uncollapsed leaf in
+                    // every restore - reporting on the return value would bury
+                    // the real failures in a warning per leaf.
+                    if (leaf.isCollapsed() != isCollapsed) {
+                        logger.warn(
+                                "Could not restore the collapsed state of leaf " +
+                                        "'{}' in branch '{}'; wanted collapsed={}.",
+                                leafState.getIdentifier(),
+                                branch.getIdentifier(),
+                                isCollapsed
+                        );
+                    }
+                });
 
                 restoreUncollapsedSize(leafState, leaf);
             }

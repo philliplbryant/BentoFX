@@ -64,7 +64,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M5](#m5) | `LayoutStorage` ownership unspecified; two components each close it | **Fixed** 2026-08-12 (incl. T15) |
 | [M6](#m6) | `LayoutStateWriter` mislabels storage failures as encode failures | **Fixed** 2026-08-12 |
 | [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Fixed** 2026-08-12 |
-| [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Open** |
+| [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Fixed** 2026-08-12 |
 | [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Open** |
 | [M10](#m10) | `isShowing` captured but never applied | **Open** |
 | [M11](#m11) | Capture depends on scene attachment; saving before display loses the layout | **Open** |
@@ -1309,7 +1309,7 @@ Verified by `:persistence:api:test`, `:persistence:api:functionalTest`,
 `:persistence:codec:common:integrationTestParallel`, both codec suites,
 `checkJSpecify` and `javadoc`.
 
-### <a id="m8"></a>M8. Restore failures are invisible because `boolean` returns are discarded
+### <a id="m8"></a>M8. Restore failures are invisible because `boolean` returns are discarded - FIXED 2026-08-12
 
 `impl/DockingLayoutStateRestorer.java:601-613`, `:408-411`
 
@@ -1328,6 +1328,59 @@ noticing their layout came back wrong.
 Smallest fix: capture the return and `logger.debug`/`warn` when `false`, e.g.
 `if (!branch.setContainerCollapsed(leaf, isCollapsed)) logger.warn("Could not
 restore collapsed state for leaf {}", leafState.getIdentifier());`
+
+**Fixed** 2026-08-12, but **not** with the sketch above for the collapse call - that
+one is wrong, and wrong in the direction that would have made the module noisier
+without making it more informative. Fifth of the six `false` cases is *"the child
+already has the given collapsed state"*
+(`core/.../DockContainerBranch.java:387-389`). A freshly created leaf is
+uncollapsed, so restoring the common `isCollapsed=false` asks for a state the leaf
+is already in and gets `false` back for a leaf that restored perfectly. Logging on
+the return value therefore fires once per uncollapsed leaf on every restore, which
+is most leaves in most layouts, and the genuine failures drown in it.
+
+So the collapse site compares the *achieved* state instead:
+`branch.setContainerCollapsed(leaf, isCollapsed)` followed by
+`if (leaf.isCollapsed() != isCollapsed)`. That reports exactly the condition worth
+reporting - the leaf did not end up as persisted - and is structurally immune to
+the benign case, because "already in the requested state" means the two are equal
+by definition. `isCollapsed()` is the same predicate `core` itself uses in
+`isContainerCollapsed`, and `setContainerCollapsed` applies the change
+synchronously, so it is accurate immediately after the call.
+
+Measured both ways rather than argued: with the sketch's `if (!ok)` the existing
+suite emits six spurious warnings across three FTs, every one naming an
+`*-open-*`/uncollapsed leaf that restored correctly - `DockingLayoutRestorerFT`
+once, `LeafUncollapsedSizeRoundTripFT` three times, `NestedCollapseRestoreFT`
+twice. With the achieved-state comparison the same suites emit none.
+
+The other three calls take the plain `if (!...)` form, because for them `false` has
+no benign reading during a restore: `addDockable` refuses only a duplicate or an
+out-of-range index (`DockContainerLeaf.java:157-163`) and every dockable here is
+freshly created, `selectDockable` refuses anything the leaf does not contain
+(`:130-149`), and `addContainer` refuses a duplicate or a bad index
+(`DockContainerBranch.java:117-123`). The select is nested inside the successful
+add, since a failed add guarantees a failed select and would otherwise produce two
+warnings for one fault.
+
+`addContainer` was not named in the finding, and is fixed anyway: both call sites
+(`restoreChildDockContainers` for the root branch and `restoreBranch` for nested
+branches) discarded it, it is the same defect in the same file, and its `false`
+is the most serious of the four - a whole subtree silently absent from the restored
+layout rather than a wrong tab. Fixing only the two sites the finding listed would
+have left the worst instance in place.
+
+No new test. Asserting on log output needs a Logback `ListAppender`, and the module
+has only `slf4j-simple` at `functionalTest` runtime, so this would have meant a new
+test dependency to observe four log statements that change no restore behaviour.
+The no-spam claim is verified instead from the existing FTs' captured `stderr`,
+which is where `slf4j-simple` writes: zero occurrences of any of the four messages
+across `NestedCollapseRestoreFT`, `LeafUncollapsedSizeRoundTripFT`,
+`DockingLayoutRestorerFT` and `LeafResizableWithParentRoundTripFT` - suites that
+between them restore both collapsed and uncollapsed leaves. Verified by
+`:persistence:api:test`, `:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`checkJSpecify` and `javadoc`.
 
 ### <a id="m9"></a>M9. A failing dockable is silently dropped from the saved layout
 
