@@ -66,7 +66,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Fixed** 2026-08-12 |
 | [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Fixed** 2026-08-12 |
 | [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Fixed** 2026-08-12 |
-| [M10](#m10) | `isShowing` captured but never applied | **Open** |
+| [M10](#m10) | `isShowing` captured but never applied | **Fixed** 2026-08-12 |
 | [M11](#m11) | Capture depends on scene attachment; saving before display loses the layout | **Open** |
 | [M12](#m12) | Capturing a leaf with no side throws, aborting the whole save | **Fixed** 2026-08-11 |
 
@@ -1455,7 +1455,7 @@ missing, which is the defect stated exactly. Verified by `:persistence:api:test`
 `:persistence:codec:common:integrationTestParallel`, both codec suites,
 `checkJSpecify` and `javadoc`.
 
-### <a id="m10"></a>M10. `isShowing` is captured but never applied
+### <a id="m10"></a>M10. `isShowing` is captured but never applied - FIXED 2026-08-12
 
 Captured at `impl/BentoLayoutStateCaptor.java:207`; grep for `isShowing`/`show()`
 across `impl/DockingLayoutStateRestorer.java` returns nothing.
@@ -1469,6 +1469,67 @@ comes back and is shown, because the consumer shows every stage in
 Smallest fix: either honour it in `restoreDragDropStage` (the stage is not shown by
 this module, so the honest form is to expose it so the caller can decide), or
 remove `setShowing`/`isShowing` from `DragDropStageState` and the captor.
+
+**Fixed** 2026-08-12 by exposing it, which was a decision rather than a deduction -
+there were three coherent answers and they differ in public API, so it was put to
+the maintainer rather than picked quietly.
+
+The two rejected options, for the record. *Deleting* `setShowing`/`isShowing` would
+have given the smallest state model, but it is a source-incompatible removal from
+exported `api.state` and drops a field from the persisted format, to solve an
+incoherence that can equally be solved by keeping the promise. *Having the restorer
+call `show()`* is by far the smallest diff and needs no API change, but it reverses
+a contract this module states deliberately and in two places - root branches come
+back unattached and stages come back unshown, both because placement and visibility
+are the application's call - and it would mean the module opening windows during a
+restore, which is wrong for an application restoring behind a splash screen.
+
+Exposing it keeps that contract and closes the gap the finding actually describes,
+which is that the module recorded a value the caller had no way to read:
+
+- `BentoLayout.wasShowing(DragDropStage)` is new and additive.
+- `BentoLayoutBuilder.addDragDropStage` now takes the flag alongside the stage.
+  Deliberately no one-argument overload: an overload that defaulted the flag is
+  exactly how the value gets dropped on the floor again. This is
+  **source-incompatible** for an outside caller, same as T9 and T13, and wants the
+  same release-note line - though `DockingLayoutStateRestorer` is its only caller in
+  this repository.
+- `demos/persistence` `BoxApp` now shows only the stages that were showing. That is
+  the code the finding names as the actual symptom, so leaving it showing everything
+  would have fixed nothing observable.
+
+Two details worth keeping. The set is **identity**-based
+(`Collections.newSetFromMap(new IdentityHashMap<>())`, not `Set.copyOf`): the
+question is whether *this* stage was showing, `DragDropStage` overrides neither
+`equals` nor `hashCode` but is public and non-final, so a subclass that overrode
+them would otherwise collapse two distinct stages into one entry. And an **absent**
+flag counts as showing, because the captor always records it, so absent means a
+hand-built state or a layout written before this was honoured - defaulting to hidden
+would silently stop restoring detached windows for exactly those layouts.
+
+New test in `DockingLayoutStateRestorerCollaboratorFT`:
+`restoreDockingLayoutCarriesThePersistedShowingFlagToTheCaller` restores three stage
+states - `setShowing(false)`, `setShowing(true)`, and no flag at all - and asserts
+`wasShowing` per stage, pinning the default as well as the two explicit cases. That
+FT constructs `DockingLayoutStateRestorer` directly and calls the exact method the
+fix changed. Verified to fail first by making `wasShowing` return `true`
+unconditionally, which is the pre-fix world where the caller could only show
+everything.
+
+Fixing this broke two existing tests, which is worth recording because the breakage
+was in the fixture rather than the behaviour.
+`DockingLayoutBuilderTest.dockingLayoutExposesImmutableSnapshotOfBuiltLayouts` and
+`builtLayoutIsNotAffectedByLaterBuilderMutation` reached `BentoLayout`'s **private
+constructor by reflection** to build an empty fixture, so adding a field failed them
+at `getDeclaredConstructor` with a `NoSuchMethodException` - at runtime, not at
+compile time, which is why the first full run looked clean until the output was read
+properly. Neither test asserts anything about the constructor; both are about
+`DockingLayout`. They now build the fixture through the public
+`BentoLayoutBuilder`, which is what they should have done and which makes them
+immune to the next field. Verified by `:persistence:api:test`,
+`:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`:demos:persistence:compileJava`, `checkJSpecify` and `javadoc`.
 
 ### <a id="m11"></a>M11. Capture depends on scene attachment, so saving before display loses the layout
 
@@ -1921,11 +1982,12 @@ widens the exposed surface as it goes. It also narrows what several other findin
 cost: M4's publicly instantiable `DockContainerState` and the `StageUtils` half of
 N1/N2 are no longer *external* API problems, only internal ones.
 
-The majors that remain are largely independent. M10 is now the last of the
-capture/restore asymmetries, and still pairs naturally with the general round-trip
-test argued for in theme 1 - M7, the other one, is done. M5 and M6, the
-`LayoutStorage`/`LayoutStateWriter` contract clean-ups, are both done. The MINOR list is mostly mechanical and could be swept in
-one pass; N9 and N10, the two Javadoc items and the largest of them, are now done.
+**M11 is the only MAJOR left.** Both capture/restore asymmetries (M7 and M10) are
+closed, as are the two contract clean-ups (M5 and M6), so the general round-trip test
+argued for in theme 1 is no longer blocked behind any of them - it would now be
+guarding finished behaviour rather than driving a fix, which is the better time to
+write it. The MINOR list is mostly mechanical and could be swept in one pass; N9 and
+N10, the two Javadoc items and the largest of them, are now done.
 
 The NIT list has now had that sweep, less one item held back deliberately because it
 is not mechanical: T14 (`DockEventListener` on the public surface) is an API-shape

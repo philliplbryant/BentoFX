@@ -124,14 +124,19 @@ final class DockingLayoutStateRestorer {
                 );
             }
 
-            // Restore each DragDropStage and add it to the BentoLayout
+            // Restore each DragDropStage and add it to the BentoLayout. The
+            // showing flag is carried through rather than acted on: this module
+            // does not show stages, so the persisted value is only useful once
+            // the caller can read it back off the BentoLayout. Absent counts as
+            // showing - see BentoLayout.wasShowing.
             for (final DragDropStageState dragDropStageState :
                     bentoState.getDragDropStageStates()) {
                 bentoLayoutBuilder.addDragDropStage(
                         restoreDragDropStage(
                                 dockBuilding,
                                 dragDropStageState
-                        )
+                        ),
+                        dragDropStageState.isShowing().orElse(true)
                 );
             }
 

@@ -2,7 +2,6 @@ package software.coley.bentofx.persistence.api;
 
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,16 +15,9 @@ class DockingLayoutBuilderTest {
     private static final String LAYOUT_GET_BENTOLAYOUTS_DESCRIPTION = "layout.getBentoLayouts()";
 
     @Test
-    void dockingLayoutExposesImmutableSnapshotOfBuiltLayouts() throws Exception {
-        Constructor<BentoLayout> constructor = BentoLayout.class.getDeclaredConstructor(
-                String.class,
-                List.class,
-                List.class
-        );
-        constructor.setAccessible(true);
-
-        BentoLayout first = constructor.newInstance(FIRST_BENTO_IDENTIFIER, List.of(), List.of());
-        BentoLayout second = constructor.newInstance(SECOND_BENTO_IDENTIFIER, List.of(), List.of());
+    void dockingLayoutExposesImmutableSnapshotOfBuiltLayouts() {
+        BentoLayout first = emptyBentoLayout(FIRST_BENTO_IDENTIFIER);
+        BentoLayout second = emptyBentoLayout(SECOND_BENTO_IDENTIFIER);
 
         DockingLayout layout = new DockingLayout.DockingLayoutBuilder()
                 .addBentoLayout(first)
@@ -44,16 +36,9 @@ class DockingLayoutBuilderTest {
     }
 
     @Test
-    void builtLayoutIsNotAffectedByLaterBuilderMutation() throws Exception {
-        Constructor<BentoLayout> constructor = BentoLayout.class.getDeclaredConstructor(
-                String.class,
-                List.class,
-                List.class
-        );
-        constructor.setAccessible(true);
-
-        BentoLayout first = constructor.newInstance(FIRST_BENTO_IDENTIFIER, List.of(), List.of());
-        BentoLayout second = constructor.newInstance(SECOND_BENTO_IDENTIFIER, List.of(), List.of());
+    void builtLayoutIsNotAffectedByLaterBuilderMutation() {
+        BentoLayout first = emptyBentoLayout(FIRST_BENTO_IDENTIFIER);
+        BentoLayout second = emptyBentoLayout(SECOND_BENTO_IDENTIFIER);
 
         DockingLayout.DockingLayoutBuilder builder =
                 new DockingLayout.DockingLayoutBuilder()
@@ -68,4 +53,15 @@ class DockingLayoutBuilderTest {
                 .containsExactly(first);
     }
 
+    /**
+     * These tests are about {@link DockingLayout}, and only need a
+     * {@link BentoLayout} with an identifier to put in one. Built through the
+     * public builder rather than by reflecting on the private constructor, which
+     * is how they were written: that made them break whenever a field was added
+     * to {@link BentoLayout}, with a {@code NoSuchMethodException} pointing at the
+     * fixture instead of at anything under test.
+     */
+    private static BentoLayout emptyBentoLayout(final String bentoIdentifier) {
+        return new BentoLayout.BentoLayoutBuilder(bentoIdentifier).build();
+    }
 }

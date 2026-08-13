@@ -3,11 +3,13 @@ package software.coley.bentofx.persistence.impl;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import software.coley.bentofx.Bento;
+import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
@@ -21,6 +23,8 @@ import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockC
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
@@ -129,6 +133,78 @@ class DockingLayoutStateRestorerCollaboratorFT {
         assertThat(leaf.getDockables())
                 .describedAs("leaf.getDockables()")
                 .isEmpty();
+    }
+
+    /**
+     * The persisted showing flag has to reach the caller, because this module
+     * never shows a stage. Without it an application can only show every restored
+     * stage, which reopens a window the user had closed.
+     */
+    @Test
+    void restoreDockingLayoutCarriesThePersistedShowingFlagToTheCaller(
+            final FxRobot robot
+    ) {
+        final AtomicReference<BentoLayout> bentoLayoutReference =
+                new AtomicReference<>();
+
+        robot.interact(() -> {
+            final BentoState bentoState =
+                    new BentoState.BentoStateBuilder(BENTO_ID)
+                            .addDragDropStageState(
+                                    dragDropStageState("hidden", false)
+                            )
+                            .addDragDropStageState(
+                                    dragDropStageState("visible", true)
+                            )
+                            .addDragDropStageState(
+                                    dragDropStageState("unspecified", null)
+                            )
+                            .build();
+
+            bentoLayoutReference.set(
+                    new DockingLayoutStateRestorer(
+                            new DefaultBentoProvider(new Bento(BENTO_ID)),
+                            actualId -> Optional.empty(),
+                            null,
+                            null
+                    )
+                            .restoreDockingLayout(List.of(bentoState))
+                            .getBentoLayouts()
+                            .getFirst()
+            );
+        });
+
+        final BentoLayout bentoLayout = bentoLayoutReference.get();
+        final List<DragDropStage> stages = bentoLayout.getDragDropStages();
+
+        assertThat(stages)
+                .describedAs("bentoLayout.getDragDropStages()")
+                .hasSize(3);
+        assertThat(bentoLayout.wasShowing(stages.get(0)))
+                .describedAs("wasShowing(stage persisted as not showing)")
+                .isFalse();
+        assertThat(bentoLayout.wasShowing(stages.get(1)))
+                .describedAs("wasShowing(stage persisted as showing)")
+                .isTrue();
+        // An absent flag counts as showing, so a layout written before this was
+        // honoured keeps restoring its detached windows.
+        assertThat(bentoLayout.wasShowing(stages.get(2)))
+                .describedAs("wasShowing(stage with no persisted showing flag)")
+                .isTrue();
+    }
+
+    private static DragDropStageState dragDropStageState(
+            final String suffix,
+            final @Nullable Boolean isShowing
+    ) {
+        return new DragDropStageStateBuilder(true)
+                .setShowing(isShowing)
+                .setDockContainerRootBranchState(
+                        new DockContainerRootBranchStateBuilder(
+                                ROOT_BRANCH_ID + "-" + suffix
+                        ).build()
+                )
+                .build();
     }
 
     private static RestoredDockingLayout restoreNestedDockingLayout(

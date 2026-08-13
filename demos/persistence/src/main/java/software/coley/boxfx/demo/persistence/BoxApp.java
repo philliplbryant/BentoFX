@@ -408,10 +408,14 @@ public class BoxApp extends Application {
 			stage.show();
 		}
 
-		// Show any DragDropStages
+		// Show the DragDropStages that were showing when the layout was saved.
+		// Showing all of them unconditionally is what made the persisted
+		// isShowing flag pointless: a stage the user had closed came back open.
 		for (final DragDropStage dragDropStage :
 				bentoLayout.getDragDropStages()) {
-			dragDropStage.show();
+			if (bentoLayout.wasShowing(dragDropStage)) {
+				dragDropStage.show();
+			}
 		}
 	}
 }
