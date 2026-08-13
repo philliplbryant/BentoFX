@@ -341,12 +341,13 @@ final class BentoLayoutStateCaptor {
 			builder.addDividerPosition(i, positions[i]);
 		}
 
+		// Only the child containers, deliberately. A branch owns no dockables of
+		// its own: DockContainerBranch.getDockables() is a recursive, flattened
+		// view of its descendants, so capturing it here recorded every dockable
+		// again on each ancestor branch, once per level of nesting. The leaves
+		// that actually hold them capture them in buildLeafState.
 		for (final DockContainer dockContainer : branch.getChildContainers()) {
 			builder.addDockContainerState(buildDockContainerState(dockContainer));
-		}
-
-		for (final Dockable dockable : branch.getDockables()) {
-			builder.addChildDockableState(buildDockable(dockable));
 		}
 
 		return builder.build();

@@ -14,7 +14,11 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
@@ -143,6 +147,12 @@ class BentoLayoutStateCaptorFT {
             assertThat(branchState.getChildDockContainerStates())
                     .describedAs("branchState.getChildDockContainerStates()")
                     .hasSize(1);
+            // The leaf below owns LEAF_DOCKABLE_ID. Capturing it here as well
+            // would record it twice - once per level of nesting - because
+            // DockContainerBranch.getDockables() is a recursive view.
+            assertThat(branchState.getChildDockableStates())
+                    .describedAs("branchState.getChildDockableStates()")
+                    .isEmpty();
 
             final DockContainerLeafState leafState =
                     (DockContainerLeafState) branchState

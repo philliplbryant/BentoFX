@@ -259,7 +259,11 @@ final class DockingLayoutStateRestorer {
                 rootBranch::setOrientation
         );
 
-        restoreAndAddChildDockables(dockBuilding, rootBranchState, rootBranch);
+        // No child-dockable pass here: a root branch holds dockables only through
+        // its descendant leaves, which restoreChildDockContainers walks. The call
+        // that used to sit here could never have done anything anyway - it ran
+        // before any child container existed, and DockContainerBranch.addDockable
+        // returns false when there is no child to accept the dockable.
         restoreChildDockContainers(dockBuilding, rootBranchState, rootBranch);
         applyDividerPositions(
                 rootBranchState.getDividerPositions().entrySet(),
@@ -513,37 +517,6 @@ final class DockingLayoutStateRestorer {
         }
 
         return dockable;
-    }
-
-    /**
-     * Restores all {@link Dockable} children for a
-     * {@link DockContainerRootBranch} and adds each {@link Dockable} to
-     * the {@link DockContainerRootBranch}.
-     *
-     * @param dockBuilding    the {@link DockBuilding} to use to create
-     *                        {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
-     * @param rootBranchState the {@link DockContainerRootBranchState}
-     *                        containing the {@link DockContainerState} of the
-     *                        {@link DockContainerRootBranch}'s children.
-     * @param rootBranch      the {@link DockContainerRootBranch} whose children are
-     *                        to be restored.
-     */
-    private void restoreAndAddChildDockables(
-            final DockBuilding dockBuilding,
-            final DockContainerRootBranchState rootBranchState,
-            final DockContainerRootBranch rootBranch
-    ) {
-        for (final DockableState dockableState :
-                rootBranchState.getChildDockableStates()) {
-            final Dockable dockable =
-                    restoreDockable(
-                            dockBuilding,
-                            dockableState.getIdentifier()
-                    );
-            if (dockable != null) {
-                rootBranch.addDockable(dockable);
-            }
-        }
     }
 
     /**

@@ -63,7 +63,7 @@ was least reliable, and the only thing that settled any of them was running code
 | [M4](#m4) | Public `DockContainerStateBuilder` builds state restore discards | **Fixed** 2026-08-12 |
 | [M5](#m5) | `LayoutStorage` ownership unspecified; two components each close it | **Fixed** 2026-08-12 (incl. T15) |
 | [M6](#m6) | `LayoutStateWriter` mislabels storage failures as encode failures | **Fixed** 2026-08-12 |
-| [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Open** |
+| [M7](#m7) | Branch dockables captured recursively, ignored on restore; root branch inverted | **Fixed** 2026-08-12 |
 | [M8](#m8) | Restore failures invisible because `boolean` returns are discarded | **Open** |
 | [M9](#m9) | A failing dockable is silently dropped from the saved layout | **Open** |
 | [M10](#m10) | `isShowing` captured but never applied | **Open** |
@@ -1235,7 +1235,7 @@ other two tests in the class pass. Verified by `:persistence:api:test`,
 `:persistence:api:functionalTest`, `:persistence:codec:common:test`, the JSON and
 XML codec suites, `checkJSpecify` and `javadoc`.
 
-### <a id="m7"></a>M7. Branch state captures the recursive flattened dockable list; the restorer ignores it; the root branch has the mirror-image gap
+### <a id="m7"></a>M7. Branch state captures the recursive flattened dockable list; the restorer ignores it; the root branch has the mirror-image gap - FIXED 2026-08-12
 
 `impl/BentoLayoutStateCaptor.java:330-332`; `impl/DockingLayoutStateRestorer.java:319-359`, `:237`, `:506-522`
 
@@ -1266,6 +1266,48 @@ delete the now-provably-dead `restoreAndAddChildDockables` call at `:237`. If
 branch-level dockables are actually intended, the captor needs a non-recursive
 source and the DTO needs the field — but nothing in the current code suggests
 that.
+
+**Fixed** 2026-08-12 as both deletions, plus the method the second one orphaned:
+`restoreAndAddChildDockables` was called from that one site and its parameter is a
+`DockContainerRootBranchState`, so nothing else could reach it. A comment now
+stands where each loop was, because both read as omissions rather than decisions -
+the next person to notice that a branch state has a `getChildDockableStates()`
+nobody fills will otherwise "fix" it straight back.
+
+Checked before deleting that the branch-level capture really was inert rather than
+merely unused, since inert and unused fail differently. Three independent layers
+drop it: `restoreBranch` never reads the accessor, `DockContainerBranchDto` and
+`DockContainerRootBranchDto` have no dockables field at all (only
+`DockContainerLeafDto` does, and `BentoStateMapper:580` populates only that one),
+and every other `addChildDockableState` call across `main`, `test`, `ft` and the
+codec's `itp` is on a *leaf* builder. So nothing serialized it and nothing read it
+back.
+
+The root-branch call was doubly dead, which is worth recording because it makes
+the deletion safe even for a hand-built state that *does* carry root child
+dockables through the public `DockContainerRootBranchStateBuilder`. It ran before
+`restoreChildDockContainers`, so the branch had no children yet, and
+`DockContainerBranch.addDockable` (`core/.../DockContainerBranch.java:438-442`)
+walks `childContainers` and returns `false` when none accepts. With no children
+there is nothing to accept, so the call could not have added a dockable even with
+a non-empty list. Ignored before, ignored now - no behaviour change either way.
+
+`DockContainerBranchStateBuilder.addChildDockableState` is left in place. It is
+exported API in `api.state`, removing it is source-incompatible, and the finding
+did not ask for it; the accessor is also shared with the leaf state, which uses it
+legitimately. Worth a look with N5, which already covers the branch/root-branch
+builder duplication.
+
+The test is one assertion rather than a new file, because
+`BentoLayoutStateCaptorFT.captureBentoStatesCapturesNestedContainersAndDockables`
+already builds the exact tree this finding needs - root branch, intermediate
+branch, leaf holding one dockable - and already asserts the *root* branch captured
+no child dockables. It never checked the intermediate branch, which is the gap the
+defect lived in. It does now. Verified to fail first by reinstating the loop: it
+reports `Expecting empty but was: [DockableState@...]`, the duplicate itself.
+Verified by `:persistence:api:test`, `:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`checkJSpecify` and `javadoc`.
 
 ### <a id="m8"></a>M8. Restore failures are invisible because `boolean` returns are discarded
 
@@ -1773,10 +1815,10 @@ widens the exposed surface as it goes. It also narrows what several other findin
 cost: M4's publicly instantiable `DockContainerState` and the `StageUtils` half of
 N1/N2 are no longer *external* API problems, only internal ones.
 
-The majors that remain are largely independent. M7 and M10 are the two remaining
-capture/restore asymmetries and pair naturally with the general round-trip test
-argued for in theme 1. M5 and M6, the `LayoutStorage`/`LayoutStateWriter` contract
-clean-ups, are both done. The MINOR list is mostly mechanical and could be swept in
+The majors that remain are largely independent. M10 is now the last of the
+capture/restore asymmetries, and still pairs naturally with the general round-trip
+test argued for in theme 1 - M7, the other one, is done. M5 and M6, the
+`LayoutStorage`/`LayoutStateWriter` contract clean-ups, are both done. The MINOR list is mostly mechanical and could be swept in
 one pass; N9 and N10, the two Javadoc items and the largest of them, are now done.
 
 The NIT list has now had that sweep, less one item held back deliberately because it
