@@ -74,8 +74,8 @@ was least reliable, and the only thing that settled any of them was running code
 
 | | Finding | Status |
 |---|---|---|
-| [N1](#n1) | `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima | **Open** |
-| [N2](#n2) | `StageUtils` position helpers take boxed `Double`, NPE on null | **Open** |
+| [N1](#n1) | `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima | **Fixed** 2026-08-12 |
+| [N2](#n2) | `StageUtils` position helpers take boxed `Double`, NPE on null | **Fixed** 2026-08-12 |
 | [N3](#n3) | `BentoStateBuilder` omits the null check its siblings have | **Open** |
 | [N4](#n4) | `DockContainerStateBuilder.setPruneWhenEmpty` takes primitive `boolean` | **Moot** 2026-08-12 - builder deleted by M4 |
 | [N5](#n5) | `DockContainerRootBranchStateBuilder` duplicates the branch builder | **Open** |
@@ -1622,18 +1622,77 @@ narrow rather than blanket.
 
 ## MINOR
 
-#### <a id="n1"></a>N1. `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima
+#### <a id="n1"></a>N1. `StageUtils.getAllScreenBounds` uses `Double.MIN_VALUE` for maxima - FIXED 2026-08-12
 
 `impl/StageUtils.java:99-100`. `Double.MIN_VALUE` is the smallest *positive*
 double (≈4.9e-324), not the most negative. It works only because real screens
 have positive `maxX`/`maxY`. Also returns a nonsense rectangle if
 `Screen.getScreens()` is empty. Fix: `Double.NEGATIVE_INFINITY`.
 
-#### <a id="n2"></a>N2. `StageUtils` position helpers take boxed `Double`, NPE on null
+**Fixed** 2026-08-12. The maxima are `Double.NEGATIVE_INFINITY` as prescribed, and
+the minima moved to `Double.POSITIVE_INFINITY` as well - `MAX_VALUE` does work as a
+starting minimum, but leaving it next to corrected maxima reads as if the pair were
+symmetric when it is not.
+
+Two corrections to the finding, both found by checking rather than assuming. First,
+the concrete case where the old sentinel bites is narrower and more real than "only
+because real screens have positive maxima": `Math.max(bounds.getMaxX(), MIN_VALUE)`
+loses only when a screen's `maxX` is *negative*, which happens when a monitor sits
+entirely left of, or above, the primary origin - an ordinary multi-monitor
+arrangement. Such a screen was clipped to ~0 rather than ignored.
+
+Second, and this is why the prescribed fix was not sufficient on its own: an empty
+`Screen.getScreens()` does not return a nonsense rectangle, it **throws**.
+`Rectangle2D` rejects negative dimensions - verified with a throwaway probe, which
+reported `IllegalArgumentException: Both width and height must be >= 0` - and the
+width in that case is `MIN_VALUE - MAX_VALUE`, i.e. about `-1.8e308`. Switching to
+`NEGATIVE_INFINITY` keeps it throwing, just with a width of `-Infinity`. So the
+sentinel change alone would have left the empty case broken while looking fixed.
+`getAllScreenBounds` is now `@Nullable` and returns `null` for no screens, with both
+helpers passing the position through unbounded - if there is nothing to bound
+against, the honest answer is to leave the coordinate alone. Worth noting the
+consequence that made this worth guarding rather than leaving: the throw surfaces
+inside `restoreDragDropStage`, which `DockingLayoutRestorer.restoreLayout` catches
+as a `BentoStateException` and answers by substituting the **default layout**, so
+the visible symptom would have been a silently discarded layout, not a crash.
+
+An empty screen list is unreachable while the JavaFX toolkit is up, so this guard is
+deliberately untested - there is no way to empty `Screen.getScreens()` from a test
+without mocking a static. The clamping path around it is tested; see N2.
+
+#### <a id="n2"></a>N2. `StageUtils` position helpers take boxed `Double`, NPE on null - FIXED 2026-08-12
 
 `impl/StageUtils.java:47-50, 72-75`.
 Both auto-unbox immediately (`double boundedX = stageX;`), so a null argument is
 an NPE from a `public` method in an exported package. Fix: primitive `double`.
+
+**Fixed** 2026-08-12: both parameters are `double`. No call site changed - the only
+two are in `restoreDragDropStage`, inside `Optional<Double>.ifPresent`, so the
+`Double` they hold is already non-null and simply auto-unboxes now.
+
+The "exported package" half of the reasoning is stale, in a way that reduces this to
+tidiness: M1 unexported both `impl` packages, so these are public methods on an
+internal class rather than API anyone outside can reach. The change is still right -
+the module is `@NullMarked`, so the parameter was *already* declared non-null and the
+boxed type only made that unenforceable. It is technically source-incompatible for a
+caller passing a literal `null`, which now fails to compile instead of throwing at
+runtime; that is the improvement rather than a regression, and it needs no
+release-note line while `impl` stays unexported.
+
+The genuinely useful part of doing N1 and N2 together: the position helpers had **no
+test at all**, and N1 restructured the method they both depend on.
+`StageUtilsFT.positionHelpersClampToTheBoundaryEnclosingEveryScreen` now pins the
+contract on both axes - a position already on screen comes back untouched, one off
+either edge is pulled back to the boundary, with expectations derived from `Screen`
+so it holds on any monitor arrangement. Verified to fail by inverting the new
+emptiness guard so it returns `null` while screens exist, which switches clamping off
+entirely. It deliberately does **not** attempt to catch the `MIN_VALUE` sentinel:
+with any screen present `Math.max` beats that sentinel on the first iteration, which
+is exactly why the defect stayed latent, and a test would need a monitor placed at
+negative coordinates. Verified by `:persistence:api:test`,
+`:persistence:api:functionalTest`,
+`:persistence:codec:common:integrationTestParallel`, both codec suites,
+`:demos:persistence:compileJava`, `checkJSpecify` and `javadoc`.
 
 #### <a id="n3"></a>N3. `BentoStateBuilder` omits the null check its siblings have
 
