@@ -6,3 +6,15 @@ projectJDK: "21"
 
 profile:
   name: qodana.starter
+
+coverage:
+  reportProblems: false
+
+exclude:
+  - name: All
+    paths:
+      - build
+      # TODO BENTO-13: Enable analysis on these modules
+      - core
+      - demos/basic
+      - demos/persistence/src/main/resources
