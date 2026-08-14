@@ -6,7 +6,6 @@
 - [GitHub Workflows](#github-workflows)
   - [Build](#build-workflow)
   - [Qodana](#qodana-workflow)
-  - [Update Qodana Baseline](#update-qodana-baseline)
 - [Releases](#releases)
 - [Repository Administration](#repository-administration)
 - [Credentials](#credentials)
@@ -33,11 +32,9 @@ release management, CI/CD maintenance, and other tasks requiring repository writ
 Ensure the Build workflow passes before merging pull requests.
 
 <h3 id="qodana-workflow">Qodana</h3>
-Review new findings and determine whether they should be fixed or intentionally accepted.
-
-<h3 id="update-qodana-baseline">Update Qodana Baseline</h3>
-Run this workflow only when intentionally updating the accepted baseline. Review the
-generated baseline before committing because accepted findings will no longer be reported.
+Review new findings and determine whether they should be fixed or intentionally accepted. There is
+no baseline: every finding Qodana reports is live, and anything to be permanently accepted belongs
+in `qodana.yaml` (an `exclude` entry or a profile change) where the decision is reviewable in a diff.
 
 ## Releases
 
