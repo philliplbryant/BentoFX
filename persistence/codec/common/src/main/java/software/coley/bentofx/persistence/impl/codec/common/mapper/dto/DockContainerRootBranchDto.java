@@ -23,8 +23,9 @@ public class DockContainerRootBranchDto {
     public final List<DividerPositionDto> dividerPositions =
             new ArrayList<>();
 
-    public final List<DockContainerBranchDto> branches =
+    /**
+     * The child containers, in the order the root branch holds them.
+     */
+    public final List<DockContainerDto> children =
             new ArrayList<>();
-
-    public @Nullable DockContainerLeafDto leaf;
 }

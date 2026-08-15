@@ -6,17 +6,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
 
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
 
 /**
  * Jackson XML mix-in for {@code DockContainerRootBranchDto}.
@@ -39,10 +35,6 @@ abstract class DockContainerRootBranchDtoXmlMixin {
     @JacksonXmlProperty(localName = DIVIDER_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
-    @JacksonXmlElementWrapper(localName = BRANCH_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = BRANCH_ELEMENT_NAME)
-    public @Nullable List<DockContainerBranchDto> branches;
-
-    @JacksonXmlProperty(localName = LEAF_ELEMENT_NAME)
-    public @Nullable DockContainerLeafDto leaf;
+    @JacksonXmlElementWrapper(useWrapping = false)
+    public @Nullable List<DockContainerDto> children;
 }

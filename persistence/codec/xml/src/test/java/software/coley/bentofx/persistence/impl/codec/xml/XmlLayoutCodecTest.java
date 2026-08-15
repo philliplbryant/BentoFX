@@ -3,6 +3,10 @@ package software.coley.bentofx.persistence.impl.codec.xml;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
@@ -13,22 +17,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.METADATA_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.SCHEMA_VERSION_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BENTO_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.ROOT_BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKABLE_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DRAG_DROP_STAGE_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 
 class XmlLayoutCodecTest {
@@ -67,7 +56,6 @@ class XmlLayoutCodecTest {
                 .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_ELEMENT_NAME)
                 .contains(OPENING_TAG_PREFIX + DIVIDER_POSITION_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + DIVIDER_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + BRANCH_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
                 .contains(OPENING_TAG_PREFIX + BRANCH_ELEMENT_NAME)
                 .contains(OPENING_TAG_PREFIX + LEAF_ELEMENT_NAME)
                 .contains(OPENING_TAG_PREFIX + DOCKABLE_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
@@ -137,7 +125,48 @@ class XmlLayoutCodecTest {
                 .hasMessageContaining("Unsupported BentoFX docking layout schema version");
     }
 
+    @Test
+    void encodeThenDecodePreservesMixedRootChildOrder() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(mixedRootStates(), out);
+
+        final List<BentoState> restored = codec.decode(
+                new ByteArrayInputStream(out.toByteArray())
+        );
+
+        assertThat(restored.getFirst()
+                .getRootBranchStates().getFirst()
+                .getChildDockContainerStates())
+                .describedAs("decoded root branch children, in order")
+                .extracting(DockContainerState::getIdentifier)
+                .containsExactly("leaf-A", "branch-B", "leaf-C");
+    }
+
     private static List<BentoState> createStates() throws Exception {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
+    }
+
+    /**
+     * {@return one Bento whose root branch holds a leaf, a branch, and a second
+     * leaf, in that order.}
+     */
+    private static List<BentoState> mixedRootStates() {
+        final DockContainerRootBranchState rootState =
+                new DockContainerRootBranchState.DockContainerRootBranchStateBuilder("root-1")
+                        .addDockContainerState(
+                                new DockContainerLeafState.DockContainerLeafStateBuilder("leaf-A").build())
+                        .addDockContainerState(
+                                new DockContainerBranchState.DockContainerBranchStateBuilder("branch-B").build())
+                        .addDockContainerState(
+                                new DockContainerLeafState.DockContainerLeafStateBuilder("leaf-C").build())
+                        .build();
+
+        return List.of(
+                new BentoState.BentoStateBuilder("bento-1")
+                        .addRootBranchState(rootState)
+                        .build()
+        );
     }
 }

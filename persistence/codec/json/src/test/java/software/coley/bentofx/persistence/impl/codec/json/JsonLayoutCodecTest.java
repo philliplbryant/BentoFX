@@ -3,6 +3,10 @@ package software.coley.bentofx.persistence.impl.codec.json;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
@@ -63,7 +67,48 @@ final class JsonLayoutCodecTest {
                 .hasMessageContaining("Unsupported BentoFX docking layout schema version");
     }
 
+    @Test
+    void encodeThenDecodePreservesMixedRootChildOrder() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(mixedRootStates(), out);
+
+        final List<BentoState> restored = codec.decode(
+                new ByteArrayInputStream(out.toByteArray())
+        );
+
+        assertThat(restored.getFirst()
+                .getRootBranchStates().getFirst()
+                .getChildDockContainerStates())
+                .describedAs("decoded root branch children, in order")
+                .extracting(DockContainerState::getIdentifier)
+                .containsExactly("leaf-A", "branch-B", "leaf-C");
+    }
+
     private static List<BentoState> createStates() throws BentoStateException {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
+    }
+
+    /**
+     * {@return one Bento whose root branch holds a leaf, a branch, and a second
+     * leaf, in that order.}
+     */
+    private static List<BentoState> mixedRootStates() {
+        final DockContainerRootBranchState rootState =
+                new DockContainerRootBranchState.DockContainerRootBranchStateBuilder("root-1")
+                        .addDockContainerState(
+                                new DockContainerLeafState.DockContainerLeafStateBuilder("leaf-A").build())
+                        .addDockContainerState(
+                                new DockContainerBranchState.DockContainerBranchStateBuilder("branch-B").build())
+                        .addDockContainerState(
+                                new DockContainerLeafState.DockContainerLeafStateBuilder("leaf-C").build())
+                        .build();
+
+        return List.of(
+                new BentoState.BentoStateBuilder("bento-1")
+                        .addRootBranchState(rootState)
+                        .build()
+        );
     }
 }

@@ -5,16 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
 
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_LIST_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.BRANCH_ELEMENT_NAME;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.LEAF_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 /**
  * Jackson JSON mix-in for {@code DockContainerRootBranchDto}.
@@ -28,9 +24,6 @@ public abstract class DockContainerRootBranchDtoJsonMixin {
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
-    @JsonProperty(BRANCH_LIST_ELEMENT_NAME)
-    public @Nullable List<DockContainerBranchDto> branches;
-
-    @JsonProperty(LEAF_ELEMENT_NAME)
-    public @Nullable DockContainerLeafDto leaf;
+    @JsonProperty(CHILD_CONTAINER_LIST_ELEMENT_NAME)
+    public @Nullable List<DockContainerDto> children;
 }

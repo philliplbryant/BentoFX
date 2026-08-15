@@ -31,6 +31,7 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMet
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
@@ -156,12 +157,13 @@ public final class BentoStateMapper {
 
 			switch (dockContainerState) {
 
-				case final DockContainerBranchState dockContainerBranchState -> rootBranchDto.branches.add(
+				case final DockContainerBranchState dockContainerBranchState -> rootBranchDto.children.add(
 						toDto(dockContainerBranchState)
 				);
 
-				case final DockContainerLeafState dockContainerLeafState ->
-						rootBranchDto.leaf = toDto(dockContainerLeafState);
+				case final DockContainerLeafState dockContainerLeafState -> rootBranchDto.children.add(
+						toDto(dockContainerLeafState)
+				);
 			}
 		}
 
@@ -411,13 +413,9 @@ public final class BentoStateMapper {
 			}
 		}
 
-		for (final DockContainerBranchDto branchDto : rootBranchDto.branches) {
-			builder.addDockContainerState(fromDto(branchDto));
-		}
-
-		if (rootBranchDto.leaf != null) {
-			builder.addDockContainerState(fromDto(rootBranchDto.leaf));
-		}
+		addDockContainers(
+				builder::addDockContainerState, rootBranchDto.children
+		);
 
 		return builder.build();
 	}
@@ -492,7 +490,7 @@ public final class BentoStateMapper {
 			}
 		}
 
-        addDockContainers(builder, branchDto.children);
+		addDockContainers(builder::addDockContainerState, branchDto.children);
 		return builder.build();
 	}
 
@@ -523,22 +521,30 @@ public final class BentoStateMapper {
 	}
 
 	/**
-	 * Adds the {@link DockContainerDto}s to the
-	 * {@link DockContainerBranchStateBuilder}.
+	 * Maps each {@link DockContainerDto} to its state and hands it to
+	 * {@code addDockContainerState}, preserving the DTO's child order.
 	 *
-	 * @param builder the {@link DockContainerBranchStateBuilder} to which
-	 * the {@link DockContainerDto} are to be added.
+	 * <p>The child is taken as a {@link Consumer} rather than a builder because
+	 * the two branch builders are unrelated types:
+	 * {@link DockContainerRootBranchStateBuilder} delegates to a
+	 * {@link DockContainerBranchStateBuilder} instead of extending it, so its
+	 * {@code addDockContainerState} returns the root type for chaining. A method
+	 * reference is what the two have in common, and both branch kinds hold the
+	 * same polymorphic child list, so both route through here.</p>
+	 *
+	 * @param addDockContainerState the builder mutator each mapped child is
+	 * passed to.
 	 * @param dockContainers the {@link DockContainerDto}s to be added.
 	 */
 	private static void addDockContainers(
-			final DockContainerBranchStateBuilder builder,
+			final Consumer<DockContainerState> addDockContainerState,
 			final List<DockContainerDto> dockContainers
 	) {
         for (final DockContainerDto container : dockContainers) {
-            if (container instanceof final DockContainerBranchDto b) {
-                builder.addDockContainerState(fromDto(b));
-            } else if (container instanceof final DockContainerLeafDto l) {
-                builder.addDockContainerState(fromDto(l));
+            if (container instanceof final DockContainerBranchDto branch) {
+                addDockContainerState.accept(fromDto(branch));
+            } else if (container instanceof final DockContainerLeafDto leaf) {
+                addDockContainerState.accept(fromDto(leaf));
             }
         }
 	}

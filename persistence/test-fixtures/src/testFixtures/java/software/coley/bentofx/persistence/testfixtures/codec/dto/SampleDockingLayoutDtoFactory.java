@@ -1,6 +1,14 @@
 package software.coley.bentofx.persistence.testfixtures.codec.dto;
 
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -62,8 +70,8 @@ public final class SampleDockingLayoutDtoFactory {
         root.pruneWhenEmpty = false;
         root.orientation = VERTICAL;
         root.dividerPositions.add(divider);
-        root.branches.add(branch);
-        root.leaf = leaf;
+        root.children.add(branch);
+        root.children.add(leaf);
 
         final DragDropStageDto stage = new DragDropStageDto();
         stage.title = STAGE_TITLE;

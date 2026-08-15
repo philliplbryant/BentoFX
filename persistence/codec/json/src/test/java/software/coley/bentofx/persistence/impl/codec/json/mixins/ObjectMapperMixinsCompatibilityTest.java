@@ -182,16 +182,16 @@ class ObjectMapperMixinsCompatibilityTest {
 		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
 		branch.set(FIELD_CHILDREN, children);
 
-		final ArrayNode branches = factory.arrayNode();
-		branches.add(branch);
+		final ArrayNode rootChildren = factory.arrayNode();
+		rootChildren.add(branch);
+		rootChildren.add(leaf.deepCopy());
 
 		final ObjectNode rootBranch = factory.objectNode();
 		rootBranch.set(FIELD_IDENTIFIER, factory.textNode(ROOT_IDENTIFIER));
 		rootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		rootBranch.set(FIELD_ORIENTATION, factory.textNode(VERTICAL.name()));
 		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
-		rootBranch.set(BRANCH_LIST_ELEMENT_NAME, branches);
-		rootBranch.set(LEAF_ELEMENT_NAME, leaf.deepCopy());
+		rootBranch.set(FIELD_CHILDREN, rootChildren);
 
 		final ObjectNode dragDropStage = factory.objectNode();
 		dragDropStage.set(FIELD_TITLE, factory.textNode(STAGE_TITLE));

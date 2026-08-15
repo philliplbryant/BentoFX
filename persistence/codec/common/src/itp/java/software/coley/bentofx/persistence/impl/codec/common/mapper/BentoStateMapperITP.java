@@ -2,14 +2,26 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.state.*;
+import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,14 +112,15 @@ class BentoStateMapperITP {
 		assertThat(rootBranchDto.identifier)
 		        .describedAs("rootBranchDto.identifier")
 		        .isEqualTo(expectedRootIdentifier);
-		assertThat(rootBranchDto.branches)
-		        .describedAs("rootBranchDto.branches")
+		assertThat(rootBranchDto.children)
+		        .describedAs("rootBranchDto.children")
 		        .hasSize(1);
 		assertThat(rootBranchDto.pruneWhenEmpty)
 		        .describedAs("rootBranchDto.pruneWhenEmpty")
 		        .isTrue();
 
-		final DockContainerBranchDto branchDto = rootBranchDto.branches.getFirst();
+		final DockContainerBranchDto branchDto =
+				(DockContainerBranchDto) rootBranchDto.children.getFirst();
 		assertThat(branchDto.identifier)
 		        .describedAs("branchDto.identifier")
 		        .isEqualTo(expectedBranchIdentifier);
@@ -201,6 +214,35 @@ class BentoStateMapperITP {
 		        .describedAs("deserializedDockableState.getIdentifier()")
 		        .isEqualTo(expectedDockableIdentifier);
 	}
+	@Test
+	void mixedRootChildrenRoundTripInOrder() throws BentoStateException {
+		// A root branch holding a leaf, then a branch, then another leaf
+		final DockContainerRootBranchState rootState =
+				new DockContainerRootBranchStateBuilder("root-1")
+						.addDockContainerState(
+								new DockContainerLeafStateBuilder("leaf-A").build())
+						.addDockContainerState(
+								new DockContainerBranchStateBuilder("branch-B").build())
+						.addDockContainerState(
+								new DockContainerLeafStateBuilder("leaf-C").build())
+						.build();
+
+		final BentoState bentoState = new BentoStateBuilder("bento-1")
+				.addRootBranchState(rootState)
+				.build();
+
+		final List<BentoState> roundTripped = BentoStateMapper.fromDto(
+				BentoStateMapper.toDto(List.of(bentoState))
+		);
+
+		assertThat(roundTripped.getFirst()
+				.getRootBranchStates().getFirst()
+				.getChildDockContainerStates())
+				.describedAs("round-tripped root branch children, in order")
+				.extracting(DockContainerState::getIdentifier)
+				.containsExactly("leaf-A", "branch-B", "leaf-C");
+	}
+
 	@Test
 	void validateSupportedMetadataAllowsMissingMetadata() {
 		assertThatCode(() ->
