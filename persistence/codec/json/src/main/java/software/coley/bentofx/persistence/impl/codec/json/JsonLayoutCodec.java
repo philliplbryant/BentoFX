@@ -70,8 +70,12 @@ public final class JsonLayoutCodec implements LayoutCodec {
                     );
 
             return BentoStateMapper.fromDto(dockingLayoutDto);
-        } catch (final IOException e) {
+        } catch (final IOException | RuntimeException e) {
 
+            // Catch RuntimeException as well as IOException because a malformed
+            // payload can fail anywhere in the mapper or the state builders, and
+            // LayoutCodec declares BentoStateException as the way decode reports
+            // that.
             throw new BentoStateException(
                     "Failed to decode BentoStateList from JSON",
                     e

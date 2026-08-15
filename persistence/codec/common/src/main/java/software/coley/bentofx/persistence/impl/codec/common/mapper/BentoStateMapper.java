@@ -362,12 +362,24 @@ public final class BentoStateMapper {
 	 * @param bentoStateDto the {@link BentoStateDto} to map.
 	 *
 	 * @return the {@link BentoState} mapped from the {@link BentoStateDto}.
+	 *
+	 * @throws BentoStateException when the DTO carries no Bento identifier.
 	 */
 	public static BentoState fromDto(
 			final BentoStateDto bentoStateDto
-	) {
+	) throws BentoStateException {
 		requireNonNull(bentoStateDto);
-		requireNonNull(bentoStateDto.identifier);
+
+		// The identifier arrives from a decoded payload rather than from a
+		// caller, so a missing one is malformed input, not a programming error.
+		// It was a requireNonNull, which left decode throwing a bare
+		// NullPointerException whose own message was null: not the
+		// BentoStateException LayoutCodec declares, and nothing to act on.
+		if (bentoStateDto.identifier == null) {
+			throw new BentoStateException(
+					"Cannot restore a Bento that has no identifier"
+			);
+		}
 
 		final BentoStateBuilder builder =
 				new BentoStateBuilder(bentoStateDto.identifier);

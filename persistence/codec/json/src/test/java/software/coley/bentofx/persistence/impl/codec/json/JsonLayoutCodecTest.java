@@ -68,6 +68,51 @@ final class JsonLayoutCodecTest {
     }
 
     @Test
+    void decodeReportsMissingBentoIdentifierAsBentoStateException() {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+        final String json = """
+                {
+                  "metadata": {
+                    "schemaVersion": %d
+                  },
+                  "bentos": [ { "rootBranches": [] } ]
+                }
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("missing Bento identifier validation")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("no identifier");
+    }
+
+    @Test
+    void decodeWrapsAnUncheckedFailureAsBentoStateException() {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        // A null Bento list, which Jackson maps straight onto the DTO field and
+        // the mapper then iterates.
+        final String json = """
+                {
+                  "metadata": {
+                    "schemaVersion": %d
+                  },
+                  "bentos": null
+                }
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("unchecked decode failure reporting")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Failed to decode BentoStateList from JSON")
+                .cause()
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
     void encodeThenDecodePreservesMixedRootChildOrder() throws Exception {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
 

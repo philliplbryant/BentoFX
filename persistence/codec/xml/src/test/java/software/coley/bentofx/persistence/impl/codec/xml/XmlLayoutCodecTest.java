@@ -126,6 +126,28 @@ class XmlLayoutCodecTest {
     }
 
     @Test
+    void decodeReportsMissingBentoIdentifierAsBentoStateException() {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+        final String xml = """
+                <dockingLayout>
+                  <metadata>
+                    <schemaVersion>%d</schemaVersion>
+                  </metadata>
+                  <bentos>
+                    <bento/>
+                  </bentos>
+                </dockingLayout>
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("missing Bento identifier validation")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("no identifier");
+    }
+
+    @Test
     void encodeThenDecodePreservesMixedRootChildOrder() throws Exception {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
 
