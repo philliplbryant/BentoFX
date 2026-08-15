@@ -11,9 +11,9 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-Two of the three blockers are fixed; every other finding below is open. A fixed
-status carries the date, and the commit that closed it once that fix is
-committed. B2 is fixed and verified in the working tree, not yet committed.
+All three blockers are fixed; every other finding below is open. A fixed status
+carries the date, and the commit that closed it once that fix is committed. B3
+is fixed and verified in the working tree, not yet committed.
 
 ## Status
 
@@ -39,8 +39,8 @@ that test before it can be trusted.
 | | Finding | Status |
 |---|---|---|
 | [B1](#b1) | A root branch encodes at most one leaf child; the rest are silently dropped and the survivors reordered | **Fixed** 2026-08-15 (`afbd3c4`) |
-| [B2](#b2) | `decode` lets unchecked exceptions escape, so a missing identifier surfaces as a bare `NullPointerException` | **Fixed** 2026-08-15 |
-| [B3](#b3) | `persistence.codec.common` publishes javafx-graphics at version `Optional[21.0.12]` | **Open** |
+| [B2](#b2) | `decode` lets unchecked exceptions escape, so a missing identifier surfaces as a bare `NullPointerException` | **Fixed** 2026-08-15 (`fad5954`) |
+| [B3](#b3) | `persistence.codec.common` publishes javafx-graphics at version `Optional[21.0.12]` | **Fixed** 2026-08-15 |
 
 ### MAJOR
 

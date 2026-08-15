@@ -16,7 +16,7 @@ def versionCatalog = versionCatalogs.named('libs')
 
 plugins.withId('org.openjfx.javafxplugin') {
     javafx {
-        version = versionCatalog.findVersion('javafx')
+        version = versionCatalog.findVersion('javafx').get().requiredVersion
     }
 }
 
