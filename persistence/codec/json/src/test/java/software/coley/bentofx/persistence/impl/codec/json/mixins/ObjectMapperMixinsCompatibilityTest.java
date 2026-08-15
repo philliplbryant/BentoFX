@@ -10,8 +10,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
 import static com.fasterxml.jackson.annotation.JsonInclude.Value.construct;
@@ -57,6 +60,51 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_X = "x";
 	private static final String FIELD_Y = "y";
 
+
+	@Test
+	void everyMixinFieldNamesADtoField() {
+		final List<String> inertFields = new ArrayList<>();
+
+		ObjectMapperMixins.MIXINS_BY_DTO.forEach((dto, mixin) -> {
+			final Set<String> dtoFieldNames = fieldNamesOf(dto);
+
+			for (final Field mixinField : mixin.getDeclaredFields()) {
+				if (!mixinField.isSynthetic()
+						&& !dtoFieldNames.contains(mixinField.getName())) {
+					inertFields.add(
+							mixin.getSimpleName() + '.' + mixinField.getName()
+									+ " (no such field on "
+									+ dto.getSimpleName() + ')'
+					);
+				}
+			}
+		});
+
+		assertThat(inertFields)
+				.describedAs("mix-in fields matching no DTO field")
+				.isEmpty();
+	}
+
+	/**
+	 * {@return every field name declared by {@code type} or inherited from a
+	 * superclass.}
+	 *
+	 * @param type the class whose field names are wanted.
+	 */
+	private static Set<String> fieldNamesOf(final Class<?> type) {
+		final Set<String> fieldNames = new HashSet<>();
+
+		for (Class<?> current = type;
+			 current != null && current != Object.class;
+			 current = current.getSuperclass()) {
+
+			for (final Field field : current.getDeclaredFields()) {
+				fieldNames.add(field.getName());
+			}
+		}
+
+		return fieldNames;
+	}
 
 	@Test
 	void serializesDockingLayoutUsingCommonMapperFieldNames() throws Exception {

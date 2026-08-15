@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
+import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
 class XmlLayoutCodecTest {
 
@@ -65,9 +66,9 @@ class XmlLayoutCodecTest {
     }
 
     @Test
-    void encodeThenDecodeRoundTripsThroughCommonMapper() throws Exception {
+    void encodeThenDecodeRoundTripsTheWholeLayout() throws Exception {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
-        final List<BentoState> original = createStates();
+        final List<BentoState> original = createBentoStates();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         codec.encode(original, out);
@@ -76,30 +77,26 @@ class XmlLayoutCodecTest {
                 new ByteArrayInputStream(out.toByteArray())
         );
 
-        final DockingLayoutDto originalDto = BentoStateMapper.toDto(original);
-        final DockingLayoutDto restoredDto = BentoStateMapper.toDto(restored);
+        assertThat(restored)
+                .describedAs("layout restored from XML")
+                .usingRecursiveComparison()
+                .isEqualTo(original);
+    }
 
-        assertThat(restoredDto.metadata)
-                .describedAs("restored layout metadata")
-                .isNotNull();
-        assertThat(restoredDto.metadata.schemaVersion)
-                .describedAs("restored schema version")
-                .isEqualTo(DockingLayoutDto.getCurrentSchemaVersion());
-        assertThat(restoredDto.bentoStates)
-                .describedAs("restored Bento states")
-                .hasSize(originalDto.bentoStates.size());
+    @Test
+    void encodeWritesLayoutMetadata() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
 
-        assertThat(restoredDto.bentoStates.getFirst().identifier)
-                .describedAs("restored Bento identifier")
-                .isEqualTo(originalDto.bentoStates.getFirst().identifier);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(createStates(), out);
 
-        assertThat(restoredDto.bentoStates.getFirst().rootBranches.getFirst().identifier)
-                .describedAs("restored root branch identifier")
-                .isEqualTo(originalDto.bentoStates.getFirst().rootBranches.getFirst().identifier);
-
-        assertThat(restoredDto.bentoStates.getFirst().dragDropStages.getFirst().title)
-                .describedAs("restored drag/drop stage title")
-                .isEqualTo(originalDto.bentoStates.getFirst().dragDropStages.getFirst().title);
+        assertThat(out.toString(StandardCharsets.UTF_8))
+                .describedAs("encoded XML schema version metadata")
+                .contains(
+                        OPENING_TAG_PREFIX + SCHEMA_VERSION_ELEMENT_NAME
+                                + CLOSING_TAG_SUFFIX
+                                + DockingLayoutDto.getCurrentSchemaVersion()
+                );
     }
 
 

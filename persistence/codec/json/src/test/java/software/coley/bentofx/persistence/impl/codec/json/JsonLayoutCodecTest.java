@@ -18,6 +18,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
+import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
 final class JsonLayoutCodecTest {
 
@@ -110,6 +111,24 @@ final class JsonLayoutCodecTest {
                 .hasMessageContaining("Failed to decode BentoStateList from JSON")
                 .cause()
                 .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void encodeThenDecodeRoundTripsTheWholeLayout() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+        final List<BentoState> original = createBentoStates();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(original, out);
+
+        final List<BentoState> restored = codec.decode(
+                new ByteArrayInputStream(out.toByteArray())
+        );
+
+        assertThat(restored)
+                .describedAs("layout restored from JSON")
+                .usingRecursiveComparison()
+                .isEqualTo(original);
     }
 
     @Test

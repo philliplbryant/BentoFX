@@ -11,9 +11,10 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed; every other finding below is open. A fixed status
-carries the date, and the commit that closed it once that fix is committed. B3
-is fixed and verified in the working tree, not yet committed.
+All three blockers are fixed, along with M3 and M4; every other finding below is
+open. A fixed status carries the date, and the commit that closed it once that
+fix is committed. M3 and M4 are fixed and verified in the working tree, not yet
+committed.
 
 ## Status
 
@@ -34,13 +35,19 @@ compares a whole layout instead of three identifiers** ([M4](#m4)). B1, M1 and
 M3 all shipped through a suite that cannot see them, and any fix to B1 will need
 that test before it can be trusted.
 
+That test now exists in both codec modules, comparing a decoded layout against
+the states a fixture built rather than against a re-encoding of itself, which
+would hide a symmetric loss. It is bounded by [M6](#m6): the two paths no DTO
+carries are the ones the fixture leaves unset, so the comparison covers
+everything the codec claims to persist and nothing it does not.
+
 ### BLOCKER
 
 | | Finding | Status |
 |---|---|---|
 | [B1](#b1) | A root branch encodes at most one leaf child; the rest are silently dropped and the survivors reordered | **Fixed** 2026-08-15 (`afbd3c4`) |
 | [B2](#b2) | `decode` lets unchecked exceptions escape, so a missing identifier surfaces as a bare `NullPointerException` | **Fixed** 2026-08-15 (`fad5954`) |
-| [B3](#b3) | `persistence.codec.common` publishes javafx-graphics at version `Optional[21.0.12]` | **Fixed** 2026-08-15 |
+| [B3](#b3) | `persistence.codec.common` publishes javafx-graphics at version `Optional[21.0.12]` | **Fixed** 2026-08-15 (`2de813f`) |
 
 ### MAJOR
 
@@ -48,8 +55,8 @@ that test before it can be trusted.
 |---|---|---|
 | [M1](#m1) | Every polymorphic container is written twice-nested in XML: `<branch><branch/></branch>` | **Open** |
 | [M2](#m2) | One concept, three wire names: a root's `branches` plus `leaf`, a nested branch's `children` | **Open** |
-| [M3](#m3) | A JSON mix-in field matches no DTO field, so its `@JsonProperty` is inert | **Open** |
-| [M4](#m4) | JSON has no round-trip test; XML's asserts metadata and three identifiers | **Open** |
+| [M3](#m3) | A JSON mix-in field matches no DTO field, so its `@JsonProperty` is inert | **Fixed** 2026-08-15 |
+| [M4](#m4) | JSON has no round-trip test; XML's asserts metadata and three identifiers | **Fixed** 2026-08-15 |
 | [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Open** |
 | [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Open** |
 | [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Open** |
