@@ -207,11 +207,8 @@ public final class BentoStateMapper {
 	/**
 	 * Maps a {@link DockableState} to a {@link DockableDto}.
 	 *
-	 * <p>Carries every property the restorer reads back off a
-	 * {@link DockableState} and can rebuild from a file. The node, the icon and
-	 * menu factories and the post-restore consumer are left out on purpose: they
-	 * are live objects and behaviour the application supplies at restore time,
-	 * not data.</p>
+	 * <p>The node, the factories, and the consumer are left out because the
+	 * application supplies those at the time of during restoration.</p>
 	 *
 	 * @param dockableState the {@link DockableState} to map.
 	 *
@@ -387,11 +384,8 @@ public final class BentoStateMapper {
 	) throws BentoStateException {
 		requireNonNull(bentoStateDto);
 
-		// The identifier arrives from a decoded payload rather than from a
-		// caller, so a missing one is malformed input, not a programming error.
-		// It was a requireNonNull, which left decode throwing a bare
-		// NullPointerException whose own message was null: not the
-		// BentoStateException LayoutCodec declares, and nothing to act on.
+		// This identifier comes from a decoded payload, so a missing one is
+		// malformed input rather than a programming error.
 		if (bentoStateDto.identifier == null) {
 			throw new BentoStateException(
 					"Cannot restore a Bento that has no identifier"
@@ -553,13 +547,10 @@ public final class BentoStateMapper {
 	 * Maps each {@link DockContainerDto} to its state and hands it to
 	 * {@code addDockContainerState}, preserving the DTO's child order.
 	 *
-	 * <p>The child is taken as a {@link Consumer} rather than a builder because
-	 * the two branch builders are unrelated types:
-	 * {@link DockContainerRootBranchStateBuilder} delegates to a
-	 * {@link DockContainerBranchStateBuilder} instead of extending it, so its
-	 * {@code addDockContainerState} returns the root type for chaining. A method
-	 * reference is what the two have in common, and both branch kinds hold the
-	 * same polymorphic child list, so both route through here.</p>
+	 * <p>A {@link Consumer}, rather than a builder, because
+	 * {@link DockContainerRootBranchStateBuilder} delegates to
+	 * {@link DockContainerBranchStateBuilder} instead of extending it, leaving a
+	 * method reference as all the two share.</p>
 	 *
 	 * @param addDockContainerState the builder mutator each mapped child is
 	 * passed to.

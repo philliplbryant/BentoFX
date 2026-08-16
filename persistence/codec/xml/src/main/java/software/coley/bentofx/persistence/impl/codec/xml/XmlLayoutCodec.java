@@ -63,12 +63,10 @@ public final class XmlLayoutCodec implements LayoutCodec {
             return BentoStateMapper.fromDto(dockingLayoutDto);
         } catch (final IOException | RuntimeException e) {
 
-            // RuntimeException as well as IOException: a malformed payload can
-            // fail anywhere in the mapper or the state builders, and LayoutCodec
-            // declares BentoStateException as the way decode reports that. A
-            // BentoStateException the mapper already raised is deliberately not
-            // caught here, so its own message survives instead of being buried
-            // one level down.
+            // Catch both IOException and RuntimeException because a malformed
+            // payload can fail anywhere in the mapper or the state builders.
+            // A BentoStateException the mapper already raised is left alone,
+            // so its message survives.
             throw new BentoStateException("Failed to decode BentoStateList from XML", e);
         }
     }

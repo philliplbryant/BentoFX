@@ -11,7 +11,7 @@ module bento.fx.persistence.codec.common {
 
     requires transitive bento.fx.persistence.api;
 
-    requires transitive javafx.controls;
+    requires transitive javafx.graphics;
 
     requires org.slf4j;
 
@@ -21,6 +21,5 @@ module bento.fx.persistence.codec.common {
     exports software.coley.bentofx.persistence.impl.codec.common.mapper;
     exports software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
-    opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto
-            to org.eclipse.persistence.moxy;
+    opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 }

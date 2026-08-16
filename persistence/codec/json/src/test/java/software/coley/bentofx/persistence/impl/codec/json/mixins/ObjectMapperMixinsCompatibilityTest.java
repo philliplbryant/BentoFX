@@ -337,8 +337,8 @@ class ObjectMapperMixinsCompatibilityTest {
 		stageRootBranch.set(
 				FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name())
 		);
-		// Emitted even though this branch has no dividers: the DTO's list field
-		// is never null, so NON_NULL does not suppress it (see N2).
+		// Call even with no dividers: the DTO's list field is never null, so
+		// NON_NULL does not suppress it.
 		stageRootBranch.set(
 				DIVIDER_POSITION_LIST_ELEMENT_NAME, factory.arrayNode()
 		);

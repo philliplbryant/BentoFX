@@ -24,11 +24,6 @@ public abstract class DockContainerBranchDtoJsonMixin {
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
-    // Named for the DTO field it annotates. A mix-in only reaches a property
-    // Jackson can match by name, so while this was called "branches" - the wire
-    // name it was trying to set - it matched no field on DockContainerBranchDto
-    // and did nothing; the children list serialized under Jackson's default
-    // name, which happened to be right.
     @JsonProperty(CHILD_CONTAINER_LIST_ELEMENT_NAME)
     public @Nullable List<DockContainerDto> children;
 }

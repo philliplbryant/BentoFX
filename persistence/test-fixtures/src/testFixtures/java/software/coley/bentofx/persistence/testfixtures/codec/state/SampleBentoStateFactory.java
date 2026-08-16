@@ -25,12 +25,10 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
  * to compare a layout against itself rather than against a handful of
  * identifiers.
  *
- * <p>Every property the codec claims to persist is set to a value distinct from
- * its neighbours', so a round-trip that drops one, or crosses two, shows up as
- * an inequality rather than passing on a default. A dockable's node, icon and
- * menu factories and post-restore consumer are the exception: they are live
- * objects the application supplies at restore time rather than anything a file
- * can hold.</p>
+ * <p>Every persistable property is set to a value distinct from its neighbors',
+ * so a round-trip that drops one, or crosses two, shows up as an inequality. A
+ * dockable's node, factories and consumer are unset. The application supplies
+ * those at restore time.</p>
  *
  * @author Phil Bryant
  */

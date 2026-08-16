@@ -25,13 +25,8 @@ import static java.util.Objects.requireNonNull;
 public final class ObjectMapperMixins {
 
     /**
-     * Each DTO and the mix-in that annotates it.
-     *
-     * <p>A map rather than a run of {@code addMixIn} calls, so that the pairing
-     * is data a test can read back. Jackson matches a mix-in's members to the
-     * target's by name and silently ignores any that match nothing, so a mix-in
-     * field named after the wire name it means to set, rather than after the DTO
-     * field it annotates, does nothing and reports nothing.</p>
+     * Each DTO and the mix-in that annotates it as a map rather than a run of
+     * {@code addMixIn} calls so a test can read the pairing back.
      */
     static final Map<Class<?>, Class<?>> MIXINS_BY_DTO = Map.ofEntries(
             entry(BentoStateDto.class, BentoStateDtoJsonMixin.class),

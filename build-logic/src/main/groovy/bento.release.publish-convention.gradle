@@ -54,8 +54,7 @@ publishing {
 
 /**
  * A version that resolves here can still be one Maven cannot resolve, and
- * nothing in an ordinary build reads the POM we hand to consumers. Reading
- * the generated POM back is the only check that sees what a consumer sees.
+ * nothing else in a build reads the POM a consumer gets.
  */
 def pomTask = tasks.named('generatePomFileForMavenJavaPublication', GenerateMavenPom)
 def generatedPom = objects.fileProperty()

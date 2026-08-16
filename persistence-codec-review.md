@@ -11,10 +11,10 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed, along with M2 through M7. M1 is closed as won't
-fix. Every other finding below is open. A fixed status carries the date, and the
-commit that closed it once that fix is committed. M3 through M7 are verified in
-the working tree, not yet committed.
+All three blockers are fixed, along with M2 through M8. M1 and M10 are closed as
+won't fix, and M9 has lost one of its four parts. Every other finding below is
+open. A fixed status carries the date, and the commit that closed it once that fix
+is committed. M3 through M9 are verified in the working tree, not yet committed.
 
 **M1 is closed as won't fix**, because it cannot be done by annotation and the
 alternative costs more than the nesting does. The document no longer reads
@@ -27,6 +27,23 @@ an element and into a `type` attribute, which drops `<leaf>` and `<branch>` as
 element names - the names that make the document readable, and the ones the
 element-name test asserts. The nesting is verbose, not lossy: the whole-layout
 round-trip added for [M4](#m4) passes through it unchanged.
+
+**M10 is closed as won't fix**, because the only mechanism that narrows an export
+is to name the modules it goes to, and `codec.common` is not allowed to know that
+the JSON and XML codecs exist. Qualifying the exports was tried and works - a
+module requiring only `codec.json` still round-trips a layout on a real module
+path, and can no longer compile against the DTOs - but it puts each codec's
+module name in the shared module's descriptor, which inverts the dependency the
+module boundary exists to enforce, and it costs a `module not found` warning per
+name on every compile because neither codec can be on that module's compile path
+without a cycle. An unqualified export of a package named `impl` is the weaker
+guarantee, and it is the one that keeps the direction right.
+
+One part of the attempt is worth keeping and stays: the DTO package is now opened
+unqualified, so a codec's object mapper can reflect over the DTOs in a modular
+runtime without the module naming a serialization library. That replaced the dead
+`opens ... to org.eclipse.persistence.moxy`, since a package cannot have both an
+unqualified and a qualified `opens`.
 
 **M6 covered two paths, and they turned out to be different problems.** A
 `DockableState`'s title, tooltip text, drag group mask and closability are
@@ -85,9 +102,9 @@ everything the codec claims to persist and nothing it does not.
 | [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Fixed** 2026-08-15 |
 | [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Fixed** 2026-08-15 |
 | [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Fixed** 2026-08-15 |
-| [M8](#m8) | `codec.common` requires `javafx.controls`, uses none of it, and its build file declares `javafx.graphics` | **Open** |
-| [M9](#m9) | Dead MOXy/JAXB scaffolding: two `compileOnly` dependencies, a `requires static`, and an `opens` to an absent module | **Open** |
-| [M10](#m10) | `codec.common` exports both `impl` packages unqualified | **Open** |
+| [M8](#m8) | `codec.common` requires `javafx.controls`, uses none of it, and its build file declares `javafx.graphics` | **Fixed** 2026-08-15 |
+| [M9](#m9) | Dead MOXy/JAXB scaffolding: two `compileOnly` dependencies, a `requires static`, and an `opens` to an absent module | **Open**; the `opens` half went with [M10](#m10) |
+| [M10](#m10) | `codec.common` exports both `impl` packages unqualified | **Won't fix** 2026-08-15; see below |
 
 ### MINOR
 
