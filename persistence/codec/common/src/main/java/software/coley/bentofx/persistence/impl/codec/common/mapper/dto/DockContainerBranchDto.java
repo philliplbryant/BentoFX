@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Phil Bryant
  */
-public class DockContainerBranchDto extends DockContainerDto {
+public final class DockContainerBranchDto extends DockContainerDto {
 
     public final List<DividerPositionDto> dividerPositions =
             new ArrayList<>();
@@ -20,5 +20,5 @@ public class DockContainerBranchDto extends DockContainerDto {
     public final List<DockContainerDto> childDockContainers =
             new ArrayList<>();
 
-    public @Nullable Orientation orientation; // "HORIZONTAL" or "VERTICAL"
+    public @Nullable Orientation orientation;
 }

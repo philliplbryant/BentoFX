@@ -157,13 +157,11 @@ public final class BentoStateMapper {
 
 			switch (dockContainerState) {
 
-				case final DockContainerBranchState dockContainerBranchState -> rootBranchDto.childDockContainers.add(
-						toDto(dockContainerBranchState)
-				);
+				case final DockContainerBranchState dockContainerBranchState ->
+						rootBranchDto.childDockContainers.add(toDto(dockContainerBranchState));
 
-				case final DockContainerLeafState dockContainerLeafState -> rootBranchDto.childDockContainers.add(
-						toDto(dockContainerLeafState)
-				);
+				case final DockContainerLeafState dockContainerLeafState ->
+						rootBranchDto.childDockContainers.add(toDto(dockContainerLeafState));
 			}
 		}
 
@@ -256,10 +254,14 @@ public final class BentoStateMapper {
 
 		for (final DockContainerState child :
 				branchState.getChildDockContainerStates()) {
-			if (child instanceof final DockContainerBranchState childBranchState) {
-				branchDto.childDockContainers.add(toDto(childBranchState));
-			} else if (child instanceof final DockContainerLeafState childLeafState) {
-				branchDto.childDockContainers.add(toDto(childLeafState));
+
+			switch (child) {
+
+				case final DockContainerBranchState childBranchState ->
+						branchDto.childDockContainers.add(toDto(childBranchState));
+
+				case final DockContainerLeafState childLeafState ->
+						branchDto.childDockContainers.add(toDto(childLeafState));
 			}
 		}
 
@@ -560,13 +562,17 @@ public final class BentoStateMapper {
 			final Consumer<DockContainerState> addDockContainerState,
 			final List<DockContainerDto> dockContainers
 	) {
-        for (final DockContainerDto container : dockContainers) {
-            if (container instanceof final DockContainerBranchDto branch) {
-                addDockContainerState.accept(fromDto(branch));
-            } else if (container instanceof final DockContainerLeafDto leaf) {
-                addDockContainerState.accept(fromDto(leaf));
-            }
-        }
+		for (final DockContainerDto container : dockContainers) {
+
+			switch (container) {
+
+				case final DockContainerBranchDto branchDto ->
+						addDockContainerState.accept(fromDto(branchDto));
+
+				case final DockContainerLeafDto leafDto ->
+						addDockContainerState.accept(fromDto(leafDto));
+			}
+		}
 	}
 
 	/**

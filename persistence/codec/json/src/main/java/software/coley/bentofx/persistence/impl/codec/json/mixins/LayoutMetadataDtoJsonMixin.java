@@ -10,7 +10,7 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  *
  * @author Phil Bryant
  */
-public abstract class LayoutMetadataDtoJsonMixin {
+abstract class LayoutMetadataDtoJsonMixin {
 
     @JsonProperty(SCHEMA_VERSION_ELEMENT_NAME)
     public @Nullable Integer schemaVersion;

@@ -83,9 +83,9 @@ class BentoStateMapperITP {
 		final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
 
 		// Validate the DTO
-        assertThat(dto)
-                .describedAs("dto")
-                .isNotNull();
+		assertThat(dto)
+				.describedAs("dto")
+				.isNotNull();
 
 		assertThat(dto.metadata)
 				.describedAs("layout metadata")
@@ -95,124 +95,124 @@ class BentoStateMapperITP {
 				.isEqualTo(DockingLayoutDto.getCurrentSchemaVersion());
 
 		assertThat(dto.bentoStates)
-		        .describedAs("dto.bentoStates")
-		        .hasSize(1);
+				.describedAs("dto.bentoStates")
+				.hasSize(1);
 		BentoStateDto bentoStateDto = dto.bentoStates.getFirst();
 		assertThat(bentoStateDto.identifier)
-		        .describedAs("bentoStateDto.identifier")
-		        .isEqualTo(expectedBentoIdentifier);
+				.describedAs("bentoStateDto.identifier")
+				.isEqualTo(expectedBentoIdentifier);
 		assertThat(bentoStateDto.rootBranches)
-		        .describedAs("bentoStateDto.rootBranches")
-		        .hasSize(1);
+				.describedAs("bentoStateDto.rootBranches")
+				.hasSize(1);
 		assertThat(bentoStateDto.dragDropStages)
-		        .describedAs("bentoStateDto.dragDropStages")
-		        .hasSize(1);
+				.describedAs("bentoStateDto.dragDropStages")
+				.hasSize(1);
 
 		final DockContainerRootBranchDto rootBranchDto = bentoStateDto.rootBranches.getFirst();
 		assertThat(rootBranchDto.identifier)
-		        .describedAs("rootBranchDto.identifier")
-		        .isEqualTo(expectedRootIdentifier);
+				.describedAs("rootBranchDto.identifier")
+				.isEqualTo(expectedRootIdentifier);
 		assertThat(rootBranchDto.childDockContainers)
-		        .describedAs("rootBranchDto.childDockContainers")
-		        .hasSize(1);
+				.describedAs("rootBranchDto.childDockContainers")
+				.hasSize(1);
 		assertThat(rootBranchDto.pruneWhenEmpty)
-		        .describedAs("rootBranchDto.pruneWhenEmpty")
-		        .isTrue();
+				.describedAs("rootBranchDto.pruneWhenEmpty")
+				.isTrue();
 
 		final DockContainerBranchDto branchDto =
 				(DockContainerBranchDto) rootBranchDto.childDockContainers.getFirst();
 		assertThat(branchDto.identifier)
-		        .describedAs("branchDto.identifier")
-		        .isEqualTo(expectedBranchIdentifier);
+				.describedAs("branchDto.identifier")
+				.isEqualTo(expectedBranchIdentifier);
 		assertThat(branchDto.pruneWhenEmpty)
-		        .describedAs("branchDto.pruneWhenEmpty")
-		        .isFalse();
+				.describedAs("branchDto.pruneWhenEmpty")
+				.isFalse();
 		assertThat(branchDto.childDockContainers)
-		        .describedAs("branchDto.childDockContainers")
-		        .hasSize(1);
+				.describedAs("branchDto.childDockContainers")
+				.hasSize(1);
 
 		final DockContainerLeafDto leafDto = (DockContainerLeafDto) branchDto.childDockContainers.getFirst();
 		assertThat(leafDto.identifier)
-		        .describedAs("leafDto.identifier")
-		        .isEqualTo(expectedLeafIdentifier);
+				.describedAs("leafDto.identifier")
+				.isEqualTo(expectedLeafIdentifier);
 		assertThat(leafDto.pruneWhenEmpty)
-		        .describedAs("leafDto.pruneWhenEmpty")
-		        .isTrue();
+				.describedAs("leafDto.pruneWhenEmpty")
+				.isTrue();
 		assertThat(leafDto.dockables.getFirst().identifier)
-		        .describedAs("leafDto.dockables.getFirst().identifier")
-		        .isEqualTo(expectedDockableIdentifier);
+				.describedAs("leafDto.dockables.getFirst().identifier")
+				.isEqualTo(expectedDockableIdentifier);
 
 		final DragDropStageDto stageDto = bentoStateDto.dragDropStages.getFirst();
 		assertThat(stageDto.autoCloseWhenEmpty)
-		        .describedAs("stageDto.autoCloseWhenEmpty")
-		        .isTrue();
+				.describedAs("stageDto.autoCloseWhenEmpty")
+				.isTrue();
 		assertThat(stageDto.title)
-		        .describedAs("stageDto.title")
-		        .isEqualTo(expectedStageTitle);
+				.describedAs("stageDto.title")
+				.isEqualTo(expectedStageTitle);
 		assertThat(stageDto.dockContainerRootBranchDto)
-		        .describedAs("stageDto.dockContainerRootBranchDto")
-		        .isNotNull();
+				.describedAs("stageDto.dockContainerRootBranchDto")
+				.isNotNull();
 		assertThat(stageDto.dockContainerRootBranchDto.identifier)
-		        .describedAs("stageDto.dockContainerRootBranchDto.identifier")
-		        .isEqualTo(expectedRootIdentifier);
+				.describedAs("stageDto.dockContainerRootBranchDto.identifier")
+				.isEqualTo(expectedRootIdentifier);
 
 		// Perform DTO to Domain Mapping
 		final List<BentoState> deserializedBentoStates = BentoStateMapper.fromDto(dto);
 
 		// Validate the Round-tripped Result
 		assertThat(deserializedBentoStates)
-		        .describedAs("deserializedBentoStates")
-		        .isNotNull().hasSize(1);
+				.describedAs("deserializedBentoStates")
+				.isNotNull().hasSize(1);
 
 		final BentoState deserializedBentoState = deserializedBentoStates.getFirst();
 		assertThat(deserializedBentoState.getIdentifier())
-		        .describedAs("deserializedBentoState.getIdentifier()")
-		        .isEqualTo(expectedBentoIdentifier);
+				.describedAs("deserializedBentoState.getIdentifier()")
+				.isEqualTo(expectedBentoIdentifier);
 		assertThat(deserializedBentoState.getRootBranchStates())
-		        .describedAs("deserializedBentoState.getRootBranchStates()")
-		        .hasSize(1);
+				.describedAs("deserializedBentoState.getRootBranchStates()")
+				.hasSize(1);
 		assertThat(deserializedBentoState.getDragDropStageStates())
-		        .describedAs("deserializedBentoState.getDragDropStageStates()")
-		        .hasSize(1);
+				.describedAs("deserializedBentoState.getDragDropStageStates()")
+				.hasSize(1);
 
 		final DockContainerRootBranchState deserializedRoot =
 				deserializedBentoState.getRootBranchStates().getFirst();
 		assertThat(deserializedRoot.getIdentifier())
-		        .describedAs("deserializedRoot.getIdentifier()")
-		        .isEqualTo(expectedRootIdentifier);
+				.describedAs("deserializedRoot.getIdentifier()")
+				.isEqualTo(expectedRootIdentifier);
 		assertThat(deserializedRoot.doPruneWhenEmpty())
-		        .describedAs("deserializedRoot.doPruneWhenEmpty()")
-		        .contains(TRUE);
+				.describedAs("deserializedRoot.doPruneWhenEmpty()")
+				.contains(TRUE);
 		assertThat(deserializedRoot.getChildDockContainerStates())
-		        .describedAs("deserializedRoot.getChildDockContainerStates()")
-		        .hasSize(1);
+				.describedAs("deserializedRoot.getChildDockContainerStates()")
+				.hasSize(1);
 
 		final DockContainerBranchState deserializedBranchState =
 				(DockContainerBranchState) deserializedRoot.getChildDockContainerStates().getFirst();
 		assertThat(deserializedBranchState.getIdentifier())
-		        .describedAs("deserializedBranchState.getIdentifier()")
-		        .isEqualTo(expectedBranchIdentifier);
+				.describedAs("deserializedBranchState.getIdentifier()")
+				.isEqualTo(expectedBranchIdentifier);
 		assertThat(deserializedBranchState.doPruneWhenEmpty())
-		        .describedAs("deserializedBranchState.doPruneWhenEmpty()")
-		        .contains(FALSE);
+				.describedAs("deserializedBranchState.doPruneWhenEmpty()")
+				.contains(FALSE);
 
 		final DockContainerLeafState deserializedLeafState =
 				(DockContainerLeafState) deserializedBranchState.getChildDockContainerStates().getFirst();
 		assertThat(deserializedLeafState.getIdentifier())
-		        .describedAs("deserializedLeafState.getIdentifier()")
-		        .isEqualTo(expectedLeafIdentifier);
+				.describedAs("deserializedLeafState.getIdentifier()")
+				.isEqualTo(expectedLeafIdentifier);
 		assertThat(deserializedLeafState.doPruneWhenEmpty())
-		        .describedAs("deserializedLeafState.doPruneWhenEmpty()")
-		        .contains(TRUE);
+				.describedAs("deserializedLeafState.doPruneWhenEmpty()")
+				.contains(TRUE);
 		assertThat(deserializedLeafState.getChildDockableStates())
-		        .describedAs("deserializedLeafState.getChildDockableStates()")
-		        .hasSize(1);
+				.describedAs("deserializedLeafState.getChildDockableStates()")
+				.hasSize(1);
 
 		final DockableState deserializedDockableState =
 				deserializedLeafState.getChildDockableStates().getFirst();
 		assertThat(deserializedDockableState.getIdentifier())
-		        .describedAs("deserializedDockableState.getIdentifier()")
-		        .isEqualTo(expectedDockableIdentifier);
+				.describedAs("deserializedDockableState.getIdentifier()")
+				.isEqualTo(expectedDockableIdentifier);
 	}
 	@Test
 	void mixedRootChildrenRoundTripInOrder() throws BentoStateException {

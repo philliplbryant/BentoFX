@@ -3,11 +3,11 @@ package software.coley.bentofx.persistence.impl.codec.xml.mixins;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockableDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
@@ -16,6 +16,8 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Utility for registering all DTO Jackson XML mix-ins on an ObjectMapper.
+ *
+ * @author Phil Bryant
  */
 public final class XmlMapperMixins {
 

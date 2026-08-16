@@ -8,7 +8,8 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Phil Bryant
  */
-public abstract class DockContainerDto {
+public abstract sealed class DockContainerDto
+        permits DockContainerBranchDto, DockContainerLeafDto {
 
     public @Nullable String identifier;
 

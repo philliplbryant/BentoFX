@@ -5,11 +5,7 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
  *
  * @author Phil Bryant
  */
-public class ElementNames {
-
-    private ElementNames() {
-        throw new IllegalStateException("Utility class");
-    }
+public final class ElementNames {
 
     public static final String DOCKING_LAYOUT_ROOT_ELEMENT_NAME = "dockingLayout";
     public static final String METADATA_ELEMENT_NAME = "metadata";
@@ -28,4 +24,8 @@ public class ElementNames {
     public static final String DOCKABLE_ELEMENT_NAME = "dockable";
     public static final String DRAG_DROP_STAGE_LIST_ELEMENT_NAME = "dragDropStages";
     public static final String DRAG_DROP_STAGE_ELEMENT_NAME = "dragDropStage";
+
+    private ElementNames() {
+        throw new IllegalStateException("Utility class");
+    }
 }

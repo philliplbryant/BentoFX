@@ -11,10 +11,26 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed, along with M2 through M8. M1 and M10 are closed as
-won't fix, and M9 has lost one of its four parts. Every other finding below is
-open. A fixed status carries the date, and the commit that closed it once that fix
-is committed. M3 through M9 are verified in the working tree, not yet committed.
+All three blockers are fixed, along with M2 through M8 and ten of the eleven nits.
+M1, M10 and T7 are closed as won't fix, and M9 has lost one of its four parts. The
+twelve minors and the rest of M9 are what remain open. A fixed status carries the date, and the
+commit that closed it once that fix is committed. Everything from M3 onwards is
+verified in the working tree, not yet committed.
+
+T1 needed nothing of its own: the Javadoc and the `final` parameter arrived with
+M6, which rewrote that method. T4 is why `DockContainerDto` is now sealed - with
+both hierarchies sealed, all three dispatch sites are exhaustive pattern switches
+the compiler checks, rather than one switch and two chains of `instanceof`.
+
+**T7 is closed as won't fix.** Every container XML mix-in now states its own
+`identifier` and `pruneWhenEmpty` attributes, the branch one included, so all four
+read alike and none depends on inheritance to describe what a container writes.
+Removing them from the leaf was measured first and changed nothing, attribute
+order included, so this is a readability choice rather than a behavioural one. The
+mix-in that cannot avoid declaring them is the root branch's, because
+`DockContainerRootBranchDto` is the one container DTO outside the
+`DockContainerDto` hierarchy; folding it in would give the root branch a type id
+and change the file format, so it stays outside.
 
 **M1 is closed as won't fix**, because it cannot be done by annotation and the
 alternative costs more than the nesting does. The document no longer reads
@@ -127,17 +143,17 @@ everything the codec claims to persist and nothing it does not.
 
 | | Finding | Status |
 |---|---|---|
-| [T1](#t1) | `toDto(DockableState)` has no Javadoc and no `final` parameter | **Open** |
-| [T2](#t2) | `ElementNames` is not `final`, and its constants sit after its constructor | **Open** |
-| [T3](#t3) | Mixed tabs and spaces inside `BentoStateMapper` and the ITP | **Open** |
-| [T4](#t4) | Three different forms of the same container dispatch in one class | **Open** |
-| [T5](#t5) | JSON mix-ins are `public abstract`; the XML ones are package-private | **Open** |
-| [T6](#t6) | `XmlMapperMixins` Javadoc has no `@author` | **Open** |
-| [T7](#t7) | The leaf XML mix-in re-declares two fields the base mix-in already covers | **Open** |
-| [T8](#t8) | Stale `// "HORIZONTAL" or "VERTICAL"` comment on a typed enum field | **Open** |
-| [T9](#t9) | Test class modifiers differ across the two codec modules | **Open** |
-| [T10](#t10) | The XML element-name test asserts `<branch` as a prefix, so it passes on the doubled form | **Open** |
-| [T11](#t11) | The JSON mix-ins package-info is missing the `@NullMarked` its XML counterpart has | **Open** |
+| [T1](#t1) | `toDto(DockableState)` has no Javadoc and no `final` parameter | **Fixed** 2026-08-16 |
+| [T2](#t2) | `ElementNames` is not `final`, and its constants sit after its constructor | **Fixed** 2026-08-16 |
+| [T3](#t3) | Mixed tabs and spaces inside `BentoStateMapper` and the ITP | **Fixed** 2026-08-16 |
+| [T4](#t4) | Three different forms of the same container dispatch in one class | **Fixed** 2026-08-16 |
+| [T5](#t5) | JSON mix-ins are `public abstract`; the XML ones are package-private | **Fixed** 2026-08-16 |
+| [T6](#t6) | `XmlMapperMixins` Javadoc has no `@author` | **Fixed** 2026-08-16 |
+| [T7](#t7) | The leaf XML mix-in re-declares two fields the base mix-in already covers | **Won't fix** 2026-08-16; each container mix-in states its own attributes |
+| [T8](#t8) | Stale `// "HORIZONTAL" or "VERTICAL"` comment on a typed enum field | **Fixed** 2026-08-16 |
+| [T9](#t9) | Test class modifiers differ across the two codec modules | **Fixed** 2026-08-16 |
+| [T10](#t10) | The XML element-name test asserts `<branch` as a prefix, so it passes on the doubled form | **Fixed** 2026-08-16 |
+| [T11](#t11) | The JSON mix-ins package-info is missing the `@NullMarked` its XML counterpart has | **Fixed** 2026-08-16 |
 
 Every identifier in the four tables links to that finding's own section. The
 anchors are explicit rather than derived from the heading text, matching

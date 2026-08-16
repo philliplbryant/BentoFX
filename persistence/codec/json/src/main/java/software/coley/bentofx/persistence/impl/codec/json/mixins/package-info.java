@@ -7,4 +7,7 @@
  *
  * @author Phil Bryant
  */
+@NullMarked
 package software.coley.bentofx.persistence.impl.codec.json.mixins;
+
+import org.jspecify.annotations.NullMarked;

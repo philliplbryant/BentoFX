@@ -23,5 +23,5 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
         @JsonSubTypes.Type(value = DockContainerBranchDto.class, name = BRANCH_ELEMENT_NAME),
         @JsonSubTypes.Type(value = DockContainerLeafDto.class, name = LEAF_ELEMENT_NAME)
 })
-public abstract class DockContainerDtoJsonMixin {
+abstract class DockContainerDtoJsonMixin {
 }

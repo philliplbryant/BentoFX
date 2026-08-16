@@ -10,5 +10,5 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class DockableDtoJsonMixin {
+abstract class DockableDtoJsonMixin {
 }

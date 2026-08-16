@@ -26,6 +26,7 @@ class XmlLayoutCodecTest {
     private static final String XML_CODEC_IDENTIFIER = "xml";
     private static final String OPENING_TAG_PREFIX = "<";
     private static final String CLOSING_TAG_SUFFIX = ">";
+    private static final String ATTRIBUTE_SEPARATOR = " ";
 
     @Test
     void getIdentifierReturnsXml() {
@@ -48,21 +49,44 @@ class XmlLayoutCodecTest {
 
         assertThat(xml)
                 .describedAs("encoded XML element names")
-                .contains(OPENING_TAG_PREFIX + DOCKING_LAYOUT_ROOT_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + METADATA_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + SCHEMA_VERSION_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + BENTO_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + BENTO_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + ROOT_BRANCH_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + DIVIDER_POSITION_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + DIVIDER_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + BRANCH_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + LEAF_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + DOCKABLE_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + DOCKABLE_ELEMENT_NAME)
-                .contains(OPENING_TAG_PREFIX + DRAG_DROP_STAGE_LIST_ELEMENT_NAME + CLOSING_TAG_SUFFIX)
-                .contains(OPENING_TAG_PREFIX + DRAG_DROP_STAGE_ELEMENT_NAME);
+                .contains(element(DOCKING_LAYOUT_ROOT_ELEMENT_NAME))
+                .contains(element(METADATA_ELEMENT_NAME))
+                .contains(element(SCHEMA_VERSION_ELEMENT_NAME))
+                .contains(element(BENTO_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(BENTO_ELEMENT_NAME))
+                .contains(element(ROOT_BRANCH_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(ROOT_BRANCH_ELEMENT_NAME))
+                .contains(element(DIVIDER_POSITION_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(DIVIDER_ELEMENT_NAME))
+                .contains(element(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(BRANCH_ELEMENT_NAME))
+                .contains(elementWithAttributes(LEAF_ELEMENT_NAME))
+                .contains(element(DOCKABLE_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(DOCKABLE_ELEMENT_NAME))
+                .contains(element(DRAG_DROP_STAGE_LIST_ELEMENT_NAME))
+                .contains(elementWithAttributes(DRAG_DROP_STAGE_ELEMENT_NAME));
+    }
+
+    /**
+     * {@return the opening tag of an element that carries no attributes.}
+     *
+     * @param elementName the element's name.
+     */
+    private static String element(final String elementName) {
+        return OPENING_TAG_PREFIX + elementName + CLOSING_TAG_SUFFIX;
+    }
+
+    /**
+     * {@return the start of the opening tag of an element that carries
+     * attributes, up to and including the space before the first one.}
+     *
+     * <p>The trailing space is what makes this an element name rather than a
+     * prefix of one: {@code <branch} alone also matches {@code <branches>}.</p>
+     *
+     * @param elementName the element's name.
+     */
+    private static String elementWithAttributes(final String elementName) {
+        return OPENING_TAG_PREFIX + elementName + ATTRIBUTE_SEPARATOR;
     }
 
     @Test

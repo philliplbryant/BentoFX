@@ -19,7 +19,7 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  */
 @JsonInclude(NON_NULL)
 @JsonTypeName(BRANCH_ELEMENT_NAME)
-public abstract class DockContainerRootBranchDtoJsonMixin {
+abstract class DockContainerRootBranchDtoJsonMixin {
 
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;

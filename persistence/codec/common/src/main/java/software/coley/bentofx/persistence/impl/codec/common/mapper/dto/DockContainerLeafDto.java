@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Phil Bryant
  */
-public class DockContainerLeafDto extends DockContainerDto {
+public final class DockContainerLeafDto extends DockContainerDto {
 
     public final List<DockableDto> dockables =
             new ArrayList<>();

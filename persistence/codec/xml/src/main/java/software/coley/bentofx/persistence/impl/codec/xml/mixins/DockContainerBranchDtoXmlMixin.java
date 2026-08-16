@@ -22,6 +22,12 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DockContainerBranchDtoXmlMixin {
 
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable String identifier;
+
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable Boolean pruneWhenEmpty;
+
     @JacksonXmlElementWrapper(localName = DIVIDER_POSITION_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = DIVIDER_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;

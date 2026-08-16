@@ -18,7 +18,7 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * @author Phil Bryant
  */
 @JsonInclude(NON_NULL)
-public abstract class BentoStateDtoJsonMixin {
+abstract class BentoStateDtoJsonMixin {
 
     @JsonProperty(ROOT_BRANCH_LIST_ELEMENT_NAME)
     public @Nullable List<DockContainerRootBranchDto> rootBranches;
