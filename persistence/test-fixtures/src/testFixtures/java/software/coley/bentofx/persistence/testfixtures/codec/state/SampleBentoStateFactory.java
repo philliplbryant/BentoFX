@@ -54,9 +54,9 @@ public final class SampleBentoStateFactory {
     }
 
     /**
-     * {@return one Bento holding a root branch of three children - a leaf, a
-     * branch, and a second leaf - plus a drag/drop stage with a root branch of
-     * its own.}
+     * {@return one Bento holding a root branch of three child dock containers - a
+     * leaf, a branch, and a second leaf - plus a drag/drop stage with a root
+     * branch of its own.}
      */
     public static List<BentoState> createBentoStates() {
         return List.of(

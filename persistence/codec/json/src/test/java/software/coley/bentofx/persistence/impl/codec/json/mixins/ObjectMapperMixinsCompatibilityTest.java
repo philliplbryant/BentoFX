@@ -31,7 +31,7 @@ class ObjectMapperMixinsCompatibilityTest {
 
 	private static final String FIELD_ALWAYS_ON_TOP = "alwaysOnTop";
 	private static final String FIELD_AUTO_CLOSE_WHEN_EMPTY = "autoCloseWhenEmpty";
-	private static final String FIELD_CHILDREN = "children";
+	private static final String FIELD_CHILD_DOCK_CONTAINERS = "childDockContainers";
 	private static final String FIELD_DRAG_GROUP_MASK = "dragGroupMask";
 	private static final String FIELD_FOCUSED = "focused";
 	private static final String FIELD_FULL_SCREEN = "fullScreen";
@@ -220,8 +220,8 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ArrayNode dividerPositions = factory.arrayNode();
 		dividerPositions.add(divider);
 
-		final ArrayNode children = factory.arrayNode();
-		children.add(createFirstLeafNode(factory));
+		final ArrayNode childDockContainers = factory.arrayNode();
+		childDockContainers.add(createFirstLeafNode(factory));
 
 		final ObjectNode branch = factory.objectNode();
 		branch.set(FIELD_TYPE, factory.textNode(BRANCH_ELEMENT_NAME));
@@ -229,11 +229,11 @@ class ObjectMapperMixinsCompatibilityTest {
 		branch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		branch.set(FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name()));
 		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
-		branch.set(FIELD_CHILDREN, children);
+		branch.set(FIELD_CHILD_DOCK_CONTAINERS, childDockContainers);
 
-		final ArrayNode rootChildren = factory.arrayNode();
-		rootChildren.add(branch);
-		rootChildren.add(createLeafNode(
+		final ArrayNode rootChildDockContainers = factory.arrayNode();
+		rootChildDockContainers.add(branch);
+		rootChildDockContainers.add(createLeafNode(
 				factory, ROOT_LEAF_IDENTIFIER, ROOT_LEAF_DOCKABLE_IDENTIFIER
 		));
 
@@ -242,7 +242,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		rootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		rootBranch.set(FIELD_ORIENTATION, factory.textNode(VERTICAL.name()));
 		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
-		rootBranch.set(FIELD_CHILDREN, rootChildren);
+		rootBranch.set(FIELD_CHILD_DOCK_CONTAINERS, rootChildDockContainers);
 
 		final ObjectNode dragDropStage = factory.objectNode();
 		dragDropStage.set(FIELD_TITLE, factory.textNode(STAGE_TITLE));
@@ -324,8 +324,8 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static ObjectNode createStageRootBranchNode(
 			final JsonNodeFactory factory
 	) {
-		final ArrayNode stageChildren = factory.arrayNode();
-		stageChildren.add(createLeafNode(
+		final ArrayNode stageChildDockContainers = factory.arrayNode();
+		stageChildDockContainers.add(createLeafNode(
 				factory, STAGE_LEAF_IDENTIFIER, STAGE_LEAF_DOCKABLE_IDENTIFIER
 		));
 
@@ -342,7 +342,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		stageRootBranch.set(
 				DIVIDER_POSITION_LIST_ELEMENT_NAME, factory.arrayNode()
 		);
-		stageRootBranch.set(FIELD_CHILDREN, stageChildren);
+		stageRootBranch.set(FIELD_CHILD_DOCK_CONTAINERS, stageChildDockContainers);
 
 		return stageRootBranch;
 	}

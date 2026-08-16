@@ -185,7 +185,7 @@ class XmlLayoutCodecTest {
         assertThat(restored.getFirst()
                 .getRootBranchStates().getFirst()
                 .getChildDockContainerStates())
-                .describedAs("decoded root branch children, in order")
+                .describedAs("decoded root branch child dock containers, in order")
                 .extracting(DockContainerState::getIdentifier)
                 .containsExactly("leaf-A", "branch-B", "leaf-C");
     }

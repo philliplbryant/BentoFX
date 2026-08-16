@@ -112,26 +112,26 @@ class BentoStateMapperITP {
 		assertThat(rootBranchDto.identifier)
 		        .describedAs("rootBranchDto.identifier")
 		        .isEqualTo(expectedRootIdentifier);
-		assertThat(rootBranchDto.children)
-		        .describedAs("rootBranchDto.children")
+		assertThat(rootBranchDto.childDockContainers)
+		        .describedAs("rootBranchDto.childDockContainers")
 		        .hasSize(1);
 		assertThat(rootBranchDto.pruneWhenEmpty)
 		        .describedAs("rootBranchDto.pruneWhenEmpty")
 		        .isTrue();
 
 		final DockContainerBranchDto branchDto =
-				(DockContainerBranchDto) rootBranchDto.children.getFirst();
+				(DockContainerBranchDto) rootBranchDto.childDockContainers.getFirst();
 		assertThat(branchDto.identifier)
 		        .describedAs("branchDto.identifier")
 		        .isEqualTo(expectedBranchIdentifier);
 		assertThat(branchDto.pruneWhenEmpty)
 		        .describedAs("branchDto.pruneWhenEmpty")
 		        .isFalse();
-		assertThat(branchDto.children)
-		        .describedAs("branchDto.children")
+		assertThat(branchDto.childDockContainers)
+		        .describedAs("branchDto.childDockContainers")
 		        .hasSize(1);
 
-		final DockContainerLeafDto leafDto = (DockContainerLeafDto) branchDto.children.getFirst();
+		final DockContainerLeafDto leafDto = (DockContainerLeafDto) branchDto.childDockContainers.getFirst();
 		assertThat(leafDto.identifier)
 		        .describedAs("leafDto.identifier")
 		        .isEqualTo(expectedLeafIdentifier);
@@ -238,7 +238,7 @@ class BentoStateMapperITP {
 		assertThat(roundTripped.getFirst()
 				.getRootBranchStates().getFirst()
 				.getChildDockContainerStates())
-				.describedAs("round-tripped root branch children, in order")
+				.describedAs("round-tripped root branch child dock containers, in order")
 				.extracting(DockContainerState::getIdentifier)
 				.containsExactly("leaf-A", "branch-B", "leaf-C");
 	}

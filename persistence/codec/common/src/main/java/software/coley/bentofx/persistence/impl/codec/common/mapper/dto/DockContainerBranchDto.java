@@ -17,7 +17,7 @@ public class DockContainerBranchDto extends DockContainerDto {
     public final List<DividerPositionDto> dividerPositions =
             new ArrayList<>();
 
-    public final List<DockContainerDto> children =
+    public final List<DockContainerDto> childDockContainers =
             new ArrayList<>();
 
     public @Nullable Orientation orientation; // "HORIZONTAL" or "VERTICAL"

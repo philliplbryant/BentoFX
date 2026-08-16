@@ -23,7 +23,7 @@ public class ElementNames {
     public static final String BRANCH_LIST_ELEMENT_NAME = "branches";
     public static final String BRANCH_ELEMENT_NAME = "branch";
     public static final String LEAF_ELEMENT_NAME = "leaf";
-    public static final String CHILD_CONTAINER_LIST_ELEMENT_NAME = "children";
+    public static final String CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME = "childDockContainers";
     public static final String DOCKABLE_LIST_ELEMENT_NAME = "dockables";
     public static final String DOCKABLE_ELEMENT_NAME = "dockable";
     public static final String DRAG_DROP_STAGE_LIST_ELEMENT_NAME = "dragDropStages";

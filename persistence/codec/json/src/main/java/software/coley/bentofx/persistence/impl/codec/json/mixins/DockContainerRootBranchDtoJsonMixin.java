@@ -24,6 +24,6 @@ public abstract class DockContainerRootBranchDtoJsonMixin {
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
-    @JsonProperty(CHILD_CONTAINER_LIST_ELEMENT_NAME)
-    public @Nullable List<DockContainerDto> children;
+    @JsonProperty(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME)
+    public @Nullable List<DockContainerDto> childDockContainers;
 }

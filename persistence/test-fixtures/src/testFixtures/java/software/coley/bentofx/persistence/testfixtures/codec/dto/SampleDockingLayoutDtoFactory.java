@@ -78,15 +78,15 @@ public final class SampleDockingLayoutDtoFactory {
         branch.pruneWhenEmpty = false;
         branch.orientation = HORIZONTAL;
         branch.dividerPositions.add(divider);
-        branch.children.add(leaf);
+        branch.childDockContainers.add(leaf);
 
         final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
         root.identifier = ROOT_IDENTIFIER;
         root.pruneWhenEmpty = false;
         root.orientation = VERTICAL;
         root.dividerPositions.add(divider);
-        root.children.add(branch);
-        root.children.add(
+        root.childDockContainers.add(branch);
+        root.childDockContainers.add(
                 createLeafDto(ROOT_LEAF_IDENTIFIER, ROOT_LEAF_DOCKABLE_IDENTIFIER)
         );
 
@@ -133,7 +133,7 @@ public final class SampleDockingLayoutDtoFactory {
         stageRoot.identifier = STAGE_ROOT_IDENTIFIER;
         stageRoot.pruneWhenEmpty = true;
         stageRoot.orientation = HORIZONTAL;
-        stageRoot.children.add(
+        stageRoot.childDockContainers.add(
                 createLeafDto(STAGE_LEAF_IDENTIFIER, STAGE_LEAF_DOCKABLE_IDENTIFIER)
         );
         return stageRoot;

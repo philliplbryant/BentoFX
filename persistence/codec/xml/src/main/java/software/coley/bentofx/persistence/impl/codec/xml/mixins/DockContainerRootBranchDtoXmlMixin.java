@@ -36,5 +36,5 @@ abstract class DockContainerRootBranchDtoXmlMixin {
     public @Nullable List<DividerPositionDto> dividerPositions;
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    public @Nullable List<DockContainerDto> children;
+    public @Nullable List<DockContainerDto> childDockContainers;
 }

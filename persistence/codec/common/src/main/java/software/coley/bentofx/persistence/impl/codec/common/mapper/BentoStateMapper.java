@@ -157,11 +157,11 @@ public final class BentoStateMapper {
 
 			switch (dockContainerState) {
 
-				case final DockContainerBranchState dockContainerBranchState -> rootBranchDto.children.add(
+				case final DockContainerBranchState dockContainerBranchState -> rootBranchDto.childDockContainers.add(
 						toDto(dockContainerBranchState)
 				);
 
-				case final DockContainerLeafState dockContainerLeafState -> rootBranchDto.children.add(
+				case final DockContainerLeafState dockContainerLeafState -> rootBranchDto.childDockContainers.add(
 						toDto(dockContainerLeafState)
 				);
 			}
@@ -257,9 +257,9 @@ public final class BentoStateMapper {
 		for (final DockContainerState child :
 				branchState.getChildDockContainerStates()) {
 			if (child instanceof final DockContainerBranchState childBranchState) {
-				branchDto.children.add(toDto(childBranchState));
+				branchDto.childDockContainers.add(toDto(childBranchState));
 			} else if (child instanceof final DockContainerLeafState childLeafState) {
-				branchDto.children.add(toDto(childLeafState));
+				branchDto.childDockContainers.add(toDto(childLeafState));
 			}
 		}
 
@@ -437,7 +437,7 @@ public final class BentoStateMapper {
 		}
 
 		addDockContainers(
-				builder::addDockContainerState, rootBranchDto.children
+				builder::addDockContainerState, rootBranchDto.childDockContainers
 		);
 
 		return builder.build();
@@ -513,7 +513,7 @@ public final class BentoStateMapper {
 			}
 		}
 
-		addDockContainers(builder::addDockContainerState, branchDto.children);
+		addDockContainers(builder::addDockContainerState, branchDto.childDockContainers);
 		return builder.build();
 	}
 

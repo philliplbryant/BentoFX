@@ -26,6 +26,6 @@ public class DockContainerRootBranchDto {
     /**
      * The child containers, in the order the root branch holds them.
      */
-    public final List<DockContainerDto> children =
+    public final List<DockContainerDto> childDockContainers =
             new ArrayList<>();
 }
