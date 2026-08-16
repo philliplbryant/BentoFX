@@ -13,8 +13,5 @@ javafx {
 }
 
 dependencies {
-
     api projects.persistence.api
-
-    implementation libs.slf4j.api
 }

@@ -1,8 +1,6 @@
 package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -154,11 +152,13 @@ class ObjectMapperMixinsCompatibilityTest {
 				.isEqualTo(expected);
 	}
 
+	/**
+	 * {@return a mapper configured the way {@code JsonLayoutCodec} configures
+	 * its own, except that nulls are written so this test can strip them itself.}
+	 */
 	private static JsonMapper newCodecMapper() {
 		final JsonMapper mapper = JsonMapper.builder()
 				.defaultPropertyInclusion(construct(ALWAYS, ALWAYS))
-				.enable(SerializationFeature.WRAP_ROOT_VALUE)
-				.enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
 				.build();
 
 		registerAll(mapper);
@@ -285,11 +285,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ObjectNode dockingLayout = factory.objectNode();
 		dockingLayout.set(FIELD_METADATA, metadata);
 		dockingLayout.set(BENTO_LIST_ELEMENT_NAME, bentos);
-
-		final ObjectNode wrapped = factory.objectNode();
-		wrapped.set(DOCKING_LAYOUT_ROOT_ELEMENT_NAME, dockingLayout);
-
-		return wrapped;
+		return dockingLayout;
 	}
 
 	/**

@@ -13,10 +13,14 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLa
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
@@ -44,6 +48,44 @@ class JsonLayoutCodecTest {
         assertThat(json)
                 .describedAs("encoded JSON schema version metadata")
                 .contains("\"schemaVersion\" : " + DockingLayoutDto.getCurrentSchemaVersion());
+    }
+
+    @Test
+    void encodeWritesTheLayoutWithoutAnEnclosingElement() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(createStates(), out);
+
+        // The XML codec needs a root element; JSON puts the layout's own fields
+        // at the top level.
+        assertThat(out.toString(StandardCharsets.UTF_8))
+                .describedAs("encoded JSON root")
+                .doesNotContain(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
+                .startsWith("{")
+                .contains("\"metadata\"");
+    }
+
+    @Test
+    void encodeWritesDividerPositionsInIndexOrder() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(scrambledDividerStates(), out);
+
+        final String json = out.toString(StandardCharsets.UTF_8);
+
+        // The state holds divider positions in an immutable map, whose iteration
+        // order varies between JVM runs, so the encoded order has to be imposed.
+        final List<Integer> encodedIndexes = new ArrayList<>();
+        final Matcher matcher = Pattern.compile("\"index\" : (\\d+)").matcher(json);
+        while (matcher.find()) {
+            encodedIndexes.add(Integer.valueOf(matcher.group(1)));
+        }
+
+        assertThat(encodedIndexes)
+                .describedAs("encoded divider indexes")
+                .containsExactly(0, 1, 2, 3, 4);
     }
 
     @Test
@@ -84,6 +126,37 @@ class JsonLayoutCodecTest {
                 codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
         )
                 .describedAs("missing Bento identifier validation")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("no identifier");
+    }
+
+    @Test
+    void decodeReportsAContainerWithNoIdentifier() {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        // Two anonymous siblings used to take their element's name and collide
+        // with one another.
+        final String json = """
+                {
+                  "metadata": {
+                    "schemaVersion": %d
+                  },
+                  "bentos": [ {
+                    "identifier": "bento-1",
+                    "rootBranches": [ {
+                      "childDockContainers": [
+                        { "type": "leaf" },
+                        { "type": "leaf" }
+                      ]
+                    } ]
+                  } ]
+                }
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("missing container identifier validation")
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("no identifier");
     }
@@ -175,6 +248,27 @@ class JsonLayoutCodecTest {
 
     private static List<BentoState> createStates() throws BentoStateException {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
+    }
+
+    /**
+     * {@return one Bento whose root branch has five divider positions, added in
+     * an order that is neither ascending nor descending.}
+     */
+    private static List<BentoState> scrambledDividerStates() {
+        final DockContainerRootBranchState rootState =
+                new DockContainerRootBranchState.DockContainerRootBranchStateBuilder("root-1")
+                        .addDividerPosition(3, 0.4)
+                        .addDividerPosition(0, 0.1)
+                        .addDividerPosition(4, 0.5)
+                        .addDividerPosition(1, 0.2)
+                        .addDividerPosition(2, 0.3)
+                        .build();
+
+        return List.of(
+                new BentoState.BentoStateBuilder("bento-1")
+                        .addRootBranchState(rootState)
+                        .build()
+        );
     }
 
     /**

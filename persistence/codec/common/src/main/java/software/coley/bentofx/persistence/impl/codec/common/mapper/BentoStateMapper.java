@@ -1,9 +1,6 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
-import javafx.geometry.Orientation;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
@@ -31,6 +28,7 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMet
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -47,9 +45,6 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
  * @author Phil Bryant
  */
 public final class BentoStateMapper {
-
-	private static final Logger logger =
-			LoggerFactory.getLogger(BentoStateMapper.class);
 
 	private BentoStateMapper() {
 		throw new IllegalStateException("Utility class");
@@ -144,13 +139,9 @@ public final class BentoStateMapper {
 				rootBranchDto.orientation = orientation
 		);
 
-		root.getDividerPositions().forEach((index, position) -> {
-			final DividerPositionDto dividerPositionDto =
-					new DividerPositionDto();
-			dividerPositionDto.index = index;
-			dividerPositionDto.position = position;
-			rootBranchDto.dividerPositions.add(dividerPositionDto);
-		});
+		addDividerPositions(
+				rootBranchDto.dividerPositions, root.getDividerPositions()
+		);
 
 		for (final DockContainerState dockContainerState :
 				root.getChildDockContainerStates()) {
@@ -203,6 +194,32 @@ public final class BentoStateMapper {
 	}
 
 	/**
+	 * Writes the divider positions to {@code dividerPositionDtos} in index
+	 * order.
+	 *
+	 * <p>Sorted because the state holds them in an immutable map, whose
+	 * iteration order varies between JVM runs, which would make the same layout
+	 * encode differently each time.</p>
+	 *
+	 * @param dividerPositionDtos the list to write to.
+	 * @param dividerPositions divider index to divider position.
+	 */
+	private static void addDividerPositions(
+			final List<DividerPositionDto> dividerPositionDtos,
+			final Map<Integer, Double> dividerPositions
+	) {
+		dividerPositions.entrySet().stream()
+				.sorted(Map.Entry.comparingByKey())
+				.forEach(entry -> {
+					final DividerPositionDto dividerPositionDto =
+							new DividerPositionDto();
+					dividerPositionDto.index = entry.getKey();
+					dividerPositionDto.position = entry.getValue();
+					dividerPositionDtos.add(dividerPositionDto);
+				});
+	}
+
+	/**
 	 * Maps a {@link DockableState} to a {@link DockableDto}.
 	 *
 	 * <p>The node, the factories, and the consumer are left out because the
@@ -245,12 +262,9 @@ public final class BentoStateMapper {
 		branchDto.orientation =
 				branchState.getOrientation().orElse(null);
 
-		branchState.getDividerPositions().forEach((index, position) -> {
-			final DividerPositionDto dividerPositionDto = new DividerPositionDto();
-			dividerPositionDto.index = index;
-			dividerPositionDto.position = position;
-			branchDto.dividerPositions.add(dividerPositionDto);
-		});
+		addDividerPositions(
+				branchDto.dividerPositions, branchState.getDividerPositions()
+		);
 
 		for (final DockContainerState child :
 				branchState.getChildDockContainerStates()) {
@@ -416,18 +430,18 @@ public final class BentoStateMapper {
 	 *
 	 * @return the {@link DockContainerRootBranchState} mapped from the
 	 * {@link DockContainerRootBranchDto}.
+	 *
+	 * @throws BentoStateException when the DTO carries no identifier.
 	 */
 	public static DockContainerRootBranchState fromDto(
 			final DockContainerRootBranchDto rootBranchDto
-	) {
+	) throws BentoStateException {
 		requireNonNull(rootBranchDto);
 
-		final String id = rootBranchDto.identifier != null ?
-				rootBranchDto.identifier :
-				ROOT_BRANCH_ELEMENT_NAME;
-
 		final DockContainerRootBranchStateBuilder builder =
-				new DockContainerRootBranchStateBuilder(id);
+				new DockContainerRootBranchStateBuilder(
+						identifierOf(rootBranchDto.identifier, ROOT_BRANCH_ELEMENT_NAME)
+				);
 
 		builder.setOrientation(rootBranchDto.orientation)
 				.setPruneWhenEmpty(rootBranchDto.pruneWhenEmpty);
@@ -455,7 +469,7 @@ public final class BentoStateMapper {
 	 */
 	public static DragDropStageState fromDto(
 			final DragDropStageDto stageDto
-	) {
+	) throws BentoStateException {
 		requireNonNull(stageDto);
 
 		final DragDropStageStateBuilder builder = new DragDropStageStateBuilder(
@@ -493,21 +507,21 @@ public final class BentoStateMapper {
 	 *
 	 * @return the {@link DockContainerBranchState} mapped from the
 	 * {@link DockContainerBranchDto}.
+	 *
+	 * @throws BentoStateException when the DTO carries no identifier.
 	 */
 	public static DockContainerBranchState fromDto(
 			final DockContainerBranchDto branchDto
-	) {
+	) throws BentoStateException {
 
 		requireNonNull(branchDto);
 
-		final String id = branchDto.identifier != null ?
-				branchDto.identifier :
-				BRANCH_ELEMENT_NAME;
-
 		final DockContainerBranchStateBuilder builder =
-				new DockContainerBranchStateBuilder(id);
+				new DockContainerBranchStateBuilder(
+						identifierOf(branchDto.identifier, BRANCH_ELEMENT_NAME)
+				);
 		builder.setPruneWhenEmpty(branchDto.pruneWhenEmpty);
-		setOrientation(builder, branchDto.orientation);
+		builder.setOrientation(branchDto.orientation);
 
 		for (final DividerPositionDto position : branchDto.dividerPositions) {
 			if (position.index != null && position.position != null) {
@@ -517,32 +531,6 @@ public final class BentoStateMapper {
 
 		addDockContainers(builder::addDockContainerState, branchDto.childDockContainers);
 		return builder.build();
-	}
-
-	/**
-	 * Sets the orientation of the {@link DockContainerBranchStateBuilder}. Logs
-	 * a warning if the {@code orientation} is not a valid {@link Orientation}
-	 * value.
-	 *
-	 * @param builder the {@link DockContainerBranchStateBuilder} whose
-	 * orientation is to be set.
-	 * @param orientation the {@link String} value of the {@link Orientation}
-	 * being set.
-	 */
-	private static void setOrientation(
-			final DockContainerBranchStateBuilder builder,
-			final @Nullable Orientation orientation
-	) {
-		try {
-
-			builder.setOrientation(orientation);
-		} catch (final Exception e) {
-
-			logger.warn(
-					"Could not determine the orientation for {}.", orientation,
-					e
-			);
-		}
 	}
 
 	/**
@@ -561,7 +549,7 @@ public final class BentoStateMapper {
 	private static void addDockContainers(
 			final Consumer<DockContainerState> addDockContainerState,
 			final List<DockContainerDto> dockContainers
-	) {
+	) throws BentoStateException {
 		for (final DockContainerDto container : dockContainers) {
 
 			switch (container) {
@@ -583,19 +571,19 @@ public final class BentoStateMapper {
 	 *
 	 * @return the {@link DockContainerLeafState} mapped from the
 	 * {@link DockContainerLeafDto}.
+	 *
+	 * @throws BentoStateException when the DTO carries no identifier.
 	 */
 	public static DockContainerLeafState fromDto(
 			final DockContainerLeafDto leafDto
-	) {
+	) throws BentoStateException {
 
 		requireNonNull(leafDto);
 
-		final String id = leafDto.identifier != null ?
-				leafDto.identifier :
-				LEAF_ELEMENT_NAME;
-
 		final DockContainerLeafStateBuilder builder =
-				new DockContainerLeafStateBuilder(id)
+				new DockContainerLeafStateBuilder(
+						identifierOf(leafDto.identifier, LEAF_ELEMENT_NAME)
+				)
 						.setSelectedDockableStateIdentifier(leafDto.selectedDockableIdentifier)
 						.setSide(leafDto.side)
 						.setResizableWithParent(leafDto.isResizableWithParent)
@@ -636,5 +624,31 @@ public final class BentoStateMapper {
 				.setDragGroupMask(dockableDto.dragGroupMask)
 				.setClosable(dockableDto.isClosable)
 				.build();
+	}
+
+	/**
+	 * {@return the identifier a decoded container carries.}
+	 *
+	 * <p>A container without one used to take the name of its element, which two
+	 * anonymous siblings then shared. Identifiers come from the capture, so a
+	 * missing one is malformed input.</p>
+	 *
+	 * @param identifier the decoded identifier, or {@code null} when the payload
+	 * had none.
+	 * @param elementName the container's element name, for the message.
+	 *
+	 * @throws BentoStateException when {@code identifier} is {@code null}.
+	 */
+	private static String identifierOf(
+			final @Nullable String identifier,
+			final String elementName
+	) throws BentoStateException {
+		if (identifier == null) {
+			throw new BentoStateException(
+					"Cannot restore a " + elementName + " that has no identifier"
+			);
+		}
+
+		return identifier;
 	}
 }

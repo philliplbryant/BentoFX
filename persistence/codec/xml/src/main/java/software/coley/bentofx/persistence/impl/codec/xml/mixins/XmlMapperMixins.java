@@ -25,7 +25,7 @@ public final class XmlMapperMixins {
         throw new IllegalStateException("Utility class");
     }
 
-    public static ObjectMapper registerAll(final ObjectMapper objectMapper) {
+    public static <M extends ObjectMapper> M registerAll(final M objectMapper) {
         requireNonNull(objectMapper);
 
         objectMapper.addMixIn(DockingLayoutDto.class, DockingLayoutDtoXmlMixin.class);

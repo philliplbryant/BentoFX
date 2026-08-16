@@ -13,8 +13,6 @@ module bento.fx.persistence.codec.common {
 
     requires transitive javafx.graphics;
 
-    requires org.slf4j;
-
     requires static org.jspecify;
 
     exports software.coley.bentofx.persistence.impl.codec.common.mapper;

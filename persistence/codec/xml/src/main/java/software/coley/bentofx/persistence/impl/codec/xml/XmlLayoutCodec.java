@@ -27,7 +27,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
     private final XmlMapper mapper;
 
     public XmlLayoutCodec() {
-        this.mapper = (XmlMapper) XmlMapperMixins.registerAll(
+        this.mapper = XmlMapperMixins.registerAll(
                 XmlMapper.builder()
                         .enable(SerializationFeature.INDENT_OUTPUT)
                         .build()
