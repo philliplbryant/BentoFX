@@ -37,8 +37,8 @@ import static java.util.Objects.requireNonNull;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
 /**
- * Maps between the immutable {@code *State} domain objects and
- * JAXB/Jackson-friendly DTOs.
+ * Maps between the immutable {@code *State} domain objects and the
+ * Jackson-friendly DTOs.
  *
  * <p>
  * DTOs are intentionally acyclic and preserve child order via {@link List}.

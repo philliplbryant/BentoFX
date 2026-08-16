@@ -17,7 +17,4 @@ dependencies {
     api projects.persistence.api
 
     implementation libs.slf4j.api
-
-    compileOnly libs.jakarta.annotation
-    compileOnly libs.moxy
 }

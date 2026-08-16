@@ -15,7 +15,6 @@ module bento.fx.persistence.codec.common {
 
     requires org.slf4j;
 
-    requires static jakarta.annotation;
     requires static org.jspecify;
 
     exports software.coley.bentofx.persistence.impl.codec.common.mapper;

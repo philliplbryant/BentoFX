@@ -26,7 +26,7 @@ the compiler checks, rather than one switch and two chains of `instanceof`.
 `identifier` and `pruneWhenEmpty` attributes, the branch one included, so all four
 read alike and none depends on inheritance to describe what a container writes.
 Removing them from the leaf was measured first and changed nothing, attribute
-order included, so this is a readability choice rather than a behavioural one. The
+order included, so this is a readability choice rather than a behavioral one. The
 mix-in that cannot avoid declaring them is the root branch's, because
 `DockContainerRootBranchDto` is the one container DTO outside the
 `DockContainerDto` hierarchy; folding it in would give the root branch a type id

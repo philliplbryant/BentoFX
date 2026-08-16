@@ -22,7 +22,6 @@ javafx = "21.0.12"
 jaxb = "4.0.9"
 jspecify = "1.0.0"
 junit = "6.1.2"
-moxy = "5.0.1"
 nullaway = "0.13.8"
 slf4j = "2.0.18"
 testfx = "4.0.18"
@@ -59,7 +58,6 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml" }
-jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api" }
 jakarta-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api" }
 jakarta-ee-bom = { module = "jakarta.platform:jakarta.jakartaee-bom", version.ref = "jakarta-ee" }
 jakarta-el = { module = "org.glassfish.expressly:expressly", version.ref = "expressly" }
@@ -79,7 +77,6 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params" }
-moxy = { module = "org.eclipse.persistence:org.eclipse.persistence.moxy", version.ref = "moxy" }
 # noinspection UnusedVersionCatalogEntry
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 nullaway-gradlePlugin-dependency = { module = "net.ltgt.nullaway:net.ltgt.nullaway.gradle.plugin", version.ref = "nullaway-plugin" }
