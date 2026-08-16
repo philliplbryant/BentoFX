@@ -11,11 +11,10 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed, along with M2 through M8 and ten of the eleven nits.
-M1, M10 and T7 are closed as won't fix, and M9 has lost one of its four parts. The
-twelve minors and the rest of M9 are what remain open. A fixed status carries the date, and the
-commit that closed it once that fix is committed. Everything from M3 onwards is
-verified in the working tree, not yet committed.
+All three blockers are fixed, along with M2 through M9 and ten of the eleven nits.
+M1, M10 and T7 are closed as won't fix. The twelve minors are what remain open.
+Every fix is committed, and each status cell carries the date and the commit that
+closed it.
 
 T1 needed nothing of its own: the Javadoc and the `final` parameter arrived with
 M6, which rewrote that method. T4 is why `DockContainerDto` is now sealed - with
@@ -59,7 +58,14 @@ One part of the attempt is worth keeping and stays: the DTO package is now opene
 unqualified, so a codec's object mapper can reflect over the DTOs in a modular
 runtime without the module naming a serialization library. That replaced the dead
 `opens ... to org.eclipse.persistence.moxy`, since a package cannot have both an
-unqualified and a qualified `opens`.
+unqualified and a qualified `opens`, which is how [M9](#m9) lost its first part.
+
+**M9's remaining three parts went together.** Nothing in `codec.common` uses MOXy
+or jakarta.annotation, and no build puts MOXy on a path, so the two `compileOnly`
+dependencies and the `requires static jakarta.annotation` described a mapper that
+was never wired up. Both dependencies were the last reference to their catalog
+entries, so those went too, and the mapper's Javadoc no longer offers the DTOs to
+JAXB.
 
 **M6 covered two paths, and they turned out to be different problems.** A
 `DockableState`'s title, tooltip text, drag group mask and closability are
@@ -113,13 +119,13 @@ everything the codec claims to persist and nothing it does not.
 |---|---|---|
 | [M1](#m1) | Every polymorphic container is written twice-nested in XML: `<branch><branch/></branch>` | **Won't fix** 2026-08-15; see below |
 | [M2](#m2) | One concept, three wire names: a root's `branches` plus `leaf`, a nested branch's `children` | **Fixed** 2026-08-15 (`afbd3c4`) |
-| [M3](#m3) | A JSON mix-in field matches no DTO field, so its `@JsonProperty` is inert | **Fixed** 2026-08-15 |
-| [M4](#m4) | JSON has no round-trip test; XML's asserts metadata and three identifiers | **Fixed** 2026-08-15 |
-| [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Fixed** 2026-08-15 |
-| [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Fixed** 2026-08-15 |
-| [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Fixed** 2026-08-15 |
-| [M8](#m8) | `codec.common` requires `javafx.controls`, uses none of it, and its build file declares `javafx.graphics` | **Fixed** 2026-08-15 |
-| [M9](#m9) | Dead MOXy/JAXB scaffolding: two `compileOnly` dependencies, a `requires static`, and an `opens` to an absent module | **Open**; the `opens` half went with [M10](#m10) |
+| [M3](#m3) | A JSON mix-in field matches no DTO field, so its `@JsonProperty` is inert | **Fixed** 2026-08-15 (`11a3859`) |
+| [M4](#m4) | JSON has no round-trip test; XML's asserts metadata and three identifiers | **Fixed** 2026-08-15 (`11a3859`) |
+| [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Fixed** 2026-08-15 (`1a9a2d2`) |
+| [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Fixed** 2026-08-15 (`1a9a2d2`) |
+| [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Fixed** 2026-08-15 (`1a9a2d2`) |
+| [M8](#m8) | `codec.common` requires `javafx.controls`, uses none of it, and its build file declares `javafx.graphics` | **Fixed** 2026-08-15 (`eb4a579`) |
+| [M9](#m9) | Dead MOXy/JAXB scaffolding: two `compileOnly` dependencies, a `requires static`, and an `opens` to an absent module | **Fixed** 2026-08-16 (`eb4a579`, `e884304`) |
 | [M10](#m10) | `codec.common` exports both `impl` packages unqualified | **Won't fix** 2026-08-15; see below |
 
 ### MINOR
@@ -143,17 +149,17 @@ everything the codec claims to persist and nothing it does not.
 
 | | Finding | Status |
 |---|---|---|
-| [T1](#t1) | `toDto(DockableState)` has no Javadoc and no `final` parameter | **Fixed** 2026-08-16 |
-| [T2](#t2) | `ElementNames` is not `final`, and its constants sit after its constructor | **Fixed** 2026-08-16 |
-| [T3](#t3) | Mixed tabs and spaces inside `BentoStateMapper` and the ITP | **Fixed** 2026-08-16 |
-| [T4](#t4) | Three different forms of the same container dispatch in one class | **Fixed** 2026-08-16 |
-| [T5](#t5) | JSON mix-ins are `public abstract`; the XML ones are package-private | **Fixed** 2026-08-16 |
-| [T6](#t6) | `XmlMapperMixins` Javadoc has no `@author` | **Fixed** 2026-08-16 |
-| [T7](#t7) | The leaf XML mix-in re-declares two fields the base mix-in already covers | **Won't fix** 2026-08-16; each container mix-in states its own attributes |
-| [T8](#t8) | Stale `// "HORIZONTAL" or "VERTICAL"` comment on a typed enum field | **Fixed** 2026-08-16 |
-| [T9](#t9) | Test class modifiers differ across the two codec modules | **Fixed** 2026-08-16 |
-| [T10](#t10) | The XML element-name test asserts `<branch` as a prefix, so it passes on the doubled form | **Fixed** 2026-08-16 |
-| [T11](#t11) | The JSON mix-ins package-info is missing the `@NullMarked` its XML counterpart has | **Fixed** 2026-08-16 |
+| [T1](#t1) | `toDto(DockableState)` has no Javadoc and no `final` parameter | **Fixed** 2026-08-15 (`1a9a2d2`) |
+| [T2](#t2) | `ElementNames` is not `final`, and its constants sit after its constructor | **Fixed** 2026-08-16 (`76bf756`) |
+| [T3](#t3) | Mixed tabs and spaces inside `BentoStateMapper` and the ITP | **Fixed** 2026-08-16 (`76bf756`) |
+| [T4](#t4) | Three different forms of the same container dispatch in one class | **Fixed** 2026-08-16 (`76bf756`) |
+| [T5](#t5) | JSON mix-ins are `public abstract`; the XML ones are package-private | **Fixed** 2026-08-16 (`76bf756`) |
+| [T6](#t6) | `XmlMapperMixins` Javadoc has no `@author` | **Fixed** 2026-08-16 (`76bf756`) |
+| [T7](#t7) | The leaf XML mix-in re-declares two fields the base mix-in already covers | **Won't fix** 2026-08-16 (`76bf756`); each container mix-in states its own attributes |
+| [T8](#t8) | Stale `// "HORIZONTAL" or "VERTICAL"` comment on a typed enum field | **Fixed** 2026-08-16 (`76bf756`) |
+| [T9](#t9) | Test class modifiers differ across the two codec modules | **Fixed** 2026-08-16 (`76bf756`) |
+| [T10](#t10) | The XML element-name test asserts `<branch` as a prefix, so it passes on the doubled form | **Fixed** 2026-08-16 (`76bf756`) |
+| [T11](#t11) | The JSON mix-ins package-info is missing the `@NullMarked` its XML counterpart has | **Fixed** 2026-08-16 (`76bf756`) |
 
 Every identifier in the four tables links to that finding's own section. The
 anchors are explicit rather than derived from the heading text, matching
