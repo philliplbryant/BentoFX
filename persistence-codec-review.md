@@ -144,14 +144,14 @@ everything the codec claims to persist and nothing it does not.
 
 | | Finding | Status |
 |---|---|---|
-| [N1](#n1) | Divider positions are emitted in map-iteration order, so encoded files are not stable | **Fixed** 2026-08-16 (`b62371f`) |
+| [N1](#n1) | Divider positions are emitted in map-iteration order, so encoded files are not stable | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N2](#n2) | `NON_NULL` on never-null lists writes every empty collection to the file | **Open** |
-| [N3](#n3) | A missing identifier is replaced by the element name, so anonymous siblings collide | **Fixed** 2026-08-16 (`b62371f`) |
+| [N3](#n3) | A missing identifier is replaced by the element name, so anonymous siblings collide | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N4](#n4) | No `requireNonNull` in the mapper carries a message; the observed NPE message is `null` | **Open** |
-| [N5](#n5) | The orientation try/catch is unreachable now the DTO field is a typed enum | **Fixed** 2026-08-16 (`b62371f`) |
-| [N6](#n6) | `XmlLayoutCodec` casts its own mapper back to `XmlMapper` | **Fixed** 2026-08-16 (`b62371f`) |
-| [N7](#n7) | `@JsonRootName` is inert with `WRAP_ROOT_VALUE` disabled | **Fixed** 2026-08-16 (`b62371f`) |
-| [N8](#n8) | `@JsonTypeName` on the root-branch mix-in, which is not in the polymorphic hierarchy | **Fixed** 2026-08-16 (`b62371f`) |
+| [N5](#n5) | The orientation try/catch is unreachable now the DTO field is a typed enum | **Fixed** 2026-08-16 (`b6b5f9a`) |
+| [N6](#n6) | `XmlLayoutCodec` casts its own mapper back to `XmlMapper` | **Fixed** 2026-08-16 (`b6b5f9a`) |
+| [N7](#n7) | `@JsonRootName` is inert with `WRAP_ROOT_VALUE` disabled | **Fixed** 2026-08-16 (`b6b5f9a`) |
+| [N8](#n8) | `@JsonTypeName` on the root-branch mix-in, which is not in the polymorphic hierarchy | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N9](#n9) | jackson-annotations is `compileOnly` but read reflectively at runtime; the two modules declare it differently | **Open** |
 | [N10](#n10) | `ObjectMapperMixins.registerAll` exposes `ObjectMapper` from a `runtime`-scoped dependency | **Open** |
 | [N11](#n11) | `encode` catches `Exception` while `decode` catches `IOException`, in the same file | **Open** |
