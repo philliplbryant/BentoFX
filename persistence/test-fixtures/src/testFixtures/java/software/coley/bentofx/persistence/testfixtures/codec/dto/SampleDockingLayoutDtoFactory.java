@@ -17,6 +17,9 @@ import static javafx.stage.Modality.NONE;
 
 /**
  * Creates representative docking layout DTOs for codec and mapper tests.
+ *
+ * <p>Every container appears in exactly one parent, and every identifier is
+ * distinct.</p>
  */
 public final class SampleDockingLayoutDtoFactory {
     public static final String BENTO_IDENTIFIER = "bento-1";
@@ -24,7 +27,15 @@ public final class SampleDockingLayoutDtoFactory {
     public static final String DOCKABLE_IDENTIFIER = "dockable-1";
     public static final String LEAF_IDENTIFIER = "leaf-1";
     public static final String ROOT_IDENTIFIER = "root-1";
+    public static final String ROOT_LEAF_IDENTIFIER = "leaf-2";
+    public static final String ROOT_LEAF_DOCKABLE_IDENTIFIER = "dockable-2";
+    public static final String STAGE_ROOT_IDENTIFIER = "root-2";
+    public static final String STAGE_LEAF_IDENTIFIER = "leaf-3";
+    public static final String STAGE_LEAF_DOCKABLE_IDENTIFIER = "dockable-3";
     public static final String STAGE_TITLE = "Stage";
+    public static final String DOCKABLE_TITLE = "Dockable One";
+    public static final String DOCKABLE_TOOLTIP_TEXT = "The first dockable";
+    public static final int DOCKABLE_DRAG_GROUP_MASK = 6;
 
     private static final int DIVIDER_INDEX = 0;
     private static final double DIVIDER_POSITION = 0.42;
@@ -42,6 +53,10 @@ public final class SampleDockingLayoutDtoFactory {
     public static DockingLayoutDto createDockingLayoutDto() {
         final DockableDto dockable = new DockableDto();
         dockable.identifier = DOCKABLE_IDENTIFIER;
+        dockable.title = DOCKABLE_TITLE;
+        dockable.tooltipText = DOCKABLE_TOOLTIP_TEXT;
+        dockable.dragGroupMask = DOCKABLE_DRAG_GROUP_MASK;
+        dockable.isClosable = true;
 
         final DockContainerLeafDto leaf = new DockContainerLeafDto();
         leaf.identifier = LEAF_IDENTIFIER;
@@ -71,7 +86,9 @@ public final class SampleDockingLayoutDtoFactory {
         root.orientation = VERTICAL;
         root.dividerPositions.add(divider);
         root.children.add(branch);
-        root.children.add(leaf);
+        root.children.add(
+                createLeafDto(ROOT_LEAF_IDENTIFIER, ROOT_LEAF_DOCKABLE_IDENTIFIER)
+        );
 
         final DragDropStageDto stage = new DragDropStageDto();
         stage.title = STAGE_TITLE;
@@ -89,7 +106,7 @@ public final class SampleDockingLayoutDtoFactory {
         stage.showing = true;
         stage.focused = true;
         stage.autoCloseWhenEmpty = true;
-        stage.dockContainerRootBranchDto = root;
+        stage.dockContainerRootBranchDto = createStageRootBranchDto();
 
         final BentoStateDto bento = new BentoStateDto();
         bento.identifier = BENTO_IDENTIFIER;
@@ -104,5 +121,49 @@ public final class SampleDockingLayoutDtoFactory {
         layout.bentoStates.add(bento);
 
         return layout;
+    }
+
+    /**
+     * {@return the drag/drop stage's own root branch, holding one leaf of its
+     * own.}
+     */
+    private static DockContainerRootBranchDto createStageRootBranchDto() {
+        final DockContainerRootBranchDto stageRoot =
+                new DockContainerRootBranchDto();
+        stageRoot.identifier = STAGE_ROOT_IDENTIFIER;
+        stageRoot.pruneWhenEmpty = true;
+        stageRoot.orientation = HORIZONTAL;
+        stageRoot.children.add(
+                createLeafDto(STAGE_LEAF_IDENTIFIER, STAGE_LEAF_DOCKABLE_IDENTIFIER)
+        );
+        return stageRoot;
+    }
+
+    /**
+     * {@return a leaf holding a single dockable.}
+     *
+     * @param leafIdentifier the leaf's identifier.
+     * @param dockableIdentifier the identifier of the dockable it holds, which
+     * is also the leaf's selected dockable.
+     */
+    private static DockContainerLeafDto createLeafDto(
+            final String leafIdentifier,
+            final String dockableIdentifier
+    ) {
+        final DockableDto dockable = new DockableDto();
+        dockable.identifier = dockableIdentifier;
+
+        final DockContainerLeafDto leaf = new DockContainerLeafDto();
+        leaf.identifier = leafIdentifier;
+        leaf.pruneWhenEmpty = true;
+        leaf.selectedDockableIdentifier = dockableIdentifier;
+        leaf.side = TOP;
+        leaf.isResizableWithParent = true;
+        leaf.isCanSplit = true;
+        leaf.uncollapsedSizePx = LEAF_UNCOLLAPSED_SIZE_PX;
+        leaf.isCollapsed = false;
+        leaf.dockables.add(dockable);
+
+        return leaf;
     }
 }

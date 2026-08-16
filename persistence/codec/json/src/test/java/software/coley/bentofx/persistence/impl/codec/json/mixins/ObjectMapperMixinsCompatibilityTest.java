@@ -32,6 +32,7 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_ALWAYS_ON_TOP = "alwaysOnTop";
 	private static final String FIELD_AUTO_CLOSE_WHEN_EMPTY = "autoCloseWhenEmpty";
 	private static final String FIELD_CHILDREN = "children";
+	private static final String FIELD_DRAG_GROUP_MASK = "dragGroupMask";
 	private static final String FIELD_FOCUSED = "focused";
 	private static final String FIELD_FULL_SCREEN = "fullScreen";
 	private static final String FIELD_HEIGHT = "height";
@@ -39,6 +40,7 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_ICONIFIED = "iconified";
 	private static final String FIELD_INDEX = "index";
 	private static final String FIELD_IS_CAN_SPLIT = "isCanSplit";
+	private static final String FIELD_IS_CLOSABLE = "isClosable";
 	private static final String FIELD_IS_COLLAPSED = "isCollapsed";
 	private static final String FIELD_IS_RESIZABLE_WITH_PARENT = "isResizableWithParent";
 	private static final String FIELD_MAXIMIZED = "maximized";
@@ -54,6 +56,7 @@ class ObjectMapperMixinsCompatibilityTest {
 	private static final String FIELD_SHOWING = "showing";
 	private static final String FIELD_SIDE = "side";
 	private static final String FIELD_TITLE = "title";
+	private static final String FIELD_TOOLTIP_TEXT = "tooltipText";
 	private static final String FIELD_TYPE = "type";
 	private static final String FIELD_UNCOLLAPSED_SIZE_PX = "uncollapsedSizePx";
 	private static final String FIELD_WIDTH = "width";
@@ -217,10 +220,8 @@ class ObjectMapperMixinsCompatibilityTest {
 		final ArrayNode dividerPositions = factory.arrayNode();
 		dividerPositions.add(divider);
 
-		final ObjectNode leaf = createLeafNode(factory);
-
 		final ArrayNode children = factory.arrayNode();
-		children.add(leaf.deepCopy());
+		children.add(createFirstLeafNode(factory));
 
 		final ObjectNode branch = factory.objectNode();
 		branch.set(FIELD_TYPE, factory.textNode(BRANCH_ELEMENT_NAME));
@@ -232,7 +233,9 @@ class ObjectMapperMixinsCompatibilityTest {
 
 		final ArrayNode rootChildren = factory.arrayNode();
 		rootChildren.add(branch);
-		rootChildren.add(leaf.deepCopy());
+		rootChildren.add(createLeafNode(
+				factory, ROOT_LEAF_IDENTIFIER, ROOT_LEAF_DOCKABLE_IDENTIFIER
+		));
 
 		final ObjectNode rootBranch = factory.objectNode();
 		rootBranch.set(FIELD_IDENTIFIER, factory.textNode(ROOT_IDENTIFIER));
@@ -257,7 +260,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		dragDropStage.set(FIELD_SHOWING, factory.booleanNode(true));
 		dragDropStage.set(FIELD_FOCUSED, factory.booleanNode(true));
 		dragDropStage.set(FIELD_AUTO_CLOSE_WHEN_EMPTY, factory.booleanNode(true));
-		dragDropStage.set(ROOT_BRANCH_ELEMENT_NAME, rootBranch.deepCopy());
+		dragDropStage.set(ROOT_BRANCH_ELEMENT_NAME, createStageRootBranchNode(factory));
 
 		final ArrayNode rootBranches = factory.arrayNode();
 		rootBranches.add(rootBranch.deepCopy());
@@ -289,12 +292,78 @@ class ObjectMapperMixinsCompatibilityTest {
 		return wrapped;
 	}
 
-	private static ObjectNode createLeafNode(final JsonNodeFactory factory) {
+	/**
+	 * {@return the leaf inside the branch, whose dockable is the one carrying
+	 * every dockable property the format holds.}
+	 *
+	 * @param factory the node factory to build with.
+	 */
+	private static ObjectNode createFirstLeafNode(final JsonNodeFactory factory) {
+		final ObjectNode leaf =
+				createLeafNode(factory, LEAF_IDENTIFIER, DOCKABLE_IDENTIFIER);
+
+		final ObjectNode dockable = (ObjectNode)
+				leaf.get(DOCKABLE_LIST_ELEMENT_NAME).get(0);
+		dockable.set(FIELD_TITLE, factory.textNode(DOCKABLE_TITLE));
+		dockable.set(FIELD_TOOLTIP_TEXT, factory.textNode(DOCKABLE_TOOLTIP_TEXT));
+		dockable.set(
+				FIELD_DRAG_GROUP_MASK,
+				factory.numberNode(DOCKABLE_DRAG_GROUP_MASK)
+		);
+		dockable.set(FIELD_IS_CLOSABLE, factory.booleanNode(true));
+
+		return leaf;
+	}
+
+	/**
+	 * {@return the drag/drop stage's own root branch, holding one leaf of its
+	 * own.}
+	 *
+	 * @param factory the node factory to build with.
+	 */
+	private static ObjectNode createStageRootBranchNode(
+			final JsonNodeFactory factory
+	) {
+		final ArrayNode stageChildren = factory.arrayNode();
+		stageChildren.add(createLeafNode(
+				factory, STAGE_LEAF_IDENTIFIER, STAGE_LEAF_DOCKABLE_IDENTIFIER
+		));
+
+		final ObjectNode stageRootBranch = factory.objectNode();
+		stageRootBranch.set(
+				FIELD_IDENTIFIER, factory.textNode(STAGE_ROOT_IDENTIFIER)
+		);
+		stageRootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(true));
+		stageRootBranch.set(
+				FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name())
+		);
+		// Emitted even though this branch has no dividers: the DTO's list field
+		// is never null, so NON_NULL does not suppress it (see N2).
+		stageRootBranch.set(
+				DIVIDER_POSITION_LIST_ELEMENT_NAME, factory.arrayNode()
+		);
+		stageRootBranch.set(FIELD_CHILDREN, stageChildren);
+
+		return stageRootBranch;
+	}
+
+	/**
+	 * {@return a leaf holding a single dockable.}
+	 *
+	 * @param factory the node factory to build with.
+	 * @param leafIdentifier the leaf's identifier.
+	 * @param dockableIdentifier the identifier of the dockable it holds.
+	 */
+	private static ObjectNode createLeafNode(
+			final JsonNodeFactory factory,
+			final String leafIdentifier,
+			final String dockableIdentifier
+	) {
 		final ObjectNode leaf = factory.objectNode();
 		leaf.set(FIELD_TYPE, factory.textNode(LEAF_ELEMENT_NAME));
-		leaf.set(FIELD_IDENTIFIER, factory.textNode(LEAF_IDENTIFIER));
+		leaf.set(FIELD_IDENTIFIER, factory.textNode(leafIdentifier));
 		leaf.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(true));
-		leaf.set(FIELD_SELECTED_DOCKABLE_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
+		leaf.set(FIELD_SELECTED_DOCKABLE_IDENTIFIER, factory.textNode(dockableIdentifier));
 		leaf.set(FIELD_SIDE, factory.textNode(TOP.name()));
 		leaf.set(FIELD_IS_RESIZABLE_WITH_PARENT, factory.booleanNode(true));
 		leaf.set(FIELD_IS_CAN_SPLIT, factory.booleanNode(true));
@@ -302,7 +371,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		leaf.set(FIELD_IS_COLLAPSED, factory.booleanNode(false));
 
 		final ObjectNode dockable = factory.objectNode();
-		dockable.set(FIELD_IDENTIFIER, factory.textNode(DOCKABLE_IDENTIFIER));
+		dockable.set(FIELD_IDENTIFIER, factory.textNode(dockableIdentifier));
 
 		final ArrayNode dockables = factory.arrayNode();
 		dockables.add(dockable);

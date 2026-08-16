@@ -16,4 +16,16 @@ abstract class DockableDtoXmlMixin {
 
     @JacksonXmlProperty(isAttribute = true)
     public @Nullable String identifier;
+
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable String title;
+
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable String tooltipText;
+
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable Integer dragGroupMask;
+
+    @JacksonXmlProperty(isAttribute = true)
+    public @Nullable Boolean isClosable;
 }

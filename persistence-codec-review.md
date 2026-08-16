@@ -11,10 +11,35 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed, along with M3 and M4; every other finding below is
-open. A fixed status carries the date, and the commit that closed it once that
-fix is committed. M3 and M4 are fixed and verified in the working tree, not yet
-committed.
+All three blockers are fixed, along with M2 through M7. M1 is closed as won't
+fix. Every other finding below is open. A fixed status carries the date, and the
+commit that closed it once that fix is committed. M3 through M7 are verified in
+the working tree, not yet committed.
+
+**M1 is closed as won't fix**, because it cannot be done by annotation and the
+alternative costs more than the nesting does. The document no longer reads
+`<branch><branch/></branch>`; since B1 it reads `<children><leaf/></children>`
+per child, because Jackson XML names each list item after its property and the
+`WRAPPER_OBJECT` type id on `DockContainerDto` then writes `<leaf>` or `<branch>`
+inside it. Turning the element wrapper on was measured and adds a third level
+rather than removing one. Losing the extra level means moving the type id out of
+an element and into a `type` attribute, which drops `<leaf>` and `<branch>` as
+element names - the names that make the document readable, and the ones the
+element-name test asserts. The nesting is verbose, not lossy: the whole-layout
+round-trip added for [M4](#m4) passes through it unchanged.
+
+**M6 covered two paths, and they turned out to be different problems.** A
+`DockableState`'s title, tooltip text, drag group mask and closability are
+restored by `DockingLayoutStateRestorer` but were not carried by `DockableDto`,
+so a saved layout came back with its tab titles and tooltips gone. Those four are
+now in the DTO, the mapper and both mix-ins. The dockables a branch holds
+directly were never a codec gap: `BentoLayoutStateCaptor` only ever hands
+dockables to a leaf and the restorer only ever reads them from one, so nothing in
+the persistence path produced or consumed them, and a DTO field would have been a
+wire contract for state that cannot arise. `addChildDockableState` is therefore
+gone from `DockContainerBranchStateBuilder` and
+`DockContainerRootBranchStateBuilder`, so the state model no longer offers what
+the format cannot keep.
 
 ## Status
 
@@ -53,13 +78,13 @@ everything the codec claims to persist and nothing it does not.
 
 | | Finding | Status |
 |---|---|---|
-| [M1](#m1) | Every polymorphic container is written twice-nested in XML: `<branch><branch/></branch>` | **Open** |
-| [M2](#m2) | One concept, three wire names: a root's `branches` plus `leaf`, a nested branch's `children` | **Open** |
+| [M1](#m1) | Every polymorphic container is written twice-nested in XML: `<branch><branch/></branch>` | **Won't fix** 2026-08-15; see below |
+| [M2](#m2) | One concept, three wire names: a root's `branches` plus `leaf`, a nested branch's `children` | **Fixed** 2026-08-15 (`afbd3c4`) |
 | [M3](#m3) | A JSON mix-in field matches no DTO field, so its `@JsonProperty` is inert | **Fixed** 2026-08-15 |
 | [M4](#m4) | JSON has no round-trip test; XML's asserts metadata and three identifiers | **Fixed** 2026-08-15 |
-| [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Open** |
-| [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Open** |
-| [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Open** |
+| [M5](#m5) | The shared fixture aliases one leaf into two parents, encoding a layout no capture can produce | **Fixed** 2026-08-15 |
+| [M6](#m6) | DTO coverage is narrower than the state model on two public paths | **Fixed** 2026-08-15 |
+| [M7](#m7) | `FAIL_ON_UNKNOWN_PROPERTIES` is disabled in both codecs, for a compatibility case the version gate already rejects | **Fixed** 2026-08-15 |
 | [M8](#m8) | `codec.common` requires `javafx.controls`, uses none of it, and its build file declares `javafx.graphics` | **Open** |
 | [M9](#m9) | Dead MOXy/JAXB scaffolding: two `compileOnly` dependencies, a `requires static`, and an `opens` to an absent module | **Open** |
 | [M10](#m10) | `codec.common` exports both `impl` packages unqualified | **Open** |

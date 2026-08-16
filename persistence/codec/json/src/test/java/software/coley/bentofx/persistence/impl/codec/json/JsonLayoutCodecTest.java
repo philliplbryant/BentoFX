@@ -114,6 +114,29 @@ final class JsonLayoutCodecTest {
     }
 
     @Test
+    void decodeRejectsAnUnrecognizedProperty() {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final String json = """
+                {
+                  "metadata": {
+                    "schemaVersion": %d
+                  },
+                  "bentos": [ { "identifier": "bento-1", "unexpected": true } ]
+                }
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("unrecognized JSON property reporting")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Failed to decode BentoStateList from JSON")
+                .cause()
+                .hasMessageContaining("unexpected");
+    }
+
+    @Test
     void encodeThenDecodeRoundTripsTheWholeLayout() throws Exception {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
         final List<BentoState> original = createBentoStates();

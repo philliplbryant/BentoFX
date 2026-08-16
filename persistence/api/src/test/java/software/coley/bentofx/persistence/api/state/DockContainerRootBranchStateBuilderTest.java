@@ -5,7 +5,6 @@ import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -31,9 +30,6 @@ class DockContainerRootBranchStateBuilderTest {
         final double expectedDividerPosition0 = 0.25;
         final double expectedDividerPosition1 = 0.75;
 
-        final DockableState childDockable =
-                new DockableStateBuilder("dockable-child").build();
-
         final DockContainerLeafState childLeaf =
                 new DockContainerLeafStateBuilder("leaf-child")
                         .setSide(Side.BOTTOM)
@@ -45,7 +41,6 @@ class DockContainerRootBranchStateBuilderTest {
                         .setOrientation(expectedOrientation)
                         .addDividerPosition(0, expectedDividerPosition0)
                         .addDividerPosition(1, expectedDividerPosition1)
-                        .addChildDockableState(childDockable)
                         .addDockContainerState(childLeaf)
                         .build();
 
@@ -68,7 +63,7 @@ class DockContainerRootBranchStateBuilderTest {
 
         assertThat(rootBranchState.getChildDockableStates())
                 .describedAs("rootBranchState.getChildDockableStates()")
-                .containsExactly(childDockable);
+                .isEmpty();
 
         assertThat(rootBranchState.getChildDockContainerStates())
                 .describedAs("rootBranchState.getChildDockContainerStates()")

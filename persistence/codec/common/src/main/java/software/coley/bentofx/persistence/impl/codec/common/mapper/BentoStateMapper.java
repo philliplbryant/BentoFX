@@ -204,10 +204,27 @@ public final class BentoStateMapper {
 		return stageDto;
 	}
 
-	public static DockableDto toDto(DockableState dockableState) {
+	/**
+	 * Maps a {@link DockableState} to a {@link DockableDto}.
+	 *
+	 * <p>Carries every property the restorer reads back off a
+	 * {@link DockableState} and can rebuild from a file. The node, the icon and
+	 * menu factories and the post-restore consumer are left out on purpose: they
+	 * are live objects and behaviour the application supplies at restore time,
+	 * not data.</p>
+	 *
+	 * @param dockableState the {@link DockableState} to map.
+	 *
+	 * @return the {@link DockableDto} mapped from the {@link DockableState}.
+	 */
+	public static DockableDto toDto(final DockableState dockableState) {
 
 		final DockableDto dockableDto = new DockableDto();
 		dockableDto.identifier = dockableState.getIdentifier();
+		dockableDto.title = dockableState.getTitle().orElse(null);
+		dockableDto.tooltipText = dockableState.getTooltipText().orElse(null);
+		dockableDto.dragGroupMask = dockableState.getDragGroupMask().orElse(null);
+		dockableDto.isClosable = dockableState.isClosable().orElse(null);
 		return dockableDto;
 	}
 
@@ -595,14 +612,32 @@ public final class BentoStateMapper {
 
 			if (dockableDto.identifier != null) {
 
-				builder.addChildDockableState(
-						new DockableStateBuilder(
-								dockableDto.identifier
-						).build()
-				);
+				builder.addChildDockableState(fromDto(dockableDto));
 			}
 		}
 
 		return builder.build();
+	}
+
+	/**
+	 * Maps a {@link DockableDto} to a {@link DockableState}.
+	 *
+	 * @param dockableDto the {@link DockableDto} to map. Its identifier must not
+	 * be {@code null}.
+	 *
+	 * @return the {@link DockableState} mapped from the {@link DockableDto}.
+	 */
+	public static DockableState fromDto(final DockableDto dockableDto) {
+
+		requireNonNull(dockableDto);
+
+		return new DockableStateBuilder(
+				requireNonNull(dockableDto.identifier)
+		)
+				.setTitle(dockableDto.title)
+				.setTooltipText(dockableDto.tooltipText)
+				.setDragGroupMask(dockableDto.dragGroupMask)
+				.setClosable(dockableDto.isClosable)
+				.build();
 	}
 }

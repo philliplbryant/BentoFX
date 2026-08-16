@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.impl.codec.xml;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import software.coley.bentofx.persistence.api.BentoStateException;
@@ -31,7 +30,6 @@ public final class XmlLayoutCodec implements LayoutCodec {
         this.mapper = (XmlMapper) XmlMapperMixins.registerAll(
                 XmlMapper.builder()
                         .enable(SerializationFeature.INDENT_OUTPUT)
-                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                         .build()
         );
     }

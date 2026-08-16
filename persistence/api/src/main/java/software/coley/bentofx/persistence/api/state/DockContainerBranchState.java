@@ -87,8 +87,6 @@ public non-sealed class DockContainerBranchState extends DockContainerState {
     public static class DockContainerBranchStateBuilder {
 
         private final String identifier;
-        private final List<DockableState> childDockableStates =
-                new ArrayList<>();
         private @Nullable Boolean pruneWhenEmpty;
         private @Nullable Orientation orientation;
         private final Map<Integer, Double> dividerPositions =
@@ -103,15 +101,6 @@ public non-sealed class DockContainerBranchState extends DockContainerState {
         public DockContainerBranchStateBuilder(final String identifier) {
 
             this.identifier = requireNonNull(identifier);
-        }
-
-        /**
-         * {@return this builder for chaining method calls.}
-         * @param dockableState the {@link DockableState} to add.
-         */
-        public DockContainerBranchStateBuilder addChildDockableState(final DockableState dockableState) {
-            this.childDockableStates.add(requireNonNull(dockableState));
-            return this;
         }
 
         /**
@@ -172,7 +161,7 @@ public non-sealed class DockContainerBranchState extends DockContainerState {
             return new DockContainerBranchState(
                     identifier,
                     pruneWhenEmpty,
-                    childDockableStates,
+                    List.of(),
                     orientation,
                     dividerPositions,
                     childDockContainerStates

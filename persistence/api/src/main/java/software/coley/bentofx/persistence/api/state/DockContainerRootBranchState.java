@@ -60,15 +60,6 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
 
         /**
          * {@return this builder for chaining method calls.}
-         * @param dockableState the {@link DockableState} to add.
-         */
-        public DockContainerRootBranchStateBuilder addChildDockableState(final DockableState dockableState) {
-            branchStateBuilder.addChildDockableState(dockableState);
-            return this;
-        }
-
-        /**
-         * {@return this builder for chaining method calls.}
          * @param pruneWhenEmpty whether empty branches should be pruned,
          * {@code null} leaves prune-when-empty unspecified.
          */

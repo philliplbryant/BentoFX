@@ -27,12 +27,10 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
  *
  * <p>Every property the codec claims to persist is set to a value distinct from
  * its neighbours', so a round-trip that drops one, or crosses two, shows up as
- * an inequality rather than passing on a default. Two things are deliberately
- * left unset because no DTO carries them, and setting them here would make a
- * round-trip comparison fail for a reason that has nothing to do with the codec
- * under test: a {@code DockableState}'s title, tooltip, drag group mask and
- * closability, and the dockables a branch holds directly rather than through a
- * leaf.</p>
+ * an inequality rather than passing on a default. A dockable's node, icon and
+ * menu factories and post-restore consumer are the exception: they are live
+ * objects the application supplies at restore time rather than anything a file
+ * can hold.</p>
  *
  * @author Phil Bryant
  */
@@ -165,7 +163,18 @@ public final class SampleBentoStateFactory {
                 .build();
     }
 
+    /**
+     * {@return a dockable whose every persistable property is set, each derived
+     * from its identifier so no two dockables in the layout share a value.}
+     *
+     * @param identifier the dockable's identifier.
+     */
     private static DockableState dockableState(final String identifier) {
-        return new DockableStateBuilder(identifier).build();
+        return new DockableStateBuilder(identifier)
+                .setTitle("Title of " + identifier)
+                .setTooltipText("Tooltip for " + identifier)
+                .setDragGroupMask(identifier.length())
+                .setClosable(identifier.endsWith("1"))
+                .build();
     }
 }

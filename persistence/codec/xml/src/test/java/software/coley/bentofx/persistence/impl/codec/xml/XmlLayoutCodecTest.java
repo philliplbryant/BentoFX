@@ -66,6 +66,33 @@ class XmlLayoutCodecTest {
     }
 
     @Test
+    void decodeRejectsAnUnrecognizedProperty() {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final String xml = """
+                <dockingLayout>
+                  <metadata>
+                    <schemaVersion>%d</schemaVersion>
+                  </metadata>
+                  <bentos>
+                    <bento identifier="bento-1">
+                      <unexpected>true</unexpected>
+                    </bento>
+                  </bentos>
+                </dockingLayout>
+                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+
+        assertThatThrownBy(() ->
+                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+        )
+                .describedAs("unrecognized XML element reporting")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Failed to decode BentoStateList from XML")
+                .cause()
+                .hasMessageContaining("unexpected");
+    }
+
+    @Test
     void encodeThenDecodeRoundTripsTheWholeLayout() throws Exception {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
         final List<BentoState> original = createBentoStates();

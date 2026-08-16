@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
 
@@ -27,11 +26,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
     private final ObjectMapper mapper;
 
     public JsonLayoutCodec() {
-        this.mapper = registerAll(
-                new ObjectMapper()
-                        .enable(INDENT_OUTPUT)
-                        .disable(FAIL_ON_UNKNOWN_PROPERTIES)
-        );
+        this.mapper = registerAll(new ObjectMapper().enable(INDENT_OUTPUT));
     }
 
     @Override
