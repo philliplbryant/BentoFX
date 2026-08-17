@@ -12,12 +12,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntityCompositeKey.MAX_COMPOSITE_KEY_LENGTH;
 
 class DatabaseLayoutStorageIT {
 
@@ -116,6 +121,41 @@ class DatabaseLayoutStorageIT {
         assertThat(readData())
                 .describedAs("Read data should match the updated data.")
                 .isEqualTo(UPDATED_TEST_DATA);
+    }
+
+    @Test
+    void storesIdentifiersLongerThanAllowed() throws IOException {
+
+        final String partOne = "a-descriptive-layout-identifier-well-past-twenty-four";
+        final String partDeux = "proto";
+
+        assertThat(partOne.length())
+                .describedAs("first portion of the composite key length")
+                .isGreaterThan(MAX_COMPOSITE_KEY_LENGTH);
+
+        assertThat(partDeux.length())
+                .describedAs("second portion of the composite key length")
+                .isLessThanOrEqualTo(MAX_COMPOSITE_KEY_LENGTH);
+
+        final LayoutStorage longIdentifierStorage = new DatabaseLayoutStorage(
+                entityManagerFactory,
+                partOne,
+                partDeux
+        );
+
+        try (OutputStream outputStream = longIdentifierStorage.openOutputStream()) {
+            outputStream.write(TEST_DATA.getBytes(UTF_8));
+        }
+
+        assertThat(longIdentifierStorage.exists())
+                .describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
+                .isTrue();
+
+        try (InputStream inputStream = longIdentifierStorage.openInputStream()) {
+            assertThat(new String(inputStream.readAllBytes(), UTF_8))
+                    .describedAs("Read data should match the written data.")
+                    .isEqualTo(TEST_DATA);
+        }
     }
 
     private static String createJdbcUrl() {

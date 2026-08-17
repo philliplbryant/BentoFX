@@ -67,6 +67,26 @@ class LayoutStateWriterTest {
     }
 
     @Test
+    void doesNotOpenStorageWhenEncodingFails() {
+        final RecordingLayoutCodec codec = new RecordingLayoutCodec();
+        codec.setEncodeException(new BentoStateException(CODEC_FAILURE_MESSAGE));
+
+        try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
+            assertThatThrownBy(() ->
+                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+            )
+                    .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when the codec fails")
+                    .isInstanceOf(BentoStateException.class);
+
+            // Opening storage is what replaces whatever is already stored, so a
+            // codec that fails must not get that far.
+            assertThat(storage.getOpenOutputStreamCount())
+                    .describedAs("storage.getOpenOutputStreamCount()")
+                    .isZero();
+        }
+    }
+
+    @Test
     void wrapsStorageFailures() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
         final IOException expectedCause = new IOException(STORAGE_FAILURE_MESSAGE);
@@ -146,6 +166,7 @@ class LayoutStateWriterTest {
         private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         private @Nullable IOException openOutputStreamException;
         private int closeCount;
+        private int openOutputStreamCount;
 
         @Override
         public boolean exists() {
@@ -154,6 +175,8 @@ class LayoutStateWriterTest {
 
         @Override
         public OutputStream openOutputStream() throws IOException {
+            openOutputStreamCount++;
+
             if (openOutputStreamException != null) {
                 throw openOutputStreamException;
             }
@@ -176,6 +199,10 @@ class LayoutStateWriterTest {
 
         int getCloseCount() {
             return closeCount;
+        }
+
+        int getOpenOutputStreamCount() {
+            return openOutputStreamCount;
         }
 
         void setOpenOutputStreamException(

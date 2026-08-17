@@ -15,10 +15,20 @@ import java.util.Objects;
 @Embeddable
 public class DockingLayoutEntityCompositeKey implements Serializable {
 
-    @Column(name = "layout_id", nullable = false, length = 24)
+    /**
+     * The width of both identifier columns.
+     *
+     * <p>These identifiers may be used as a file name and its extension in
+     * file-backed storage, so the width that matters is what a file name
+     * allows, and every mainstream filesystem takes 255 characters per path
+     * component.</p>
+     */
+    public static final int MAX_COMPOSITE_KEY_LENGTH = 255;
+
+    @Column(name = "layout_id", nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String layoutIdentifier;
 
-    @Column(name = "codec_id", nullable = false, length = 4)
+    @Column(name = "codec_id", nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String codecIdentifier;
 
     public DockingLayoutEntityCompositeKey() {}
