@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link #disableAutoSave()} and {@link #close()} may be called from any thread
  * and are mutually exclusive; the auto-save lifecycle state they share is guarded
  * by a private lock. {@link #close()} is idempotent. What is <em>not</em>
- * serialised is saving itself: {@link #close()} deliberately performs its final
+ * serialized is saving itself: {@link #close()} deliberately performs its final
  * save before taking that lock, because a save waits on the JavaFX application
  * thread and that thread may itself be calling in here. A subclass overriding
  * {@link #saveLayout()} or {@link #saveLayoutForShutdown()} must therefore assume
@@ -146,7 +146,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * <p>This is the safe counterpart to enabling auto-save from the constructor:
      * by the time this runs, every constructor in the hierarchy has completed, so
      * the scheduler thread and the {@link Bento} event buses only ever see a
-     * fully initialised object.</p>
+     * fully initialized object.</p>
      *
      * @param saver the saver to start auto-saving.
      * @param <T> the saver type, preserved so callers do not have to cast.

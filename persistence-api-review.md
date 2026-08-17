@@ -213,12 +213,12 @@ therefore removed and `close()` always attempts the flush; `autoSave` already
 short-circuits when no dock events were received, so an unchanged close stays cheap
 and still writes nothing. See M2.
 
-**Note this is a source-compatible but behaviourally breaking change** for anyone
+**Note this is a source-compatible but behaviorally breaking change** for anyone
 constructing `DockingLayoutSaver` directly: they now get a saver that saves on
 `close()` but does not save on a timer until they ask. Given the class is in an
 `impl` package that arguably should not be exported at all (M1), and the provider
 path is unaffected, that seemed the right trade — but it is a real change in
-behaviour rather than a pure internal fix, and worth a line in the release notes.
+behavior rather than a pure internal fix, and worth a line in the release notes.
 
 Regression pinned by `ft/.../LayoutSaverConstructionFT.java`, seven tests:
 
@@ -560,7 +560,7 @@ the other two fields are lock-guarded only, and each carries a `Guarded by` comm
 
 Also documented: a class-level thread-safety section stating that
 enable/disable/close are mutually exclusive, that `close()` is idempotent, and that
-saving is deliberately *not* serialised — so a subclass overriding `saveLayout()`
+saving is deliberately *not* serialized — so a subclass overriding `saveLayout()`
 or `saveLayoutForShutdown()` knows it can be entered from the scheduler thread and
 from a `close()` caller concurrently.
 
@@ -723,7 +723,7 @@ to repeat:
 
 No FT was added. The probe passes against today's code, so it would guard a
 regression rather than pin a fix, and it is ~150 lines of timing-sensitive setup for
-behaviour that already works. The three round-trip FTs from B5, B6 and B7 already
+behavior that already works. The three round-trip FTs from B5, B6 and B7 already
 cover this area from the directions that did find real defects.
 
 **Reopened and FIXED 2026-08-13.** The withdrawal was wrong, and the last paragraph
@@ -835,7 +835,7 @@ and exit 1. So the lookup demonstrably happens where the comment claims it does.
 
 **Verified by running the demo, not by compiling it.** A compile pass proves nothing
 about service resolution across a module boundary, which is the one genuinely new
-behaviour here. The demo launched and stayed up with no errors, and the negative
+behavior here. The demo launched and stayed up with no errors, and the negative
 control is what makes that meaningful: commenting out the demo's `uses` clause
 produced `ServiceConfigurationError: module bento.fx.demo.persistence does not
 declare 'uses'` and exit 1. So the provider really is arriving through the module
@@ -850,7 +850,7 @@ first. Both are now known-reachable rather than assumed.
 Note this is a **breaking change for any consumer outside this repo** that imported
 either `impl` package — which is the entire point of the finding, and the reason it
 was worth doing before more consumers appeared rather than after. It also retires
-the concern recorded under B2, that its behavioural change was only observable
+the concern recorded under B2, that its behavioral change was only observable
 because `impl` was exported.
 
 **Why `DefaultBentoProvider` was not given the same `ServiceLoader` treatment as
@@ -879,7 +879,7 @@ concrete type permanently. **What landed instead is a static factory on the inte
 `BentoProvider.of(Bento...)`, delegating to the still-unexported
 `DefaultBentoProvider`. One method rather than a new class or an exported
 implementation, and `BoxAppBentoProvider` is deleted — the demo is now
-`BentoProvider.of(bento)` at field-initialisation, and the `addBento` call it needed is
+`BentoProvider.of(bento)` at field initialization, and the `addBento` call it needed is
 gone with it.
 
 A factory rather than a second `DockingLayoutPersistence`-style utility class, because
@@ -991,7 +991,7 @@ dependencies", both without naming the mechanism. What landed:
 - **One** mechanical mention survives, on `LayoutPersistenceComponentProvider`, aimed
   at the only reader who needs to type the word: someone writing a replacement, who
   needs to know it is registered with `provides` in their own `module-info`.
-- `package-info` is organised by who writes what rather than by mechanism, with
+- `package-info` is organized by who writes what rather than by mechanism, with
   `DockingLayoutPersistenceProvider` called out as belonging to neither group.
 
 The count, for the record: `ServiceLoader` appeared in **nine** files across
@@ -1057,7 +1057,7 @@ of them was a defect.
 The thread per call is gone. `PersistenceThreading` now holds one shared
 single-thread `ExecutorService` on a named daemon thread
 (`bentofx-persistence-io`) and submits to that. Because every caller blocks on its
-own result, the work was already serialised, so a thread per call bought nothing
+own result, the work was already serialized, so a thread per call bought nothing
 beyond the cost of creating it plus - on Java 19+ - the `close()` that blocks until
 that thread terminates. It is deliberately never shut down: one idle daemon thread
 for the life of the JVM is cheaper than giving a static utility a lifecycle that
@@ -1068,7 +1068,7 @@ storage write that never returns still cannot hold up exit. Covered by
 restored.
 
 **The blocking is documented, not removed**, and that is the deliberate half of
-this fix. The hand-off is intended behaviour, not an accident:
+this fix. The hand-off is intended behavior, not an accident:
 `saveLayoutEncodesAndWritesAwayFromFxThreadWhenCalledOnFxThread` in
 `ft/.../DockingLayoutSaverFT.java` asserts that the codec and storage run on a
 thread that is not the JavaFX thread, which keeps JavaFX state out of reach of
@@ -1190,7 +1190,7 @@ field contradicts the rule the same class now documents - two references, one
 owner. The field, its constructor parameter and its `requireNonNull` are gone;
 `doesLayoutExist()` delegates to a new package-private
 `LayoutStateReader.layoutExists()`, so the reader is the only thing holding the
-instance it closes. No behaviour change - same object, same `exists()` call - and
+instance it closes. No behavior change - same object, same `exists()` call - and
 no call site moved, because the package-private three-argument constructor the
 change narrows had no callers outside the class.
 
@@ -1257,8 +1257,8 @@ the writer was catching those and re-wrapping them in the strictly less specific
 "Failed to encode BentoState", so the message naming the actual format was one
 cause deeper than the one the user saw first. It now surfaces directly.
 
-The two existing tests encoded the old behaviour and both had to change, which is
-the honest signal that this was a behavioural fix and not a message tidy-up:
+The two existing tests encoded the old behavior and both had to change, which is
+the honest signal that this was a behavioral fix and not a message tidy-up:
 `wrapsEncodingFailures` became `propagatesEncodingFailures` and asserts
 `isSameAs` the codec's exception, mirroring `propagatesDecodingFailures` in
 `LayoutStateReaderTest`; `wrapsStorageFailures` keeps its shape and now expects
@@ -1324,7 +1324,7 @@ dockables through the public `DockContainerRootBranchStateBuilder`. It ran befor
 `DockContainerBranch.addDockable` (`core/.../DockContainerBranch.java:438-442`)
 walks `childContainers` and returns `false` when none accepts. With no children
 there is nothing to accept, so the call could not have added a dockable even with
-a non-empty list. Ignored before, ignored now - no behaviour change either way.
+a non-empty list. Ignored before, ignored now - no behavior change either way.
 
 `DockContainerBranchStateBuilder.addChildDockableState` is left in place. It is
 exported API in `api.state`, removing it is source-incompatible, and the finding
@@ -1406,7 +1406,7 @@ have left the worst instance in place.
 
 No new test. Asserting on log output needs a Logback `ListAppender`, and the module
 has only `slf4j-simple` at `functionalTest` runtime, so this would have meant a new
-test dependency to observe four log statements that change no restore behaviour.
+test dependency to observe four log statements that change no restore behavior.
 The no-spam claim is verified instead from the existing FTs' captured `stderr`,
 which is where `slf4j-simple` writes: zero occurrences of any of the four messages
 across `NestedCollapseRestoreFT`, `LeafUncollapsedSizeRoundTripFT`,
@@ -1551,7 +1551,7 @@ unconditionally, which is the pre-fix world where the caller could only show
 everything.
 
 Fixing this broke two existing tests, which is worth recording because the breakage
-was in the fixture rather than the behaviour.
+was in the fixture rather than the behavior.
 `DockingLayoutBuilderTest.dockingLayoutExposesImmutableSnapshotOfBuiltLayouts` and
 `builtLayoutIsNotAffectedByLaterBuilderMutation` reached `BentoLayout`'s **private
 constructor by reflection** to build an empty fixture, so adding a field failed them
@@ -1609,13 +1609,13 @@ explanation, so the coupling was documented where the containers are handed over
 on neither interface an application actually calls - which is the gap the finding
 names.
 
-**Two existing tests asserted the behaviour this changes**, which is the part worth
+**Two existing tests asserted the behavior this changes**, which is the part worth
 reviewing rather than taking on trust. `saveLayoutStillWritesWhenNoBentosExist`
 required an empty capture to be written - that *is* the defect, written down as an
 expectation - so it is renamed `saveLayoutDoesNotWriteWhenNoBentosExist` with the
 storage assertion inverted and a comment recording that it was inverted and why. It
 dates from the original bulk import (`724baae`), so it characterised existing
-behaviour rather than recording a decision. Separately,
+behavior rather than recording a decision. Separately,
 `saveLayoutEncodesAndWritesAwayFromFxThreadWhenCalledOnFxThread` broke for a reason
 unrelated to its purpose: it is about *which thread* encodes and writes, but its
 fixture built a root branch and never gave it a `Scene`, so under the guard there was
@@ -1844,7 +1844,7 @@ tree matching what was saved - substituting would quietly rename a pane instead.
 No test, for the reason recorded under M8: asserting on log output needs a Logback
 `ListAppender` and this module has only `slf4j-simple` at `functionalTest` runtime, so
 it would mean a new test dependency to observe one log statement that changes no
-restore behaviour.
+restore behavior.
 
 #### <a id="n7"></a>N7. `DragDropStageState.isAutoClosedWhenEmpty()` Javadoc contradicts signature - FIXED 2026-08-13
 
@@ -1872,7 +1872,7 @@ Providers registered after the first construction are never seen, and the
 no-arg `ServiceLoader.load` form uses the TCCL, which finds nothing in some
 container and JPMS layouts — surfacing as the "No LayoutCodecProvider
 implementation was found" message at `:136-139` rather than as a loader problem.
-Fix: pass an explicit `ClassLoader`, or document the eager one-shot behaviour.
+Fix: pass an explicit `ClassLoader`, or document the eager one-shot behavior.
 
 **Fixed** 2026-08-13, all three parts, though one of them turned out to be already
 done.
@@ -1941,11 +1941,11 @@ the reason nobody had is that the build was configured not to look. The sweep is
 now verified the same way it was scoped — `-missing` reports **zero** undocumented
 public or protected members in this module.
 
-Two judgement calls inside the sweep. `DockContainerStateBuilder` got documented
+Two judgment calls inside the sweep. `DockContainerStateBuilder` got documented
 even though M4 argues for deleting it, because three lines now is cheaper than
 leaving the one hole a future `-missing` run would flag; if M4 lands, the docs go
 with the class. (M4 landed 2026-08-12, and they did.) `DefaultBentoProvider.addBento` records that a duplicate identifier
-silently replaces the existing entry — that is the B1 follow-up, so the behaviour is
+silently replaces the existing entry — that is the B1 follow-up, so the behavior is
 now at least written down where a caller will see it.
 
 #### <a id="n10"></a>N10. Unterminated `{@link}` will break Javadoc generation
@@ -2003,7 +2003,7 @@ and its new null-scene guard exist in one place.
 DockContainer" for a case `restoreDockContainer:299-305` has already logged.
 Double-reported, and the message describes an attempt rather than the skip that
 actually happens.~~ **Fixed** 2026-08-11: the `else` branch is gone. The only path
-that yields `null` is the `default ->` arm, which already logs the unrecognised
+that yields `null` is the `default ->` arm, which already logs the unrecognized
 type, so `restoreBranch` now skips silently exactly as its sibling caller
 `restoreChildDockContainers` always did — with a comment saying why, so nobody
 reads the bare `if` as a missing diagnostic.
@@ -2154,7 +2154,7 @@ whole point of it. All three needed only the rename, because the FTs share the
 package - package-private is enough, and no `protected` extension point had to be
 introduced to keep them working.
 
-No new test. The method is one flag write with no branch, and the behaviour that could
+No new test. The method is one flag write with no branch, and the behavior that could
 actually break - the registration lifecycle - was already covered by the listener test
 above, which is what verified the trap.
 
@@ -2217,7 +2217,7 @@ Two themes account for most of the serious findings:
 
    On its first run it found a live defect this review had already dismissed - see
    B10, reopened. That is the theme's own argument landing: the withdrawal there
-   rested on "no FT was added, the behaviour already works", and a general round-trip
+   rested on "no FT was added, the behavior already works", and a general round-trip
    test is exactly what separates "works" from "works three times in four".
 
    Two properties stay out of its scope, both documented on the test. A
@@ -2254,7 +2254,7 @@ Two themes account for most of the serious findings:
 The blocker-grade work is done, and so is the one decision that gated the rest.
 
 M1 was the one to decide rather than defer: dropping the `impl` exports got harder
-the longer consumers could depend on them, and B2's fix had already changed behaviour
+the longer consumers could depend on them, and B2's fix had already changed behavior
 for anyone constructing `DockingLayoutSaver` directly — which was only possible
 because `impl` was exported. That is now closed, so the remaining work no longer
 widens the exposed surface as it goes. It also narrows what several other findings
@@ -2263,7 +2263,7 @@ N1/N2 are no longer *external* API problems, only internal ones.
 
 **Every BLOCKER and MAJOR is now closed.** The general round-trip test argued for in
 theme 1 is no longer blocked behind any of them, and would now guard finished
-behaviour rather than drive a fix - the better time to write it, and the main piece of
+behavior rather than drive a fix - the better time to write it, and the main piece of
 outstanding work on this branch beyond the list below.
 
 The MINOR and NIT lists are closed as well, the MINOR items swept in one pass as
@@ -2281,7 +2281,7 @@ turned out to have a fix that needed no design call - see its entry.
 
 `demos/basic/` has not been modified. `core/` has exactly one change, described
 under B7: a 28-line additive `setUncollapsedSize` on `DockContainerLeaf`, no
-existing line altered. `demos/persistence/` has the M1 changes — two field initialisers in `BoxApp`, a
+existing line altered. `demos/persistence/` has the M1 changes — two field initializers in `BoxApp`, a
 `module-info` clause removed, and corrected Javadoc headers in its `provider` package —
 which were unavoidable, since it was the only consumer of the `impl` exports M1 removes.
 Everything else is in `persistence/api`.
@@ -2333,7 +2333,7 @@ Uncommitted in the working tree:
   `persistence/api/build.gradle`. All but two are documentation or whitespace. The two
   that touch code are T2 (the duplicate `logger.warn` in `restoreBranch` deleted) and
   T9 (`enableAutoSave` now takes a primitive `long`, with its Javadoc references
-  updated to the new signature). No tests were added: nothing here has behaviour to
+  updated to the new signature). No tests were added: nothing here has behavior to
   pin beyond what the existing 75 already cover, and a test asserting the *absence*
   of a log line would pin the logging framework rather than the fix. T12 needed no
   work — B4's rewrite of `PersistenceThreading`'s imports had already closed it.

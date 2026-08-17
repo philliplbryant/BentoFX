@@ -13,16 +13,17 @@ description = "BentoFX Persistence API"
  * is not. The shared convention sets {@code Xdoclint:none}, which is how an
  * unterminated {@code @link} that swallowed the rest of a comment in
  * {@link software.coley.bentofx.persistence.impl.DockingLayoutStateRestorer}
- * survived review here.
+ * went unnoticed here.
  *
  * <p>Overridden per-module rather than in
  * {@code bento.project.project-convention} because {@code core/} has eight
  * pre-existing {@code <p/>} errors that doclint rejects, and {@code core/} is
- * not this module's to change. Move this into the convention once those are
- * fixed.</p>
+ * not this module's to change.</p>
  *
  * <p>The {@code missing} group stays off: this checks the Javadoc that exists
  * rather than demanding a comment on every member.</p>
+ *
+ * TODO BENTO-13: Move this into the project convention once JavaDocs in core are fixed.
  */
 javadoc {
     options {

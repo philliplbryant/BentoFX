@@ -239,7 +239,7 @@ The [persistence](./persistence) modules supplement the [core](#core-framework) 
 
 Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
-> <span style="font-size: 1.5em;">💡</span> The persistence framework is currently limited to saving and restoring a single format at a single storage destination.
+> <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. An application can use several: the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. What the framework does not yet provide is a catalog. Nothing lists the layouts already stored or deletes one, so an application that lets users manage named layouts supplies that part itself.
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -530,21 +530,20 @@ The persistence framework restores the BentoFX layout structure. Application pro
 
 Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored.
 
-When providers create JavaFX objects, they must follow JavaFX threading rules. For example, the persistence demo initializes `DockableState` values that contain JavaFX controls by scheduling that initialization on the JavaFX Application Thread:
+When providers create JavaFX objects, they must follow JavaFX threading rules. The persistence demo's `DockableState` values contain JavaFX controls, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread, so the demo builds them on first use rather than during construction. Both callers of `resolveDockableState` - the application while it starts, and the restorer through the persistence framework - are already on the JavaFX Application Thread:
 
 ```java
-Platform.runLater(() -> {
-    dockableStateMap.put(
-            WORKSPACE.getIdentifier(),
-            buildDockableState(
-                    WORKSPACE,
-                    dockableMenuFactoryProvider,
-                    1,
-                    0
-            )
-    );
-});
+@Override
+public Optional<DockableState> resolveDockableState(String id) {
+    if (dockableStateMap.isEmpty()) {
+        putDockableStates();
+    }
+
+    return Optional.ofNullable(dockableStateMap.get(id));
+}
 ```
+
+Scheduling the same work with `Platform.runLater(...)` from a constructor also puts it on the right thread, but it leaves the map empty until the queued task runs, so every lookup then depends on the order in which JavaFX drains its queue. Building on first use removes that question.
 
 
 <h4 id="provider-lifecycle">Provider Lifecycle</h4>
@@ -567,32 +566,50 @@ A persistent application should generally follow this startup flow:
 6. Apply the returned `DockingLayout` to the JavaFX stage.
 7. Save the layout before windows are closed.
 
-The persistence demo follows this pattern by creating a `DockingLayout`, applying the matching `BentoLayout` to the primary stage, and then showing any restored `DragDropStage` instances:
+The persistence demo follows this pattern by creating a `DockingLayout`, applying the matching `BentoLayout` to the primary stage, and then showing any restored `DragDropStage` instances.
+
+Applying a layout can fail: a stored layout may hold a number of root branches the application does not know how to place. Report whether anything was applied, and fall back to the default layout when nothing was, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window hides cannot then be closed:
 
 ```java
 DockingLayout dockingLayout = getDockingLayout();
-applyDockingLayout(dockingLayout);
+
+if (!applyDockingLayout(dockingLayout)) {
+    logger.warn(
+            "Could not apply the restored docking layout; " +
+                    "applying the default docking layout instead."
+    );
+
+    if (!applyDockingLayout(getDefaultDockingLayout())) {
+        logger.error("Could not apply the default docking layout.");
+    }
+}
 ```
 
 ```java
-private void applyDockingLayout(final DockingLayout dockingLayout) {
+private boolean applyDockingLayout(final DockingLayout dockingLayout) {
+    boolean isApplied = false;
+
     for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
         if (bentoLayout.matchesIdentity(bento)) {
-            applyBentoLayout(bentoLayout);
+            isApplied |= applyBentoLayout(bentoLayout);
         }
     }
+
+    return isApplied;
 }
 ```
 
 <h4 id="saving-the-layout">Saving the Layout</h4>
 
-The default `LayoutSaver` implementation also supports automatic scheduled saves. `AbstractAutoCloseableLayoutSaver` enables auto-save when it is constructed, listens for `DockEvent` notifications from every `Bento` supplied by the `BentoProvider`, and schedules a save task at a default interval of five minutes.
+The default `LayoutSaver` implementation also supports automatic scheduled saves. A saver obtained from a `DockingLayoutPersistenceProvider` arrives with auto-save running: it listens for `DockEvent` notifications from every `Bento` supplied by the `BentoProvider` and schedules a save task at a default interval of five minutes. `AbstractAutoCloseableLayoutSaver` deliberately does not start auto-save from its constructor, because that would hand a partly-built object to a scheduler thread and to every `Bento` event bus; a saver constructed directly starts auto-save with `enableAutoSave(long, TimeUnit)`.
 
 The scheduled task does not write the layout on every interval. It first checks whether any `DockEvent` was received since the previous save attempt. If no docking changes were detected, the task skips the save operation.
 
-Applications should still explicitly save during shutdown because the scheduled task may not have run after the user's most recent layout change.
+Because auto-save runs for as long as the saver exists, obtain one saver while the application starts and keep it. A saver built where the layout is saved arms a scheduler for an application that is already exiting.
 
-The `LayoutSaver` persists the current docking layout. Applications should save before the primary stage and any secondary stages are closed, because closed windows are no longer discoverable by the saver.
+Applications should still save explicitly during shutdown, because the scheduled task may not have run after the user's most recent layout change. Save before the primary stage and any secondary stages are closed, since closed windows are no longer discoverable by the saver.
+
+Closing the saver is what removes its listener from each `Bento`, stops the scheduler, and releases the storage it was given. Close it while the windows still exist. An application whose exit path calls `System.exit(...)` never runs `Application.stop()`, so the close request handler is the last point at which closing still happens:
 
 ```java
 stage.setOnCloseRequest(this::saveDockingLayout);
@@ -600,38 +617,47 @@ stage.setOnCloseRequest(this::saveDockingLayout);
 
 ```java
 private void saveDockingLayout(final WindowEvent windowEvent) {
-    try {
-        final LayoutSaver layoutSaver =
-                persistenceProvider.getLayoutSaver(
-                        DEFAULT_LAYOUT_IDENTIFIER,
-                        bentoProvider
-                );
+    final LayoutSaver saver = layoutSaver;
 
-        layoutSaver.saveLayout();
-    } catch (BentoStateException e) {
+    try (saver) {
+        if (saver == null) {
+            return;
+        }
+        saver.saveLayout();
+    } catch (final BentoStateException e) {
         logger.warn("Could not save the docking layout.", e);
     }
 }
 ```
 
+Saving explicitly before the close is deliberate: closing saves only when a `DockEvent` has arrived since the last save, and an application usually wants a layout written on exit either way.
+
 <h4 id="restoring-the-layout">Restoring the Layout</h4>
 
 The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if decoding fails, the default layout supplier is used.
 
+A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterwards costs nothing:
+
 ```java
 private DockingLayout getDockingLayout() {
-    final LayoutRestorer layoutRestorer =
-            persistenceProvider.getLayoutRestorer(
-                    DEFAULT_LAYOUT_IDENTIFIER,
-                    bentoProvider,
-                    dockableStateProvider,
-                    stageIconImageProvider,
-                    dockContainerLeafMenuFactoryProvider
-            );
+    try (final LayoutRestorer layoutRestorer =
+                 persistenceProvider.getLayoutRestorer(
+                         DEFAULT_LAYOUT_IDENTIFIER,
+                         bentoProvider,
+                         dockableStateProvider,
+                         stageIconImageProvider,
+                         dockContainerLeafMenuFactoryProvider
+                 )) {
 
-    return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
+        return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
+    } catch (BentoStateException e) {
+        logger.warn("Could not create the docking layout restorer.", e);
+        return getDefaultDockingLayout();
+    }
 }
 ```
+
+Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
 
 <h4 id="runtime-considerations">Runtime Considerations</h4>
 
@@ -653,11 +679,12 @@ supply. If a provider creates JavaFX objects such as `Node`, `Tooltip`,
 `ContextMenu`, `MenuItem`, `Image`, or `Stage`, those objects should be
 created on the JavaFX Application Thread.
 
-The persistence demo schedules creation of certain `DockableState`
-instances with `Platform.runLater(...)` because those states contain
-JavaFX controls. Applications using lazy loading, dependency injection,
-or other dynamic resolution strategies should apply the same principle
-whenever providers create JavaFX runtime objects.
+The persistence demo builds its `DockableState` instances on first use,
+because those states contain JavaFX controls and the thread that
+constructs a provider is not necessarily the JavaFX Application Thread.
+Applications using lazy loading, dependency injection, or other dynamic
+resolution strategies should apply the same principle whenever providers
+create JavaFX runtime objects.
 
 <h5 id="application-evolution">Application Evolution</h5>
 
@@ -693,10 +720,10 @@ The persistence demo intentionally introduces additional abstractions such as pr
 | Menus | Sets sample menu factories directly on leaves/dockables. | Supplies menu factories through providers so restored objects can receive the same behavior. |
 | Stage setup | Creates a `Scene` directly from the root branch. | Restores or builds a `DockingLayout`, then applies the matching `BentoLayout` to the stage. |
 | Drag/drop stages | Not restored across application runs. | Restored from persisted `DragDropStageState` and shown after the primary layout is applied. |
-| Automatic saving | Not supported. | The default saver schedules periodic saves and only writes when docking events indicate a changed layout. |
+| Automatic saving | Not supported. | Obtains one saver while starting, so periodic saves run for the session and only write when docking events indicate a changed layout. |
 | JavaFX threading | Startup creates JavaFX objects directly. | Restore and provider code must create JavaFX objects on the JavaFX Application Thread. |
 | Provider implementations | Not required. | Required for application-specific objects that cannot be serialized. |
-| Shutdown | Exits when the stage is hidden. | Saves the docking layout on close request before stages are closed. |
+| Shutdown | Exits when the stage is hidden. | Saves the docking layout on close request, then closes the saver, both while the stages still exist. |
 
 <h3 id="extending-persistence">Extending Persistence</h3>
 

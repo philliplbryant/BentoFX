@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * The root branch builder had no test of its own, which is how it could duplicate
  * {@link DockContainerBranchState.DockContainerBranchStateBuilder} and drift from it
- * unnoticed. It now delegates to that builder (N5), so these cover every field
+ * unnoticed. It now delegates to that builder, so these cover every field
  * surviving the hand-off.
  */
 class DockContainerRootBranchStateBuilderTest {

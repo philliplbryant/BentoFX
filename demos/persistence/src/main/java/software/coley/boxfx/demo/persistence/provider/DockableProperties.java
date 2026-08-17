@@ -54,7 +54,7 @@ public enum DockableProperties {
      * @param identifier identifies the {@code Dockable}.
      * @param tooltipText the {@code Dockable}'s tooltip text.
      * @param shapeMode which shape the icon is.
-     * @param colorIndex which colour the icon is.
+     * @param colorIndex which color the icon is.
      */
     DockableProperties(
             final String identifier,
@@ -93,7 +93,7 @@ public enum DockableProperties {
     }
 
     /**
-     * {@return which colour this dockable's icon is, meaningful only when
+     * {@return which color this dockable's icon is, meaningful only when
      * {@link #isDecorated()}.}
      */
     public int getColorIndex() {

@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * aborted the save for <em>every</em> Bento, not merely the offending leaf.</p>
  *
  * <p>The exception message - "Container with null side should not be collapsed" -
- * made this harder to recognise than it should have been: the container need not be
+ * made this harder to recognize than it should have been: the container need not be
  * collapsed for it to fire, and in the case below it is not.</p>
  *
  * @author Phil Bryant

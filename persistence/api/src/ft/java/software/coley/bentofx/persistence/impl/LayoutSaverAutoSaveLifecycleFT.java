@@ -232,7 +232,7 @@ class LayoutSaverAutoSaveLifecycleFT {
                             try {
                                 saver.enableAutoSave(1L, TimeUnit.HOURS);
                             } catch (final IllegalStateException expected) {
-                                // Enabling after close is documented behaviour.
+                                // Enabling after close is documented behavior.
                             } catch (final RuntimeException e) {
                                 failure.compareAndSet(null, e);
                             }

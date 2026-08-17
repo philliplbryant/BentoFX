@@ -468,7 +468,7 @@ PROBE traversal-target=C:\Dev\Temp\escaped.json
 PROBE traversal-inside-bento-directory=false
 ```
 
-The codec identifier gets a normalisation pass for a leading `.` two lines
+The codec identifier gets a normalization pass for a leading `.` two lines
 above, so the code is already thinking about what these strings contain; the
 identifier that decides the filename gets none. A separator or a `..` segment
 should be rejected, or the resolved path checked against the directory before it
@@ -907,5 +907,5 @@ reason.
 **W3. A found row cannot make `exists()` throw.** `exists()` reads
 `entity.payload.length` after a null check on the entity, so the remaining
 question is whether `payload` can be null on a row that exists. It cannot: the
-field is initialised to `new byte[0]` and the column is `nullable = false`, so a
+field is initialized to `new byte[0]` and the column is `nullable = false`, so a
 row with a null payload cannot be written through this entity.

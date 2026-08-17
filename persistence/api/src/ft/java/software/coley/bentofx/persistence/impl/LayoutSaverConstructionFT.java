@@ -51,7 +51,7 @@ class LayoutSaverConstructionFT {
     /**
      * The core of the fix: constructing a saver must not start auto-save, because
      * that is what published {@code this} before subclasses finished
-     * initialising.
+     * initializing.
      */
     @Test
     void constructorDoesNotStartAutoSave() throws BentoStateException {
