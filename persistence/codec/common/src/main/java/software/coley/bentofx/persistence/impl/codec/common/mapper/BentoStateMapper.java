@@ -60,7 +60,7 @@ public final class BentoStateMapper {
 	public static DockingLayoutDto toDto(
 			final List<BentoState> bentoStates
 	) {
-		requireNonNull(bentoStates);
+		requireNonNull(bentoStates, "bentoStates");
 
 		final DockingLayoutDto dockingLayoutDto = new DockingLayoutDto();
 		dockingLayoutDto.metadata = createMetadata();
@@ -93,7 +93,7 @@ public final class BentoStateMapper {
 	public static BentoStateDto toDto(
 			final BentoState bentoState
 	) {
-		requireNonNull(bentoState);
+		requireNonNull(bentoState, "bentoState");
 
 		final BentoStateDto bentoStateDto = new BentoStateDto();
 
@@ -124,7 +124,7 @@ public final class BentoStateMapper {
 	public static DockContainerRootBranchDto toDto(
 			final DockContainerRootBranchState root
 	) {
-		requireNonNull(root);
+		requireNonNull(root, "root");
 
 		final DockContainerRootBranchDto rootBranchDto =
 				new DockContainerRootBranchDto();
@@ -170,6 +170,8 @@ public final class BentoStateMapper {
 	public static DragDropStageDto toDto(
 			final DragDropStageState stageState
 	) {
+		requireNonNull(stageState, "stageState");
+
 		final DragDropStageDto stageDto = new DragDropStageDto();
 		stageDto.autoCloseWhenEmpty = stageState.isAutoClosedWhenEmpty();
 		stageDto.title = stageState.getTitle().orElse(null);
@@ -231,6 +233,8 @@ public final class BentoStateMapper {
 	 */
 	public static DockableDto toDto(final DockableState dockableState) {
 
+		requireNonNull(dockableState, "dockableState");
+
 		final DockableDto dockableDto = new DockableDto();
 		dockableDto.identifier = dockableState.getIdentifier();
 		dockableDto.title = dockableState.getTitle().orElse(null);
@@ -251,6 +255,8 @@ public final class BentoStateMapper {
 	public static DockContainerBranchDto toDto(
 			final DockContainerBranchState branchState
 	) {
+		requireNonNull(branchState, "branchState");
+
 		final DockContainerBranchDto branchDto = new DockContainerBranchDto();
 
 		branchDto.identifier = branchState.getIdentifier();
@@ -293,6 +299,8 @@ public final class BentoStateMapper {
 	public static DockContainerLeafDto toDto(
 			final DockContainerLeafState leafState
 	) {
+		requireNonNull(leafState, "leafState");
+
 		final DockContainerLeafDto leafDto = new DockContainerLeafDto();
 
 		leafDto.identifier = leafState.getIdentifier();
@@ -339,7 +347,7 @@ public final class BentoStateMapper {
 	public static List<BentoState> fromDto(
 			final DockingLayoutDto dockingLayoutDto
 	) throws BentoStateException {
-		requireNonNull(dockingLayoutDto);
+		requireNonNull(dockingLayoutDto, "dockingLayoutDto");
 
 		validateSupportedMetadata(dockingLayoutDto.metadata);
 
@@ -398,7 +406,7 @@ public final class BentoStateMapper {
 	public static BentoState fromDto(
 			final BentoStateDto bentoStateDto
 	) throws BentoStateException {
-		requireNonNull(bentoStateDto);
+		requireNonNull(bentoStateDto, "bentoStateDto");
 
 		// This identifier comes from a decoded payload, so a missing one is
 		// malformed input rather than a programming error.
@@ -436,7 +444,7 @@ public final class BentoStateMapper {
 	public static DockContainerRootBranchState fromDto(
 			final DockContainerRootBranchDto rootBranchDto
 	) throws BentoStateException {
-		requireNonNull(rootBranchDto);
+		requireNonNull(rootBranchDto, "rootBranchDto");
 
 		final DockContainerRootBranchStateBuilder builder =
 				new DockContainerRootBranchStateBuilder(
@@ -470,7 +478,7 @@ public final class BentoStateMapper {
 	public static DragDropStageState fromDto(
 			final DragDropStageDto stageDto
 	) throws BentoStateException {
-		requireNonNull(stageDto);
+		requireNonNull(stageDto, "stageDto");
 
 		final DragDropStageStateBuilder builder = new DragDropStageStateBuilder(
 				Boolean.TRUE.equals(stageDto.autoCloseWhenEmpty)
@@ -514,7 +522,7 @@ public final class BentoStateMapper {
 			final DockContainerBranchDto branchDto
 	) throws BentoStateException {
 
-		requireNonNull(branchDto);
+		requireNonNull(branchDto, "branchDto");
 
 		final DockContainerBranchStateBuilder builder =
 				new DockContainerBranchStateBuilder(
@@ -578,7 +586,7 @@ public final class BentoStateMapper {
 			final DockContainerLeafDto leafDto
 	) throws BentoStateException {
 
-		requireNonNull(leafDto);
+		requireNonNull(leafDto, "leafDto");
 
 		final DockContainerLeafStateBuilder builder =
 				new DockContainerLeafStateBuilder(
@@ -614,10 +622,10 @@ public final class BentoStateMapper {
 	 */
 	public static DockableState fromDto(final DockableDto dockableDto) {
 
-		requireNonNull(dockableDto);
+		requireNonNull(dockableDto, "dockableDto");
 
 		return new DockableStateBuilder(
-				requireNonNull(dockableDto.identifier)
+				requireNonNull(dockableDto.identifier, "dockableDto.identifier")
 		)
 				.setTitle(dockableDto.title)
 				.setTooltipText(dockableDto.tooltipText)

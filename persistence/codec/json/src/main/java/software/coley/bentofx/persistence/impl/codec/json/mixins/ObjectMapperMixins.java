@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.impl.codec.json.mixins;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DividerPositionDto;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
@@ -15,10 +14,9 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMet
 import java.util.Map;
 
 import static java.util.Map.entry;
-import static java.util.Objects.requireNonNull;
 
 /**
- * Utility for registering all DTO Jackson JSON mix-ins on an ObjectMapper.
+ * The DTO Jackson JSON mix-ins, for a mapper to register.
  *
  * @author Phil Bryant
  */
@@ -45,11 +43,13 @@ public final class ObjectMapperMixins {
         throw new IllegalStateException("Utility class");
     }
 
-    public static ObjectMapper registerAll(final ObjectMapper objectMapper) {
-        requireNonNull(objectMapper);
-
-        MIXINS_BY_DTO.forEach(objectMapper::addMixIn);
-
-        return objectMapper;
+    /**
+     * {@return each DTO and the mix-in that annotates it.}
+     *
+     * <p>Classes rather than a configured mapper, so that nothing here puts a
+     * Jackson type in a signature a caller can see.</p>
+     */
+    public static Map<Class<?>, Class<?>> mixinsByDto() {
+        return MIXINS_BY_DTO;
     }
 }

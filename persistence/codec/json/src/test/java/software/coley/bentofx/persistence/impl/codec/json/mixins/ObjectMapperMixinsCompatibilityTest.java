@@ -22,7 +22,7 @@ import static javafx.geometry.Side.TOP;
 import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
-import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
+import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.mixinsByDto;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.*;
 
 class ObjectMapperMixinsCompatibilityTest {
@@ -66,7 +66,7 @@ class ObjectMapperMixinsCompatibilityTest {
 	void everyMixinFieldNamesADtoField() {
 		final List<String> inertFields = new ArrayList<>();
 
-		ObjectMapperMixins.MIXINS_BY_DTO.forEach((dto, mixin) -> {
+		mixinsByDto().forEach((dto, mixin) -> {
 			final Set<String> dtoFieldNames = fieldNamesOf(dto);
 
 			for (final Field mixinField : mixin.getDeclaredFields()) {
@@ -161,7 +161,7 @@ class ObjectMapperMixinsCompatibilityTest {
 				.defaultPropertyInclusion(construct(ALWAYS, ALWAYS))
 				.build();
 
-		registerAll(mapper);
+		mixinsByDto().forEach(mapper::addMixIn);
 		return mapper;
 	}
 
@@ -332,11 +332,6 @@ class ObjectMapperMixinsCompatibilityTest {
 		stageRootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(true));
 		stageRootBranch.set(
 				FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name())
-		);
-		// Call even with no dividers: the DTO's list field is never null, so
-		// NON_NULL does not suppress it.
-		stageRootBranch.set(
-				DIVIDER_POSITION_LIST_ELEMENT_NAME, factory.arrayNode()
 		);
 		stageRootBranch.set(FIELD_CHILD_DOCK_CONTAINERS, stageChildDockContainers);
 

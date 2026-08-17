@@ -11,10 +11,21 @@ restorer takes back out, and what `LayoutCodec.decode` promises its callers.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `ffb48eb`.
 
-All three blockers are fixed, along with M2 through M9, six of the twelve minors,
-and ten of the eleven nits. M1, M10 and T7 are closed as won't fix. What remains
-open is N2, N4, N9, N10, N11 and N12. Every fix is committed, and each status cell
-carries the date and the commit that closed it.
+Nothing is open. Every finding is either fixed or closed as won't fix, the three
+won't-fixes being M1, M10 and T7. A status cell carries the date and, once the fix
+is committed, the commit that closed it; the six minors dated 2026-08-16 with no
+hash are in the working tree.
+
+**N10 removed the last Jackson type from the mix-in registries.** Both now offer
+only a `Map<Class<?>, Class<?>>` of DTO to mix-in, and each codec registers those
+on the mapper it built. Nothing outside a codec names an `ObjectMapper`, so the
+type no longer appears in a signature reachable from code that cannot see
+jackson-databind, and the cast [N6](#n6) complained about has nowhere left to be.
+
+**N2 is per-property, not per-class.** `NON_EMPTY` on each list keeps an empty root
+branch from writing a line for every collection it does not have. Setting it on the
+mix-in classes instead would also have suppressed empty strings, which is a
+different decision about a different kind of field.
 
 **N5 took slf4j with it.** The try/catch around the branch orientation could not
 fire once the DTO field became a typed enum, and its warning was the only thing in
@@ -145,17 +156,17 @@ everything the codec claims to persist and nothing it does not.
 | | Finding | Status |
 |---|---|---|
 | [N1](#n1) | Divider positions are emitted in map-iteration order, so encoded files are not stable | **Fixed** 2026-08-16 (`b6b5f9a`) |
-| [N2](#n2) | `NON_NULL` on never-null lists writes every empty collection to the file | **Open** |
+| [N2](#n2) | `NON_NULL` on never-null lists writes every empty collection to the file | **Fixed** 2026-08-16 |
 | [N3](#n3) | A missing identifier is replaced by the element name, so anonymous siblings collide | **Fixed** 2026-08-16 (`b6b5f9a`) |
-| [N4](#n4) | No `requireNonNull` in the mapper carries a message; the observed NPE message is `null` | **Open** |
+| [N4](#n4) | No `requireNonNull` in the mapper carries a message; the observed NPE message is `null` | **Fixed** 2026-08-16 |
 | [N5](#n5) | The orientation try/catch is unreachable now the DTO field is a typed enum | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N6](#n6) | `XmlLayoutCodec` casts its own mapper back to `XmlMapper` | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N7](#n7) | `@JsonRootName` is inert with `WRAP_ROOT_VALUE` disabled | **Fixed** 2026-08-16 (`b6b5f9a`) |
 | [N8](#n8) | `@JsonTypeName` on the root-branch mix-in, which is not in the polymorphic hierarchy | **Fixed** 2026-08-16 (`b6b5f9a`) |
-| [N9](#n9) | jackson-annotations is `compileOnly` but read reflectively at runtime; the two modules declare it differently | **Open** |
-| [N10](#n10) | `ObjectMapperMixins.registerAll` exposes `ObjectMapper` from a `runtime`-scoped dependency | **Open** |
-| [N11](#n11) | `encode` catches `Exception` while `decode` catches `IOException`, in the same file | **Open** |
-| [N12](#n12) | Four `toDto` overloads skip the `requireNonNull` their siblings have | **Open** |
+| [N9](#n9) | jackson-annotations is `compileOnly` but read reflectively at runtime; the two modules declare it differently | **Fixed** 2026-08-16 |
+| [N10](#n10) | `ObjectMapperMixins.registerAll` exposes `ObjectMapper` from a `runtime`-scoped dependency | **Fixed** 2026-08-16 |
+| [N11](#n11) | `encode` catches `Exception` while `decode` catches `IOException`, in the same file | **Fixed** 2026-08-16 |
+| [N12](#n12) | Four `toDto` overloads skip the `requireNonNull` their siblings have | **Fixed** 2026-08-16 |
 
 ### NIT
 

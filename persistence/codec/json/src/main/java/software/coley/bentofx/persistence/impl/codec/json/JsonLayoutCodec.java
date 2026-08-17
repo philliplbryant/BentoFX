@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.registerAll;
+import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.mixinsByDto;
 
 /**
  * JSON implementation of {@link LayoutCodec}.
@@ -26,7 +26,8 @@ public final class JsonLayoutCodec implements LayoutCodec {
     private final ObjectMapper mapper;
 
     public JsonLayoutCodec() {
-        this.mapper = registerAll(new ObjectMapper().enable(INDENT_OUTPUT));
+        this.mapper = new ObjectMapper().enable(INDENT_OUTPUT);
+        mixinsByDto().forEach(mapper::addMixIn);
     }
 
     @Override
@@ -44,7 +45,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
             final DockingLayoutDto bentoStateDto = BentoStateMapper.toDto(states);
             mapper.writeValue(outputStream, bentoStateDto);
-        } catch (final Exception e) {
+        } catch (final IOException | RuntimeException e) {
 
             throw new BentoStateException(
                     "Failed to encode BentoState as JSON",

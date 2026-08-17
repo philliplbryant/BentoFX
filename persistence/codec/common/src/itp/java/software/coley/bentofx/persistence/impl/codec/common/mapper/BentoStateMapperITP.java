@@ -300,4 +300,27 @@ class BentoStateMapperITP {
 				.isInstanceOf(BentoStateException.class)
 				.hasMessageContaining("Unsupported BentoFX docking layout schema version");
 	}
+
+	@Test
+	void everyToDtoOverloadNamesTheArgumentItRejects() {
+		assertThatThrownBy(() -> BentoStateMapper.toDto((DragDropStageState) null))
+				.describedAs("toDto(DragDropStageState) null argument")
+				.isInstanceOf(NullPointerException.class)
+				.hasMessage("stageState");
+
+		assertThatThrownBy(() -> BentoStateMapper.toDto((DockableState) null))
+				.describedAs("toDto(DockableState) null argument")
+				.isInstanceOf(NullPointerException.class)
+				.hasMessage("dockableState");
+
+		assertThatThrownBy(() -> BentoStateMapper.toDto((DockContainerBranchState) null))
+				.describedAs("toDto(DockContainerBranchState) null argument")
+				.isInstanceOf(NullPointerException.class)
+				.hasMessage("branchState");
+
+		assertThatThrownBy(() -> BentoStateMapper.toDto((DockContainerLeafState) null))
+				.describedAs("toDto(DockContainerLeafState) null argument")
+				.isInstanceOf(NullPointerException.class)
+				.hasMessage("leafState");
+	}
 }

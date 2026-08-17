@@ -9,6 +9,7 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockConta
 
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
@@ -22,8 +23,10 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 abstract class DockContainerBranchDtoJsonMixin {
 
     @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
     @JsonProperty(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DockContainerDto> childDockContainers;
 }

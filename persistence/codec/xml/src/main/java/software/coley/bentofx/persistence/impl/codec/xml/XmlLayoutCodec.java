@@ -27,11 +27,10 @@ public final class XmlLayoutCodec implements LayoutCodec {
     private final XmlMapper mapper;
 
     public XmlLayoutCodec() {
-        this.mapper = XmlMapperMixins.registerAll(
-                XmlMapper.builder()
-                        .enable(SerializationFeature.INDENT_OUTPUT)
-                        .build()
-        );
+        this.mapper = XmlMapper.builder()
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .build();
+        XmlMapperMixins.mixinsByDto().forEach(mapper::addMixIn);
     }
 
     @Override
@@ -47,7 +46,7 @@ public final class XmlLayoutCodec implements LayoutCodec {
         try {
             final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
             mapper.writeValue(outputStream, dto);
-        } catch (final Exception e) {
+        } catch (final IOException | RuntimeException e) {
             throw new BentoStateException("Failed to encode BentoState as XML", e);
         }
     }
@@ -62,11 +61,6 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
             return BentoStateMapper.fromDto(dockingLayoutDto);
         } catch (final IOException | RuntimeException e) {
-
-            // Catch both IOException and RuntimeException because a malformed
-            // payload can fail anywhere in the mapper or the state builders.
-            // A BentoStateException the mapper already raised is left alone,
-            // so its message survives.
             throw new BentoStateException("Failed to decode BentoStateList from XML", e);
         }
     }

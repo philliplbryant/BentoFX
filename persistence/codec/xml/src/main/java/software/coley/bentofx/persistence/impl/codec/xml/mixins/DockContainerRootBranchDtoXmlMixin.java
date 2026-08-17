@@ -10,6 +10,7 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockConta
 
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_ELEMENT_NAME;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DIVIDER_POSITION_LIST_ELEMENT_NAME;
@@ -33,8 +34,10 @@ abstract class DockContainerRootBranchDtoXmlMixin {
 
     @JacksonXmlElementWrapper(localName = DIVIDER_POSITION_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = DIVIDER_ELEMENT_NAME)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DividerPositionDto> dividerPositions;
 
     @JacksonXmlElementWrapper(useWrapping = false)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DockContainerDto> childDockContainers;
 }

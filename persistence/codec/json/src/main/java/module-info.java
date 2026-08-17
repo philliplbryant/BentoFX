@@ -16,6 +16,7 @@ module bento.fx.persistence.codec.json {
 
     requires bento.fx.persistence.codec.common;
 
+    requires com.fasterxml.jackson.annotation;
     requires com.fasterxml.jackson.databind;
 
     requires static org.jspecify;

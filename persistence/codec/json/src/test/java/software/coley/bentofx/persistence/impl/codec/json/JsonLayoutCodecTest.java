@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.DOCKING_LAYOUT_ROOT_ELEMENT_NAME;
+import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 import static software.coley.bentofx.persistence.testfixtures.codec.dto.SampleDockingLayoutDtoFactory.createDockingLayoutDto;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
@@ -64,6 +64,22 @@ class JsonLayoutCodecTest {
                 .doesNotContain(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
                 .startsWith("{")
                 .contains("\"metadata\"");
+    }
+
+    @Test
+    void encodeOmitsEmptyCollections() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(emptyRootStates(), out);
+
+        // The DTO list fields are never null, so only NON_EMPTY keeps a layout
+        // with nothing in it from writing a line per empty list.
+        assertThat(out.toString(StandardCharsets.UTF_8))
+                .describedAs("encoded JSON for an empty root branch")
+                .doesNotContain(DIVIDER_POSITION_LIST_ELEMENT_NAME)
+                .doesNotContain(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME)
+                .doesNotContain(DRAG_DROP_STAGE_LIST_ELEMENT_NAME);
     }
 
     @Test
@@ -248,6 +264,21 @@ class JsonLayoutCodecTest {
 
     private static List<BentoState> createStates() throws BentoStateException {
         return BentoStateMapper.fromDto(createDockingLayoutDto());
+    }
+
+    /**
+     * {@return one Bento holding an empty root branch and nothing else.}
+     */
+    private static List<BentoState> emptyRootStates() {
+        return List.of(
+                new BentoState.BentoStateBuilder("bento-1")
+                        .addRootBranchState(
+                                new DockContainerRootBranchState
+                                        .DockContainerRootBranchStateBuilder("root-1")
+                                        .build()
+                        )
+                        .build()
+        );
     }
 
     /**

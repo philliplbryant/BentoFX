@@ -9,6 +9,7 @@ import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropS
 
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static software.coley.bentofx.persistence.impl.codec.common.mapper.ElementNames.*;
 
@@ -25,9 +26,11 @@ abstract class BentoStateDtoXmlMixin {
 
     @JacksonXmlElementWrapper(localName = ROOT_BRANCH_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = ROOT_BRANCH_ELEMENT_NAME)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DockContainerRootBranchDto> rootBranches;
 
     @JacksonXmlElementWrapper(localName = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
     @JacksonXmlProperty(localName = DRAG_DROP_STAGE_ELEMENT_NAME)
+    @JsonInclude(NON_EMPTY)
     public @Nullable List<DragDropStageDto> dragDropStages;
 }

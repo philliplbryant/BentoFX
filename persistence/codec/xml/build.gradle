@@ -17,10 +17,9 @@ dependencies {
 
     implementation projects.persistence.codec.common
 
+    implementation libs.jackson.annotations
     implementation libs.jackson.databind
     implementation libs.jackson.xml
-
-    compileOnly libs.jackson.annotations
 
     testImplementation testFixtures(projects.persistence.testFixtures)
 }
