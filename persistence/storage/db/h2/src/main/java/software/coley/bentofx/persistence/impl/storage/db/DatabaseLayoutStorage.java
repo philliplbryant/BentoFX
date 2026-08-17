@@ -115,15 +115,14 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	public OutputStream openOutputStream() {
         // Capture bytes, then persist on close()
 		return new ByteArrayOutputStream() {
-			private boolean closed;
+			private final AtomicBoolean isStreamClosed = new AtomicBoolean();
 
 			@Override
 			public void close() throws IOException {
-				if (closed) {
+				if (!isStreamClosed.compareAndSet(false, true)) {
 					return;
 				}
 
-				closed = true;
 				super.close();
 
 				final byte[] bytesToSave = toByteArray();

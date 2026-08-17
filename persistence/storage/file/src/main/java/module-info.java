@@ -14,8 +14,6 @@ module bento.fx.persistence.storage.file {
 
     requires transitive bento.fx.persistence.api;
 
-    requires transitive java.logging;
-
     requires static org.jspecify;
 
     exports software.coley.bentofx.persistence.impl.storage.file;

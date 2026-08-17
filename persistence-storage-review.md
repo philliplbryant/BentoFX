@@ -10,9 +10,10 @@ which `LayoutStateWriter` and `LayoutStateReader` use it.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `736d93f`.
 
-Both blockers are fixed, along with M4 and every minor except N4, all verified in
-the working tree and not yet committed. N4 is closed as won't fix. What remains
-open is M1, M2, M3, M5, M6 and the eight nits.
+Both blockers are fixed, along with M4, every minor except N4, and all eight
+nits, all verified in the working tree and not yet committed. N4 is closed as
+won't fix, and T7 needed no change because the test [B2](#b2) brought with it
+already covers it. What remains open is M1, M2, M3, M5 and M6.
 
 M4 went with [N5](#n5) rather than on its own account: dropping a shipped
 credential is only safe once nothing is listening for other processes to use it.
@@ -104,14 +105,14 @@ is to copy the one that is right.
 
 | | Finding | Status |
 |---|---|---|
-| [T1](#t1) | `requires transitive java.logging` in a module that does not log | **Open** |
-| [T2](#t2) | `requires static org.hibernate.orm.core` beside a non-static requirement that needs it | **Open** |
-| [T3](#t3) | The entity exposes public mutable fields, including its payload array | **Open** |
-| [T4](#t4) | The inner output stream tracks closure with a plain field, inside a class that uses `AtomicBoolean` | **Open** |
-| [T5](#t5) | `@NullMarked` is applied at three levels, and the module level already covers the rest | **Open** |
-| [T6](#t6) | The two integration tests obtain a temporary directory differently | **Open** |
-| [T7](#t7) | The database integration test's codec identifier is exactly the column width | **Open** |
-| [T8](#t8) | `DatabaseLayoutStorageIT` dereferences `@Nullable` static fields without checking them | **Open** |
+| [T1](#t1) | `requires transitive java.logging` in a module that does not log | **Fixed** 2026-08-17 |
+| [T2](#t2) | `requires static org.hibernate.orm.core` beside a non-static requirement that needs it | **Fixed** 2026-08-17 |
+| [T3](#t3) | The entity exposes public mutable fields, including its payload array | **Fixed** 2026-08-17 |
+| [T4](#t4) | The inner output stream tracks closure with a plain field, inside a class that uses `AtomicBoolean` | **Fixed** 2026-08-17 |
+| [T5](#t5) | `@NullMarked` is applied at three levels, and the module level already covers the rest | **Fixed** 2026-08-17 |
+| [T6](#t6) | The two integration tests obtain a temporary directory differently | **Fixed** 2026-08-17 |
+| [T7](#t7) | The database integration test's codec identifier is exactly the column width | **Closed by B2** 2026-08-17; see below |
+| [T8](#t8) | `DatabaseLayoutStorageIT` dereferences `@Nullable` static fields without checking them | **Fixed** 2026-08-17 |
 
 Every identifier in the four tables links to that finding's own section. The
 anchors are explicit rather than derived from the heading text, matching
@@ -615,6 +616,8 @@ No source in the module imports `java.util.logging`, and the module has no
 logging of its own. The requirement is dead, and `transitive` passes it to every
 consumer.
 
+Gone. Nothing in the module referred to it, so nothing had to change with it.
+
 ### <a id="t2"></a>T2. `requires static org.hibernate.orm.core` beside a non-static requirement that needs it
 
 `storage/db/h2/src/main/java/module-info.java:18, 27`
@@ -623,6 +626,13 @@ consumer.
 `org.hibernate.orm.hikaricp` two lines below it is not - and hikaricp is a
 Hibernate module that cannot resolve without core. The `static` therefore
 describes something that is never true.
+
+The requirement is now unqualified, sitting with the other runtime requirements
+and carrying a line saying why it cannot be optional. The Gradle dependency stays
+`compileOnly`: hibernate-core reaches the runtime path transitively through
+hibernate-hikaricp, which is an `implementation` dependency, so `buildHealth` has
+nothing to say about the change and the integration tests run against the same
+resolution the application gets.
 
 ### <a id="t3"></a>T3. The entity exposes public mutable fields, including its payload array
 
@@ -634,6 +644,18 @@ holder of the entity can change the stored layout in place. The DTOs in
 for a mapping target, but they are not handed out by a public API the way this
 entity is.
 
+The class and its three fields are package-private now, which costs nothing:
+`DatabaseLayoutStorage` is the only code that touches them and it sits in the same
+package, so no accessors had to be written. Field-access mapping is unaffected,
+and Hibernate still reaches the class through the `opens` directive the module
+descriptor already had. Measured by the module's own integration tests, which
+store and read layouts through the shipped persistence unit and pass unchanged.
+
+`DockingLayoutEntityCompositeKey` still has public mutable fields. It is not
+reachable from outside either - nothing hands one out, and the two identifiers are
+copied into it at construction - so it is left alone rather than dragged into a
+nit about the entity.
+
 ### <a id="t4"></a>T4. The inner output stream tracks closure with a plain field, inside a class that uses `AtomicBoolean`
 
 `impl/storage/db/DatabaseLayoutStorage.java:98, 30`
@@ -642,6 +664,9 @@ The anonymous `ByteArrayOutputStream` guards double-close with
 `private boolean closed`, ten lines below a class that guards its own with
 `AtomicBoolean`. Streams are not usually shared between threads, so this is
 about the file reading consistently rather than about a race.
+
+The stream now uses an `AtomicBoolean` and the same `compareAndSet` idiom as the
+enclosing class, which also folds the test and the assignment into one line.
 
 ### <a id="t5"></a>T5. `@NullMarked` is applied at three levels, and the module level already covers the rest
 
@@ -654,6 +679,14 @@ of the four packages repeats it and three do not, and the h2 provider package ha
 no `package-info.java` at all. Whichever level the project wants, the other two
 should be consistent.
 
+Module level is the one the rest of `persistence` uses - every module descriptor
+carries `@NullMarked`, and the only main packages that repeat it are the two codec
+`mixins` packages - so the repeat came off the file provider package. The h2
+provider package got the `package-info.java` it was missing, with the Javadoc the
+other packages have and no annotation. NullAway is configured `onlyNullMarked`, so
+the check still covers both modules through their descriptors; the build confirms
+it.
+
 ### <a id="t6"></a>T6. The two integration tests obtain a temporary directory differently
 
 `src/it/.../DatabaseLayoutStorageIT.java:46-47` against
@@ -663,6 +696,11 @@ The database test uses JUnit's `@TempDir` and lets the framework clean up. The
 file test calls `Files.createTempDirectory` and then deletes the file and the
 directory by hand in `@AfterEach`, which is more code for less: a failure that
 leaves an extra file behind also leaves the directory undeleted.
+
+The file test takes a `@TempDir` too, and its `@AfterEach` is gone: eighteen lines
+of hand-rolled cleanup replaced by a field, and the staged writes an abandoned
+stream leaves behind are cleaned up because JUnit removes the directory
+recursively.
 
 ### <a id="t7"></a>T7. The database integration test's codec identifier is exactly the column width
 
@@ -677,6 +715,14 @@ Four characters, against a `length = 4` column. The test could not have found
 `test-layout`, eleven characters against a limit of 24. Fixture values that sit
 inside a limit by coincidence are how a limit stays undiscovered.
 
+**Closed by [B2](#b2), with no change here.** That fix widened both columns to 255,
+so neither shared fixture value sits at a column width any more, and it added
+`storesDescriptiveIdentifiers` to this same test class: a 53-character layout
+identifier and a five-character codec identifier, stored and read back, each
+checked against `MAX_COMPOSITE_KEY_LENGTH`. That test fails at the old widths,
+which is what this nit asked for. Lengthening the shared fixtures on top of it
+would change the values the other three tests use and cover nothing new.
+
 ### <a id="t8"></a>T8. `DatabaseLayoutStorageIT` dereferences `@Nullable` static fields without checking them
 
 `src/it/.../DatabaseLayoutStorageIT.java:46-51`, used at `88`, `122`, `157`
@@ -685,6 +731,14 @@ inside a limit by coincidence are how a limit stays undiscovered.
 `@Nullable` and then used directly. The annotation is doing the opposite of its
 job: it says these may be absent while the code assumes they are not. The
 lifecycle guarantees they are set; the declaration should say so.
+
+All three declarations drop the annotation, and the import goes with them. The one
+place that did check, `tearDownAll`'s `entityManagerFactory != null`, is gone too,
+since a factory that failed to open is a setup failure worth seeing rather than one
+to step around - which is how `DatabaseLayoutStorageArgumentIT` already treats it.
+The two other integration tests in these modules keep their `@Nullable` fields;
+this nit named only this class, and the same argument applies to them whenever
+someone wants it applied.
 
 ---
 

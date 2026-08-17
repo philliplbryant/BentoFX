@@ -1,9 +1,9 @@
 package software.coley.bentofx.persistence.impl.storage.file;
 
 import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,35 +22,16 @@ class FileLayoutStorageIT {
 	private static final String TEST_FILE_CONTENT = "Test data for FileLayoutStorage integration test";
 	private static final String PREVIOUS_FILE_CONTENT = "A layout that was already saved";
 
+	@TempDir
+	private @Nullable Path temporaryDirectory;
+
 	private @Nullable FileLayoutStorage fileLayoutStorage;
 	private @Nullable File testFile;
 
 	@BeforeEach
-	void setUp() throws IOException {
-		// Create a temporary directory and file to work with
-		final Path tempDir = Files.createTempDirectory("test-layout-storage");
-		testFile = new File(tempDir.toFile(), TEST_FILE_NAME);
+	void setUp() {
+		testFile = new File(temporaryDirectory.toFile(), TEST_FILE_NAME);
 		fileLayoutStorage = new FileLayoutStorage(testFile);
-	}
-
-	@AfterEach
-	void tearDown() throws IOException {
-		// Delete test files and directories, including any staged writes an
-		// abandoned stream left behind.
-		try (var staged = Files.list(testFile.getParentFile().toPath())) {
-			for (final Path path : staged.toList()) {
-				Files.deleteIfExists(path);
-			}
-		}
-
-		if (testFile.exists()) {
-			Files.deleteIfExists(testFile.toPath());
-		}
-
-		// Delete the temp directory
-		if (testFile.getParentFile().exists()) {
-			Files.deleteIfExists(testFile.getParentFile().toPath());
-		}
 	}
 
 	@Test

@@ -3,7 +3,6 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,11 +48,11 @@ class DatabaseLayoutStorageIT {
     private static final String URL_PATH_SEPARATOR = "/";
 
     @TempDir
-    private static @Nullable Path temporaryDirectory;
+    private static Path temporaryDirectory;
 
-    private static @Nullable EntityManagerFactory entityManagerFactory;
+    private static EntityManagerFactory entityManagerFactory;
 
-    private @Nullable LayoutStorage storage;
+    private LayoutStorage storage;
 
     @BeforeAll
     static void setUpAll() {
@@ -66,7 +65,7 @@ class DatabaseLayoutStorageIT {
 
     @AfterAll
     static void tearDownAll() {
-        if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
+        if (entityManagerFactory.isOpen()) {
             entityManagerFactory.close();
         }
     }

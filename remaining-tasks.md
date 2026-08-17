@@ -21,16 +21,14 @@
          4. [ ] `persistence/test-fixtures`
          5. [ ] `demos/persistence`
          6. [ ] Everything as is combined
-2. Update all documentation.
-3. Configure `JReleaser` plugin to publish snapshots.
+2. Configure `JReleaser` plugin to publish snapshots.
    1. https://nexus.jre.saic.com/#browse/browse:jre-central-snapshots
    2. Use environment variables
       1. `NEXUS_USERNAME`
       2. `NEXUS_PASSWORD`
+3. Update all documentation.
 4. Analyze code coverage reports.
    1. Exclude files in `core` and `demos`.
    2. Create additional tests to increase coverage.
    3. Consider coverage for both normal and exceptional flows.
-5. Analyze code coverage reports for files in `core`.
-   1. Create additional tests to increase coverage.
-   2. Consider coverage for both normal and exceptional flows.
+5. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian

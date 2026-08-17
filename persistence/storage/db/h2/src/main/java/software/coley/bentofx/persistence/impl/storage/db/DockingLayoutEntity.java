@@ -13,23 +13,27 @@ import java.time.Instant;
  * Represents a row in a table in a relational database for storing Bento
  * layouts.
  *
+ * <p>Package-private, along with its mutable fields, so that the exported
+ * package hands no one a handle on a stored layout. Hibernate reaches it
+ * through the {@code opens} directive in the module descriptor.</p>
+ *
  * @author Phil Bryant
  */
 @Entity
 @Table(name = DockingLayoutEntity.TABLE_NAME)
-public class DockingLayoutEntity {
+class DockingLayoutEntity {
 
-    public static final String TABLE_NAME = "docking_layout";
+    static final String TABLE_NAME = "docking_layout";
 
-    public static final String PAYLOAD_COLUMN_NAME = "payload";
+    static final String PAYLOAD_COLUMN_NAME = "payload";
 
     @EmbeddedId
-    public @Nullable DockingLayoutEntityCompositeKey key;
+    @Nullable DockingLayoutEntityCompositeKey key;
 
     @Lob
     @Column(name = PAYLOAD_COLUMN_NAME, nullable = false)
-    public byte[] payload = new byte[0];
+    byte[] payload = new byte[0];
 
     @Column(name = "updated_at", nullable = false)
-    public Instant updatedAt = Instant.EPOCH;
+    Instant updatedAt = Instant.EPOCH;
 }
