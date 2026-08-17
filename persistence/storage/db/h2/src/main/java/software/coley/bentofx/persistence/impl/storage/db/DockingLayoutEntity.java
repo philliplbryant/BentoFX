@@ -1,10 +1,8 @@
 package software.coley.bentofx.persistence.impl.storage.db;
 
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import org.jspecify.annotations.Nullable;
@@ -18,15 +16,18 @@ import java.time.Instant;
  * @author Phil Bryant
  */
 @Entity
-@Table(name = "docking_layout")
+@Table(name = DockingLayoutEntity.TABLE_NAME)
 public class DockingLayoutEntity {
+
+    public static final String TABLE_NAME = "docking_layout";
+
+    public static final String PAYLOAD_COLUMN_NAME = "payload";
 
     @EmbeddedId
     public @Nullable DockingLayoutEntityCompositeKey key;
 
     @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "payload", nullable = false)
+    @Column(name = PAYLOAD_COLUMN_NAME, nullable = false)
     public byte[] payload = new byte[0];
 
     @Column(name = "updated_at", nullable = false)

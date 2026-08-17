@@ -23,6 +23,11 @@ public interface LayoutStorage extends AutoCloseable {
 
     /**
      * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.
+     * <p>
+     * {@code false} means there is no layout to read, not that the answer could
+     * not be obtained. Answering may cost a query or a filesystem call, and an
+     * implementation whose store is unreachable throws an unchecked exception
+     * rather than reporting the layout as missing.
      *
      * @return {@code true} if the stored layout exists; otherwise, returns {@code false}.
      */

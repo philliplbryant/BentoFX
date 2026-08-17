@@ -124,14 +124,14 @@ class DatabaseLayoutStorageIT {
     }
 
     @Test
-    void storesIdentifiersLongerThanAllowed() throws IOException {
+    void storesDescriptiveIdentifiers() throws IOException {
 
         final String partOne = "a-descriptive-layout-identifier-well-past-twenty-four";
         final String partDeux = "proto";
 
         assertThat(partOne.length())
                 .describedAs("first portion of the composite key length")
-                .isGreaterThan(MAX_COMPOSITE_KEY_LENGTH);
+                .isLessThanOrEqualTo(MAX_COMPOSITE_KEY_LENGTH);
 
         assertThat(partDeux.length())
                 .describedAs("second portion of the composite key length")

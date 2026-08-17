@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of the {@link LayoutStorage} interface for persisting Bento
@@ -26,41 +29,58 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	private static final Logger logger =
 			LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
+	/**
+	 * Native because JPQL's {@code length} takes a string and the payload is a
+	 * blob. Built from the mapping's own names so the two cannot drift apart.
+	 */
+	private static final String PAYLOAD_LENGTH_QUERY =
+			"select length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") from "
+					+ DockingLayoutEntity.TABLE_NAME + " where "
+					+ DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1 and "
+					+ DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
+
 	private final EntityManagerFactory emf;
 	private final AtomicBoolean closed = new AtomicBoolean();
 	private final String layoutIdentifier;
 	private final String codecIdentifier;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param emf the factory this storage takes its entity managers from.
+	 * @param layoutIdentifier identifies the layout within the database.
+	 * @param codecIdentifier identifies the codec whose output is stored.
+	 */
 	public DatabaseLayoutStorage(
 			final EntityManagerFactory emf,
 			final String layoutIdentifier,
 			final String codecIdentifier
 	) {
-		this.emf = emf;
-		this.layoutIdentifier = layoutIdentifier;
-		this.codecIdentifier = codecIdentifier;
+		this.emf = requireNonNull(emf, "emf");
+		this.layoutIdentifier = requireNonNull(layoutIdentifier, "layoutIdentifier");
+		this.codecIdentifier = requireNonNull(codecIdentifier, "codecIdentifier");
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Asks the database for the payload's length rather than for the payload,
+	 * so that answering whether a layout exists does not read the layout.</p>
+	 */
 	@Override
 	public boolean exists() {
 
 		try (final EntityManager em = emf.createEntityManager()) {
 
-			final DockingLayoutEntityCompositeKey key = new DockingLayoutEntityCompositeKey(
-					layoutIdentifier,
-					codecIdentifier
-			);
+			final List<?> lengths =
+					em.createNativeQuery(PAYLOAD_LENGTH_QUERY)
+							.setParameter(1, layoutIdentifier)
+							.setParameter(2, codecIdentifier)
+							.getResultList();
 
-			final DockingLayoutEntity entity =
-					em.find(
-							DockingLayoutEntity.class,
-							key
-					);
-
-			// Qodana reports entity != null is always true, but em.find(...)
-			// can return null.
-			// noinspection ConstantValue
-			return entity != null && entity.payload.length > 0;
+			return !lengths.isEmpty()
+					&& lengths.getFirst() instanceof final Number length
+					&& length.longValue() > 0;
 		}
 	}
 
@@ -75,22 +95,22 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 					codecIdentifier
 			);
 
-			final DockingLayoutEntityCompositeKey key =
-					new DockingLayoutEntityCompositeKey(
-							layoutIdentifier,
-							codecIdentifier
-					);
-
 			final DockingLayoutEntity entity =
 					em.find(
 							DockingLayoutEntity.class,
-							key
+							createKey()
 					);
 
 			return new ByteArrayInputStream(entity.payload);
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The returned stream holds the layout in memory and stores it when it is
+	 * closed, so a caller that abandons the stream stores nothing.</p>
+	 */
 	@Override
 	public OutputStream openOutputStream() {
         // Capture bytes, then persist on close()
@@ -114,11 +134,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 				try (em) {
 					tx.begin();
 
-					final DockingLayoutEntityCompositeKey key =
-							new DockingLayoutEntityCompositeKey(
-									layoutIdentifier,
-									codecIdentifier
-							);
+					final DockingLayoutEntityCompositeKey key = createKey();
 
 					final DockingLayoutEntity existingEntity =
 							em.find(
@@ -157,6 +173,16 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 		};
 	}
 
+
+	/**
+	 * {@return the key identifying this storage's row.}
+	 */
+	private DockingLayoutEntityCompositeKey createKey() {
+		return new DockingLayoutEntityCompositeKey(
+				layoutIdentifier,
+				codecIdentifier
+		);
+	}
 
 	@Override
 	public void close() {

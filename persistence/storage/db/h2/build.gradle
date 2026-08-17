@@ -1,16 +1,10 @@
 plugins {
-    alias(libs.plugins.javafx)
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
     id 'bento.test.integration-test-suite'
 }
 
 description = "H2 Database Implementation of the Bento LayoutStorage interface"
-
-javafx {
-    modules = ['javafx.controls']
-    configurations = ['runtimeOnly']
-}
 
 dependencies {
 

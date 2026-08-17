@@ -25,10 +25,14 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
      */
     public static final int MAX_COMPOSITE_KEY_LENGTH = 255;
 
-    @Column(name = "layout_id", nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
+    public static final String LAYOUT_ID_COLUMN_NAME = "layout_id";
+
+    public static final String CODEC_ID_COLUMN_NAME = "codec_id";
+
+    @Column(name = LAYOUT_ID_COLUMN_NAME, nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String layoutIdentifier;
 
-    @Column(name = "codec_id", nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
+    @Column(name = CODEC_ID_COLUMN_NAME, nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String codecIdentifier;
 
     public DockingLayoutEntityCompositeKey() {}
