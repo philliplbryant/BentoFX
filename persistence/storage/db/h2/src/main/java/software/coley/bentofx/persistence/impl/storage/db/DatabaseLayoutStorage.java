@@ -40,14 +40,14 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 					+ DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
 
 	private final EntityManagerFactory emf;
-	private final AtomicBoolean closed = new AtomicBoolean();
 	private final String layoutIdentifier;
 	private final String codecIdentifier;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param emf the factory this storage takes its entity managers from.
+	 * @param emf the factory this storage takes its entity managers from. It
+	 * remains the caller's to close.
 	 * @param layoutIdentifier identifies the layout within the database.
 	 * @param codecIdentifier identifies the codec whose output is stored.
 	 */
@@ -181,12 +181,5 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 				layoutIdentifier,
 				codecIdentifier
 		);
-	}
-
-	@Override
-	public void close() {
-		if (closed.compareAndSet(false, true)) {
-			emf.close();
-		}
 	}
 }

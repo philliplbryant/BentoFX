@@ -10,10 +10,15 @@ which `LayoutStateWriter` and `LayoutStateReader` use it.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `736d93f`.
 
-Both blockers are fixed, along with M4, every minor except N4, and all eight
-nits, all verified in the working tree and not yet committed. N4 is closed as
-won't fix, and T7 needed no change because the test [B2](#b2) brought with it
-already covers it. What remains open is M1, M2, M3, M5 and M6.
+Both blockers are fixed, along with M1, M3, M4, every minor except N4, and all
+eight nits. The nits are committed; M1 and M3 are verified in the working tree
+and not yet committed. N4 is closed as won't fix, and T7 needed no change because
+the test [B2](#b2) brought with it already covers it. What remains open is M2, M5
+and M6.
+
+M1 and M3 went together, because they are one question asked twice: who owns the
+`EntityManagerFactory`. The provider now creates one and keeps it; the storages it
+hands out borrow it and no longer close it.
 
 M4 went with [N5](#n5) rather than on its own account: dropping a shipped
 credential is only safe once nothing is listening for other processes to use it.
@@ -80,9 +85,9 @@ is to copy the one that is right.
 
 | | Finding | Status |
 |---|---|---|
-| [M1](#m1) | `DatabaseLayoutStorage` closes an `EntityManagerFactory` it did not create | **Open** |
+| [M1](#m1) | `DatabaseLayoutStorage` closes an `EntityManagerFactory` it did not create | **Fixed** 2026-08-17 |
 | [M2](#m2) | A missing row makes `openInputStream` throw `NullPointerException`, not `IOException` | **Open** |
-| [M3](#m3) | One `EntityManagerFactory`, and one connection pool, per storage instance | **Open** |
+| [M3](#m3) | One `EntityManagerFactory`, and one connection pool, per storage instance | **Fixed** 2026-08-17 |
 | [M4](#m4) | `AUTO_SERVER=TRUE` lets other processes connect to the layout database | **Fixed** 2026-08-16 |
 | [M5](#m5) | The layout identifier goes into a file path unchecked, so it can leave the directory | **Open** |
 | [M6](#m6) | `exists()` is true for an empty file and for a directory | **Open** |
@@ -261,6 +266,25 @@ The module's own integration test demonstrates the hazard by working around it.
 `close()` on any of them - it closes the factory itself in `@AfterAll`. A test
 that closed the storage under test would break every test after it.
 
+The `close()` override is gone rather than rewritten. Every entity manager the
+class opens is closed where it is opened, so once the factory is not its to close
+there is nothing left to release, and `LayoutStorage.close()` already defaults to
+doing nothing. The class Javadoc and the constructor's `@param` now say the factory
+stays the caller's, which is the statement of ownership this finding asked for.
+
+The test the workaround stood in for exists now:
+`closingOneStorageLeavesTheSharedFactoryOpen` stores a layout, builds a second
+storage on the same factory, closes it in a try-with-resources the way an owning
+component would, and then reads the layout back through the first. Measured against
+the previous `close()`, it fails on the factory and names the consequence in the
+suppressed exception:
+
+```
+[the factory after a storage that used it was closed]
+Expecting value to be true but was false
+	Suppressed: java.lang.IllegalStateException: EntityManagerFactory is closed
+```
+
 ### <a id="m2"></a>M2. A missing row makes `openInputStream` throw `NullPointerException`, not `IOException` - MEASURED
 
 `impl/storage/db/DatabaseLayoutStorage.java:84-90`
@@ -319,6 +343,29 @@ An application with a saver and a restorer therefore runs two Hibernate
 factories and two pools, holding at least four idle connections and permitting
 twenty, against a single embedded database that one connection would serve. What
 has to be per-component is the `LayoutStorage`, not the factory underneath it.
+
+The provider now creates the factory on the first request and keeps it, handing
+each caller a fresh `DatabaseLayoutStorage` around the same one. `getLayoutStorage`
+is `synchronized` because that first call is what creates the factory and a saver
+and a restorer need not be built on one thread. This only works because [M1](#m1)
+went with it - a shared factory that any storage may close is worse than a factory
+each.
+
+Measured by pool, since Hikari numbers each one it starts. Running the provider
+test that asks one provider for two storages, before and after:
+
+```
+BEFORE  HikariPool-1 - Start
+        HikariPool-2 - Start
+AFTER   HikariPool-1 - Start
+```
+
+What this does not add is a way to close the factory before the JVM exits. There
+is no earlier moment available: the storages belong to components that outlive
+individual saves, and `LayoutStorageProvider` has no shutdown to hook into. One
+factory for the life of the application is the intended cost, and the provider's
+Javadoc says so; giving the API a shutdown is a separate change affecting every
+provider, including the file one that needs nothing of the sort.
 
 ### <a id="m4"></a>M4. `AUTO_SERVER=TRUE` lets other processes connect to the layout database
 

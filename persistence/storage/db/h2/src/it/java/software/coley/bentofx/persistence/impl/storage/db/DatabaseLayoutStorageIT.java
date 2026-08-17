@@ -157,6 +157,32 @@ class DatabaseLayoutStorageIT {
         }
     }
 
+    @Test
+    void closingOneStorageLeavesTheSharedFactoryOpen() throws IOException {
+        writeData(TEST_DATA);
+
+        // A second storage on the same factory, closed the way the component
+        // that owns it would close it.
+        try (LayoutStorage ownStorage =
+                     new DatabaseLayoutStorage(
+                             entityManagerFactory,
+                             TEST_LAYOUT_IDENTIFIER,
+                             TEST_CODEC_IDENTIFIER
+                     )) {
+            assertThat(ownStorage.exists())
+                    .describedAs(LAYOUT_EXISTS_AFTER_WRITE_DESCRIPTION)
+                    .isTrue();
+        }
+
+        assertThat(entityManagerFactory.isOpen())
+                .describedAs("the factory after a storage that used it was closed")
+                .isTrue();
+
+        assertThat(readData())
+                .describedAs("data read through a storage sharing that factory")
+                .isEqualTo(TEST_DATA);
+    }
+
     private static String createJdbcUrl() {
         return JDBC_FILE_URL_PREFIX + temporaryDirectory
                 .resolve(DATABASE_FILE_NAME)
