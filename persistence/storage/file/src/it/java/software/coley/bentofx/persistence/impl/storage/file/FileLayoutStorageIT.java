@@ -35,6 +35,24 @@ class FileLayoutStorageIT {
 	}
 
 	@Test
+	void anEmptyFileIsNotALayout() throws IOException {
+		Files.createFile(testFile.toPath());
+
+		assertThat(fileLayoutStorage.exists())
+				.describedAs("exists() for a zero-byte file")
+				.isFalse();
+	}
+
+	@Test
+	void aDirectoryIsNotALayout() throws IOException {
+		Files.createDirectory(testFile.toPath());
+
+		assertThat(fileLayoutStorage.exists())
+				.describedAs("exists() for a directory with the layout's name")
+				.isFalse();
+	}
+
+	@Test
 	void previousLayoutSurvivesUntilTheStreamCloses() throws IOException {
 		Files.writeString(testFile.toPath(), PREVIOUS_FILE_CONTENT, UTF_8);
 

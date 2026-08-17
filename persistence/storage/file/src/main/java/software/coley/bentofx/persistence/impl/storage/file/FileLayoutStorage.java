@@ -36,9 +36,14 @@ public class FileLayoutStorage implements LayoutStorage {
         this.file = Objects.requireNonNull(file);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>An empty file and a directory are both answered {@code false}.</p>
+     */
     @Override
     public boolean exists() {
-        return file.exists();
+        return file.isFile() && file.length() > 0;
     }
 
     /**

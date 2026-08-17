@@ -7,6 +7,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FileLayoutStorageProviderTest {
 
@@ -52,6 +53,48 @@ class FileLayoutStorageProviderTest {
         assertThat(layoutFile(storage))
                 .describedAs("layoutFile(storage)")
                 .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/main-layout.xml"));
+    }
+
+    @Test
+    void rejectsALayoutIdentifierThatLeavesTheBentoDirectory() {
+        final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
+
+        assertThatThrownBy(() -> provider.getLayoutStorage("../escaped", "json"))
+                .describedAs("layout identifier with a parent segment")
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("../escaped");
+    }
+
+    @Test
+    void rejectsALayoutIdentifierNamingASubdirectory() {
+        final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
+
+        assertThatThrownBy(() -> provider.getLayoutStorage("nested/layout", "json"))
+                .describedAs("layout identifier with a separator")
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("nested/layout");
+    }
+
+    @Test
+    void rejectsACodecIdentifierThatLeavesTheBentoDirectory() {
+        final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
+
+        assertThatThrownBy(() ->
+                provider.getLayoutStorage(MAIN_LAYOUT_IDENTIFIER, "json/../../escaped")
+        )
+                .describedAs("codec identifier with parent segments")
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("escaped");
+    }
+
+    @Test
+    void rejectsAMissingLayoutIdentifier() {
+        final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
+
+        assertThatThrownBy(() -> provider.getLayoutStorage(null, "json"))
+                .describedAs("null layout identifier")
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("layoutIdentifier");
     }
 
     private static File layoutFile(final FileLayoutStorage storage) throws Exception {

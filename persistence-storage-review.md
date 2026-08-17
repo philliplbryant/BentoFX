@@ -10,11 +10,18 @@ which `LayoutStateWriter` and `LayoutStateReader` use it.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `736d93f`.
 
-Both blockers are fixed, along with M1, M2, M3, M4, every minor except N4, and all
-eight nits. The nits are committed; M1, M2 and M3 are verified in the working tree
-and not yet committed. N4 is closed as won't fix, and T7 needed no change because
-the test [B2](#b2) brought with it already covers it. What remains open is M5 and
-M6, both in the file storage.
+Every finding is now closed. Both blockers, all six majors, every minor except N4,
+and all eight nits are fixed; N4 is won't fix, and T7 needed no change because the
+test [B2](#b2) brought with it already covers it. The nits and the factory-ownership
+change are committed; M2, M5 and M6 are verified in the working tree and not yet
+committed.
+
+One thing [B2](#b2) asked for is still missing, and it is not any of the findings
+above: a single statement of what a valid layout identifier is. M5's fix rejects an
+identifier that would leave the layout directory, but the two identifiers still have
+to fit in one 255-character path component together, and nothing rejects a name a
+filesystem reserves. That rule wants a home both storages can share, which makes it
+an API question rather than a fix to either module.
 
 M1 and M3 went together, because they are one question asked twice: who owns the
 `EntityManagerFactory`. The provider now creates one and keeps it; the storages it
@@ -89,8 +96,8 @@ is to copy the one that is right.
 | [M2](#m2) | A missing row makes `openInputStream` throw `NullPointerException`, not `IOException` | **Fixed** 2026-08-17 |
 | [M3](#m3) | One `EntityManagerFactory`, and one connection pool, per storage instance | **Fixed** 2026-08-17 |
 | [M4](#m4) | `AUTO_SERVER=TRUE` lets other processes connect to the layout database | **Fixed** 2026-08-16 |
-| [M5](#m5) | The layout identifier goes into a file path unchecked, so it can leave the directory | **Open** |
-| [M6](#m6) | `exists()` is true for an empty file and for a directory | **Open** |
+| [M5](#m5) | The layout identifier goes into a file path unchecked, so it can leave the directory | **Fixed** 2026-08-17 |
+| [M6](#m6) | `exists()` is true for an empty file and for a directory | **Fixed** 2026-08-17 |
 
 ### MINOR
 
@@ -440,6 +447,28 @@ identifier that decides the filename gets none. A separator or a `..` segment
 should be rejected, or the resolved path checked against the directory before it
 is used.
 
+The second of those is what it does now. The provider resolves the joined name
+against the absolute, normalized layout directory and requires the result to sit
+directly in it, so anything that would move the file elsewhere - a `..` segment, a
+separator, an absolute path, in either identifier - is an `IllegalArgumentException`
+naming both parameters and quoting what the name resolved to. Checking the resolved
+path beats listing forbidden characters: there is no list to get wrong, and it holds
+on a filesystem whose rules differ from the one it was written on. A name NIO cannot
+parse at all arrives as `InvalidPathException`, which is wrapped so the message says
+which arguments were at fault rather than which character index was.
+
+Both identifiers are also `requireNonNull` now. A null layout identifier used to
+concatenate into the string `"null"` and quietly store the layout in `null.json`.
+
+Four tests in `FileLayoutStorageProviderTest` cover it: a parent segment, a
+separator, parent segments arriving through the codec identifier, and the null. All
+four fail against the previous provider - the null one because nothing was thrown at
+all.
+
+What this does not do is bound the name's length or reject a name the filesystem
+reserves. See the note under [B2](#b2): those belong to a rule both storages share,
+and this fix does not invent one.
+
 ### <a id="m6"></a>M6. `exists()` is true for an empty file and for a directory - MEASURED
 
 `impl/storage/file/FileLayoutStorage.java:32-34`
@@ -471,6 +500,16 @@ The database implementation gets this right, and the contrast is one line:
 `entity != null && entity.payload.length > 0`
 (`impl/storage/db/DatabaseLayoutStorage.java:63`). The file implementation needs
 the same `isFile()` and non-empty test.
+
+It has it: `file.isFile() && file.length() > 0`. The override says what the two
+conditions are for, because `exists()` reading as a question about the filesystem is
+how it came to answer one. `anEmptyFileIsNotALayout` and `aDirectoryIsNotALayout` in
+`FileLayoutStorageIT` pin both halves, and both fail against `file.exists()`.
+
+The zero-byte case is narrower than it was now that [B1](#b1) stages its writes -
+no failed save leaves an empty file behind any more - but a file that is empty for
+some other reason still reaches the restorer, and a directory never depended on B1
+at all.
 
 ---
 
