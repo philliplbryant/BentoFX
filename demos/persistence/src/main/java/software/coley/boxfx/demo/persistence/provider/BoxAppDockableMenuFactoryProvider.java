@@ -14,15 +14,10 @@ import java.util.Optional;
  * for every {@link Dockable}.
  *
  * <p>Constructed by, and called only from, {@link BoxAppDockableStateProvider}.</p>
+ *
+ * @author Phil Bryant
  */
 public class BoxAppDockableMenuFactoryProvider implements DockableMenuFactoryProvider {
-
-	@Override
-	public Optional<DockableMenuFactory> getDockableMenuFactory(
-			final String dockContainerLeafIdentifier
-	) {
-		return Optional.of(factory);
-	}
 
 	private static final DockableMenuFactory factory = dockable ->
 			new ContextMenu(
@@ -30,4 +25,11 @@ public class BoxAppDockableMenuFactoryProvider implements DockableMenuFactoryPro
 					new SeparatorMenuItem(),
 					new MenuItem("Stuff")
 			);
+
+	@Override
+	public Optional<DockableMenuFactory> getDockableMenuFactory(
+			final String dockableIdentifier
+	) {
+		return Optional.of(factory);
+	}
 }

@@ -1,6 +1,5 @@
 package software.coley.boxfx.demo.persistence.provider;
 
-import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.paint.Color;
@@ -24,7 +23,6 @@ import java.util.Optional;
 
 import static javafx.scene.effect.BlurType.ONE_PASS_BOX;
 import static javafx.scene.paint.Color.BLACK;
-import static software.coley.boxfx.demo.persistence.provider.DockableProperties.*;
 
 /**
  * This demo's {@link DockableStateProvider}, rebuilding the content of each
@@ -45,6 +43,8 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 	private final Map<String, DockableState> dockableStateMap =
 			new HashMap<>();
 
+	private final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider;
+
 	/**
 	 * Creates a {@code BoxAppDockableStateProvider}.
 	 *
@@ -54,155 +54,100 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 	public BoxAppDockableStateProvider(
 			final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider
 	) {
-		// Initialization of these values must be performed on the JavaFX
-		// Application Thread because they create JavaFX components.
-		Platform.runLater(() -> {
-					// Create static DockableState and add them to a map so they can be
-					// retrieved using their identifiers.
-					dockableStateMap.put(
-							WORKSPACE.getIdentifier(),
-							buildDockableState(
-									WORKSPACE,
-									dockableMenuFactoryProvider,
-									1,
-									0
-							)
-					);
-					dockableStateMap.put(
-							BOOKMARKS.getIdentifier(),
-							buildDockableState(
-									BOOKMARKS,
-									dockableMenuFactoryProvider,
-									1,
-									1
-							)
-					);
-					dockableStateMap.put(
-							MODIFICATIONS.getIdentifier(),
-							buildDockableState(
-									MODIFICATIONS,
-									dockableMenuFactoryProvider,
-									1,
-									2
-							)
-					);
-					dockableStateMap.put(
-							LOGGING.getIdentifier(),
-							buildDockableState(
-									LOGGING,
-									dockableMenuFactoryProvider,
-									2,
-									0
-							)
-					);
-					dockableStateMap.put(
-							TERMINAL.getIdentifier(),
-							buildDockableState(
-									TERMINAL,
-									dockableMenuFactoryProvider,
-									2,
-									1
-							)
-					);
-					dockableStateMap.put(
-							PROBLEMS.getIdentifier(),
-							buildDockableState(
-									PROBLEMS,
-									dockableMenuFactoryProvider,
-									2,
-									2
-							)
-					);
-					dockableStateMap.put(
-							CLASS_1.getIdentifier(),
-							buildDockableState(
-									CLASS_1,
-									dockableMenuFactoryProvider,
-									0,
-									0
-							)
-					);
-					dockableStateMap.put(
-							CLASS_2.getIdentifier(),
-							buildDockableState(
-									CLASS_2,
-									dockableMenuFactoryProvider,
-									0,
-									1
-							)
-					);
-					dockableStateMap.put(
-							CLASS_3.getIdentifier(),
-							buildDockableState(
-									CLASS_3,
-									dockableMenuFactoryProvider,
-									0,
-									2
-							)
-					);
-					dockableStateMap.put(
-							CLASS_4.getIdentifier(),
-							buildDockableState(
-									CLASS_4,
-									dockableMenuFactoryProvider,
-									0,
-									3
-							)
-					);
-					dockableStateMap.put(
-							CLASS_5.getIdentifier(),
-							buildDockableState(
-									CLASS_5,
-									dockableMenuFactoryProvider,
-									0,
-									4
-							)
-					);
-					dockableStateMap.put(
-							SOMETHING_ELSE.getIdentifier(),
-							createSecondDockableState()
-					);
-				}
-		);
+		this.dockableMenuFactoryProvider = dockableMenuFactoryProvider;
 	}
 
 	@Override
 	public Optional<DockableState> resolveDockableState(
 			String id
 	) {
+		// The states are built here, on the first request, rather than in the
+		// constructor. They hold JavaFX components, the constructor runs on the
+		// JavaFX-Launcher thread where those cannot be built, and both callers of
+		// this method - the application while it starts, and the restorer through
+		// the persistence API - are on the JavaFX application thread. Building them
+		// from a queued task instead leaves this map empty until that task runs, which
+		// makes every lookup depend on JavaFX queue ordering nothing states.
+		if (dockableStateMap.isEmpty()) {
+			putDockableStates();
+		}
+
 		return Optional.ofNullable(dockableStateMap.get(id));
 	}
 
+	/**
+	 * Builds a {@link DockableState} for every {@link DockableProperties} and maps
+	 * it to its identifier.
+	 */
+	private void putDockableStates() {
+		for (final DockableProperties dockableProperties :
+				DockableProperties.values()) {
+			dockableStateMap.put(
+					dockableProperties.getIdentifier(),
+					buildDockableState(dockableProperties)
+			);
+		}
+	}
+
+	/**
+	 * {@return the {@link DockableState} for the supplied
+	 * {@link DockableProperties}.}
+	 *
+	 * @param dockableProperties the properties of the dockable to build.
+	 */
 	private DockableState buildDockableState(
-			DockableProperties dockableProperties,
-			@Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider,
-			int s,
-			int i
+			final DockableProperties dockableProperties
 	) {
 		final String dockableIdentifier = dockableProperties.getIdentifier();
-		final String dockableTooltipText = dockableProperties.getTooltipText();
-		final DockableMenuFactory dockableMenuFactory =
-				dockableMenuFactoryProvider == null ?
-						null :
-						dockableMenuFactoryProvider
-						.getDockableMenuFactory(dockableIdentifier)
-						.orElse(null);
+		final boolean isDecorated = dockableProperties.isDecorated();
+		final int shapeMode = dockableProperties.getShapeMode();
+		final int colorIndex = dockableProperties.getColorIndex();
 
-		DockableStateBuilder builder = new DockableStateBuilder(dockableProperties.getIdentifier())
-				.setTitle(dockableIdentifier)
-				.setTooltipText(dockableTooltipText)
-				.setDockableIconFactory(dockable -> makeIcon(s, i))
-				.setDockableNode(new Label("<" + dockableIdentifier + ":" + i + ">"))
-				.setDockableConsumer(
-						BoxAppDockableStateProvider::consumeDockable
-				).setDockableMenuFactory(dockableMenuFactory);
+		final String nodeText = isDecorated ?
+				"<" + dockableIdentifier + ":" + colorIndex + ">" :
+				"<" + dockableIdentifier + ">";
 
-		if (s > 0) {
+		final DockableStateBuilder builder =
+				new DockableStateBuilder(dockableIdentifier)
+						.setTitle(dockableIdentifier)
+						.setTooltipText(dockableProperties.getTooltipText())
+						.setDockableNode(new Label(nodeText))
+						.setDockableConsumer(
+								BoxAppDockableStateProvider::consumeDockable
+						);
+
+		if (!isDecorated) {
+			return builder.build();
+		}
+
+		builder.setDockableIconFactory(dockable -> makeIcon(shapeMode, colorIndex))
+				.setDockableMenuFactory(resolveMenuFactory(dockableIdentifier));
+
+		if (shapeMode > 0) {
 			builder.setDragGroupMask(1);
 			builder.setClosable(false);
 		}
 
 		return builder.build();
+	}
+
+	/**
+	 * {@return the {@link DockableMenuFactory} for the identified dockable, or
+	 * {@code null} when this demo was built without a menu factory provider or that
+	 * provider has none for it.}
+	 *
+	 * @param dockableIdentifier identifies the dockable whose menu is wanted.
+	 */
+	private @Nullable DockableMenuFactory resolveMenuFactory(
+			final String dockableIdentifier
+	) {
+		if (dockableMenuFactoryProvider == null) {
+			return null;
+		}
+
+		return dockableMenuFactoryProvider
+				.getDockableMenuFactory(dockableIdentifier)
+				.orElse(null);
 	}
 
 	private static Shape makeIcon(int shapeMode, int i) {
@@ -239,17 +184,6 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 				)
 		);
 		return icon;
-	}
-
-	private DockableState createSecondDockableState() {
-
-		return new DockableStateBuilder(SOMETHING_ELSE.getIdentifier())
-				.setTitle(SOMETHING_ELSE.getIdentifier())
-				.setTooltipText(SOMETHING_ELSE.getTooltipText())
-				.setDockableNode(new Label("<" + SOMETHING_ELSE.getIdentifier() + ">"))
-				.setDockableConsumer(
-						BoxAppDockableStateProvider::consumeDockable
-				).build();
 	}
 
 	/**

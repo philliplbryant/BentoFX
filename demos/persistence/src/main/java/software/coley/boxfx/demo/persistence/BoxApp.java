@@ -67,9 +67,16 @@ public class BoxApp extends Application {
 	private final Bento bento = new Bento("box-app-bento");
 
 	/**
-	 * Collect the {@link DockContainerRootBranch} so they can be persisted.
+	 * The root branches of the layout this demo builds for itself, which is what
+	 * {@link #getDefaultDockingLayout()} hands to the restorer for when there is
+	 * nothing to restore.
+	 *
+	 * <p>Not the input to a save. A capture reads the root branches each
+	 * {@link Bento} knows about, which are the ones that have a {@link Scene}, so
+	 * after a layout is restored and applied the branch in here is not the branch
+	 * that gets persisted.</p>
 	 */
-	private final List<DockContainerRootBranch> rootBranches =
+	private final List<DockContainerRootBranch> defaultRootBranches =
 			new ArrayList<>();
 
 	private final DockingLayoutPersistenceProvider persistenceProvider =
@@ -117,7 +124,6 @@ public class BoxApp extends Application {
 
 		branchWorkspace.setPruneWhenEmpty(false);
 		leafWorkspaceTools.setPruneWhenEmpty(false);
-		leafTools.setPruneWhenEmpty(false);
 		leafTools.setPruneWhenEmpty(false);
 
 		// Add dummy menus to each.
@@ -177,7 +183,7 @@ public class BoxApp extends Application {
 		addDockable(CLASS_4, dockableStateProvider, leafWorkspaceHeaders);
 		addDockable(CLASS_5, dockableStateProvider, leafWorkspaceHeaders);
 
-		rootBranches.add(branchRoot);
+		defaultRootBranches.add(branchRoot);
 
 		stage.setTitle("BentoFX Persistence Demo");
 		stage.getIcons().addAll(
@@ -407,10 +413,10 @@ public class BoxApp extends Application {
 
 	/**
 	 * Builds and returns the {@link DockingLayout} for {@link #bento} and
-	 * {@link #rootBranches}.
+	 * {@link #defaultRootBranches}.
 	 *
 	 * @return the {@link DockingLayout} for {@link #bento} and
-	 * {@link #rootBranches}.
+	 * {@link #defaultRootBranches}.
 	 */
 	private DockingLayout getDefaultDockingLayout() {
 
@@ -420,7 +426,7 @@ public class BoxApp extends Application {
 		BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
 				bento.getIdentifier()
 		);
-		for (final DockContainerRootBranch rootBranch : rootBranches) {
+		for (final DockContainerRootBranch rootBranch : defaultRootBranches) {
 			bentoLayoutBuilder.addRootBranch(rootBranch);
 		}
 		dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
@@ -436,7 +442,7 @@ public class BoxApp extends Application {
 	 * @return {@code true} when the layout was applied to the {@link Stage};
 	 * otherwise, {@code false}.
 	 */
-	public boolean applyBentoLayout(final BentoLayout bentoLayout) {
+	private boolean applyBentoLayout(final BentoLayout bentoLayout) {
 		final List<DockContainerRootBranch> bentoRootBranches =
 				bentoLayout.getRootBranches();
 

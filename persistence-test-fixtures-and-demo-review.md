@@ -14,15 +14,22 @@ is already on the JavaFX application thread.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `f67689c`.
 
-All four majors are fixed, verified in the working tree and not yet committed.
-Everything else is open. `demos/basic` is untouched, and none of the four fixes
-gives the persistence demo a counterpart to anything the basic demo does
-differently - they all sit in code that has no equivalent there.
+All four majors are fixed, along with every finding against the demo - N1 to N5 and
+T7 to T9. What remains open is the seven fixture minors, N6 to N12, and the six
+fixture nits, T1 to T6. All of it is verified in the working tree and not yet
+committed.
 
-The three demo fixes are **not exercised**. That demo has no test source set, and
-giving it one would hand it something `demos/basic` does not have, so what stands
-behind M1, M2 and M3 is the compiler, NullAway, and the reading below. M4 has a
-regression test that fails against the previous fixture.
+`demos/basic` is untouched. Only one fix makes the two demos differ where they
+previously agreed: [T7](#t7) removes a duplicated line the persistence demo had
+inherited, so that line now appears twice in the basic demo and once here.
+Everything else sits in code the basic demo has no counterpart for.
+
+The demo fixes are **not exercised**. That demo has no test source set, and giving
+it one would hand it something `demos/basic` does not have, so what stands behind
+them is the compiler, NullAway, and the reading below. Two exceptions: M4 has a
+regression test that fails against the previous fixture, and [T8](#t8)'s
+transcription was measured, because moving twelve hand-written argument pairs onto
+an enum is the kind of change that silently swaps two of them.
 
 ## Status
 
@@ -81,11 +88,11 @@ None. Nothing in either area loses a layout a user had, and nothing in
 
 | | Module | Finding | Status |
 |---|---|---|---|
-| [N1](#n1) | demo | `applyBentoLayout` is public in a class whose every other member is private | **Open** |
-| [N2](#n2) | demo | `rootBranches` holds a branch that is never displayed once a layout is restored | **Open** |
-| [N3](#n3) | demo | `Runner` calls `printStackTrace`, which this project's standards rule out | **Open** |
-| [N4](#n4) | demo | The dockable states are published from a queued task, so every read depends on JavaFX queue ordering | **Open** |
-| [N5](#n5) | demo | `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier | **Open** |
+| [N1](#n1) | demo | `applyBentoLayout` is public in a class whose every other member is private | **Fixed** 2026-08-17 |
+| [N2](#n2) | demo | `rootBranches` holds a branch that is never displayed once a layout is restored | **Fixed** 2026-08-17 |
+| [N3](#n3) | demo | `Runner` calls `printStackTrace`, which this project's standards rule out | **Fixed** 2026-08-17 |
+| [N4](#n4) | demo | The dockable states are published from a queued task, so every read depends on JavaFX queue ordering | **Fixed** 2026-08-17 |
+| [N5](#n5) | demo | `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier | **Fixed** 2026-08-17 |
 | [N6](#n6) | fixtures | `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more | **Open** |
 | [N7](#n7) | fixtures | `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns | **Open** |
 | [N8](#n8) | fixtures | The two provider fixtures record what they were called with in fields no thread boundary protects | **Open** |
@@ -104,9 +111,9 @@ None. Nothing in either area loses a layout a user had, and nothing in
 | [T4](#t4) | fixtures | `new DragDropStageStateBuilder(true)` passes an unnamed boolean | **Open** |
 | [T5](#t5) | fixtures | Truncated `describedAs` strings, ending mid-word in an ellipsis | **Open** |
 | [T6](#t6) | fixtures | `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few | **Open** |
-| [T7](#t7) | demo | `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic` | **Open** |
-| [T8](#t8) | demo | Twelve near-identical `put` blocks that the enum they read from could drive | **Open** |
-| [T9](#t9) | demo | The two menu-factory providers declare their `factory` field below the method that returns it | **Open** |
+| [T7](#t7) | demo | `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic` | **Fixed** 2026-08-17 |
+| [T8](#t8) | demo | Twelve near-identical `put` blocks that the enum they read from could drive | **Fixed** 2026-08-17 |
+| [T9](#t9) | demo | The two menu-factory providers declare their `factory` field below the method that returns it | **Fixed** 2026-08-17 |
 
 Every identifier in the tables links to that finding's own section. The anchors
 are explicit rather than derived from the heading text, matching the other three
@@ -384,6 +391,9 @@ either - it reads `stage`, which only `start` sets. This project's standards ask
 for accidental public surface to be flagged, and a demo is where a reader learns
 which members were meant to be reachable.
 
+Private now. [M3](#m3) had already changed its signature, so this was the moment to
+settle its visibility as well.
+
 ### <a id="n2"></a>N2. `rootBranches` holds a branch that is never displayed once a layout is restored
 
 `demos/persistence/.../BoxApp.java:69-73, 178, 359-373`
@@ -410,6 +420,11 @@ attached. But the comment tells a reader that this collection is the persistence
 input, which is the one thing it is not, and after a successful restore the demo
 holds a root branch that will never be shown.
 
+The field is `defaultRootBranches` now, and its documentation says what it feeds -
+`getDefaultDockingLayout`, for when there is nothing to restore - and states that a
+capture reads the root branches each `Bento` knows about instead, so the branch in
+here is not the one that gets persisted.
+
 ### <a id="n3"></a>N3. `Runner` calls `printStackTrace`, which this project's standards rule out
 
 `demos/persistence/.../Runner.java:35-37`
@@ -431,6 +446,11 @@ branch immediately above already handles that case with
 `System.err.println(...)`, so the fix is to say what happened in the same voice
 rather than to dump a stack trace, or to state in a comment why this one call is
 the exception. As written, the file both bans and performs the same act.
+
+It now reports the failure the way the branch above it does, naming the resource and
+including the exception, and a comment says why this one place writes to the standard
+error stream rather than to a log. The stack trace goes: for a malformed logging
+configuration the exception's type and message are what identify it.
 
 ### <a id="n4"></a>N4. The dockable states are published from a queued task, so every read depends on JavaFX queue ordering
 
@@ -464,10 +484,14 @@ error anyone would notice. See [Withdrawn](#withdrawn), W3, for the sharper
 version of this that was raised and did not survive: the map is not read across a
 thread boundary.
 
-Building the states on demand, or in `start` where the FX thread is already the
-caller, removes the ordering question entirely. `demos/basic` builds its dockables
-inline in `start`, so this would move the persistence demo toward it rather than
-away.
+The states are built on demand now, inside `resolveDockableState`, so there is no
+queued task and nothing to order. Both callers - the application while it starts,
+and the restorer through the persistence API - are on the JavaFX application thread,
+which is what makes building JavaFX components there safe; the comment on the method
+says so, because that is the assumption the next reader needs and the one the
+constructor's `Platform.runLater` was standing in for. `demos/basic` builds its
+dockables inline in `start`, so this moves the persistence demo toward it rather
+than away.
 
 ### <a id="n5"></a>N5. `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier
 
@@ -485,6 +509,9 @@ ignore the argument and return one shared factory, so nothing misbehaves - but a
 reader matching the demo against the interface it implements is told the wrong
 thing about what the framework passes. The class is also the only one in the demo
 with no `@author` tag.
+
+The parameter is `dockableIdentifier` now, and the class has the `@author` tag its
+siblings carry.
 
 ### <a id="n6"></a>N6. `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more - MEASURED
 
@@ -766,21 +793,55 @@ leafTools.setPruneWhenEmpty(false);
 ```
 
 Harmless, and faithful: the duplicate is in the basic demo and was carried across
-with everything else. Recorded rather than proposed, because removing it in one
-demo and not the other is the kind of drift the mirroring is meant to avoid - it
-belongs to whichever pass fixes `demos/basic`.
+with everything else.
+
+Removed from the persistence demo on request. `demos/basic` keeps its pair, so this
+is the one place the two demos now differ where they previously agreed - worth
+knowing when the next comparison between them is made, and worth removing there too
+whenever that demo is next touched.
 
 ### <a id="t8"></a>T8. Twelve near-identical `put` blocks that the enum they read from could drive
 
 `demos/persistence/.../provider/BoxAppDockableStateProvider.java:59-166`
 
 Every entry has the same six lines, differing in the `DockableProperties` constant
-and two integers. Those two integers are the shape and colour of the dockable's
+and two integers. Those two integers are the shape and color of the dockable's
 icon, and `DockableProperties` already carries the per-dockable data - so two more
 enum fields and a loop over `values()` would replace a hundred lines and make
 adding a dockable a one-line change. A demo has some licence to be explicit
 instead of clever; at twelve repetitions of six lines, the repetition is what a
 reader has to hold rather than the pattern.
+
+That is what it does now: the icon's shape and color sit on the enum, one loop over
+`values()` builds every state, and `createSecondDockableState` folded into the same
+builder - the undecorated dockable is the one the enum reports as
+`isDecorated() == false`, which is also how it keeps its plainer label and its
+absence of an icon and a menu.
+
+**Measured**, because moving twelve hand-written argument pairs onto an enum is
+exactly the change that silently swaps two of them. The enum's mapping printed and
+compared against the twelve original pairs:
+
+```
+PROP WORKSPACE      decorated=true  shape=1 color=0
+PROP BOOKMARKS      decorated=true  shape=1 color=1
+PROP MODIFICATIONS  decorated=true  shape=1 color=2
+PROP LOGGING        decorated=true  shape=2 color=0
+PROP TERMINAL       decorated=true  shape=2 color=1
+PROP PROBLEMS       decorated=true  shape=2 color=2
+PROP CLASS_1        decorated=true  shape=0 color=0
+PROP CLASS_2        decorated=true  shape=0 color=1
+PROP CLASS_3        decorated=true  shape=0 color=2
+PROP CLASS_4        decorated=true  shape=0 color=3
+PROP CLASS_5        decorated=true  shape=0 color=4
+PROP SOMETHING_ELSE decorated=false shape=-1 color=0
+```
+
+All twelve match. The last line also settles a trap this change had to avoid: the
+undecorated shape mode is written as the literal `-1` rather than as a named
+constant, because an enum's static fields are not initialized until after its
+constants, so a constant read from the constructor would have arrived as zero - and
+zero is a valid shape mode.
 
 ### <a id="t9"></a>T9. The two menu-factory providers declare their `factory` field below the method that returns it
 
@@ -790,6 +851,8 @@ reader has to hold rather than the pattern.
 Both classes read `return Optional.of(factory);` before the reader has met
 `factory`. Every other class in the demo and in the fixtures declares its static
 fields at the top.
+
+Both now declare it there too.
 
 ---
 

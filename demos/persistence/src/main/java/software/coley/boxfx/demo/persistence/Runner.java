@@ -33,7 +33,13 @@ public class Runner {
                 );
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            // Reported the same way as the missing-resource case above, and for the
+            // same reason: the logging this would otherwise go through is what just
+            // failed to configure.
+            System.err.println(
+                    "Could not read " + LOGGING_PROPERTIES + " (" + e + "). Using " +
+                            "default Java Utility Logging configuration."
+            );
         }
 
         // Launch the application

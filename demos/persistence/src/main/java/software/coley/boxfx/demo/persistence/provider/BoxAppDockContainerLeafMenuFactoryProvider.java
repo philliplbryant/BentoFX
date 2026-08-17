@@ -20,16 +20,16 @@ import java.util.Optional;
 public class BoxAppDockContainerLeafMenuFactoryProvider
 		implements DockContainerLeafMenuFactoryProvider {
 
+	private static final DockContainerLeafMenuFactory factory =
+			dockContainerLeaf ->
+					addSideOptions(new ContextMenu(), dockContainerLeaf);
+
 	@Override
 	public Optional<DockContainerLeafMenuFactory> getDockContainerLeafMenuFactory(
 			final String dockContainerLeafIdentifier
 	) {
 		return Optional.of(factory);
 	}
-
-	private static final DockContainerLeafMenuFactory factory =
-			dockContainerLeaf ->
-					addSideOptions(new ContextMenu(), dockContainerLeaf);
 
 	private static ContextMenu addSideOptions(ContextMenu menu, DockContainerLeaf space) {
 		for (Side side : Side.values()) {
