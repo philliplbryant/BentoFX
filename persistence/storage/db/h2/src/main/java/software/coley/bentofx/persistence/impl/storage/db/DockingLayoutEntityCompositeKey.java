@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import org.jspecify.annotations.Nullable;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -16,14 +17,16 @@ import java.util.Objects;
 public class DockingLayoutEntityCompositeKey implements Serializable {
 
     /**
-     * The width of both identifier columns.
+     * The width of both identifier columns, taken from the rule every storage
+     * implementation shares.
      *
-     * <p>These identifiers may be used as a file name and its extension in
-     * file-backed storage, so the width that matters is what a file name
-     * allows, and every mainstream filesystem takes 255 characters per path
-     * component.</p>
+     * <p>{@link LayoutIdentifiers#MAX_JOINED_LENGTH} is what the two identifiers
+     * may take <em>together</em>, because file-backed storage joins them into one
+     * path component. A column that wide therefore holds anything either of them
+     * can validly be, and the number lives in one place rather than being
+     * repeated here.</p>
      */
-    public static final int MAX_COMPOSITE_KEY_LENGTH = 255;
+    public static final int MAX_COMPOSITE_KEY_LENGTH = LayoutIdentifiers.MAX_JOINED_LENGTH;
 
     public static final String LAYOUT_ID_COLUMN_NAME = "layout_id";
 

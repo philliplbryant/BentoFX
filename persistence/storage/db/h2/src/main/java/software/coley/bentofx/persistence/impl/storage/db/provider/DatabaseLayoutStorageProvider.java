@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 
@@ -49,6 +50,7 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
             final String layoutIdentifier,
             final String codecIdentifier
     ) {
+        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
         if (entityManagerFactory == null) {
             entityManagerFactory =

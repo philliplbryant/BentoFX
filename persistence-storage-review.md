@@ -12,16 +12,43 @@ Line numbers refer to the files as they stand on `enhancement/issue-13` at
 
 Every finding is now closed. Both blockers, all six majors, every minor except N4,
 and all eight nits are fixed; N4 is won't fix, and T7 needed no change because the
-test [B2](#b2) brought with it already covers it. The nits and the factory-ownership
-change are committed; M2, M5 and M6 are verified in the working tree and not yet
-committed.
+test [B2](#b2) brought with it already covers it. Everything up to and including the
+file storage fixes is committed; the shared identifier rule below is verified in the
+working tree and not yet committed.
 
-One thing [B2](#b2) asked for is still missing, and it is not any of the findings
-above: a single statement of what a valid layout identifier is. M5's fix rejects an
-identifier that would leave the layout directory, but the two identifiers still have
-to fit in one 255-character path component together, and nothing rejects a name a
-filesystem reserves. That rule wants a home both storages can share, which makes it
-an API question rather than a fix to either module.
+The one thing [B2](#b2) asked for that was not any of the findings - a single
+statement of what a valid layout identifier is - now exists as
+`api/storage/LayoutIdentifiers`, in `persistence/api` so that both storages answer
+to the same rule rather than to whatever each of them happens to enforce. It refuses
+a blank identifier, a path separator, `.` and `..`, a layout identifier a filesystem
+resolves to a device, and a pair that exceeds 255 characters *together* - which is
+the case neither storage could catch alone, because the database checks two columns
+separately and the filesystem sees one name. Both providers call it before they build
+anything, and `DockingLayoutEntityCompositeKey` takes its column width from it, so
+the 255 is stated once.
+
+The rule is Windows' by origin and applied on every platform, because a POSIX
+filesystem reserves no names at all and forbids only `/` and a zero byte: a rule wide
+enough for Windows is wide enough for Linux and macOS, while one that held only where
+it was written would let an application name a layout it cannot restore on the next
+machine it ships to. Checked against Microsoft's *Naming Files, Paths, and
+Namespaces* rather than from memory, which corrected two things: `COM0` and `LPT0`
+are **not** reserved, and the six ISO/IEC 8859-1 superscript forms - `COM` and `LPT`
+followed by a superscript 1, 2 or 3 - **are**, in every directory. Those six are
+written as Unicode escapes so that a source encoding cannot silently stop them
+matching, and the test that proves they match builds the name from a code point for
+the same reason.
+
+The same document settled the two things this review had listed as uncovered.
+Forbidden characters are now rejected - `< > : " | ? *` plus every control character,
+with `/` and `\` still reported as a path rather than as a bad character - and so is
+a name ending in a space or a period, which Windows keeps in the filesystem but not
+in the shell, so the name asked for and the name stored differ. A leading period is
+still fine, which is what `.json` needs.
+
+What remains uncovered is a collision between two identifiers differing only in case,
+since Windows and macOS would treat them as one layout and Linux as two. That is a
+question about two identifiers at once, which a rule looking at one pair cannot see.
 
 M1 and M3 went together, because they are one question asked twice: who owns the
 `EntityManagerFactory`. The provider now creates one and keeps it; the storages it

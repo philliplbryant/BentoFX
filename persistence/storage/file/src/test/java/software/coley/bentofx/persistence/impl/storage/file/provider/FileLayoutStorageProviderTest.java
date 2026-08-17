@@ -88,6 +88,18 @@ class FileLayoutStorageProviderTest {
     }
 
     @Test
+    void appliesTheSharedIdentifierRule() {
+        final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
+
+        // A device name is a perfectly good path component, so the containment
+        // check below it cannot object: only the shared rule rejects this.
+        assertThatThrownBy(() -> provider.getLayoutStorage("nul", "json"))
+                .describedAs("layout identifier naming a device")
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("device");
+    }
+
+    @Test
     void rejectsAMissingLayoutIdentifier() {
         final FileLayoutStorageProvider provider = new FileLayoutStorageProvider();
 

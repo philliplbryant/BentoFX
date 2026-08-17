@@ -15,6 +15,7 @@ import java.nio.file.Path;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Exercises the persistence unit the module ships, which the storage tests
@@ -87,6 +88,19 @@ class DatabaseLayoutStorageProviderIT {
         assertThat(Files.isDirectory(temporaryHome.resolve(BENTO_DIRECTORY_NAME)))
                 .describedAs("the database was created under the user's home")
                 .isTrue();
+    }
+
+    @Test
+    void appliesTheSharedIdentifierRule() {
+        final DatabaseLayoutStorageProvider provider =
+                new DatabaseLayoutStorageProvider();
+
+        // Nothing about a column width rejects this one, so it holds only if the
+        // provider applies the rule the file storage applies.
+        assertThatThrownBy(() -> provider.getLayoutStorage("nul", CODEC_IDENTIFIER))
+                .describedAs("layout identifier naming a device")
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("device");
     }
 
     @Test

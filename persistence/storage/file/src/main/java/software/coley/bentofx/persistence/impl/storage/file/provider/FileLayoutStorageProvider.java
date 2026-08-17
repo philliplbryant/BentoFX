@@ -1,13 +1,13 @@
 package software.coley.bentofx.persistence.impl.storage.file.provider;
 
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.Objects;
 
 /**
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
@@ -37,8 +37,7 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
             final String layoutIdentifier,
             final String codecIdentifier
     ) {
-        Objects.requireNonNull(layoutIdentifier, "layoutIdentifier");
-        Objects.requireNonNull(codecIdentifier, "codecIdentifier");
+        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
         final String normalizedFileExtension = codecIdentifier.startsWith(".") ?
                 codecIdentifier.substring(1) :
@@ -57,9 +56,11 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
      *
      * <p>Both identifiers come from the application and become one path
      * component, so a separator or a {@code ..} segment in either would put the
-     * layout somewhere this provider did not choose. Resolving the name and then
-     * requiring the result to sit directly in the directory rejects that without
-     * having to enumerate which characters are dangerous.</p>
+     * layout somewhere this provider did not choose.
+     * {@link LayoutIdentifiers#requireValid} has already refused those by name;
+     * this is the check that does not depend on having listed them, and it still
+     * catches what a list cannot - a drive-relative name on Windows, or one the
+     * platform rejects outright.</p>
      *
      * @param directory the absolute, normalized directory layouts are kept in.
      * @param fileName the two identifiers joined by a {@code .}.
