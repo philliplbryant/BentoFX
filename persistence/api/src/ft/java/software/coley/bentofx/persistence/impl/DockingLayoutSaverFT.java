@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.impl;
 
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -34,9 +33,9 @@ class DockingLayoutSaverFT {
 
     private static final String DETACHED_STAGE_TITLE = "Detached";
 
-    private static final String CODEC_GET_ENCODETHREAD_DESCRIPTION = "codec.getEncodeThread()";
-    private static final String STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION = "storage.getOpenOutputStreamThread()";
-    private static final String STORAGE_TOBYTEARRAY_DESCRIPTION = "storage.toByteArray()";
+    private static final String CODEC_GET_ENCODE_THREAD_DESCRIPTION = "codec.getEncodeThread()";
+    private static final String STORAGE_GET_OPEN_OUTPUT_STREAM_THREAD_DESCRIPTION = "storage.getOpenOutputStreamThread()";
+    private static final String STORAGE_TO_BYTE_ARRAY_DESCRIPTION = "storage.toByteArray()";
 
     @Test
     void saveLayoutEncodesNonStageRootsAndDragDropStagesWithoutDuplicates(FxRobot robot) throws BentoStateException {
@@ -70,7 +69,7 @@ class DockingLayoutSaverFT {
         AtomicReference<DragDropStage> stageRef = new AtomicReference<>();
         robot.interact(() -> {
             Stage mainStage = new Stage();
-            mainStage.setScene(new Scene((Parent) mainRoot));
+            mainStage.setScene(new Scene(mainRoot));
             mainStage.show();
             mainStageRef.set(mainStage);
 
@@ -80,7 +79,7 @@ class DockingLayoutSaverFT {
             stage.setY(150);
             stage.setWidth(600);
             stage.setHeight(400);
-            stage.setScene(new Scene((Parent) dragRoot));
+            stage.setScene(new Scene(dragRoot));
             stage.show();
             stageRef.set(stage);
         });
@@ -103,7 +102,7 @@ class DockingLayoutSaverFT {
                 .describedAs("storage.exists()")
                 .isTrue();
         assertThat(storage.toByteArray())
-                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .describedAs(STORAGE_TO_BYTE_ARRAY_DESCRIPTION)
                 .isNotEmpty();
         assertThat(bentoStates)
                 .describedAs("bentoStates")
@@ -149,18 +148,14 @@ class DockingLayoutSaverFT {
         assertThat(codec.getEncodedStates())
                 .describedAs("codec.getEncodedStates()")
                 .isEmpty();
-        // Inverted for M11, along with this test's name. It previously required
-        // that an empty capture still be written, which is the behaviour that let
-        // a save taken before anything was attached truncate a good layout.
         assertThat(storage.toByteArray())
-                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .describedAs(STORAGE_TO_BYTE_ARRAY_DESCRIPTION)
                 .isEmpty();
     }
 
     /**
-     * The M11 case proper: a {@code Bento} exists, but none of its root branches
-     * have a {@code Scene}, so the capture finds nothing. The layout already on
-     * disk has to survive that.
+     * Tests a {@code Bento} exists, but none of its root branches
+     * have a {@code Scene}, so the capture finds nothing.
      */
     @Test
     void saveLayoutKeepsThePersistedLayoutWhenNothingIsAttached()
@@ -192,7 +187,7 @@ class DockingLayoutSaverFT {
                 .describedAs("codec.getEncodedStates()")
                 .isEmpty();
         assertThat(storage.toByteArray())
-                .describedAs(STORAGE_TOBYTEARRAY_DESCRIPTION)
+                .describedAs(STORAGE_TO_BYTE_ARRAY_DESCRIPTION)
                 .isEqualTo(previouslySavedLayout);
     }
 
@@ -204,18 +199,23 @@ class DockingLayoutSaverFT {
         root.addContainer(dockBuilding.leaf("leaf"));
 
         final ThreadRecordingLayoutCodec codec = new ThreadRecordingLayoutCodec();
-        final ThreadRecordingLayoutStorage storage = new ThreadRecordingLayoutStorage();
         final BentoProvider bentoProvider = new DefaultBentoProvider(bento);
+
+        // Not a try-with-resources: the DockingLayoutSaver below is handed this
+        // storage and closes it, which is the ownership LayoutStorage documents.
+        // Closing it here as well would state the opposite.
+        //noinspection resource
+        final ThreadRecordingLayoutStorage storage = new ThreadRecordingLayoutStorage();
 
         final AtomicReference<Thread> fxThread = new AtomicReference<>();
         final AtomicReference<Stage> stageRef = new AtomicReference<>();
 
         robot.interact(() -> {
             // The root branch needs a Scene before the save. This test is about
-            // which thread encodes and writes, so it needs a write to happen at
+            // which thread encodes and writes, so it needs write to happen at
             // all, and a capture only sees root branches their Bento knows about -
             // registration that happens from a scene listener in core. Without
-            // this the save now correctly finds nothing and skips the write (M11).
+            // this the save now correctly finds nothing and skips write.
             final Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.show();
@@ -237,16 +237,16 @@ class DockingLayoutSaverFT {
                 .describedAs("fxThread.get()")
                 .isNotNull();
         assertThat(codec.getEncodeThread())
-                .describedAs(CODEC_GET_ENCODETHREAD_DESCRIPTION)
+                .describedAs(CODEC_GET_ENCODE_THREAD_DESCRIPTION)
                 .isNotNull();
         assertThat(storage.getOpenOutputStreamThread())
-                .describedAs(STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION)
+                .describedAs(STORAGE_GET_OPEN_OUTPUT_STREAM_THREAD_DESCRIPTION)
                 .isNotNull();
         assertThat(codec.getEncodeThread())
-                .describedAs(CODEC_GET_ENCODETHREAD_DESCRIPTION)
+                .describedAs(CODEC_GET_ENCODE_THREAD_DESCRIPTION)
                 .isNotEqualTo(fxThread.get());
         assertThat(storage.getOpenOutputStreamThread())
-                .describedAs(STORAGE_GET_OPENOUTPUTSTREAMTHREAD_DESCRIPTION)
+                .describedAs(STORAGE_GET_OPEN_OUTPUT_STREAM_THREAD_DESCRIPTION)
                 .isNotEqualTo(fxThread.get());
     }
 }

@@ -5,36 +5,50 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Test storage that records the threads used to inspect and open persisted layout streams.
+ *
+ * <p>Each call to {@link #openOutputStream()} gets a buffer of its own, and closing
+ * that stream is what stores its bytes. A save that fails part way through, or one
+ * that abandons its stream, leaves what was stored before it alone.</p>
  */
 public final class ThreadRecordingLayoutStorage implements LayoutStorage {
     private final AtomicReference<@Nullable Thread> existsThread = new AtomicReference<>();
     private final AtomicReference<@Nullable Thread> openInputStreamThread = new AtomicReference<>();
     private final AtomicReference<@Nullable Thread> openOutputStreamThread = new AtomicReference<>();
-    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private final AtomicReference<byte[]> storedBytes = new AtomicReference<>(new byte[0]);
 
     @Override
     public boolean exists() {
         existsThread.set(Thread.currentThread());
-        return outputStream.size() > 0;
+        return storedBytes.get().length > 0;
     }
 
     @Override
-    public synchronized OutputStream openOutputStream() {
+    public OutputStream openOutputStream() {
         openOutputStreamThread.set(Thread.currentThread());
-        outputStream.reset();
-        return outputStream;
+
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        return new FilterOutputStream(buffer) {
+            @Override
+            public void close() throws IOException {
+                super.close();
+                storedBytes.set(buffer.toByteArray());
+            }
+        };
     }
 
     @Override
-    public synchronized InputStream openInputStream() {
+    public InputStream openInputStream() {
         openInputStreamThread.set(Thread.currentThread());
-        return new ByteArrayInputStream(outputStream.toByteArray());
+        return new ByteArrayInputStream(storedBytes.get());
     }
 
     public @Nullable Thread getExistsThread() {
@@ -49,7 +63,7 @@ public final class ThreadRecordingLayoutStorage implements LayoutStorage {
         return openOutputStreamThread.get();
     }
 
-    public synchronized byte[] toByteArray() {
-        return outputStream.toByteArray();
+    public byte[] toByteArray() {
+        return storedBytes.get().clone();
     }
 }

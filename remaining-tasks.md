@@ -17,16 +17,16 @@
       5. Initially perform on a per-module basis
          1. [x] `persistenc/api`
          2. [x] `persistence/codec`
-         3. [ ] `persistence/storage`
-         4. [ ] `persistence/test-fixtures`
-         5. [ ] `demos/persistence`
+         3. [x] `persistence/storage`
+         4. [x] `persistence/test-fixtures`
+         5. [x] `demos/persistence`
          6. [ ] Everything as is combined
-2. Configure `JReleaser` plugin to publish snapshots.
+2. Update all documentation.
+3. Configure `JReleaser` plugin to publish snapshots.
    1. https://nexus.jre.saic.com/#browse/browse:jre-central-snapshots
    2. Use environment variables
       1. `NEXUS_USERNAME`
       2. `NEXUS_PASSWORD`
-3. Update all documentation.
 4. Analyze code coverage reports.
    1. Exclude files in `core` and `demos`.
    2. Create additional tests to increase coverage.

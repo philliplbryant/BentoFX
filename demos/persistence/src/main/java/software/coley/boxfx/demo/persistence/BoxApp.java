@@ -90,6 +90,8 @@ public class BoxApp extends Application {
 
 	private @Nullable Stage stage;
 
+	private @Nullable LayoutSaver layoutSaver;
+
 	@Override
 	public void start(Stage stage) {
 		this.stage = stage;
@@ -192,7 +194,25 @@ public class BoxApp extends Application {
 		// A Scene is created and additional Stage properties are set when
 		// applying the docking layout.
 		DockingLayout dockingLayout = getDockingLayout();
-		applyDockingLayout(dockingLayout);
+
+		if (!applyDockingLayout(dockingLayout)) {
+			// Nothing was applied, so the stage has no Scene and was never shown.
+			// Falling back to the default layout keeps the application usable and
+			// leaves the reason in the log; without it a saved layout this demo
+			// cannot apply leaves a running process with no window.
+			logger.warn(
+					"Could not apply the restored docking layout; " +
+							"applying the default docking layout instead."
+			);
+
+			if (!applyDockingLayout(getDefaultDockingLayout())) {
+				logger.error("Could not apply the default docking layout.");
+			}
+		}
+
+		// Built last: a capture only sees root branches that have a Scene, and
+		// auto-save starts as soon as the saver exists.
+		layoutSaver = createLayoutSaver();
 	}
 
 	/**
@@ -281,22 +301,48 @@ public class BoxApp extends Application {
 	}
 
 	/**
+	 * {@return the {@link LayoutSaver} for this application's layout, or
+	 * {@code null} when one cannot be created.}
+	 *
+	 * <p>The saver returned from a {@link DockingLayoutPersistenceProvider}
+	 * already has auto-save running, so this is called once, while the
+	 * application is starting, rather than where the layout is saved.</p>
+	 */
+	private @Nullable LayoutSaver createLayoutSaver() {
+		try {
+			return persistenceProvider.getLayoutSaver(
+					DEFAULT_LAYOUT_IDENTIFIER,
+					bentoProvider
+			);
+		} catch (final BentoStateException e) {
+			logger.warn("Could not create the docking layout saver.", e);
+			return null;
+		}
+	}
+
+	/**
 	 * {code EventHandler<WindowEvent>} implementation that saves the docking
-	 * layout; it does <b><i><u>not</u></i></b> save the layout of the main
-	 * Stage, non-docking components, or other application state.
+	 * layout and then releases the saver; it does <b><i><u>not</u></i></b> save
+	 * the layout of the main Stage, non-docking components, or other application
+	 * state.
+	 *
+	 * <p>The saver is closed here rather than from {@code stop()} because this
+	 * runs while the windows still exist, and closing is what removes the saver's
+	 * listener from each {@code Bento} and stops its auto-save. Saving explicitly
+	 * first is deliberate: closing saves only when a dock event has been received
+	 * since the last save.</p>
 	 *
 	 * @param windowEvent unused.
 	 */
 	private void saveDockingLayout(final WindowEvent windowEvent) {
-		try {
-			final LayoutSaver layoutSaver =
-					persistenceProvider.getLayoutSaver(
-                            DEFAULT_LAYOUT_IDENTIFIER,
-                            bentoProvider
-                    );
+		final LayoutSaver saver = layoutSaver;
 
-			layoutSaver.saveLayout();
-		} catch (BentoStateException e) {
+		try (saver) {
+			if (saver == null) {
+				return;
+			}
+			saver.saveLayout();
+		} catch (final BentoStateException e) {
 			logger.warn("Could not save the docking layout.", e);
 		}
 	}
@@ -309,15 +355,17 @@ public class BoxApp extends Application {
 	 */
 	private DockingLayout getDockingLayout() {
 
-		try {
-			final LayoutRestorer layoutRestorer =
-					persistenceProvider.getLayoutRestorer(
-							DEFAULT_LAYOUT_IDENTIFIER,
-							bentoProvider,
-							dockableStateProvider,
-							stageIconImageProvider,
-							dockContainerLeafMenuFactoryProvider
-					);
+		// The restorer owns the LayoutStorage it was given and closes it, so it is
+		// closed here rather than abandoned. The layout it returns is already built,
+		// so closing the storage afterwards costs nothing.
+		try (final LayoutRestorer layoutRestorer =
+					 persistenceProvider.getLayoutRestorer(
+							 DEFAULT_LAYOUT_IDENTIFIER,
+							 bentoProvider,
+							 dockableStateProvider,
+							 stageIconImageProvider,
+							 dockContainerLeafMenuFactoryProvider
+					 )) {
 
 			return layoutRestorer.restoreLayout(
 					this::getDefaultDockingLayout
@@ -332,14 +380,20 @@ public class BoxApp extends Application {
 	 * Applies all {@link BentoLayout} found in the {@link DockingLayout}.
 	 *
 	 * @param dockingLayout the {@link DockingLayout} to be applied.
+	 *
+	 * @return {@code true} when at least one {@link BentoLayout} was applied;
+	 * otherwise, {@code false}, which means no {@link Scene} was set and the
+	 * caller has to apply a layout that can be.
 	 */
-	private void applyDockingLayout(
+	private boolean applyDockingLayout(
 			final DockingLayout dockingLayout
 	) {
+		boolean isApplied = false;
+
 		for (final BentoLayout bentoLayout :
 				dockingLayout.getBentoLayouts()) {
 			if (bentoLayout.matchesIdentity(bento)) {
-				applyBentoLayout(bentoLayout);
+				isApplied |= applyBentoLayout(bentoLayout);
 			} else {
 				logger.warn(
 						"Unknown BentoLayout identifier: {}",
@@ -347,6 +401,8 @@ public class BoxApp extends Application {
 				);
 			}
 		}
+
+		return isApplied;
 	}
 
 	/**
@@ -376,8 +432,11 @@ public class BoxApp extends Application {
 	 * Applies the {@link BentoLayout} to docking components.
 	 *
 	 * @param bentoLayout the layout to be applied.
+	 *
+	 * @return {@code true} when the layout was applied to the {@link Stage};
+	 * otherwise, {@code false}.
 	 */
-	public void applyBentoLayout(final BentoLayout bentoLayout) {
+	public boolean applyBentoLayout(final BentoLayout bentoLayout) {
 		final List<DockContainerRootBranch> bentoRootBranches =
 				bentoLayout.getRootBranches();
 
@@ -388,10 +447,16 @@ public class BoxApp extends Application {
 							"were found.",
 					bentoRootBranches.size()
 			);
-		} else if (stage == null) {
+			return false;
+		}
+
+		if (stage == null) {
 			// The primary stage should have been set when the application was started
 			logger.error("The stage cannot be null.");
-		} else if (!bentoLayout.matchesIdentity(bento)) {
+			return false;
+		}
+
+		if (!bentoLayout.matchesIdentity(bento)) {
 			// A DockingLayout can have multiple BentoLayout; make sure we're
 			// applying the right one
 			logger.warn(
@@ -399,23 +464,28 @@ public class BoxApp extends Application {
 					bentoLayout.getIdentifier(),
 					bento.getIdentifier()
 			);
-		} else {
-			// Apply the root branch of the BentoLayout
-			final Scene scene =
-					new Scene(bentoRootBranches.getFirst());
-			scene.getStylesheets().add("/bento.css");
-			stage.setScene(scene);
-			stage.show();
+			return false;
 		}
+
+		// Apply the root branch of the BentoLayout
+		final Scene scene =
+				new Scene(bentoRootBranches.getFirst());
+		scene.getStylesheets().add("/bento.css");
+		stage.setScene(scene);
+		stage.show();
 
 		// Show the DragDropStages that were showing when the layout was saved.
 		// Showing all of them unconditionally is what made the persisted
 		// isShowing flag pointless: a stage the user had closed came back open.
+		// Only reached once the main layout is up: floating windows from a layout
+		// whose root branch could not be applied would be the only thing on screen.
 		for (final DragDropStage dragDropStage :
 				bentoLayout.getDragDropStages()) {
 			if (bentoLayout.wasShowing(dragDropStage)) {
 				dragDropStage.show();
 			}
 		}
+
+		return true;
 	}
 }
