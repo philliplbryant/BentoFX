@@ -25,10 +25,15 @@ import static javafx.stage.Modality.APPLICATION_MODAL;
  * to compare a layout against itself rather than against a handful of
  * identifiers.
  *
- * <p>Every persistable property is set to a value distinct from its neighbors',
+ * <p>When a property is set, it is set to a value distinct from its neighbors',
  * so a round-trip that drops one, or crosses two, shows up as an inequality. A
  * dockable's node, factories and consumer are unset. The application supplies
  * those at restore time.</p>
+ *
+ * <p>Two containers are deliberately sparser than the rest: the last leaf of the
+ * root branch holds no dockables at all, and the leaf inside the drag/drop stage
+ * sets only its side. An empty container and a barely-configured one are cases a
+ * round trip has to survive, so the layout carries one of each.</p>
  *
  * @author Phil Bryant
  */
@@ -43,6 +48,12 @@ public final class SampleBentoStateFactory {
     public static final String STAGE_ROOT_IDENTIFIER = "stage-root";
     public static final String STAGE_LEAF_IDENTIFIER = "stage-leaf";
     public static final String STAGE_TITLE = "Floating Stage";
+
+    /**
+     * The one property {@code DragDropStageStateBuilder} requires at construction,
+     * named here rather than passed as a bare literal.
+     */
+    private static final boolean IS_AUTO_CLOSED_WHEN_EMPTY = true;
 
     private static final String FIRST_DOCKABLE_IDENTIFIER = "dockable-A1";
     private static final String SECOND_DOCKABLE_IDENTIFIER = "dockable-A2";
@@ -127,7 +138,7 @@ public final class SampleBentoStateFactory {
     }
 
     private static DragDropStageState createDragDropStageState() {
-        return new DragDropStageStateBuilder(true)
+        return new DragDropStageStateBuilder(IS_AUTO_CLOSED_WHEN_EMPTY)
                 .setTitle(STAGE_TITLE)
                 .setX(10.5)
                 .setY(20.5)

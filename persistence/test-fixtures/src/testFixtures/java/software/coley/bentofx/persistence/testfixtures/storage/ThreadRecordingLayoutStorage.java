@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Each call to {@link #openOutputStream()} gets a buffer of its own, and closing
  * that stream is what stores its bytes. A save that fails part way through, or one
  * that abandons its stream, leaves what was stored before it alone.</p>
+ *
+ * @author Phil Bryant
  */
 public final class ThreadRecordingLayoutStorage implements LayoutStorage {
     private final AtomicReference<@Nullable Thread> existsThread = new AtomicReference<>();
@@ -51,18 +53,34 @@ public final class ThreadRecordingLayoutStorage implements LayoutStorage {
         return new ByteArrayInputStream(storedBytes.get());
     }
 
+    /**
+     * {@return the thread that last called {@link #exists()}, or {@code null} when
+     * it has not been called.}
+     */
     public @Nullable Thread getExistsThread() {
         return existsThread.get();
     }
 
+    /**
+     * {@return the thread that last called {@link #openInputStream()}, or
+     * {@code null} when it has not been called.}
+     */
     public @Nullable Thread getOpenInputStreamThread() {
         return openInputStreamThread.get();
     }
 
+    /**
+     * {@return the thread that last called {@link #openOutputStream()}, or
+     * {@code null} when it has not been called.}
+     */
     public @Nullable Thread getOpenOutputStreamThread() {
         return openOutputStreamThread.get();
     }
 
+    /**
+     * {@return a copy of the stored bytes, which are the bytes of the last stream
+     * that was closed.}
+     */
     public byte[] toByteArray() {
         return storedBytes.get().clone();
     }

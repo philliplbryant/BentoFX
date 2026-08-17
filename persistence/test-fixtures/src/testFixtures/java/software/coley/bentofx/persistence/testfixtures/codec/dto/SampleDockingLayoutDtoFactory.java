@@ -18,8 +18,12 @@ import static javafx.stage.Modality.NONE;
 /**
  * Creates representative docking layout DTOs for codec and mapper tests.
  *
- * <p>Every container appears in exactly one parent, and every identifier is
- * distinct.</p>
+ * <p>Every container appears in exactly one parent, every identifier is distinct,
+ * and no two parents share a divider. Each one gets its own instance at its own
+ * position, so a round trip that drops one and duplicates another cannot come back
+ * equal.</p>
+ *
+ * @author Phil Bryant
  */
 public final class SampleDockingLayoutDtoFactory {
     public static final String BENTO_IDENTIFIER = "bento-1";
@@ -38,7 +42,8 @@ public final class SampleDockingLayoutDtoFactory {
     public static final int DOCKABLE_DRAG_GROUP_MASK = 6;
 
     private static final int DIVIDER_INDEX = 0;
-    private static final double DIVIDER_POSITION = 0.42;
+    private static final double ROOT_DIVIDER_POSITION = 0.42;
+    private static final double BRANCH_DIVIDER_POSITION = 0.58;
     private static final double LEAF_UNCOLLAPSED_SIZE_PX = 321.0;
     private static final double STAGE_X = 10.0;
     private static final double STAGE_Y = 20.0;
@@ -69,22 +74,18 @@ public final class SampleDockingLayoutDtoFactory {
         leaf.isCollapsed = false;
         leaf.dockables.add(dockable);
 
-        final DividerPositionDto divider = new DividerPositionDto();
-        divider.index = DIVIDER_INDEX;
-        divider.position = DIVIDER_POSITION;
-
         final DockContainerBranchDto branch = new DockContainerBranchDto();
         branch.identifier = BRANCH_IDENTIFIER;
         branch.pruneWhenEmpty = false;
         branch.orientation = HORIZONTAL;
-        branch.dividerPositions.add(divider);
+        branch.dividerPositions.add(createDividerDto(BRANCH_DIVIDER_POSITION));
         branch.childDockContainers.add(leaf);
 
         final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
         root.identifier = ROOT_IDENTIFIER;
         root.pruneWhenEmpty = false;
         root.orientation = VERTICAL;
-        root.dividerPositions.add(divider);
+        root.dividerPositions.add(createDividerDto(ROOT_DIVIDER_POSITION));
         root.childDockContainers.add(branch);
         root.childDockContainers.add(
                 createLeafDto(ROOT_LEAF_IDENTIFIER, ROOT_LEAF_DOCKABLE_IDENTIFIER)
@@ -121,6 +122,18 @@ public final class SampleDockingLayoutDtoFactory {
         layout.bentoStates.add(bento);
 
         return layout;
+    }
+
+    /**
+     * {@return a divider at the sample index and the supplied position.}
+     *
+     * @param position where the divider sits.
+     */
+    private static DividerPositionDto createDividerDto(final double position) {
+        final DividerPositionDto divider = new DividerPositionDto();
+        divider.index = DIVIDER_INDEX;
+        divider.position = position;
+        return divider;
     }
 
     /**

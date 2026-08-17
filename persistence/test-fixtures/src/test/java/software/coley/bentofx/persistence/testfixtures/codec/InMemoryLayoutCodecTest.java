@@ -54,7 +54,7 @@ class InMemoryLayoutCodecTest {
         writer.encode(List.of(state), outputStream);
 
         assertThatThrownBy(() -> reader.decode(new ByteArrayInputStream(outputStream.toByteArray())))
-                .describedAs("exception thrown by () -> reader.decode(new ByteArrayInputStream(outputStream.toByteArr...")
+                .describedAs("decoding a token another codec instance wrote")
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("not encoded by this InMemoryLayoutCodec");
     }

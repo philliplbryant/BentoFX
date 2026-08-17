@@ -14,10 +14,14 @@ is already on the JavaFX application thread.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `f67689c`.
 
-All four majors are fixed, along with every finding against the demo - N1 to N5 and
-T7 to T9. What remains open is the seven fixture minors, N6 to N12, and the six
-fixture nits, T1 to T6. All of it is verified in the working tree and not yet
-committed.
+Every finding is fixed. The demo work is committed; the fixture minors and nits are
+verified in the working tree and not yet committed.
+
+Four of the fixture fixes changed behavior rather than documentation. Three carry a
+regression test that fails against the previous fixture - [M4](#m4), [N6](#n6) and
+[N7](#n7) - and the fourth, [N9](#n9), broke a codec test that had been built on the
+same aliasing the fixture had. That test is updated, and the break is recorded under
+N9 because it is the most useful thing the fix demonstrates.
 
 `demos/basic` is untouched. Only one fix makes the two demos differ where they
 previously agreed: [T7](#t7) removes a duplicated line the persistence demo had
@@ -93,24 +97,24 @@ None. Nothing in either area loses a layout a user had, and nothing in
 | [N3](#n3) | demo | `Runner` calls `printStackTrace`, which this project's standards rule out | **Fixed** 2026-08-17 |
 | [N4](#n4) | demo | The dockable states are published from a queued task, so every read depends on JavaFX queue ordering | **Fixed** 2026-08-17 |
 | [N5](#n5) | demo | `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier | **Fixed** 2026-08-17 |
-| [N6](#n6) | fixtures | `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more | **Open** |
-| [N7](#n7) | fixtures | `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns | **Open** |
-| [N8](#n8) | fixtures | The two provider fixtures record what they were called with in fields no thread boundary protects | **Open** |
-| [N9](#n9) | fixtures | `SampleDockingLayoutDtoFactory` puts one divider instance in two parents | **Open** |
-| [N10](#n10) | fixtures | `InMemoryLayoutStorage` mixes `volatile` with `synchronized`, and the write that matters holds neither | **Open** |
-| [N11](#n11) | fixtures | Two Javadoc conventions across one module, and half the fixtures have no `@author` | **Open** |
-| [N12](#n12) | fixtures | `AbstractTestLayoutProvider` satisfies the provider interface by name without declaring it | **Open** |
+| [N6](#n6) | fixtures | `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more | **Fixed** 2026-08-17 |
+| [N7](#n7) | fixtures | `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns | **Fixed** 2026-08-17 |
+| [N8](#n8) | fixtures | The two provider fixtures record what they were called with in fields no thread boundary protects | **Fixed** 2026-08-17 |
+| [N9](#n9) | fixtures | `SampleDockingLayoutDtoFactory` puts one divider instance in two parents | **Fixed** 2026-08-17 |
+| [N10](#n10) | fixtures | `InMemoryLayoutStorage` mixes `volatile` with `synchronized`, and the write that matters holds neither | **Fixed** 2026-08-17 |
+| [N11](#n11) | fixtures | Two Javadoc conventions across one module, and half the fixtures have no `@author` | **Fixed** 2026-08-17 |
+| [N12](#n12) | fixtures | `AbstractTestLayoutProvider` satisfies the provider interface by name without declaring it | **Fixed** 2026-08-17 |
 
 ### NIT
 
 | | Module | Finding | Status |
 |---|---|---|---|
-| [T1](#t1) | fixtures | `import java.io.*` in a module whose every other file imports explicitly | **Open** |
-| [T2](#t2) | fixtures | The anonymous output stream calls `toByteArray()`, which the enclosing class also declares | **Open** |
-| [T3](#t3) | fixtures | `TestLayoutStorage` accepts a write, stores nothing, and says nothing | **Open** |
-| [T4](#t4) | fixtures | `new DragDropStageStateBuilder(true)` passes an unnamed boolean | **Open** |
-| [T5](#t5) | fixtures | Truncated `describedAs` strings, ending mid-word in an ellipsis | **Open** |
-| [T6](#t6) | fixtures | `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few | **Open** |
+| [T1](#t1) | fixtures | `import java.io.*` in a module whose every other file imports explicitly | **Fixed** 2026-08-17 |
+| [T2](#t2) | fixtures | The anonymous output stream calls `toByteArray()`, which the enclosing class also declares | **Fixed** 2026-08-17 |
+| [T3](#t3) | fixtures | `TestLayoutStorage` accepts a write, stores nothing, and says nothing | **Fixed** 2026-08-17 |
+| [T4](#t4) | fixtures | `new DragDropStageStateBuilder(true)` passes an unnamed boolean | **Fixed** 2026-08-17 |
+| [T5](#t5) | fixtures | Truncated `describedAs` strings, ending mid-word in an ellipsis | **Fixed** 2026-08-17 |
+| [T6](#t6) | fixtures | `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few | **Fixed** 2026-08-17 |
 | [T7](#t7) | demo | `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic` | **Fixed** 2026-08-17 |
 | [T8](#t8) | demo | Twelve near-identical `put` blocks that the enum they read from could drive | **Fixed** 2026-08-17 |
 | [T9](#t9) | demo | The two menu-factory providers declare their `factory` field below the method that returns it | **Fixed** 2026-08-17 |
@@ -535,9 +539,17 @@ construct only with this fixture, and a test that exercises what the reader does
 with it - decode an empty layout, report a failure - is exercising a path no real
 storage produces.
 
-Keeping the constructor is fine; what is missing is the sentence saying that the
-state it creates is the fixture's own, so the next person to reach for it knows
-they are testing the fixture rather than the contract.
+The fixture answers the way both storages answer now: `bytes.length > 0`. The
+`exists` field is gone, along with the `InMemoryLayoutStorage(boolean)` constructor
+that existed to set it - nothing used that constructor, and what it offered was a
+state no implementation can be in. `delete()` clears the bytes and existence follows.
+
+Documenting the discrepancy was the other option, and it is what this finding
+originally proposed. Removing it is better: a fixture that can hold a state the
+contract cannot produce invites a test to assert on that state, and no amount of
+Javadoc stops that.
+
+`emptyContentIsNotALayout` pins it, and fails against the previous fixture.
 
 ### <a id="n7"></a>N7. `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns - MEASURED
 
@@ -563,8 +575,16 @@ For recording which thread called which method, this is enough, and the
 `writeEncoded` seam is documented. What is not documented is the trap: a test that
 saves through this codec and then restores gets an empty layout and no error, and
 the natural reading of "codec" is that the two halves are inverses.
-`InMemoryLayoutCodec`, in the same package, is the fixture that does round-trip -
-the class documentation should point at it.
+
+They are inverses now: `encode` seeds what `decode` returns as well as what
+`getEncodedStates` reports. `writeEncoded` stays, for a test that restores without
+having encoded, and the class documentation says which of the two to reach for. The
+one thing this fixture still does not do is read the stream it is handed, which is
+now stated on the class along with a pointer at `InMemoryLayoutCodec` for tests that
+need the storage's bytes to reach the codec.
+
+`encodedStatesCanBeDecodedBack` pins the round trip, and fails against the previous
+fixture.
 
 ### <a id="n8"></a>N8. The two provider fixtures record what they were called with in fields no thread boundary protects
 
@@ -593,8 +613,11 @@ call flaky and re-run.
 
 The two `ThreadRecording*` fixtures in this module already use `AtomicReference`
 for exactly this, which is what makes the inconsistency worth a line: the module
-knows the answer in one place and not in the other. An `AtomicInteger` and two
-`AtomicReference`s cost nothing here.
+knows the answer in one place and not in the other.
+
+An `AtomicInteger` and two `AtomicReference`s now, with a line on each class saying
+why - that the persistence API decides which thread calls a provider, so the test
+asserting on what was recorded is not the thread that recorded it.
 
 ### <a id="n9"></a>N9. `SampleDockingLayoutDtoFactory` puts one divider instance in two parents - MEASURED
 
@@ -629,8 +652,19 @@ PROBE divider-is-same-instance=true
 The DTOs are public-field carriers, so this is one mutable object reachable through
 two paths. A mapper that normalises a divider in place would change both parents at
 once, and a round-trip that lost the branch's divider and duplicated the root's
-would still compare equal on the values. Two instances with distinct positions
-would make the fixture say what its documentation says.
+would still compare equal on the values.
+
+Each parent gets its own instance now, at its own position - the root at 0.42, the
+branch at 0.58 - built by one small factory method.
+
+**This is the fix that earned its keep.** It failed
+`ObjectMapperMixinsCompatibilityTest.serializesDockingLayoutUsingCommonMapperFieldNames`,
+which builds the JSON it expects by hand and had been reusing one divider node for
+both parents - `dividerPositions.deepCopy()` into the branch and again into the root.
+So the test agreed with the fixture rather than checking it: two positions that
+should have been distinguishable were the same number in both the input and the
+expectation. The expected tree now carries the two positions separately, and the
+test compares something the mapper could get wrong.
 
 ### <a id="n10"></a>N10. `InMemoryLayoutStorage` mixes `volatile` with `synchronized`, and the write that matters holds neither
 
@@ -657,10 +691,13 @@ public synchronized OutputStream openOutputStream() {
 `synchronized` method that returned it. So the monitor on `openOutputStream`
 protects nothing about the write, and what makes the assignment visible to a later
 reader is the `volatile` on the fields. That is sound, and it is not what the
-method signatures suggest. Either the fields carry the safety and the
-`synchronized` keywords are noise on `openOutputStream`/`openInputStream`, or the
-`close()` body should take the monitor and the fields need no `volatile`. A fixture
-that other modules' concurrency tests lean on is worth being explicit in.
+method signatures suggest.
+
+The monitor is the single strategy now. `volatile` is gone, and the store the stream
+performs on close goes through a private `synchronized` method, so every read and
+every write of the stored bytes holds the same lock. The class documentation says so
+outright, since a fixture other modules' concurrency tests lean on should not leave
+its own strategy to be inferred.
 
 ### <a id="n11"></a>N11. Two Javadoc conventions across one module, and half the fixtures have no `@author`
 
@@ -688,6 +725,13 @@ standard that every public method carries Javadoc is looser here than in a shipp
 module. The inconsistency is the finding rather than the absence: one module,
 two conventions, and no way for a reader to tell which one is current.
 
+One convention now. Every fixture carries `@author`, every public method has a
+sentence saying what it does, and the `@param name` / indented-description form is
+gone in favour of the `@param name description.` form the rest of the repository
+uses. Two of those sentences turned out to be worth more than the tag they came
+with: the ones on `TestLayoutStorage` and `TestLayoutCodec` that say what those
+fixtures discard - see [T3](#t3).
+
 ### <a id="n12"></a>N12. `AbstractTestLayoutProvider` satisfies the provider interface by name without declaring it
 
 `persistence/test-fixtures/.../provider/AbstractTestLayoutProvider.java:6-25`
@@ -708,6 +752,8 @@ no error at the class that actually implements the methods. Declaring
 `implements LayoutPersistenceComponentProvider` on the base costs one clause and
 makes the relationship the compiler's business.
 
+It declares it now, and both methods carry `@Override`.
+
 ---
 
 ## NIT
@@ -720,6 +766,8 @@ The four other fixture files that need the same types list them one per line.
 `TestLayoutStorage`, in the same package and needing exactly the same four, is the
 direct contrast.
 
+Listed one per line now, like its neighbours.
+
 ### <a id="t2"></a>T2. The anonymous output stream calls `toByteArray()`, which the enclosing class also declares
 
 `persistence/test-fixtures/.../storage/InMemoryLayoutStorage.java:68, 100-102`
@@ -729,6 +777,13 @@ the stream's own inherited method, which is what is wanted. The enclosing class
 declares a public `toByteArray()` of its own that returns a defensive copy of the
 stored bytes. The line is correct and reads as though it might not be; qualifying
 it, or naming one of the two differently, settles the question for the reader.
+
+The collision is gone: the stream is a `FilterOutputStream` over a named buffer, and
+the store goes through a private `storeBytes` rather than through a name the stream
+also has. That last part is not cosmetic - `FilterOutputStream` declares
+`write(byte[])`, so the obvious spelling of this inside the stream would have written
+the bytes back into the buffer instead of storing them. The method's Javadoc records
+that, because the next person to tidy the name will otherwise reintroduce it.
 
 ### <a id="t3"></a>T3. `TestLayoutStorage` accepts a write, stores nothing, and says nothing - MEASURED
 
@@ -743,9 +798,10 @@ PROBE test-storage-exists-after-write=false
 PROBE test-storage-read-back=0
 ```
 
-For the provider-selection tests it is named for, that is all it needs to do. One
-sentence saying it discards what it is given would stop the next reader using it
-for a round trip - the same gap as [N7](#n7), in the storage half.
+For the provider-selection tests it is named for, that is all it needs to do.
+
+It says so now, and points at `InMemoryLayoutStorage` for anything that saves and
+reads back - the same treatment [N7](#n7) got in the codec half.
 
 ### <a id="t4"></a>T4. `new DragDropStageStateBuilder(true)` passes an unnamed boolean
 
@@ -754,6 +810,10 @@ for a round trip - the same gap as [N7](#n7), in the storage half.
 Every other value in this factory is either named by its setter or pulled from a
 constant. This one is a bare `true` in a constructor, and a reader has to open
 `DragDropStageState` to learn which property it sets.
+
+It reads `IS_AUTO_CLOSED_WHEN_EMPTY` now, after the builder's own parameter, with a
+constant whose documentation says it is the one property that builder requires at
+construction.
 
 ### <a id="t5"></a>T5. Truncated `describedAs` strings, ending mid-word in an ellipsis
 
@@ -765,10 +825,12 @@ constant. This one is a bare `true` in a constructor, and a reader has to open
 
 The description is the code that follows it, cut off at a fixed width. When the
 assertion fails, the message repeats the call AssertJ already reports and stops
-mid-identifier. The same pattern appears in `persistence/api`'s
-`DefaultDockingLayoutPersistenceProviderTest`, so it is a habit rather than a
-slip: a phrase describing what was expected would carry more than a truncated
-echo.
+mid-identifier.
+
+It now reads "decoding a token another codec instance wrote", which is the thing
+being tested rather than an echo of the call. The same pattern appears in
+`persistence/api`'s `DefaultDockingLayoutPersistenceProviderTest`, which is outside
+this review's scope and worth the same treatment when that file is next touched.
 
 ### <a id="t6"></a>T6. `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few
 
@@ -781,6 +843,10 @@ holds no dockables, and the leaf inside `createStageRootBranchState` sets only i
 side. Both are useful cases to have in the fixture - an empty leaf and a sparse one
 are exactly what a round-trip should survive - so the documentation is what needs
 adjusting, not the layout.
+
+Adjusted: the claim is now that a property, where set, is distinct from its
+neighbors', and a second paragraph says the two sparse containers are deliberate and
+what each of them is for.
 
 ### <a id="t7"></a>T7. `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic`
 

@@ -210,15 +210,35 @@ class ObjectMapperMixinsCompatibilityTest {
 		return node;
 	}
 
-	private static JsonNode createExpectedDockingLayoutJson() {
-		final JsonNodeFactory factory = JsonNodeFactory.instance;
-
+	/**
+	 * {@return a one-element divider position list at the supplied position.}
+	 *
+	 * @param factory the node factory to build with.
+	 * @param position the divider's position.
+	 */
+	private static ArrayNode createDividerPositions(
+			final JsonNodeFactory factory,
+			final double position
+	) {
 		final ObjectNode divider = factory.objectNode();
 		divider.set(FIELD_INDEX, factory.numberNode(0));
-		divider.set(FIELD_POSITION, factory.numberNode(0.42));
+		divider.set(FIELD_POSITION, factory.numberNode(position));
 
 		final ArrayNode dividerPositions = factory.arrayNode();
 		dividerPositions.add(divider);
+
+		return dividerPositions;
+	}
+
+	private static JsonNode createExpectedDockingLayoutJson() {
+		final JsonNodeFactory factory = JsonNodeFactory.instance;
+
+		// The two parents carry dividers at different positions, because the sample
+		// layout gives each parent its own rather than sharing one instance.
+		final ArrayNode branchDividerPositions =
+				createDividerPositions(factory, 0.58);
+		final ArrayNode rootDividerPositions =
+				createDividerPositions(factory, 0.42);
 
 		final ArrayNode childDockContainers = factory.arrayNode();
 		childDockContainers.add(createFirstLeafNode(factory));
@@ -228,7 +248,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		branch.set(FIELD_IDENTIFIER, factory.textNode(BRANCH_IDENTIFIER));
 		branch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		branch.set(FIELD_ORIENTATION, factory.textNode(HORIZONTAL.name()));
-		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
+		branch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, branchDividerPositions);
 		branch.set(FIELD_CHILD_DOCK_CONTAINERS, childDockContainers);
 
 		final ArrayNode rootChildDockContainers = factory.arrayNode();
@@ -241,7 +261,7 @@ class ObjectMapperMixinsCompatibilityTest {
 		rootBranch.set(FIELD_IDENTIFIER, factory.textNode(ROOT_IDENTIFIER));
 		rootBranch.set(FIELD_PRUNE_WHEN_EMPTY, factory.booleanNode(false));
 		rootBranch.set(FIELD_ORIENTATION, factory.textNode(VERTICAL.name()));
-		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, dividerPositions.deepCopy());
+		rootBranch.set(DIVIDER_POSITION_LIST_ELEMENT_NAME, rootDividerPositions);
 		rootBranch.set(FIELD_CHILD_DOCK_CONTAINERS, rootChildDockContainers);
 
 		final ObjectNode dragDropStage = factory.objectNode();

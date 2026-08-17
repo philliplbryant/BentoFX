@@ -4,12 +4,27 @@ import software.coley.bentofx.persistence.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.TestLayoutCodec;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Configurable {@link LayoutCodecProvider} for provider-selection tests.
+ *
+ * <p>The creation count is atomic because the persistence API decides which thread
+ * calls a provider, so the test making assertions using it is not the same thread that
+ * incremented it.</p>
+ *
+ * @author Phil Bryant
  */
 public final class TestLayoutCodecProvider extends AbstractTestLayoutProvider implements LayoutCodecProvider {
-    private int createdCodecCount;
 
+    private final AtomicInteger createdCodecCount = new AtomicInteger();
+
+    /**
+     * Creates a provider that reports the supplied identifier and default flag.
+     *
+     * @param identifier the identifier this provider answers to.
+     * @param defaultProvider whether this provider is the default one.
+     */
     public TestLayoutCodecProvider(
             final String identifier,
             final boolean defaultProvider
@@ -19,11 +34,14 @@ public final class TestLayoutCodecProvider extends AbstractTestLayoutProvider im
 
     @Override
     public LayoutCodec getLayoutCodec() {
-        createdCodecCount++;
+        createdCodecCount.incrementAndGet();
         return new TestLayoutCodec(getIdentifier());
     }
 
+    /**
+     * {@return how many codecs this provider has been asked for.}
+     */
     public int getCreatedCodecCount() {
-        return createdCodecCount;
+        return createdCodecCount.get();
     }
 }

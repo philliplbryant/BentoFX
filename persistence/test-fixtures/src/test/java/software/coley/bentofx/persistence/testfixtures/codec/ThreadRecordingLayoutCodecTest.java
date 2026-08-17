@@ -36,6 +36,19 @@ class ThreadRecordingLayoutCodecTest {
     }
 
     @Test
+    void encodedStatesCanBeDecodedBack() throws BentoStateException {
+        final ThreadRecordingLayoutCodec codec = new ThreadRecordingLayoutCodec();
+        final BentoState state = new BentoStateBuilder(BENTO_IDENTIFIER).build();
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        codec.encode(List.of(state), outputStream);
+
+        assertThat(codec.decode(new ByteArrayInputStream(outputStream.toByteArray())))
+                .describedAs("states decoded after encoding them")
+                .containsExactly(state);
+    }
+
+    @Test
     void decodeRecordsThreadAndReturnsSeededStates() throws BentoStateException {
         final ThreadRecordingLayoutCodec codec = new ThreadRecordingLayoutCodec();
         final BentoState state = new BentoStateBuilder(BENTO_IDENTIFIER).build();

@@ -2,7 +2,12 @@ package software.coley.bentofx.persistence.testfixtures.storage;
 
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 
 /**
@@ -10,63 +15,63 @@ import java.util.Arrays;
  * memory. Intended for use with tests that need a concrete
  * {@link LayoutStorage} without touching the file system or a database.
  *
+ *
+ * <p>Closing an output stream is what stores what was written to it, so an
+ * abandoned save leaves the previously stored bytes alone. Every method holds this
+ * instance's monitor, including the store the returned stream performs when it
+ * closes, so a test may drive it from more than one thread.</p>
+ *
  * @author Phil Bryant
  */
 public class InMemoryLayoutStorage implements LayoutStorage {
 
-    private volatile boolean exists;
-    private volatile byte[] bytes;
+    private byte[] bytes;
 
     /**
      * Creates an empty storage location that does not yet exist.
      */
     public InMemoryLayoutStorage() {
-        this(false);
+        this(new byte[0]);
     }
 
     /**
-     * Creates an empty storage location with the requested initial existence
-     * state.
+     * Creates a storage location initialized with the supplied bytes.
      *
-     * @param exists initial value returned by {@link #exists()}.
-     */
-    public InMemoryLayoutStorage(final boolean exists) {
-        this(exists, new byte[0]);
-    }
-
-    /**
-     * Creates a storage location initialized with the supplied bytes. The
-     * storage is considered to exist even when the supplied byte array is
-     * empty, which allows tests to distinguish between "missing" and
-     * "existing but empty" storage.
-     *
-     * @param bytes initial stored bytes.
+     * @param bytes initial stored bytes. Empty bytes leave this storage reporting
+     * that no layout exists.
      */
     public InMemoryLayoutStorage(final byte[] bytes) {
-        this(true, bytes);
-    }
-
-    private InMemoryLayoutStorage(
-            final boolean exists,
-            final byte[] bytes
-    ) {
-        this.exists = exists;
         this.bytes = Arrays.copyOf(bytes, bytes.length);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Existence is answered considering a layout only exists once bytes have been
+     * stored for it, and empty content is no layout. There is deliberately no way to
+     * make this storage report that an empty layout exists.</p>
+     * @return
+     */
     @Override
-    public boolean exists() {
-        return exists;
+    public synchronized boolean exists() {
+        return bytes.length > 0;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The returned stream buffers what is written to it and stores that when it
+     * is closed.</p>
+     */
     @Override
-    public synchronized OutputStream openOutputStream() {
-        return new ByteArrayOutputStream() {
+    public OutputStream openOutputStream() {
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        return new FilterOutputStream(buffer) {
             @Override
             public void close() throws IOException {
                 super.close();
-                bytes = toByteArray();
-                exists = true;
+                storeBytes(buffer.toByteArray());
             }
         };
     }
@@ -77,27 +82,41 @@ public class InMemoryLayoutStorage implements LayoutStorage {
     }
 
     /**
-     * Replaces the current stored bytes and marks the storage as existing.
+     * Replaces the current stored bytes.
      *
      * @param bytes stored bytes.
      */
-    public synchronized void write(final byte[] bytes) {
-        this.bytes = Arrays.copyOf(bytes, bytes.length);
-        exists = true;
+    public void write(final byte[] bytes) {
+        storeBytes(bytes);
     }
 
     /**
-     * Clears the stored bytes and marks the storage as missing.
+     * Clears the stored bytes, after which this storage reports that no layout
+     * exists.
      */
-    public synchronized void delete() {
-        bytes = new byte[0];
-        exists = false;
+    public void delete() {
+        storeBytes(new byte[0]);
     }
 
     /**
-     * @return a defensive copy of the currently stored bytes.
+     * {@return a defensive copy of the currently stored bytes.}
      */
     public synchronized byte[] toByteArray() {
         return Arrays.copyOf(bytes, bytes.length);
+    }
+
+    /**
+     * Stores a copy of the supplied bytes.
+     *
+     * <p>Named for what it does rather than {@code write}, because the stream
+     * returned by {@link #openOutputStream()} calls this from its own
+     * {@code close()} and inherits a {@code write(byte[])} of its own - an
+     * unqualified call to that name inside the stream would write the bytes back
+     * into the buffer instead of storing them.</p>
+     *
+     * @param newBytes the bytes to store.
+     */
+    private synchronized void storeBytes(final byte[] newBytes) {
+        bytes = Arrays.copyOf(newBytes, newBytes.length);
     }
 }
