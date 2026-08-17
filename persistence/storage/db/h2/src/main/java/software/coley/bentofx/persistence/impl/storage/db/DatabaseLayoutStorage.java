@@ -84,8 +84,13 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>A layout that is not stored arrives as an {@link IOException}.</p>
+	 */
 	@Override
-	public InputStream openInputStream() {
+	public InputStream openInputStream() throws IOException {
 
 		try (final EntityManager em = emf.createEntityManager()) {
 
@@ -100,6 +105,16 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 							DockingLayoutEntity.class,
 							createKey()
 					);
+
+			// Qodana reports entity == null is always false,
+			// but em.find(...) can return null.
+			// noinspection ConstantValue
+			if (entity == null) {
+				throw new IOException(
+						"No layout is stored for layout '" + layoutIdentifier
+								+ "' and codec '" + codecIdentifier + "'."
+				);
+			}
 
 			return new ByteArrayInputStream(entity.payload);
 		}

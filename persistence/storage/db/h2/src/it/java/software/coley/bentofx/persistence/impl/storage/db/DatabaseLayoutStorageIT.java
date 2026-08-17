@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntityCompositeKey.MAX_COMPOSITE_KEY_LENGTH;
 
 class DatabaseLayoutStorageIT {
@@ -155,6 +156,15 @@ class DatabaseLayoutStorageIT {
                     .describedAs("Read data should match the written data.")
                     .isEqualTo(TEST_DATA);
         }
+    }
+
+    @Test
+    void readingALayoutThatIsNotStoredThrowsIOException() {
+        assertThatThrownBy(storage::openInputStream)
+                .describedAs("reading a layout with no row")
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining(TEST_LAYOUT_IDENTIFIER)
+                .hasMessageContaining(TEST_CODEC_IDENTIFIER);
     }
 
     @Test

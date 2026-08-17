@@ -10,11 +10,11 @@ which `LayoutStateWriter` and `LayoutStateReader` use it.
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
 `736d93f`.
 
-Both blockers are fixed, along with M1, M3, M4, every minor except N4, and all
-eight nits. The nits are committed; M1 and M3 are verified in the working tree
+Both blockers are fixed, along with M1, M2, M3, M4, every minor except N4, and all
+eight nits. The nits are committed; M1, M2 and M3 are verified in the working tree
 and not yet committed. N4 is closed as won't fix, and T7 needed no change because
-the test [B2](#b2) brought with it already covers it. What remains open is M2, M5
-and M6.
+the test [B2](#b2) brought with it already covers it. What remains open is M5 and
+M6, both in the file storage.
 
 M1 and M3 went together, because they are one question asked twice: who owns the
 `EntityManagerFactory`. The provider now creates one and keeps it; the storages it
@@ -86,7 +86,7 @@ is to copy the one that is right.
 | | Finding | Status |
 |---|---|---|
 | [M1](#m1) | `DatabaseLayoutStorage` closes an `EntityManagerFactory` it did not create | **Fixed** 2026-08-17 |
-| [M2](#m2) | A missing row makes `openInputStream` throw `NullPointerException`, not `IOException` | **Open** |
+| [M2](#m2) | A missing row makes `openInputStream` throw `NullPointerException`, not `IOException` | **Fixed** 2026-08-17 |
 | [M3](#m3) | One `EntityManagerFactory`, and one connection pool, per storage instance | **Fixed** 2026-08-17 |
 | [M4](#m4) | `AUTO_SERVER=TRUE` lets other processes connect to the layout database | **Fixed** 2026-08-16 |
 | [M5](#m5) | The layout identifier goes into a file path unchecked, so it can leave the directory | **Open** |
@@ -313,11 +313,35 @@ only `IOException`, so the caller gets a bare `NullPointerException` whose
 message is about a field name.
 
 `DockingLayoutRestorer.restoreLayout` does gate on `doesLayoutExist()`, so this
-is not reached on the ordinary path. Two things reach it. A caller using
-`LayoutStorage` directly, which the interface is public and exported for. And the
-gap between the `exists()` query and the `openInputStream` query, which is a real
-window rather than a theoretical one, because [M4](#m4) configures the database
-for access from more than one process at a time.
+is not reached on the ordinary path. What reaches it is a caller using
+`LayoutStorage` directly, which the interface is public and exported for.
+
+**One line of this finding as first written no longer holds.** It also claimed the
+gap between the `exists()` query and the `openInputStream` query was a real window
+because [M4](#m4) opened the database to more than one process. M4 is fixed:
+`AUTO_SERVER=TRUE` is gone, so nothing outside the application connects, and the
+two queries are not racing another process. The direct-caller path is the whole of
+what makes this reachable, and it is enough - the interface promises `IOException`
+and got an unchecked one.
+
+`openInputStream` now declares the `IOException` its interface always did and
+throws one, naming both identifiers, when there is no row. `LayoutStateReader`
+catches `IOException` and wraps it into `BentoStateException`, so a missing layout
+now arrives at the application the same way a missing file does from the file
+storage. A plain `IOException` rather than something a caller could distinguish
+absence by: nothing in this repository catches `NoSuchFileException` from the file
+side either, and a row is not a file to claim one about.
+
+`readingALayoutThatIsNotStoredThrowsIOException` pins it. Measured against the
+previous code, it fails with the exception this finding was raised for:
+
+```
+Expecting actual throwable to be an instance of:
+  java.io.IOException
+but was:
+  java.lang.NullPointerException: Cannot read field "payload" because "entity" is null
+	at ...DatabaseLayoutStorage.openInputStream(DatabaseLayoutStorage.java:104)
+```
 
 ### <a id="m3"></a>M3. One `EntityManagerFactory`, and one connection pool, per storage instance
 
