@@ -95,7 +95,7 @@ later application run. The dockables are known only to the startup method that c
 
 The persistence demo separates dockable identity, dockable reconstruction, and dockable placement.
 
-- `DockableProperties` defines stable identifiers and sample metadata for each dockable.
+- `DockableProperties` defines stable identifiers and sample metadata for each dockable, including the shape and color of its icon, so that one loop over the enum builds every dockable state.
 - `BoxAppDockableStateProvider` maps each stable identifier to a `DockableState`.
 - `BoxApp` asks the provider for `DockableState` instances when building the default layout.
 - `DockingLayoutRestorer` asks the same provider for `DockableState` instances when restoring a saved layout.
@@ -114,14 +114,17 @@ dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
 For a restored layout, the restorer receives the same provider:
 
 ```java
-final LayoutRestorer layoutRestorer =
-        persistenceProvider.getLayoutRestorer(
-                DEFAULT_LAYOUT_IDENTIFIER,
-                bentoProvider,
-                dockableStateProvider,
-                stageIconImageProvider,
-                dockContainerLeafMenuFactoryProvider
-        );
+try (final LayoutRestorer layoutRestorer =
+             persistenceProvider.getLayoutRestorer(
+                     DEFAULT_LAYOUT_IDENTIFIER,
+                     bentoProvider,
+                     dockableStateProvider,
+                     stageIconImageProvider,
+                     dockContainerLeafMenuFactoryProvider
+             )) {
+
+    return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
+}
 ```
 
 This is the key application pattern: the default layout and restored layout should both rely on the same provider-backed
@@ -303,14 +306,17 @@ private Dockable buildDockable(final DockableState dockableState) {
 During restore, the saved layout supplies the placement. The application supplies the same provider used by the default layout:
 
 ```java
-final LayoutRestorer layoutRestorer =
-        persistenceProvider.getLayoutRestorer(
-                bentoProvider,
-                DEFAULT_LAYOUT_IDENTIFIER,
-                dockableStateProvider,
-                stageIconImageProvider,
-                dockContainerLeafMenuFactoryProvider
-        );
+try (final LayoutRestorer layoutRestorer =
+             persistenceProvider.getLayoutRestorer(
+                     DEFAULT_LAYOUT_IDENTIFIER,
+                     bentoProvider,
+                     dockableStateProvider,
+                     stageIconImageProvider,
+                     dockContainerLeafMenuFactoryProvider
+             )) {
+
+    return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
+}
 ```
 
 The restorer reads persisted identifiers from storage and asks the providers to reconstruct runtime objects. This means the default path and restored path use the same source of truth for dockables, menus, and stage icons.
@@ -345,16 +351,20 @@ This matters because provider implementations commonly create JavaFX objects suc
 - `Image`
 - `Stage`
 
-The persistence demo's `BoxAppDockableStateProvider` schedules initialization with `Platform.runLater(...)` because its `DockableState` objects contain JavaFX controls and factories that create JavaFX objects.
+The persistence demo's `BoxAppDockableStateProvider` builds its `DockableState` objects on first use, because they contain JavaFX controls and factories that create JavaFX objects, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread rather than the JavaFX Application Thread.
 
 ```java
-Platform.runLater(() -> {
-    dockableStateMap.put(
-            WORKSPACE.getIdentifier(),
-            buildDockableState(WORKSPACE, dockableMenuFactoryProvider, 1, 0)
-    );
-});
+@Override
+public Optional<DockableState> resolveDockableState(String id) {
+    if (dockableStateMap.isEmpty()) {
+        putDockableStates();
+    }
+
+    return Optional.ofNullable(dockableStateMap.get(id));
+}
 ```
+
+Both callers of `resolveDockableState` are on the JavaFX Application Thread: the application while it builds the default layout, and `DockingLayoutStateRestorer` while it restores a saved one. Scheduling the same work from a constructor with `Platform.runLater(...)` also reaches the right thread, but leaves the map empty until the queued task runs, making each lookup depend on JavaFX queue ordering that no contract states.
 
 Applications may choose eager, lazy, static, dynamic, or dependency-injected providers, but providers that create JavaFX objects must ensure that creation happens on the JavaFX Application Thread.
 
@@ -370,19 +380,32 @@ which implements [LayoutSaver](../../persistence/api/src/main/java/software/cole
 
 `AbstractAutoCloseableLayoutSaver` can automatically save at scheduled intervals. To avoid unnecessary writes, it listens
 for `DockEvent` changes and only saves when the layout has changed. Because it implements `AutoCloseable`, applications
-can also use it in a try-with-resources block or call it explicitly during shutdown.
+can also use it in a try-with-resources block or close it explicitly during shutdown.
 
-Applications should explicitly save on close request before stages are closed:
+Applications should explicitly save on close request before stages are closed, and close the saver there as well:
 
 ```java
 stage.setOnCloseRequest(this::saveDockingLayout);
 ```
 
-The persistence demo does this because closed stages are no longer discoverable when the saver walks open windows.
+The persistence demo does this for two reasons: closed stages are no longer discoverable when the saver walks open
+windows, and closing the saver is what removes its listener from each `Bento` and stops its scheduler. An application
+that exits with `System.exit(...)` never runs `Application.stop()`, so a close request handler is the last point at which
+that cleanup still happens.
 
 ### Automatic scheduled saving
 
-`AbstractAutoCloseableLayoutSaver` enables automatic saving when it is constructed. The default interval is five minutes.
+Auto-save is running on any saver obtained from a `DockingLayoutPersistenceProvider`. The default interval is five
+minutes.
+
+`AbstractAutoCloseableLayoutSaver` deliberately does not start auto-save from its constructor. Doing so published a
+partly-built object to a scheduler thread and to every `Bento` event bus before subclass fields were assigned, so a save
+firing in that window could observe a half-built saver. The provider calls `startAutoSave(...)` once construction is
+complete instead; a directly constructed saver arms itself with `enableAutoSave(long, TimeUnit)`.
+
+Because auto-save lives as long as the saver, an application obtains one saver while starting and keeps it. A saver built
+where the layout is saved arms a scheduler for an application that is already exiting, and never auto-saves during the
+session it was meant to protect.
 
 The auto-save task is intentionally change-aware. The saver registers as a `DockEventListener` for every `Bento` supplied by the `BentoProvider`. When a docking event occurs, the saver records that the layout has changed. On each scheduled interval, the saver writes the layout only if a docking event has been observed since the previous save attempt.
 
@@ -461,6 +484,12 @@ It is used when:
 - persisted layout storage cannot be read
 - persisted layout state cannot be decoded
 
+There is a fourth case the framework cannot detect, and the application owns it: a layout that restores cleanly but that
+the application cannot apply, such as one holding a different number of root branches than the application knows how to
+place. An application should report whether it applied anything and fall back to the default layout when it did not.
+Otherwise a stage never receives a `Scene` and is never shown, and an application whose exit path runs when its window
+hides can never be closed either.
+
 The default layout should be built with the same identifiers and provider-backed dockable construction strategy used for
 restoration. That keeps first-run behavior and restored behavior consistent.
 
@@ -481,8 +510,8 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 | Source of truth for dockables | Startup code. | Provider implementations. |
 | Dockable placement | Placement is hard-coded during startup. | Default placement is hard-coded, but restored placement comes from persisted layout state. |
 | Menus | Menu factories are set directly. | Menu factories are supplied by providers so restored objects receive the same behavior. |
-| Stage handling | Creates and shows the primary scene directly. | Applies the restored `BentoLayout` to the stage and shows restored drag/drop stages. |
-| Shutdown behavior | Exits on hidden. | Saves the docking layout on close request before stages are closed. |
+| Stage handling | Creates and shows the primary scene directly. | Applies the restored `BentoLayout` to the stage and shows restored drag/drop stages, falling back to the default layout when none can be applied. |
+| Shutdown behavior | Exits on hidden. | Saves the docking layout on close request, then closes the saver, both before stages are closed. |
 
 ## Design patterns used
 
@@ -503,11 +532,34 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 
 ## Additional capabilities under consideration
 
+### User-managed named layouts
+
+The framework already addresses a layout by identifier and already chooses a codec and a storage destination per saver
+and per restorer, so an application can read and write as many layouts as it likes today. What it cannot do is discover
+them. Three operations have no home in the API:
+
+- list the layout identifiers a storage destination holds
+- report whether one particular layout is stored, without building a restorer to ask
+- delete a stored layout
+
+The first and third cannot be derived from the current interfaces at all. Both bundled storage implementations could
+answer them cheaply - a directory listing for file storage, a query on the composite key for database storage - which
+suggests the operations belong on `LayoutStorageProvider`, with default implementations so that existing storage
+implementations keep compiling, and an application-facing view of them on `DockingLayoutPersistenceProvider` so that
+codec and storage selection is not repeated by every caller.
+
+Two decisions come with that capability, and both are worth settling before the API is added rather than after:
+
+- **A user-visible layout name is not automatically a storage identifier.** File-backed storage turns the identifier into
+  one path component, so a name a user types can contain characters no filesystem accepts. Either applications map
+  display names to safe identifiers themselves, or the framework stores a display name alongside the layout and generates
+  the identifier. The first keeps the framework smaller; the second keeps every application from writing the same mapping.
+- **The session layout shares the namespace with user layouts.** The demo saves the most recent layout under `recent`.
+  Once users can name layouts, one of them can pick that name. Reserving the identifier, or separating the session layout
+  into its own namespace, is a choice to make deliberately.
+
+### Other capabilities
+
 - Add layout versioning and migration, likely in the codec layer.
-- Create service-provider methods to:
-    - save layouts as named entries and codec identifiers
-    - return a list of saved layouts by name and codec identifier
-    - restore a layout by name and codec identifier
-- Update `BoxApp` with menu items to:
-    - save the current layout without exiting
-    - restore previously persisted layouts by name and codec identifier
+- Extend the demo with menu items to save the current layout without exiting and to restore a previously saved layout by
+  name, once the operations above exist.

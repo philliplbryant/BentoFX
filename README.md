@@ -154,7 +154,7 @@ but we'll want to make sure the tools have some additional values set.
 
 All tool tabs will be constructed such that they are not closable and all belong to a shared
 drag group called `TOOLS`. Since these tabs all have a shared group they can be dragged
-amongst one another. However, the primary docking container tabs with our _"project files"_ cannot be
+among one another. However, the primary docking container tabs with our _"project files"_ cannot be
 dragged into the areas housing our tools. If you try this out in IntelliJ you'll find it
 follows the same behavior.
 
@@ -563,8 +563,9 @@ A persistent application should generally follow this startup flow:
 3. Create provider implementations for dockables, dockable menus, leaf menus, and stage icons as needed.
 4. Build the application's default `DockingLayout` using the same providers that restoration will use.
 5. Ask `LayoutRestorer` to restore the last saved layout, passing the default layout supplier as the fallback.
-6. Apply the returned `DockingLayout` to the JavaFX stage.
-7. Save the layout before windows are closed.
+6. Apply the returned `DockingLayout` to the JavaFX stage, falling back to the default layout when none could be applied.
+7. Obtain a `LayoutSaver` and keep it, so that auto-save runs for the session. Do this after the layout is applied, because a save reads the root branches that have a `Scene`.
+8. Save the layout, and close the saver, before windows are closed.
 
 The persistence demo follows this pattern by creating a `DockingLayout`, applying the matching `BentoLayout` to the primary stage, and then showing any restored `DragDropStage` instances.
 
@@ -766,6 +767,12 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 }
 ```
 
+Three conventions are worth following in a storage implementation, because the bundled implementations follow them and callers rely on them:
+
+* **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
+* **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
+* **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
+
 The `LayoutStorageProvider` implementation is the type discovered by `ServiceLoader`. It must expose a stable identifier and be compatible with Java's Service Provider Interface (SPI) mechanism. In practice, the provider implementation should:
 
 * be a public concrete class
@@ -805,7 +812,7 @@ The following are also provided for additional information on using `ServiceLoad
 * https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html
 * https://www.baeldung.com/java-spi
 
-## Persistence Example
+<h3 id="persistence-example">Persistence Example</h3>
 
 The [persistence demo](./demos/persistence) module contains an example application, derived from the [basic demo BoxApp application](./demos/basic/src/main/java/demo/BoxApp.java), that demonstrates using the [persistence](./persistence) framework to save and restore a BentoFX docking layout.
 
