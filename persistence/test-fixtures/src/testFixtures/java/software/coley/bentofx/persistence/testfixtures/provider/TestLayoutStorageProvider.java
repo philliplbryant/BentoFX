@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Configurable {@link LayoutStorageProvider} for provider-selection tests.
  *
  * <p>The recorded identifiers are held atomically because the persistence API
- * decides which thread calls a provider, so the test asserting on them is not the
- * thread that recorded them.</p>
+ * decides which thread calls a provider, so the test asserting on them is not
+ * the thread that recorded them.</p>
  *
  * @author Phil Bryant
  */

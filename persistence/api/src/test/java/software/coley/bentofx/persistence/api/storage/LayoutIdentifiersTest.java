@@ -164,6 +164,33 @@ class LayoutIdentifiersTest {
     }
 
     @Test
+    void acceptsTheSessionLayoutIdentifierAsValid() {
+        assertThatCode(() ->
+                LayoutIdentifiers.requireValid(
+                        LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER,
+                        CODEC_IDENTIFIER
+                )
+        )
+                .describedAs("the session layout identifier")
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void reportsTheSessionLayoutIdentifierAsReservedWhateverTheCase() {
+        assertThat(LayoutIdentifiers.isReserved(
+                LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER
+        ))
+                .describedAs("isReserved for the session layout identifier")
+                .isTrue();
+        assertThat(LayoutIdentifiers.isReserved("SeSsIoN"))
+                .describedAs("isReserved for the session layout identifier in mixed case")
+                .isTrue();
+        assertThat(LayoutIdentifiers.isReserved(LAYOUT_IDENTIFIER))
+                .describedAs("isReserved for an ordinary layout identifier")
+                .isFalse();
+    }
+
+    @Test
     void rejectsAPairThatIsTooLongTogetherEvenWhenEachHalfFits() {
         // Each half is inside the limit; joined with the separator they are one
         // character over it, which is the case a per-identifier check misses.

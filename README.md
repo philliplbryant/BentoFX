@@ -663,7 +663,16 @@ Unlike a saver, a restorer holds no scheduler and no listeners, so building one 
 
 <h4 id="managing-several-layouts">Managing Several Layouts</h4>
 
-An application usually keeps one layout that follows the session, saved automatically and restored at startup. Letting users keep layouts of their own means naming them, listing them, and removing them, and the persistence provider answers all three:
+An application usually keeps one layout that follows the session, saved automatically and restored at startup. That one has a reserved identifier, `LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER`, so that an application does not spell the name out and a user cannot take it for a layout of their own:
+
+```java
+final LayoutPersistenceProfile sessionProfile =
+        LayoutPersistenceProfile.of(LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER);
+```
+
+Reserved is not the same as invalid. Every operation accepts it, because saving to it, restoring it, and deleting it (a "reset to defaults") are all things an application legitimately does. What the reservation means is that `LayoutIdentifiers.isReserved(...)` refuses it where a user chose the name, and that a menu of layouts a user may restore leaves it out.
+
+Letting users keep layouts of their own means naming them, listing them, and removing them, and the persistence provider answers all three:
 
 ```java
 final LayoutPersistenceProfile profile = LayoutPersistenceProfile.of("review-layout");
@@ -683,10 +692,12 @@ final boolean wasRemoved = persistenceProvider.deleteLayout(profile);
 Three things are worth knowing:
 
 * **`saveLayout` is not a `LayoutSaver`.** It writes once and returns; nothing is scheduled and no listener is registered. Keep `getLayoutSaver` for the layout that follows the session and use this for a layout a user asked to keep.
-* **`getStoredLayoutIdentifiers` ignores the profile's layout identifier**, since it reports every layout the destination holds. The profile is there to select the codec and the storage to ask.
+* **`getStoredLayoutIdentifiers` ignores the profile's layout identifier**, since it reports every layout the destination holds. The profile is there to select the codec and the storage to ask. The session layout is in the result, so filter it with `LayoutIdentifiers.isReserved(...)` rather than by comparing strings.
 * **Restoring a different layout while running is not the same as restoring one at startup.** The containers a restorer hands back are unattached, so the application replaces the scene root and re-shows any drag/drop stages itself, and the switch itself looks like a layout change to a running auto-save. Save the current layout first, or take auto-save down around the switch.
 
 A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.
+
+Application state is not part of a layout. The framework persists structure - which containers exist, where they sit, which dockable is selected - and an application keeps its own state in its own store, under the same identifiers the framework hands back when it asks for a `DockableState`. That separation is deliberate: content state is usually per-document rather than per-layout, so a user with four saved layouts would otherwise carry four drifting copies of it.
 
 <h4 id="runtime-considerations">Runtime Considerations</h4>
 

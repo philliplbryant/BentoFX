@@ -564,12 +564,23 @@ That work is not done. Three consequences shape how it will be added:
 - Generating an identifier means deciding what to do about collisions, since two display names can reduce to the same
   identifier.
 
-### The session layout shares one namespace with user layouts
+### The reserved session layout
 
-The demo saves the most recent layout under `recent`, and
-`DockingLayoutPersistenceProvider.getStoredLayoutIdentifiers(...)` reports it like any other layout. Once users name
-layouts, one of them can choose that name. Reserving the identifier, or moving the session layout into its own namespace,
-is a decision still to be made; until then an application filters the session identifier out of any menu it builds.
+The layout an application saves to while it runs and restores when it starts is identified by
+`LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER`, and `LayoutIdentifiers.isReserved(String)` reports it. Reserving it keeps
+a user from naming a layout that the automatic save would then overwrite.
+
+Reserved is not invalid. `requireValid` accepts it, and every operation works with it, because saving to it, restoring it,
+and deleting it - which is how an application offers "reset to the default layout" - are all legitimate. Nor can the
+framework refuse it selectively: the session save and a user's "save as" reach the same method, so nothing inside can tell
+them apart. What the framework provides is the identifier and the test; an application applies the test where it knows the
+name came from a user, which is a "save as" dialog today and the display-name generator once that exists.
+
+`getStoredLayoutIdentifiers` reports the session layout like any other, because a catalog that hid a stored layout would
+misreport what the destination holds. A menu of layouts a user may restore filters it out.
+
+The comparison is case-insensitive, since a file name is case-insensitive on Windows and macOS: a layout called
+`Session` would be the same stored layout as the session's own on two of the three platforms this framework runs on.
 
 ### Other capabilities
 

@@ -47,6 +47,7 @@ import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 import java.util.ArrayList;
 import java.util.List;
 
+import static software.coley.bentofx.persistence.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.boxfx.demo.persistence.provider.DockableProperties.*;
 
 /**
@@ -61,8 +62,6 @@ public class BoxApp extends Application {
 
 	private static final Logger logger =
 			LoggerFactory.getLogger(BoxApp.class);
-
-	private static final String DEFAULT_LAYOUT_IDENTIFIER = "recent";
 
 	private final Bento bento = new Bento("box-app-bento");
 
@@ -317,7 +316,7 @@ public class BoxApp extends Application {
 	private @Nullable LayoutSaver createLayoutSaver() {
 		try {
 			return persistenceProvider.getLayoutSaver(
-					DEFAULT_LAYOUT_IDENTIFIER,
+					SESSION_LAYOUT_IDENTIFIER,
 					bentoProvider
 			);
 		} catch (final BentoStateException e) {
@@ -366,7 +365,7 @@ public class BoxApp extends Application {
 		// so closing the storage afterwards costs nothing.
 		try (final LayoutRestorer layoutRestorer =
 					 persistenceProvider.getLayoutRestorer(
-							 DEFAULT_LAYOUT_IDENTIFIER,
+							 SESSION_LAYOUT_IDENTIFIER,
 							 bentoProvider,
 							 dockableStateProvider,
 							 stageIconImageProvider,

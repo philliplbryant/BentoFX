@@ -46,6 +46,26 @@ public final class LayoutIdentifiers {
     public static final int MAX_JOINED_LENGTH = 255;
 
     /**
+     * The layout an application saves to while it runs and restores when it
+     * starts.
+     *
+     * <p>Reserved, not invalid. Every operation accepts it, because saving to
+     * it, restoring it and deleting it are all things an application
+     * legitimately does; what is reserved is a user's freedom to take the name
+     * for a layout of their own. See {@link #isReserved(String)}.</p>
+     */
+    public static final String SESSION_LAYOUT_IDENTIFIER = "session";
+
+    /**
+     * Identifiers this framework has taken for itself.
+     *
+     * <p>Compared without case, because a file name is case-insensitive on
+     * Windows and macOS.</p>
+     */
+    private static final Set<String> RESERVED_LAYOUT_IDENTIFIERS =
+            Set.of(SESSION_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT));
+
+    /**
      * Names that Windows resolves to a device rather than to a file, whichever
      * directory they are used in. Matched against the identifier and against what
      * precedes its first {@code .}, because {@code NUL.txt} and {@code NUL.tar.gz}
@@ -76,6 +96,26 @@ public final class LayoutIdentifiers {
 
     private LayoutIdentifiers() {
         throw new IllegalStateException("Utility class");
+    }
+
+    /**
+     * {@return {@code true} when the identifier is one this framework has taken
+     * for itself; otherwise, {@code false}.}
+     *
+     * <p>Reserved identifiers are worth leaving out of a menu of layouts a user
+     * may restore. However, {@code getStoredLayoutIdentifiers} reports them
+     * like any other, because a catalog that hid a stored layout would
+     * misreport what the destination holds.</p>
+     *
+     * @param layoutIdentifier the identifier to test. Compared without regard
+     * to case.
+     */
+    public static boolean isReserved(final String layoutIdentifier) {
+        requireNonNull(layoutIdentifier, "layoutIdentifier");
+
+        return RESERVED_LAYOUT_IDENTIFIERS.contains(
+                layoutIdentifier.toUpperCase(Locale.ROOT)
+        );
     }
 
     /**

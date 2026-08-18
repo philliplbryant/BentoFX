@@ -19,10 +19,11 @@ Line numbers refer to the files as they stand on `enhancement/issue-13` at
 
 ## Status
 
-**No blockers, two majors, seven minors, four nits.** Eleven are fixed: every
-documentation and consistency defect, and the missing catalog operations, which were
-implemented after this pass rather than only recommended. What remains open is three
-API decisions and one that is decided but not yet built.
+**No blockers, two majors, seven minors, four nits.** Twelve are fixed: every
+documentation and consistency defect, the missing catalog operations, and the reserved
+session identifier - the last two implemented after this pass rather than only
+recommended. Two remain decided but not yet built, and one is deliberately not being
+built at all.
 
 The documentation was the substance of this pass. Three of the persistence
 framework's behaviors changed recently, and the README and implementation document
@@ -57,10 +58,10 @@ None. Nothing in the framework loses a layout, and nothing in `core` or
 
 | | Area | Finding | Status |
 |---|---|---|---|
-| [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Open** |
+| [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Decided** 2026-08-18; see below |
 | [N2](#n2) | api | A user-visible layout name is not usable as a storage identifier, and nothing says who converts one to the other | **Decided** 2026-08-18; see below |
-| [N3](#n3) | api | The session layout shares one namespace with the layouts users will name | **Open** |
-| [N4](#n4) | api | No side channel for application data, which JIDE applications commonly rely on | **Open** |
+| [N3](#n3) | api | The session layout shares one namespace with the layouts users will name | **Fixed** 2026-08-18 |
+| [N4](#n4) | api | No side channel for application data, which JIDE applications commonly rely on | **Won't fix** 2026-08-18; see below |
 | [N5](#n5) | docs | The implementation document's restorer sample had its first two arguments transposed | **Fixed** 2026-08-18 |
 | [N6](#n6) | docs | The README understated what a profile already selects and misstated the actual limit | **Fixed** 2026-08-18 |
 | [N7](#n7) | docs | Neither document mentioned closing a saver or a restorer, which is how listeners and storage are released | **Fixed** 2026-08-18 |
@@ -193,10 +194,20 @@ offer to save this as *Quarterly Review: v2*" wants an answer, not an exception 
 catch, and a dialog that validates as the user types cannot afford one per
 keystroke.
 
-The predicate is three lines over the existing rule. What matters more is deciding
-which of the two shapes the API offers - a boolean, or something that reports which
-rule failed so a dialog can say why - because a boolean cannot be widened later
-without a second method.
+**Decided: it reports which rule failed**, as a typed value rather than a boolean or
+a message. Not yet built. The shape is an `Optional` that is empty when the pair is
+usable and otherwise names the rule and the parameter, so an application can localize
+its own text while the framework still renders a default, and `requireValid` throws
+using the same value so the two cannot disagree.
+
+A boolean was the alternative and was rejected for one reason: every application would
+write its own explanation of a refusal, and those explanations drift from the rule as
+the rule changes.
+
+Note where this ends up being called. Because the framework will generate identifiers
+from display names ([N2](#n2)), a dialog validates what the user typed by generating
+the identifier and checking that, so one typed reason serves both the identifier
+supplied by application code and the name supplied by a user.
 
 ### <a id="n2"></a>N2. A user-visible layout name is not usable as a storage identifier
 
@@ -234,12 +245,33 @@ right shape - the session layout is just a layout with a well-known name. Once
 users name layouts, one of them can choose that name, and the automatic save then
 overwrites what the user saved.
 
-Three options: reserve the identifier and publish the constant, give the session
-layout its own storage identifier so the two never share a namespace, or leave one
-namespace and let the catalog list the session layout like any other so the
-collision is at least visible. The last is the smallest and, for a framework, the
-most honest; it needs the constant published either way, so an application can
-exclude it from a "restore layout" menu.
+**Fixed.** `LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER` is `session`, with
+`isReserved(String)` beside it, and the demo now takes its identifier from the
+constant rather than spelling out `recent`.
+
+`session` was chosen over `recent`, `latest`, `current` and `active` for two reasons.
+The comparatives imply a list, which reads wrong for a single fixed slot, and
+`current`/`active` are the natural names for a *pointer* - "which named layout did the
+user last restore?" - which a layout-switching UI tends to grow. `session` is also the
+only candidate that stays true in both directions: the slot holds this session's layout
+while the application runs, and the previous session's when it starts.
+
+Two properties are worth stating, because both were tempting to get wrong:
+
+- **Reserved is not invalid.** `requireValid` accepts it, since saving to it,
+  restoring it, and deleting it - which is how an application offers "reset to the
+  default layout" - are all legitimate.
+- **The framework cannot enforce the reservation by itself.** Enumerating the
+  operations settles it: the session save and a user's "save as" reach the same
+  method, and so do the restores and the deletes, so there is no user-driven-only path
+  to refuse from. The framework publishes the identifier and the test; the application
+  applies the test where it knows a user chose the name. That becomes enforceable
+  inside the framework when display names arrive, because the generator that turns a
+  name into an identifier *is* a user-driven path.
+
+The comparison ignores case, since a file name is case-insensitive on Windows and
+macOS: a layout called `Session` would be the session's own layout on two of the three
+platforms this runs on.
 
 ### <a id="n4"></a>N4. No side channel for application data
 
@@ -255,14 +287,21 @@ method receives an `org.w3c.dom.Document` and an `Element`, so writing extra dat
 into the layout file is a documented JIDE technique. Code being migrated may well
 use it.
 
-Either outcome is defensible, and the decision is worth making explicitly rather
-than by omission:
+**Decided: the boundary holds, and the README will say so.** The framework persists
+layout structure; application state lives in the application's own store, keyed by
+the same stable identifiers the framework already hands back when it asks for a
+`DockableState`. Nothing to add to the schema, nothing to version, and no matching
+work in both codecs.
 
-- **Keep the boundary** and say so in the README, so a migrating application knows
-  up front that its extra data needs its own store.
-- **Offer a narrow channel**, such as a `Map<String, String>` per layout in the
-  metadata. Format-neutral, unlike JIDE's DOM-typed callbacks, and it survives a
-  codec swap.
+The argument that settled it is lifetime rather than size. Content state is usually
+per-document, not per-layout: once a user keeps four named layouts, a per-layout
+channel holds four drifting copies of the same scroll positions, and the data ends up
+moved out of the layout anyway. What the boundary costs is a single artifact - a
+layout file copied to another machine carries positions but not content state - so an
+"export my layout" feature that includes both is the application's to assemble.
+
+A narrow `Map<String, String>` in the layout metadata remains available later, and is
+additive, if a concrete need appears.
 
 ### <a id="n5"></a>N5. The implementation document's restorer sample had its first two arguments transposed
 
@@ -432,18 +471,21 @@ calls today:
 | `removeLayout(String)` | `deleteLayout(profile)` |
 | `resetToDefault()` | the application's default layout supplier, which the restorer already falls back to |
 
-**Still to decide, in the order they will be needed.**
+**Done since:** the reserved session identifier ([N3](#n3)).
 
-1. **Display names ([N2](#n2)) - decided, not built.** The framework will carry the
-   name and generate the identifier. It is a schema change, so it is a piece of work
-   rather than a signature.
-2. **The identifier predicate ([N1](#n1)).** Needed by the first dialog that
-   validates a typed name; decide then whether it reports which rule failed.
-3. **The session-layout namespace ([N3](#n3)).** `getStoredLayoutIdentifiers` reports
-   the session layout like any other, so an application filters it out today. Worth
-   reserving the identifier before users can pick it.
-4. **The application-data boundary ([N4](#n4)).** One line of documentation, or a
-   narrow format-neutral channel. Cheaper to settle than to change later.
+**Decided, still to build**, smaller first:
+
+1. **The typed reason ([N1](#n1)).** An `Optional` naming the rule that failed and the
+   parameter, with `requireValid` throwing from the same value. A reserved identifier
+   becomes one of those reasons, which is what lets one call answer a "save as" dialog.
+2. **Display names ([N2](#n2)).** A name in the layout metadata, an identifier
+   generated from it, and a name-aware listing beside the identifier listing. A schema
+   change, so it touches both codecs and the schema version, and it needs a collision
+   rule. It is also what makes the session reservation enforceable inside the
+   framework, since the generator is the one path that is always user-driven.
+
+**Decided against:** carrying application data inside a layout ([N4](#n4)). The
+boundary holds; the README will say so.
 
 ## <a id="multiple-layouts"></a>Multiple layouts, storages, and codecs
 
