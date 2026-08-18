@@ -20,11 +20,10 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
      * The width of both identifier columns, taken from the rule every storage
      * implementation shares.
      *
-     * <p>{@link LayoutIdentifiers#MAX_JOINED_LENGTH} is what the two identifiers
-     * may take <em>together</em>, because file-backed storage joins them into one
-     * path component. A column that wide therefore holds anything either of them
-     * can validly be, and the number lives in one place rather than being
-     * repeated here.</p>
+     * <p>{@link LayoutIdentifiers#MAX_JOINED_LENGTH} is what the two identifiers may
+     * take <em>together</em>, for the reason given where it is declared. A column
+     * that wide therefore holds anything either of them can validly be, and the
+     * number lives in one place rather than being repeated here.</p>
      */
     public static final int MAX_COMPOSITE_KEY_LENGTH = LayoutIdentifiers.MAX_JOINED_LENGTH;
 

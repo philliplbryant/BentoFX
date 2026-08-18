@@ -23,7 +23,7 @@ class FileLayoutStorageCatalogIT {
 	private static final String CODEC_IDENTIFIER = "json";
 	private static final String OTHER_CODEC_IDENTIFIER = "xml";
 	private static final String USER_HOME_PROPERTY = "user.home";
-	private static final String BENTO_DIRECTORY_NAME = ".bentofx";
+	private static final String LAYOUTS_DIRECTORY_PATH = ".bentofx/layouts";
 	private static final String LAYOUT_CONTENT = "{}";
 
 	@TempDir
@@ -45,7 +45,7 @@ class FileLayoutStorageCatalogIT {
 		System.setProperty(USER_HOME_PROPERTY, temporaryHome.toString());
 
 		bentoDirectory = Files.createDirectories(
-				temporaryHome.resolve(BENTO_DIRECTORY_NAME)
+				temporaryHome.resolve(LAYOUTS_DIRECTORY_PATH)
 		);
 
 		final FileLayoutStorageProvider provider =

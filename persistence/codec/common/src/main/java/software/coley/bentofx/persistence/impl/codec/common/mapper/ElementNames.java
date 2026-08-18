@@ -1,7 +1,8 @@
 package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 /**
- * The names used for JSON and XML encoded elements.
+ * The element names an encoded layout uses, shared by every codec that binds these
+ * DTOs so that one format's names cannot drift from another's.
  *
  * @author Phil Bryant
  */

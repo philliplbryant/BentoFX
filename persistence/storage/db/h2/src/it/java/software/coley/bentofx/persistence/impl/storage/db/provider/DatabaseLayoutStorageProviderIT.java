@@ -125,8 +125,9 @@ class DatabaseLayoutStorageProviderIT {
         final DatabaseLayoutStorageProvider provider =
                 new DatabaseLayoutStorageProvider();
 
-        // Nothing about a column width rejects this one, so it holds only if the
-        // provider applies the rule the file storage applies.
+        // A device name fits every column this storage has, so nothing here would
+        // reject it: this passes only if the provider applies the shared identifier
+        // rule as well.
         assertThatThrownBy(() -> provider.getLayoutStorage("nul", CODEC_IDENTIFIER))
                 .describedAs("layout identifier naming a device")
                 .isInstanceOf(IllegalArgumentException.class)

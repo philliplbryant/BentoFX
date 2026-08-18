@@ -19,11 +19,11 @@ Line numbers refer to the files as they stand on `enhancement/issue-13` at
 
 ## Status
 
-**No blockers, two majors, seven minors, four nits.** Twelve are fixed: every
-documentation and consistency defect, the missing catalog operations, and the reserved
-session identifier - the last two implemented after this pass rather than only
-recommended. Two remain decided but not yet built, and one is deliberately not being
-built at all.
+**No blockers, two majors, seven minors, four nits.** Thirteen are fixed: every
+documentation and consistency defect, the catalog operations, the reserved session
+identifier, and the typed reason a caller gets when it asks rather than being refused -
+the last three implemented after this pass rather than only recommended. One remains
+decided but not yet built, and one is deliberately not being built at all.
 
 The documentation was the substance of this pass. Three of the persistence
 framework's behaviors changed recently, and the README and implementation document
@@ -58,7 +58,7 @@ None. Nothing in the framework loses a layout, and nothing in `core` or
 
 | | Area | Finding | Status |
 |---|---|---|---|
-| [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Decided** 2026-08-18; see below |
+| [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Fixed** 2026-08-18 |
 | [N2](#n2) | api | A user-visible layout name is not usable as a storage identifier, and nothing says who converts one to the other | **Decided** 2026-08-18; see below |
 | [N3](#n3) | api | The session layout shares one namespace with the layouts users will name | **Fixed** 2026-08-18 |
 | [N4](#n4) | api | No side channel for application data, which JIDE applications commonly rely on | **Won't fix** 2026-08-18; see below |
@@ -194,20 +194,33 @@ offer to save this as *Quarterly Review: v2*" wants an answer, not an exception 
 catch, and a dialog that validates as the user types cannot afford one per
 keystroke.
 
-**Decided: it reports which rule failed**, as a typed value rather than a boolean or
-a message. Not yet built. The shape is an `Optional` that is empty when the pair is
-usable and otherwise names the rule and the parameter, so an application can localize
-its own text while the framework still renders a default, and `requireValid` throws
-using the same value so the two cannot disagree.
+**Fixed.** `LayoutIdentifierProblem` is a record carrying the rule that was broken, the
+identifier that broke it, and a message ready to show. Two entry points return it and
+one throws it:
 
-A boolean was the alternative and was rejected for one reason: every application would
-write its own explanation of a refusal, and those explanations drift from the rule as
-the rule changes.
+- `findProblem(layout, codec)` - the rules `requireValid` enforces, reported rather
+  than thrown, and never throwing even for `null`, which arrives as `Rule.MISSING`.
+- `findUserLayoutProblem(layout, codec)` - the same plus `Rule.RESERVED`, for a name a
+  user chose. Two methods rather than one because reserved is *valid*: an application
+  saving the session layout must not be refused, and a user naming a layout must.
+- `requireValid(layout, codec)` - unchanged in signature, now implemented over
+  `findProblem`, throwing a `NullPointerException` for a missing identifier and an
+  `IllegalArgumentException` carrying the problem's own message for everything else.
 
-Note where this ends up being called. Because the framework will generate identifiers
-from display names ([N2](#n2)), a dialog validates what the user typed by generating
-the identifier and checking that, so one typed reason serves both the identifier
-supplied by application code and the name supplied by a user.
+That last point is the property worth having: the check exists once, so what the
+framework reports and what it throws cannot drift apart. A test asserts it directly by
+comparing the thrown message against the reported one, and the sixteen tests written
+against the throwing behavior passed unchanged through the refactor, which is what
+shows the messages are still the same sentences.
+
+`Rule` is what an application switches on to phrase its own text, in its own language;
+`message()` is the framework's rendering for when there is nothing better to say.
+`Parameter` says which of the two identifiers is at fault, or `BOTH` for the one rule
+about the pair.
+
+A boolean was the alternative, rejected because every application would write its own
+explanation of a refusal and those explanations drift from the rule as the rule
+changes.
 
 ### <a id="n2"></a>N2. A user-visible layout name is not usable as a storage identifier
 
@@ -471,18 +484,14 @@ calls today:
 | `removeLayout(String)` | `deleteLayout(profile)` |
 | `resetToDefault()` | the application's default layout supplier, which the restorer already falls back to |
 
-**Done since:** the reserved session identifier ([N3](#n3)).
+**Done since:** the reserved session identifier ([N3](#n3)) and the typed reason ([N1](#n1)).
 
-**Decided, still to build**, smaller first:
-
-1. **The typed reason ([N1](#n1)).** An `Optional` naming the rule that failed and the
-   parameter, with `requireValid` throwing from the same value. A reserved identifier
-   becomes one of those reasons, which is what lets one call answer a "save as" dialog.
-2. **Display names ([N2](#n2)).** A name in the layout metadata, an identifier
-   generated from it, and a name-aware listing beside the identifier listing. A schema
-   change, so it touches both codecs and the schema version, and it needs a collision
-   rule. It is also what makes the session reservation enforceable inside the
-   framework, since the generator is the one path that is always user-driven.
+**Decided, still to build:** display names ([N2](#n2)). A name in the layout metadata,
+an identifier generated from it, and a name-aware listing beside the identifier
+listing. A schema change, so it touches both codecs and the schema version, and it
+needs a collision rule. It is also what makes the session reservation enforceable
+inside the framework rather than by each application, since the generator that turns a
+name into an identifier is the one path that is always user-driven.
 
 **Decided against:** carrying application data inside a layout ([N4](#n4)). The
 boundary holds; the README will say so.

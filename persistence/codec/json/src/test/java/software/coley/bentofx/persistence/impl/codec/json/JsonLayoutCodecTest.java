@@ -57,8 +57,8 @@ class JsonLayoutCodecTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         codec.encode(createStates(), out);
 
-        // The XML codec needs a root element; JSON puts the layout's own fields
-        // at the top level.
+        // JSON needs no wrapping element: the layout's own fields sit at the top
+        // level, so the shared root element name should not appear at all.
         assertThat(out.toString(StandardCharsets.UTF_8))
                 .describedAs("encoded JSON root")
                 .doesNotContain(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)

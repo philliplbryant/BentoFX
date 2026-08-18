@@ -30,7 +30,7 @@ class DatabaseLayoutStorageIT {
     private static final String JDBC_URL_PROPERTY = "jakarta.persistence.jdbc.url";
     private static final String JDBC_FILE_URL_PREFIX = "jdbc:h2:file:";
     private static final String JDBC_FILE_URL_SUFFIX = ";DB_CLOSE_DELAY=-1";
-    private static final String DATABASE_FILE_NAME = "bento-layouts";
+    private static final String DATABASE_FILE_NAME = "layouts";
     private static final String TEST_LAYOUT_IDENTIFIER = "test-layout";
     private static final String TEST_CODEC_IDENTIFIER = "none";
     private static final String TEST_DATA =

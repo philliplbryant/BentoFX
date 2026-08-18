@@ -24,8 +24,19 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
     private static final String IDENTIFIER = "file";
 
+    /**
+     * The directory layout files are kept in, below the BentoFX directory in the
+     * user's home.
+     *
+     * <p>Named rather than spelled into the path, so that the one place it is decided
+     * is the one place it is read. The BentoFX directory above it may hold whatever
+     * else an installation puts there, which is why layouts get a directory of their
+     * own instead of sitting loose beside it.</p>
+     */
+    private static final String LAYOUTS_DIRECTORY_NAME = "layouts";
+
     private static final String DEFAULT_BENTO_DIRECTORY =
-            System.getProperty("user.home") + "/.bentofx";
+            System.getProperty("user.home") + "/.bentofx/" + LAYOUTS_DIRECTORY_NAME;
 
     @Override
     public String getIdentifier() {

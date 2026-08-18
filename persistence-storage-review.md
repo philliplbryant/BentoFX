@@ -431,7 +431,7 @@ provider, including the file one that needs nothing of the sort.
 
 ```xml
 <property name="jakarta.persistence.jdbc.url"
-          value="jdbc:h2:file:${user.home}/.bentofx/bento-layouts;AUTO_SERVER=TRUE"/>
+          value="jdbc:h2:file:${user.home}/.bentofx/layouts;AUTO_SERVER=TRUE"/>
 ```
 
 `AUTO_SERVER=TRUE` puts H2 into automatic mixed mode: the first process to open

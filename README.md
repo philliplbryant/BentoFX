@@ -697,6 +697,18 @@ Three things are worth knowing:
 
 A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.
 
+For a dialog, ask instead of being refused. `LayoutIdentifiers.findUserLayoutProblem(...)` returns an empty `Optional` when the pair is usable, and otherwise names the rule that was broken, which identifier broke it, and a message ready to show:
+
+```java
+LayoutIdentifiers.findUserLayoutProblem(typedName, codecIdentifier)
+        .ifPresentOrElse(
+                problem -> nameField.setError(describe(problem.rule(), problem.message())),
+                () -> nameField.clearError()
+        );
+```
+
+Switch on `problem.rule()` to phrase it in your own words or your own language, or show `problem.message()` when there is nothing better to say. `findProblem(...)` is the same check without the reserved-identifier rule, for an identifier your own code chose rather than a user; `requireValid(...)` throws from the same result, so what it reports and what it throws are one sentence.
+
 Application state is not part of a layout. The framework persists structure - which containers exist, where they sit, which dockable is selected - and an application keeps its own state in its own store, under the same identifiers the framework hands back when it asks for a `DockableState`. That separation is deliberate: content state is usually per-document rather than per-layout, so a user with four saved layouts would otherwise carry four drifting copies of it.
 
 <h4 id="runtime-considerations">Runtime Considerations</h4>

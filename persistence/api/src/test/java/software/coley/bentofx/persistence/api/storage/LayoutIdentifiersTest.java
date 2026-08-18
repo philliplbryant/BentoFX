@@ -1,6 +1,8 @@
 package software.coley.bentofx.persistence.api.storage;
 
 import org.junit.jupiter.api.Test;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem.Parameter;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem.Rule;
 
 import static org.assertj.core.api.Assertions.*;
 import static software.coley.bentofx.persistence.api.storage.LayoutIdentifiers.MAX_JOINED_LENGTH;
@@ -188,6 +190,114 @@ class LayoutIdentifiersTest {
         assertThat(LayoutIdentifiers.isReserved(LAYOUT_IDENTIFIER))
                 .describedAs("isReserved for an ordinary layout identifier")
                 .isFalse();
+    }
+
+    @Test
+    void findProblemReportsNothingForAUsablePair() {
+        assertThat(LayoutIdentifiers.findProblem(LAYOUT_IDENTIFIER, CODEC_IDENTIFIER))
+                .describedAs("findProblem for an ordinary pair")
+                .isEmpty();
+    }
+
+    @Test
+    void findProblemNamesTheRuleAndTheParameter() {
+        assertThat(LayoutIdentifiers.findProblem("  ", CODEC_IDENTIFIER))
+                .describedAs("findProblem for a blank layout identifier")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.BLANK, Parameter.LAYOUT_IDENTIFIER);
+
+        assertThat(LayoutIdentifiers.findProblem(LAYOUT_IDENTIFIER, "json/x"))
+                .describedAs("findProblem for a codec identifier holding a separator")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.PATH, Parameter.CODEC_IDENTIFIER);
+
+        assertThat(LayoutIdentifiers.findProblem("nul", CODEC_IDENTIFIER))
+                .describedAs("findProblem for a layout identifier naming a device")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.DEVICE_NAME);
+
+        assertThat(LayoutIdentifiers.findProblem("main-layout.", CODEC_IDENTIFIER))
+                .describedAs("findProblem for a layout identifier ending with a period")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.TRAILING_SPACE_OR_PERIOD);
+    }
+
+    @Test
+    void findProblemReportsThePairWhenTheRuleIsAboutBothTogether() {
+        final String tooLong =
+                "a".repeat(MAX_JOINED_LENGTH - CODEC_IDENTIFIER.length());
+
+        assertThat(LayoutIdentifiers.findProblem(tooLong, CODEC_IDENTIFIER))
+                .describedAs("findProblem for a pair that is too long together")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.TOO_LONG, Parameter.BOTH);
+    }
+
+    @Test
+    void findProblemReportsAMissingIdentifierRatherThanThrowing() {
+        assertThat(LayoutIdentifiers.findProblem(null, CODEC_IDENTIFIER))
+                .describedAs("findProblem for a null layout identifier")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.MISSING, Parameter.LAYOUT_IDENTIFIER);
+
+        assertThat(LayoutIdentifiers.findProblem(LAYOUT_IDENTIFIER, null))
+                .describedAs("findProblem for a null codec identifier")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.MISSING, Parameter.CODEC_IDENTIFIER);
+    }
+
+    @Test
+    void findProblemAndRequireValidCannotDisagree() {
+        final String blank = "  ";
+
+        final LayoutIdentifierProblem problem =
+                LayoutIdentifiers.findProblem(blank, CODEC_IDENTIFIER).orElseThrow();
+
+        assertThatIllegalArgumentException()
+                .describedAs("what requireValid throws for the same pair")
+                .isThrownBy(() -> LayoutIdentifiers.requireValid(blank, CODEC_IDENTIFIER))
+                .withMessage(problem.message());
+    }
+
+    @Test
+    void onlyTheUserLayoutCheckReportsAReservedIdentifier() {
+        final String reserved = LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
+
+        assertThat(LayoutIdentifiers.findProblem(reserved, CODEC_IDENTIFIER))
+                .describedAs("findProblem for the session layout identifier")
+                .isEmpty();
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(reserved, CODEC_IDENTIFIER))
+                .describedAs("findUserLayoutProblem for the session layout identifier")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule, LayoutIdentifierProblem::parameter)
+                .containsExactly(Rule.RESERVED, Parameter.LAYOUT_IDENTIFIER);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("SeSsIoN", CODEC_IDENTIFIER))
+                .describedAs("findUserLayoutProblem for the reserved identifier in mixed case")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.RESERVED);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(LAYOUT_IDENTIFIER, CODEC_IDENTIFIER))
+                .describedAs("findUserLayoutProblem for a name a user may take")
+                .isEmpty();
+    }
+
+    @Test
+    void theUserLayoutCheckReportsAnUnusableNameBeforeAReservedOne() {
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("  ", CODEC_IDENTIFIER))
+                .describedAs("findUserLayoutProblem for a blank name")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.BLANK);
     }
 
     @Test
