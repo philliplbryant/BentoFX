@@ -45,6 +45,84 @@ class DefaultDockingLayoutPersistenceProviderTest {
             "storageProvider.getCreatedLayoutStorages()";
 
     @Test
+    void listsStoredLayoutsFromTheSelectedStorageProvider() throws BentoStateException {
+        final TestLayoutCodecProvider codecProvider =
+                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final TestLayoutStorageProvider storageProvider =
+                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        storageProvider.setStoredLayoutIdentifiers(List.of("recent", "review"));
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(codecProvider),
+                        List.of(storageProvider)
+                );
+
+        assertThat(provider.getStoredLayoutIdentifiers(
+                LayoutPersistenceProfile.of(DEFAULT_LAYOUT_IDENTIFIER)
+        ))
+                .describedAs("layouts the selected storage provider holds")
+                .containsExactly("recent", "review");
+        assertThat(storageProvider.getCatalogCodecIdentifier())
+                .describedAs("the codec identifier the catalog was asked with")
+                .isEqualTo(JSON_CODEC_IDENTIFIER);
+    }
+
+    @Test
+    void reportsAndDeletesOneStoredLayout() throws BentoStateException {
+        final TestLayoutStorageProvider storageProvider =
+                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        storageProvider.setStoredLayoutIdentifiers(List.of("recent"));
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(storageProvider)
+                );
+
+        final LayoutPersistenceProfile profile = LayoutPersistenceProfile.of("recent");
+
+        assertThat(provider.isLayoutStored(profile))
+                .describedAs("isLayoutStored for a layout the destination holds")
+                .isTrue();
+        assertThat(provider.deleteLayout(profile))
+                .describedAs("deleteLayout for a layout the destination holds")
+                .isTrue();
+        assertThat(provider.isLayoutStored(profile))
+                .describedAs("isLayoutStored after the delete")
+                .isFalse();
+        assertThat(provider.deleteLayout(profile))
+                .describedAs("deleteLayout for a layout that is already gone")
+                .isFalse();
+    }
+
+    @Test
+    void catalogHonorsTheProfilesStorageIdentifier() throws BentoStateException {
+        final TestLayoutStorageProvider fileProvider =
+                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final TestLayoutStorageProvider databaseProvider =
+                new TestLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
+        databaseProvider.setStoredLayoutIdentifiers(List.of("in-the-database"));
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(fileProvider, databaseProvider)
+                );
+
+        assertThat(provider.getStoredLayoutIdentifiers(new LayoutPersistenceProfile(
+                DEFAULT_LAYOUT_IDENTIFIER,
+                JSON_CODEC_IDENTIFIER,
+                DATABASE_STORAGE_IDENTIFIER
+        )))
+                .describedAs("layouts held by the storage the profile names")
+                .containsExactly("in-the-database");
+        assertThat(fileProvider.getCatalogCodecIdentifier())
+                .describedAs("the storage provider the profile did not name")
+                .isNull();
+    }
+
+    @Test
     void usesSingleCodecAndStorageProvidersWithoutExplicitSelection() throws BentoStateException {
         final TestLayoutCodecProvider codecProvider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
         final TestLayoutStorageProvider storageProvider = new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);

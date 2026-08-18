@@ -19,9 +19,10 @@ Line numbers refer to the files as they stand on `enhancement/issue-13` at
 
 ## Status
 
-**No blockers, two majors, seven minors, four nits.** Nine are fixed - every
-documentation and consistency defect - and six are recommendations that change the
-public API, left open because they are decisions rather than repairs.
+**No blockers, two majors, seven minors, four nits.** Eleven are fixed: every
+documentation and consistency defect, and the missing catalog operations, which were
+implemented after this pass rather than only recommended. What remains open is three
+API decisions and one that is decided but not yet built.
 
 The documentation was the substance of this pass. Three of the persistence
 framework's behaviors changed recently, and the README and implementation document
@@ -35,9 +36,10 @@ not by reading about them: the JIDE method counts come from `javap` over the jar
 in the Gradle cache, and the BentoFX counts from `javap` over the built classes.
 
 The single most useful change is not any one fix: it is **giving the framework the
-three operations a layout catalog needs** ([M2](#m2)). Named layouts are the next
-feature, JIDE advertises the same capability as two of its selling points, and the
-current API cannot express either without an application reaching around it.
+operations a layout catalog needs** ([M2](#m2)). Named layouts are the next feature,
+JIDE advertises the same capability as two of its selling points, and until this pass
+the API could express neither without an application reaching around it to list a
+directory or query a table itself.
 
 ### BLOCKER
 
@@ -49,14 +51,14 @@ None. Nothing in the framework loses a layout, and nothing in `core` or
 | | Area | Finding | Status |
 |---|---|---|---|
 | [M1](#m1) | docs | The README and implementation document described lifecycle behavior the framework no longer has, in code samples meant to be copied | **Fixed** 2026-08-18 |
-| [M2](#m2) | api | Nothing lists, tests for, or deletes a stored layout, so user-managed named layouts cannot be built on this API | **Open** |
+| [M2](#m2) | api | Nothing lists, tests for, or deletes a stored layout, so user-managed named layouts cannot be built on this API | **Fixed** 2026-08-18 |
 
 ### MINOR
 
 | | Area | Finding | Status |
 |---|---|---|---|
 | [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Open** |
-| [N2](#n2) | api | A user-visible layout name is not usable as a storage identifier, and nothing says who converts one to the other | **Open** |
+| [N2](#n2) | api | A user-visible layout name is not usable as a storage identifier, and nothing says who converts one to the other | **Decided** 2026-08-18; see below |
 | [N3](#n3) | api | The session layout shares one namespace with the layouts users will name | **Open** |
 | [N4](#n4) | api | No side channel for application data, which JIDE applications commonly rely on | **Open** |
 | [N5](#n5) | docs | The implementation document's restorer sample had its first two arguments transposed | **Fixed** 2026-08-18 |
@@ -133,11 +135,44 @@ identifier, so listing is a `select` of one column and deleting is a `delete` on
 composite key.
 
 This is a major rather than a minor because it is the difference between the stated
-plan being buildable and not. See
-[API changes worth making now](#api-changes-worth-making-now) for the shape
-recommended, and [Footprint compared with JIDE](#footprint-compared-with-jide) for
-why a migrating application will expect it: JIDE sells "List available layouts" and
-"Instantly switch layout" as features on its product page.
+plan being buildable and not. A migrating application will expect it as well: JIDE
+sells "List available layouts" and "Instantly switch layout" as features on its
+product page.
+
+**Implemented.** `LayoutStorageProvider` gained the three operations as `default`
+methods, so a storage implementation that cannot enumerate or delete stays valid:
+
+```java
+default List<String> getLayoutIdentifiers(String codecIdentifier);
+default boolean isLayoutStored(String layoutIdentifier, String codecIdentifier);
+default boolean deleteLayout(String layoutIdentifier, String codecIdentifier);
+```
+
+Only `isLayoutStored` has a default that answers usefully, by asking the storage
+itself. The other two report "nothing" and "nothing removed", and both bundled
+implementations override all three: file storage lists the directory entries ending
+in the codec's extension and deletes one file, and database storage selects the
+layout identifiers on rows with a payload and deletes by composite key. Both skip
+empty content, which is the rule `LayoutStorage.exists()` already applies.
+
+`DockingLayoutPersistenceProvider` exposes them to applications as
+`getStoredLayoutIdentifiers`, `isLayoutStored` and `deleteLayout`, each taking a
+profile so that codec and storage selection stays in one place. A one-shot
+`saveLayout(profile, bentoProvider)` came with them: a named save is one write, not
+a session, so it must not arm a five-minute scheduler and register a listener on
+every `Bento` that it then has to take down.
+
+Note the layering the display-name decision forces. Identifiers can be listed from
+the storage layer alone; display names live inside each layout, so listing them means
+decoding, which is why `getLayoutIdentifiers` deals only in identifiers and a
+name-aware listing will sit beside it on the persistence provider, where a codec is
+available.
+
+Covered by tests against both real destinations - `FileLayoutStorageCatalogIT` and
+`DatabaseLayoutStorageProviderIT` - plus provider-level tests that the profile's
+storage identifier picks which destination is asked, and `OneShotLayoutSaveFT`, which
+pins that one call encodes and writes exactly once and that a call with nothing
+attached leaves the stored layout alone.
 
 ---
 
@@ -175,19 +210,20 @@ and why the pair is bounded at 255 characters together.
 None of those constraints are ones an end user should meet. "Sprint 12: UI work" is
 a reasonable thing to call a layout and an unreasonable thing to call a file.
 
-Two ways out, and the choice belongs to whoever owns the API rather than to each
-application:
+**Decided: the framework will carry the display name.** A name goes into the layout
+metadata, the identifier is generated from it, and the catalog reports both, so that
+no application writes the same mapping twice. Not yet implemented; three consequences
+shape how it lands:
 
-- **Applications map display names to identifiers.** The framework stays smaller,
-  and every application writes the same slug function.
-- **The framework stores a display name with the layout and generates the
-  identifier.** Applications get names for free, at the cost of a field in the
-  layout metadata and a lookup to resolve a name back to an identifier - which the
-  catalog in [M2](#m2) would have to return, making the two changes one change.
-
-Worth settling before the catalog is built, because the catalog's return type
-depends on the answer: a list of identifiers, or a list of name-and-identifier
-pairs.
+- Listing names means decoding each stored layout, while listing identifiers is a
+  directory scan or one query. That is why the identifiers already ship on
+  `LayoutStorageProvider` and the name-aware listing will be added beside it on
+  `DockingLayoutPersistenceProvider`, where a codec is available. The existing
+  `getStoredLayoutIdentifiers` keeps its meaning; names are an addition.
+- The metadata field is a schema change, so it touches both codecs and the schema
+  version.
+- Generating an identifier means deciding what happens when two display names reduce
+  to the same one.
 
 ### <a id="n3"></a>N3. The session layout shares one namespace with the layouts users will name
 
@@ -355,18 +391,20 @@ meets only if it inspects persisted state itself.
 | Choosing the destination | `setUsePref(boolean)`, `setLayoutDirectory(String)`, `saveLayoutDataToFile(String)` | a runtime dependency, or a storage identifier in a profile |
 | A new destination or format | not an extension point | implement two interfaces of 3-5 methods and register a service provider |
 | Application data in the layout | `setSaveCallback`/`setLoadCallback`, typed to `org.w3c.dom.Document` | not offered - see [N4](#n4) |
-| Naming layouts | `saveLayoutDataAs(String)`, `loadLayoutDataFrom(String)` | a layout identifier per saver and restorer |
-| Listing layouts | `getAvailableLayouts()` | not offered - see [M2](#m2) |
-| Testing for one layout | `isLayoutAvailable(String)` | `LayoutRestorer.doesLayoutExist()`, after building a restorer |
-| Deleting a layout | `removeLayout(String)` | not offered - see [M2](#m2) |
+| Naming layouts | `saveLayoutDataAs(String)`, `loadLayoutDataFrom(String)` | a layout identifier per saver and restorer, plus a one-shot `saveLayout(profile, bentoProvider)` |
+| Listing layouts | `getAvailableLayouts()` | `getStoredLayoutIdentifiers(profile)` |
+| Testing for one layout | `isLayoutAvailable(String)` | `isLayoutStored(profile)` |
+| Deleting a layout | `removeLayout(String)` | `deleteLayout(profile)` |
 | Restoring the default | `resetToDefault()` | the application's own default layout supplier, which the restorer falls back to |
 | Partial restore | `setUseFrameState(boolean)`, `setUseFrameBounds(boolean)` | not offered; persisted state is applied as a whole |
 | Version handling | `getVersion()`/`setVersion(short)`, `isLayoutDataVersionValid(String)` | a schema version in the layout metadata, with no migration step yet |
 
-BentoFX is ahead on the first three rows and behind on rows five through eight,
-which are exactly the rows the JIDE product page advertises: "Load and save layout
-using javax pref package", "Load and save layout using file", "List available
-layouts", "Instantly switch layout".
+The four rows JIDE's product page advertises - "Load and save layout using javax pref
+package", "Load and save layout using file", "List available layouts", "Instantly
+switch layout" - are now all covered, the last two by the operations added in this
+pass. What remains uncovered is deliberate: no partial restore, no application-data
+channel, and no migration step, each of which is a decision recorded above rather
+than an omission.
 
 One migration note that is worth more than any API change: **applications should
 depend on `DockingLayoutPersistenceProvider`, not on a docking manager.**
@@ -376,48 +414,36 @@ JIDE's persistence calls on the Swing side. That interface then maps onto BentoF
 provider almost method for method, and the JavaFX migration stops being a
 find-and-replace across every window class.
 
-## <a id="api-changes-worth-making-now"></a>API changes worth making now
+## <a id="api-changes-worth-making-now"></a>API changes
 
-Ordered by cost. The first two are additive and cover the stated plan; the rest are
-decisions that get more expensive to reverse once applications depend on them.
+**Done.** The four operations named under [M2](#m2) now exist: three on
+`LayoutStorageProvider` as defaults, overridden by both bundled implementations, and
+their application-facing counterparts plus a one-shot `saveLayout` on
+`DockingLayoutPersistenceProvider`. Together they map onto what a JIDE application
+calls today:
 
-**1. Three capability methods on `LayoutStorageProvider`, with defaults.**
+| JIDE | BentoFX |
+|---|---|
+| `saveLayoutData()` | `getLayoutSaver(...)`, which auto-saves for the session |
+| `saveLayoutDataAs(String)` | `saveLayout(profile, bentoProvider)` |
+| `loadLayoutData()`, `loadLayoutDataFrom(String)` | `getLayoutRestorer(profile, ...)` then `restoreLayout(...)` |
+| `getAvailableLayouts()` | `getStoredLayoutIdentifiers(profile)` |
+| `isLayoutAvailable(String)` | `isLayoutStored(profile)` |
+| `removeLayout(String)` | `deleteLayout(profile)` |
+| `resetToDefault()` | the application's default layout supplier, which the restorer already falls back to |
 
-```java
-default List<String> getLayoutIdentifiers(String codecIdentifier);
-default boolean isLayoutStored(String layoutIdentifier, String codecIdentifier);
-default boolean deleteLayout(String layoutIdentifier, String codecIdentifier);
-```
+**Still to decide, in the order they will be needed.**
 
-Defaults keep every existing storage implementation compiling and let one that
-cannot enumerate say so. Both bundled implementations override all three cheaply.
-
-**2. An application-facing view of them on `DockingLayoutPersistenceProvider`.**
-Applications should not repeat the codec and storage selection logic the provider
-already owns, so the catalog belongs beside `getLayoutSaver` and
-`getLayoutRestorer` - either three methods taking a `LayoutPersistenceProfile`, or a
-small `LayoutCatalog` type obtained from one. The second reads better at the call
-site and gives the three operations one place to grow.
-
-Either way the result maps onto JIDE's `getAvailableLayouts()`,
-`isLayoutAvailable(String)` and `removeLayout(String)` one for one, which is what
-makes a migration mechanical.
-
-**3. A one-shot save, for "save as".** Today a named save means obtaining a
-`LayoutSaver`, which arrives with a five-minute scheduler armed and a listener
-registered on every `Bento`, using it once, and closing it. That works and invites
-the leak. A `saveLayout(profile, bentoProvider)` on the persistence provider, which
-opens storage, writes and closes, says what a "save as" is: one write, no session
-lifetime. JIDE's `saveLayoutDataAs(String)` is the same call.
-
-**4. Decide the display-name question ([N2](#n2)) before building the catalog**, since
-it decides what the catalog returns.
-
-**5. Add the identifier predicate ([N1](#n1)) when the first dialog needs it**, and
-decide then whether it reports a reason.
-
-**6. Settle the session-layout namespace ([N3](#n3)) and the application-data
-boundary ([N4](#n4)).** Both are one-line decisions now and breaking changes later.
+1. **Display names ([N2](#n2)) - decided, not built.** The framework will carry the
+   name and generate the identifier. It is a schema change, so it is a piece of work
+   rather than a signature.
+2. **The identifier predicate ([N1](#n1)).** Needed by the first dialog that
+   validates a typed name; decide then whether it reports which rule failed.
+3. **The session-layout namespace ([N3](#n3)).** `getStoredLayoutIdentifiers` reports
+   the session layout like any other, so an application filters it out today. Worth
+   reserving the identifier before users can pick it.
+4. **The application-data boundary ([N4](#n4)).** One line of documentation, or a
+   narrow format-neutral channel. Cheaper to settle than to change later.
 
 ## <a id="multiple-layouts"></a>Multiple layouts, storages, and codecs
 
@@ -429,11 +455,12 @@ storage per layout and codec pair, so "the most recent layout in JSON on disk" a
 
 What a runtime layout manager needs on top of that:
 
-- the catalog operations above, to populate a menu and to delete an entry
-- a one-shot save, so that "Save layout as..." does not arm a session-long saver
-- a decision about names versus identifiers, because the menu shows one and storage
-  uses the other
-- one reserved or separated identifier for the session layout
+- the catalog operations, to populate a menu and to delete an entry - **now present**
+- a one-shot save, so that "Save layout as..." does not arm a session-long saver -
+  **now present**
+- display names, because the menu shows one and storage uses the other - decided,
+  still to build
+- one reserved or separated identifier for the session layout - still to decide
 
 What it does not need, and should not grow: a second saver lifecycle. The session
 saver stays exactly as it is - obtained at startup, auto-saving, closed on exit -
@@ -460,6 +487,11 @@ the switch itself will look like a layout change worth persisting.
   section, which now states the two decisions that come with named layouts.
 - `docs/persistence/docking-layout-persistence-diagrams.md` - the class diagram's
   missing lifecycle methods, the startup sequence, and the apply sequence.
+
+The catalog operations were documented as they were added: a "Managing Several
+Layouts" section in the README with the four calls and the three things worth knowing
+about them, a table of the operations in the implementation document, and the two
+providers in the class diagram.
 
 The three documents have different audiences and now stay in their lanes: the README
 tells a library user how to use the framework, the implementation document explains

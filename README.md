@@ -37,6 +37,7 @@ A docking system for JavaFX.
     - [Recommended Application Startup Flow](#recommended-application-startup-flow)
     - [Saving the Layout](#saving-the-layout)
     - [Restoring the Layout](#restoring-the-layout)
+    - [Managing Several Layouts](#managing-several-layouts)
     - [Runtime Considerations](#runtime-considerations)
       - [JavaFX Application Thread](#javafx-application-thread)
       - [Application Evolution](#application-evolution)
@@ -239,7 +240,7 @@ The [persistence](./persistence) modules supplement the [core](#core-framework) 
 
 Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
-> <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. An application can use several: the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. What the framework does not yet provide is a catalog. Nothing lists the layouts already stored or deletes one, so an application that lets users manage named layouts supplies that part itself.
+> <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. An application can use several: the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. To offer users a list of saved layouts, see [Managing Several Layouts](#managing-several-layouts).
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -660,6 +661,33 @@ private DockingLayout getDockingLayout() {
 
 Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
 
+<h4 id="managing-several-layouts">Managing Several Layouts</h4>
+
+An application usually keeps one layout that follows the session, saved automatically and restored at startup. Letting users keep layouts of their own means naming them, listing them, and removing them, and the persistence provider answers all three:
+
+```java
+final LayoutPersistenceProfile profile = LayoutPersistenceProfile.of("review-layout");
+
+// Save the layout showing now, under this name. One write, nothing left running.
+persistenceProvider.saveLayout(profile, bentoProvider);
+
+// Populate a menu. The session layout is in here too, so filter it out.
+final List<String> storedLayouts =
+        persistenceProvider.getStoredLayoutIdentifiers(profile);
+
+// Warn before replacing, and remove on request.
+final boolean wouldReplace = persistenceProvider.isLayoutStored(profile);
+final boolean wasRemoved = persistenceProvider.deleteLayout(profile);
+```
+
+Three things are worth knowing:
+
+* **`saveLayout` is not a `LayoutSaver`.** It writes once and returns; nothing is scheduled and no listener is registered. Keep `getLayoutSaver` for the layout that follows the session and use this for a layout a user asked to keep.
+* **`getStoredLayoutIdentifiers` ignores the profile's layout identifier**, since it reports every layout the destination holds. The profile is there to select the codec and the storage to ask.
+* **Restoring a different layout while running is not the same as restoring one at startup.** The containers a restorer hands back are unattached, so the application replaces the scene root and re-shows any drag/drop stages itself, and the switch itself looks like a layout change to a running auto-save. Save the current layout first, or take auto-save down around the switch.
+
+A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.
+
 <h4 id="runtime-considerations">Runtime Considerations</h4>
 
 Applications should keep two runtime considerations in mind when using
@@ -770,6 +798,7 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 Three conventions are worth following in a storage implementation, because the bundled implementations follow them and callers rely on them:
 
 * **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
+* **Override the catalog methods when the destination can answer them.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
 * **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
 * **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
 

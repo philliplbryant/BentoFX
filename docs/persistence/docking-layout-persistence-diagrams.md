@@ -43,6 +43,22 @@ classDiagram
     +isDefault()
   }
 
+  class DockingLayoutPersistenceProvider {
+    +getLayoutSaver(profile, bentoProvider)
+    +getLayoutRestorer(profile, providers)
+    +saveLayout(profile, bentoProvider)
+    +getStoredLayoutIdentifiers(profile)
+    +isLayoutStored(profile)
+    +deleteLayout(profile)
+  }
+
+  class LayoutStorageProvider {
+    +getLayoutStorage(layoutId, codecId)
+    +getLayoutIdentifiers(codecId)
+    +isLayoutStored(layoutId, codecId)
+    +deleteLayout(layoutId, codecId)
+  }
+
   class LayoutCodec {
     +encode(state,out)
     +decode(in) BentoState
@@ -79,6 +95,10 @@ classDiagram
   
   LayoutCodecProvider --|> LayoutPersistenceComponentProvider
   LayoutStorageProvider --|> LayoutPersistenceComponentProvider
+
+  DockingLayoutPersistenceProvider --> LayoutSaver : creates
+  DockingLayoutPersistenceProvider --> LayoutRestorer : creates
+  DockingLayoutPersistenceProvider --> LayoutStorageProvider : lists, tests, deletes through
 
   LayoutSaver --> BentoProvider : get container graph
   LayoutSaver --> BentoState : builds

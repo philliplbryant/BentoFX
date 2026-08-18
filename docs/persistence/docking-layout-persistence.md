@@ -244,6 +244,21 @@ secondary stages will not receive application-specific stage icons.
 `LayoutPersistenceProvider` creates the application-facing `LayoutSaver` and `LayoutRestorer`. The default
 `DockingLayoutPersistenceProvider` discovers codec and storage providers using `ServiceLoader` and selects providers by explicit profile identifiers, by a single available provider, or by a single default provider.
 
+It also answers what is already stored, so that an application offering users a choice of layouts does not repeat that
+selection logic:
+
+| Operation | Purpose |
+|-----------|---------|
+| `saveLayout(profile, bentoProvider)` | Writes the layout showing now, once. Nothing is scheduled and no listener is registered, which is what distinguishes it from a `LayoutSaver`. |
+| `getStoredLayoutIdentifiers(profile)` | Lists every layout the destination holds. The profile selects the codec and storage to ask; its layout identifier is not used. |
+| `isLayoutStored(profile)` | Reports whether a layout is stored, without building a restorer to ask. |
+| `deleteLayout(profile)` | Removes a stored layout, reporting whether there was one. |
+
+The last three delegate to `LayoutStorageProvider`, where they have default implementations: a storage destination that
+cannot enumerate reports no layouts, and one that cannot delete reports that it removed nothing. Both bundled
+implementations answer all three, since file storage keeps one file per layout and database storage one row per layout and
+codec.
+
 ## Application design for persistence
 
 The persistence framework changes how applications should organize docking layout construction.
@@ -532,34 +547,32 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 
 ## Additional capabilities under consideration
 
-### User-managed named layouts
+### Display names for user-created layouts
 
-The framework already addresses a layout by identifier and already chooses a codec and a storage destination per saver
-and per restorer, so an application can read and write as many layouts as it likes today. What it cannot do is discover
-them. Three operations have no home in the API:
+A layout identifier becomes a file name in file-backed storage, so it cannot be whatever a user types. The framework will
+therefore carry a display name of its own: a name goes into the layout metadata, the identifier is generated from it, and
+the catalog reports both, so that no application has to write the same mapping.
 
-- list the layout identifiers a storage destination holds
-- report whether one particular layout is stored, without building a restorer to ask
-- delete a stored layout
+That work is not done. Three consequences shape how it will be added:
 
-The first and third cannot be derived from the current interfaces at all. Both bundled storage implementations could
-answer them cheaply - a directory listing for file storage, a query on the composite key for database storage - which
-suggests the operations belong on `LayoutStorageProvider`, with default implementations so that existing storage
-implementations keep compiling, and an application-facing view of them on `DockingLayoutPersistenceProvider` so that
-codec and storage selection is not repeated by every caller.
+- The display name lives inside the layout, so listing names means decoding each stored layout, while listing identifiers
+  is a directory scan or one query. The two belong at different layers, which is why
+  `LayoutStorageProvider.getLayoutIdentifiers(String)` deals only in identifiers and a name-aware listing will sit beside
+  it on `DockingLayoutPersistenceProvider`, where a codec is available.
+- `getStoredLayoutIdentifiers` keeps its meaning when names arrive; the name-aware call is an addition rather than a
+  replacement.
+- Generating an identifier means deciding what to do about collisions, since two display names can reduce to the same
+  identifier.
 
-Two decisions come with that capability, and both are worth settling before the API is added rather than after:
+### The session layout shares one namespace with user layouts
 
-- **A user-visible layout name is not automatically a storage identifier.** File-backed storage turns the identifier into
-  one path component, so a name a user types can contain characters no filesystem accepts. Either applications map
-  display names to safe identifiers themselves, or the framework stores a display name alongside the layout and generates
-  the identifier. The first keeps the framework smaller; the second keeps every application from writing the same mapping.
-- **The session layout shares the namespace with user layouts.** The demo saves the most recent layout under `recent`.
-  Once users can name layouts, one of them can pick that name. Reserving the identifier, or separating the session layout
-  into its own namespace, is a choice to make deliberately.
+The demo saves the most recent layout under `recent`, and
+`DockingLayoutPersistenceProvider.getStoredLayoutIdentifiers(...)` reports it like any other layout. Once users name
+layouts, one of them can choose that name. Reserving the identifier, or moving the session layout into its own namespace,
+is a decision still to be made; until then an application filters the session identifier out of any menu it builds.
 
 ### Other capabilities
 
 - Add layout versioning and migration, likely in the codec layer.
-- Extend the demo with menu items to save the current layout without exiting and to restore a previously saved layout by
-  name, once the operations above exist.
+- Extend the demo with menu items to save the current layout under a name and to restore a previously saved layout,
+  which the operations above now support.

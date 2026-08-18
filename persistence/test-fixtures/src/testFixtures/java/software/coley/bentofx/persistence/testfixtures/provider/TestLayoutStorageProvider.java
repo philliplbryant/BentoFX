@@ -5,6 +5,8 @@ import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.storage.TestLayoutStorage;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -24,6 +26,12 @@ public final class TestLayoutStorageProvider
             new AtomicReference<>();
     private final AtomicReference<@Nullable String> codecIdentifier =
             new AtomicReference<>();
+
+    private final AtomicReference<@Nullable String> catalogCodecIdentifier =
+            new AtomicReference<>();
+
+    private final List<String> storedLayoutIdentifiers =
+            new CopyOnWriteArrayList<>();
 
     /**
      * Creates a provider that reports the supplied identifier and default flag.
@@ -46,6 +54,54 @@ public final class TestLayoutStorageProvider
         this.layoutIdentifier.set(layoutIdentifier);
         this.codecIdentifier.set(codecIdentifier);
         return new TestLayoutStorage();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Reports whatever {@link #setStoredLayoutIdentifiers} was given, and records
+     * the codec identifier it was asked with.</p>
+     */
+    @Override
+    public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+        catalogCodecIdentifier.set(codecIdentifier);
+        return List.copyOf(storedLayoutIdentifiers);
+    }
+
+    @Override
+    public boolean isLayoutStored(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        catalogCodecIdentifier.set(codecIdentifier);
+        return storedLayoutIdentifiers.contains(layoutIdentifier);
+    }
+
+    @Override
+    public boolean deleteLayout(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        catalogCodecIdentifier.set(codecIdentifier);
+        return storedLayoutIdentifiers.remove(layoutIdentifier);
+    }
+
+    /**
+     * Sets the layouts this provider reports as stored.
+     *
+     * @param layoutIdentifiers the layouts to report.
+     */
+    public void setStoredLayoutIdentifiers(final List<String> layoutIdentifiers) {
+        storedLayoutIdentifiers.clear();
+        storedLayoutIdentifiers.addAll(layoutIdentifiers);
+    }
+
+    /**
+     * {@return the codec identifier the last catalog call was made with, or
+     * {@code null} when none has been made.}
+     */
+    public @Nullable String getCatalogCodecIdentifier() {
+        return catalogCodecIdentifier.get();
     }
 
     /**
