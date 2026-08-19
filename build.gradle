@@ -10,12 +10,25 @@ plugins {
 
 def versionCatalog = versionCatalogs.named('libs')
 
-// TODO BENTO-13: Might need to comment out this configuration and use
-//  --no-configuration-cache when executing some JReleaser tasks.
-//  The JReleaser plugin is not compatible with configuration cache and using
-//  the `notCompatibleWithConfigurationCache` SOMETIMES causes an error deleting
-//  the build/jreleaser directory.
-//  See https://github.com/jreleaser/jreleaser/issues/2150
+group = versionCatalog.findVersion("maven-group").get().requiredVersion
+
+// Each published module writes to its own build/staging-deploy (see
+// bento.release.publish-convention.gradle); sharing one output directory
+// across independent Gradle tasks breaks up-to-date/stale-output tracking,
+// so JReleaser needs a separate stagingRepository entry per module,
+// resolved relative to the root project.
+def publishedModuleStagingRepositories = [
+        'platform/build/staging-deploy',
+        'core/build/staging-deploy',
+        'persistence/api/build/staging-deploy',
+        'persistence/codec/common/build/staging-deploy',
+        'persistence/codec/json/build/staging-deploy',
+        'persistence/codec/xml/build/staging-deploy',
+        'persistence/storage/db/h2/build/staging-deploy',
+        'persistence/storage/file/build/staging-deploy',
+]
+
+// TODO BENTO-13: See https://github.com/jreleaser/jreleaser/issues/2150
 tasks.withType(AbstractJReleaserDefaultTask).configureEach {
     def jreleaserVersion =
             versionCatalog.findVersion("jreleaser").get().requiredVersion
@@ -27,13 +40,17 @@ tasks.withType(AbstractJReleaserDefaultTask).configureEach {
 
 // JReleaser also requires defining the following system properties (can be
 // defined in [USER_HOME]/.jreleaser/config.properties):
-//    JRELEASER_GPG_PASSPHRASE=passphrase
-//    JRELEASER_GPG_SECRET_KEY=key
-//    JRELEASER_MAVENCENTRAL_USERNAME=username
-//    JRELEASER_MAVENCENTRAL_PASSWORD=password
+//    JRELEASER_GPG_PASSPHRASE=[passphrase]
+//    JRELEASER_GPG_SECRET_KEY=[key]
+//    JRELEASER_MAVENCENTRAL_USERNAME=[username]
+//    JRELEASER_MAVENCENTRAL_PASSWORD=[password]
+// And the following properties must be present to release snapshot versions
+//    NEXUS_USERNAME=[username]
+//    NEXUS_PASSWORD=[password]
+//    NEXUS_SNAPSHOT_REPO_URL=[url of the Nexus snapshot repository]
 jreleaser {
     project {
-        group = 'software.coley.bento-fx'
+        group = versionCatalog.findVersion("maven-group").get().requiredVersion
         version = versionCatalog.findVersion("bentofx").get().requiredVersion
     }
     signing {
@@ -63,7 +80,21 @@ jreleaser {
                     active = 'RELEASE'
                     url = 'https://central.sonatype.com/api/v1/publisher'
                     applyMavenCentralRules = true
-                    stagingRepository('build/staging-deploy')
+                    publishedModuleStagingRepositories.each { stagingRepository(it) }
+                }
+            }
+            nexus2 {
+                'snapshots' {
+                    active = 'SNAPSHOT'
+                    // Nexus2-style staging API isn't used for snapshots; only
+                    // snapshotUrl is exercised, but the deployer schema still
+                    // requires 'url' to be set.
+                    url = System.getenv('NEXUS_SNAPSHOT_REPO_URL')
+                    snapshotSupported = true
+                    snapshotUrl = System.getenv('NEXUS_SNAPSHOT_REPO_URL')
+                    username = System.getenv('NEXUS_USERNAME')
+                    password = System.getenv('NEXUS_PASSWORD')
+                    publishedModuleStagingRepositories.each { stagingRepository(it) }
                 }
             }
         }

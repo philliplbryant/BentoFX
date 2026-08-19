@@ -1,11 +1,13 @@
 plugins {
     id 'java-platform'
+    id 'bento.release.publish-convention'
 }
 
 javaPlatform {
     allowDependencies()
 }
 
+group = libs.versions.maven.group.get()
 version = libs.versions.bentofx.get()
 description = 'BentoFX Platform BOM'
 

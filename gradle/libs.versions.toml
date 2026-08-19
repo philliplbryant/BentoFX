@@ -1,6 +1,8 @@
 [versions]
 # noinspection UnusedVersionCatalogEntry
-bentofx = "0.16.0"
+maven-group = "software.coley.bento-fx"
+# noinspection UnusedVersionCatalogEntry
+bentofx = "0.16.1-SNAPSHOT"
 # noinspection UnusedVersionCatalogEntry
 gradle-wrapper = "9.7.0"
 # noinspection UnusedVersionCatalogEntry

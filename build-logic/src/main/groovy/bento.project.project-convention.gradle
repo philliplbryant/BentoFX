@@ -20,7 +20,7 @@ plugins.withId('org.openjfx.javafxplugin') {
     }
 }
 
-group = 'software.coley.bento-fx'
+group = versionCatalog.findVersion("maven-group").get().requiredVersion
 version = versionCatalog.findVersion("bentofx").get().requiredVersion
 
 def normalizedProjectName = providers.provider {
