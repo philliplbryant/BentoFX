@@ -1,22 +1,17 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.persistence.core.api.provider;
 
 import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
+import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
 
 import java.util.function.Supplier;
 
 /**
  * An application whose docking layout can be replaced with another.
  *
- * <p>The three methods belong together because both of the layout-returning
- * ones exist to be handed to {@link #switchToLayout(Supplier)}: one for the
- * layout the application builds for itself, one for a layout in storage.</p>
- *
- * <p>A switch takes a {@link Supplier} rather than a {@link DockingLayout}
- * because reading the layout is part of the switch, not something done before
- * it. An implementation has to stop whatever is saving the arrangement on
- * screen before anything reads a replacement, so it is the implementation that
- * decides when the supplier runs.</p>
+ * <p>Offered for applications to implement, but nothing in the persistence
+ * framework calls it during a save or a restore. It is intended for use by
+ * application user controls such as the {@link LayoutsMenu}.</p>
  *
  * @author Phil Bryant
  */
@@ -58,4 +53,24 @@ public interface DockingLayoutRestorable {
 	 * @param dockingLayoutSupplier supplies the layout to switch to.
 	 */
 	boolean switchToLayout(Supplier<DockingLayout> dockingLayoutSupplier);
+
+	/**
+	 * {@return the provider this application reads and writes layouts through.}
+	 *
+	 * <p>The application's own instance rather than a fresh
+	 * {@code DockingLayoutPersistence.provider()}: that call resolves the
+	 * service afresh every time, and is meant to be made once at start-up and
+	 * held.</p>
+	 */
+	DockingLayoutPersistenceProvider getPersistenceProvider();
+
+	/**
+	 * {@return the provider naming the {@code Bento}s whose layouts this
+	 * application saves and restores.}
+	 *
+	 * <p>A registry of live objects that only the application can supply, and
+	 * the same one it hands to a restorer, so that what a control saves is what
+	 * the application would have saved itself.</p>
+	 */
+	BentoProvider getBentoProvider();
 }

@@ -1,4 +1,4 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.persistence.core.ui;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -15,12 +15,16 @@ import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBu
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
+import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
@@ -31,19 +35,23 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  * itself and the layouts a user has named, and save, rename, and delete those.
  *
  * <p>Nothing here is particular to one application. What an application
- * supplies is a {@link DockingLayoutRestorable} to act on, the window dialogs
- * belong to, and the two providers that reach storage. Drop the menu wherever
- * it belongs - a menu bar, a {@code Window} menu, a context menu:</p>
+ * supplies is a {@link DockingLayoutRestorable} to act on and the window
+ * dialogs belong to; the providers that reach storage come from the
+ * restorable, which cannot be implemented without them anyway. Drop the menu
+ * wherever it belongs - a menu bar, a {@code Window} menu, a context menu:</p>
  *
  * <pre>{@code
- * windowMenu.getItems().add(new LayoutsMenu(
- *         application, stage, persistenceProvider, bentoProvider
- * ));
+ * windowMenu.getItems().add(new LayoutsMenu(application, stage));
  * }</pre>
  *
  * <p>This menu owns which named layout is showing, because its own items are
  * the only thing that changes it. An application that switches layouts by some
  * other route as well would need a say in that, which none does today.</p>
+ *
+ * <p>Every word a user reads comes from a {@link ResourceBundle}, so an
+ * application in another language either drops a translation beside the one
+ * shipped here or hands over a bundle of its own. See
+ * {@code LayoutsMenu.properties}.</p>
  *
  * @author Phil Bryant
  */
@@ -54,14 +62,25 @@ public class LayoutsMenu extends Menu {
 
 	private static final String CHECK_MARK = "✓";
 
+	/**
+	 * The bundle this menu reads when an application does not supply one.
+	 *
+	 * <p>Resolved against this module, which is where the shipped
+	 * {@code LayoutsMenu.properties} lives. A bundle in the application's own
+	 * module cannot be found by this name - resources in a named module are not
+	 * visible to another - which is why the way to substitute text is to pass a
+	 * {@link ResourceBundle} rather than to shadow this one.</p>
+	 */
+	private static final String BUNDLE_BASE_NAME =
+			"software.coley.bentofx.persistence.core.ui.LayoutsMenu";
+
 	private final DockingLayoutRestorable dockingLayoutRestorable;
 
 	/** The window the dialogs raised from this menu belong to. */
 	private final Window owner;
 
-	private final DockingLayoutPersistenceProvider persistenceProvider;
-
-	private final BentoProvider bentoProvider;
+	/** Every word a user reads from this menu. */
+	private final ResourceBundle texts;
 
 	/**
 	 * The custom layout showing now, or {@code null} when the default layout
@@ -74,24 +93,49 @@ public class LayoutsMenu extends Menu {
 	private @Nullable LayoutPersistenceProfile activeCustomLayoutProfile;
 
 	/**
-	 * @param dockingLayoutRestorable the application whose docking layout these
-	 * items switch.
+	 * Builds a menu that reads the text shipped with this framework, in the
+	 * default locale.
+	 *
 	 * @param owner the window the dialogs these items raise belong to.
-	 * @param persistenceProvider reads, writes, and lists stored layouts.
-	 * @param bentoProvider supplies what a save captures.
+	 * @param dockingLayoutRestorable the application whose docking layout these
+	 * items switch, and whose providers they read and write it through.
+	 */
+	public LayoutsMenu(
+			final Window owner,
+			final DockingLayoutRestorable dockingLayoutRestorable
+	) {
+		this(
+				dockingLayoutRestorable,
+				owner,
+				ResourceBundle.getBundle(BUNDLE_BASE_NAME)
+		);
+	}
+
+	/**
+	 * Builds a menu that reads the supplied text.
+	 *
+	 * <p>For an application that keeps its own wording, or that supports a
+	 * language no translation shipped here covers. The bundle has to carry
+	 * every key in {@code LayoutsMenu.properties}: a missing one raises
+	 * {@link java.util.MissingResourceException} when the item that needs it is
+	 * built, which is the first time the menu opens rather than at
+	 * construction.</p>
+	 *
+	 * @param dockingLayoutRestorable the application whose docking layout these
+	 * items switch, and whose providers they read and write it through.
+	 * @param owner the window the dialogs these items raise belong to.
+	 * @param texts every word a user reads from this menu.
 	 */
 	public LayoutsMenu(
 			final DockingLayoutRestorable dockingLayoutRestorable,
 			final Window owner,
-			final DockingLayoutPersistenceProvider persistenceProvider,
-			final BentoProvider bentoProvider
+			final ResourceBundle texts
 	) {
-		super("_Layouts");
+		super(texts.getString("menu.layouts"));
 
 		this.dockingLayoutRestorable = dockingLayoutRestorable;
 		this.owner = owner;
-		this.persistenceProvider = persistenceProvider;
-		this.bentoProvider = bentoProvider;
+		this.texts = texts;
 
 		// Rebuilt every time it opens, and once now so that it has something to
 		// open with - a menu with no items never opens, and so would never
@@ -111,17 +155,23 @@ public class LayoutsMenu extends Menu {
 		// user has been arranging without naming, and this menu does not
 		// remember which named layout it grew out of.
 		final MenuItem defaultItem = new MenuItem(
-				markedText("_Default", activeCustomLayoutProfile == null)
+				markedText(
+						text("item.default"),
+						activeCustomLayoutProfile == null
+				)
 		);
 		defaultItem.setOnAction(event -> restoreDefaultLayout());
 
 		final Menu customMenu = new Menu(
-				markedText("_Custom", activeCustomLayoutProfile != null)
+				markedText(
+						text("menu.custom"),
+						activeCustomLayoutProfile != null
+				)
 		);
 		populateCustomMenu(customMenu);
 
 		final MenuItem saveAsNewItem =
-				new MenuItem("Save Current Layout as _New...");
+				new MenuItem(text("item.saveAsNew"));
 		saveAsNewItem.setOnAction(event -> saveCurrentLayoutAsNew());
 
 		getItems().setAll(defaultItem, customMenu, saveAsNewItem);
@@ -137,14 +187,14 @@ public class LayoutsMenu extends Menu {
 	 * @param customMenu the menu to fill.
 	 */
 	private void populateCustomMenu(final Menu customMenu) {
-		final Menu restoreMenu = new Menu("_Restore");
-		final Menu deleteMenu = new Menu("_Delete");
+		final Menu restoreMenu = new Menu(text("menu.restore"));
+		final Menu deleteMenu = new Menu(text("menu.delete"));
 
-		final MenuItem saveChangesItem = new MenuItem("_Save Changes");
+		final MenuItem saveChangesItem = new MenuItem(text("item.saveChanges"));
 		saveChangesItem.setDisable(activeCustomLayoutProfile == null);
 		saveChangesItem.setOnAction(event -> saveChangesToActiveLayout());
 
-		final MenuItem renameItem = new MenuItem("R_ename...");
+		final MenuItem renameItem = new MenuItem(text("item.rename"));
 		renameItem.setDisable(activeCustomLayoutProfile == null);
 		renameItem.setOnAction(event -> renameActiveLayout());
 
@@ -154,16 +204,16 @@ public class LayoutsMenu extends Menu {
 				findStoredCustomLayouts();
 
 		if (storedLayouts.isEmpty()) {
-			addDisabledItem(restoreMenu, "Could not list saved layouts");
-			addDisabledItem(deleteMenu, "Could not list saved layouts");
+			addDisabledItem(restoreMenu, text("item.listFailed"));
+			addDisabledItem(deleteMenu, text("item.listFailed"));
 		} else if (storedLayouts.get().isEmpty()) {
-			addDisabledItem(restoreMenu, "No saved layouts");
-			addDisabledItem(deleteMenu, "No saved layouts");
+			addDisabledItem(restoreMenu, text("item.noLayouts"));
+			addDisabledItem(deleteMenu, text("item.noLayouts"));
 		} else {
 			for (final LayoutPersistenceProfile storedLayout :
 					storedLayouts.get()) {
 
-				final MenuItem restoreItem = new MenuItem(markedText(
+				final MenuItem restoreItem = layoutItem(markedText(
 						getLayoutLabel(storedLayout),
 						isActiveLayout(storedLayout)
 				));
@@ -173,7 +223,7 @@ public class LayoutsMenu extends Menu {
 				restoreMenu.getItems().add(restoreItem);
 
 				final MenuItem deleteItem =
-						new MenuItem(getLayoutLabel(storedLayout));
+						layoutItem(getLayoutLabel(storedLayout));
 				deleteItem.setOnAction(
 						event -> deleteStoredLayout(storedLayout)
 				);
@@ -202,7 +252,7 @@ public class LayoutsMenu extends Menu {
 	private Optional<List<LayoutPersistenceProfile>> findStoredCustomLayouts() {
 		try {
 			return Optional.of(
-					persistenceProvider.getStoredLayouts(
+					persistenceProvider().getStoredLayouts(
 							LayoutPersistenceProfile.of(
 									SESSION_LAYOUT_IDENTIFIER
 							)
@@ -287,10 +337,8 @@ public class LayoutsMenu extends Menu {
 		}
 
 		showLayoutError(
-				"Could not restore that layout.",
-				"The layout could not be read, or does not fit this "
-						+ "application. The layout showing now has been left "
-						+ "as it is."
+				text("error.restoreFailed.header"),
+				text("error.restoreFailed.content")
 		);
 		return false;
 	}
@@ -300,8 +348,8 @@ public class LayoutsMenu extends Menu {
 	 */
 	private void saveCurrentLayoutAsNew() {
 		final Optional<String> displayName = findLayoutName(
-				"Save Current Layout as New",
-				"Name for this layout:",
+				text("dialog.saveAsNew.title"),
+				text("dialog.saveAsNew.prompt"),
 				""
 		);
 
@@ -314,15 +362,14 @@ public class LayoutsMenu extends Menu {
 
 		// The name a user types is not an identifier, and deriving one is this
 		// menu's step rather than the framework's. What the framework does is
-		// say why a derived identifier will not do, in a sentence worth showing
-		// as it is.
+		// say which rule a derived identifier breaks.
 		final Optional<LayoutIdentifierProblem> problem =
 				LayoutIdentifiers.findUserLayoutProblem(layoutIdentifier);
 
 		if (problem.isPresent()) {
 			showLayoutError(
-					"Cannot save a layout named \"" + displayName.get() + "\".",
-					problem.get().message()
+					text("error.cannotSaveNamed.header", displayName.get()),
+					problemText(problem.get())
 			);
 			return;
 		}
@@ -335,23 +382,22 @@ public class LayoutsMenu extends Menu {
 		final boolean isAlreadyStored;
 
 		try {
-			isAlreadyStored = persistenceProvider.isLayoutStored(newLayout);
+			isAlreadyStored = persistenceProvider().isLayoutStored(newLayout);
 		} catch (final BentoStateException e) {
 			logger.warn(
 					"Could not tell whether the layout '{}' is stored.",
 					layoutIdentifier,
 					e
 			);
-			showLayoutError("Could not save the layout.", e.getMessage());
+			showLayoutError(text("error.saveFailed.header"), e.getMessage());
 			return;
 		}
 
 		// Two names can derive one identifier, so this catches a collision the
 		// user cannot see coming as well as the same name typed twice.
 		if (isAlreadyStored && !confirmLayoutAction(
-				"Replace the layout stored as \"" + layoutIdentifier + "\"?",
-				"A layout is already stored under that name. Replacing it "
-						+ "cannot be undone."
+				text("confirm.replace.header", layoutIdentifier),
+				text("confirm.replace.content")
 		)) {
 			return;
 		}
@@ -394,8 +440,8 @@ public class LayoutsMenu extends Menu {
 		}
 
 		final Optional<String> displayName = findLayoutName(
-				"Rename Layout",
-				"New name for this layout:",
+				text("dialog.rename.title"),
+				text("dialog.rename.prompt"),
 				getLayoutLabel(activeLayout)
 		);
 
@@ -405,9 +451,8 @@ public class LayoutsMenu extends Menu {
 
 		if (displayName.get().isBlank()) {
 			showLayoutError(
-					"Cannot rename a layout to a blank name.",
-					"Type a name for the layout, or cancel to keep the one it "
-							+ "has."
+					text("error.blankName.header"),
+					text("error.blankName.content")
 			);
 			return;
 		}
@@ -432,22 +477,21 @@ public class LayoutsMenu extends Menu {
 		final String layoutLabel = getLayoutLabel(layoutPersistenceProfile);
 
 		if (!confirmLayoutAction(
-				"Delete the layout \"" + layoutLabel + "\"?",
-				"The stored layout is removed. The layout showing now is not "
-						+ "changed."
+				text("confirm.delete.header", layoutLabel),
+				text("confirm.delete.content")
 		)) {
 			return;
 		}
 
 		try {
-			persistenceProvider.deleteLayout(layoutPersistenceProfile);
+			persistenceProvider().deleteLayout(layoutPersistenceProfile);
 		} catch (final BentoStateException e) {
 			logger.warn(
 					"Could not delete the docking layout '{}'.",
 					layoutPersistenceProfile.layoutIdentifier(),
 					e
 			);
-			showLayoutError("Could not delete the layout.", e.getMessage());
+			showLayoutError(text("error.deleteFailed.header"), e.getMessage());
 			return;
 		}
 
@@ -468,9 +512,9 @@ public class LayoutsMenu extends Menu {
 			// A one-shot write rather than through the running saver: this is a
 			// layout of its own, not the session layout auto-save keeps up to
 			// date.
-			persistenceProvider.saveLayout(
+			persistenceProvider().saveLayout(
 					layoutPersistenceProfile,
-					bentoProvider
+					bentoProvider()
 			);
 			activeCustomLayoutProfile = layoutPersistenceProfile;
 		} catch (final BentoStateException e) {
@@ -479,7 +523,7 @@ public class LayoutsMenu extends Menu {
 					layoutPersistenceProfile.layoutIdentifier(),
 					e
 			);
-			showLayoutError("Could not save the layout.", e.getMessage());
+			showLayoutError(text("error.saveFailed.header"), e.getMessage());
 		}
 	}
 
@@ -533,6 +577,91 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
+	 * {@return the provider layouts are read, written, and listed through.}
+	 *
+	 * <p>Asked of the application at each use rather than held here, so that
+	 * this menu cannot be the reason a stale provider stays reachable.</p>
+	 */
+	private DockingLayoutPersistenceProvider persistenceProvider() {
+		return dockingLayoutRestorable.getPersistenceProvider();
+	}
+
+	/**
+	 * {@return the provider naming what a save captures.}
+	 *
+	 * @see #persistenceProvider()
+	 */
+	private BentoProvider bentoProvider() {
+		return dockingLayoutRestorable.getBentoProvider();
+	}
+
+	/**
+	 * {@return an item naming one stored layout.}
+	 *
+	 * <p>Mnemonic parsing off, because the label is a name a user typed rather
+	 * than one this framework wrote. Left on, an underscore in that name would
+	 * be eaten as a mnemonic marker and the layout a user called
+	 * {@code My_Layout} would be listed as {@code MyLayout}. There is nothing
+	 * to lose by it: these items are as many as the user has saved layouts, so
+	 * no mnemonic could be assigned to them ahead of time anyway.</p>
+	 *
+	 * @param label what the item says.
+	 */
+	private static MenuItem layoutItem(final String label) {
+		final MenuItem item = new MenuItem(label);
+		item.setMnemonicParsing(false);
+		return item;
+	}
+
+	/**
+	 * {@return the text for a key.}
+	 *
+	 * @param key names the text in this menu's {@link ResourceBundle}.
+	 */
+	private String text(final String key) {
+		return texts.getString(key);
+	}
+
+	/**
+	 * {@return the text for a key, with its placeholder filled in.}
+	 *
+	 * <p>Separate from {@link #text(String)} so that only the values holding a
+	 * placeholder go through {@link MessageFormat}. Running every value through
+	 * it would make a literal apostrophe an escape character in all of
+	 * them, and so make every translated sentence a place to get that
+	 * wrong.</p>
+	 *
+	 * @param key names the text in this menu's {@link ResourceBundle}.
+	 * @param argument what to put in place of <code>{0}</code>.
+	 */
+	private String text(final String key, final Object argument) {
+		return MessageFormat.format(texts.getString(key), argument);
+	}
+
+	/**
+	 * {@return why a name a user typed cannot address a layout.}
+	 *
+	 * <p>Rendered here rather than shown as {@link
+	 * LayoutIdentifierProblem#message()}, which is the framework's own sentence
+	 * and comes in one language. Only the three rules below can be broken by an
+	 * identifier that came out of {@link LayoutNames#toIdentifier(String)},
+	 * which keeps nothing but letters and digits; the rest are about characters
+	 * that cannot survive it. The framework's sentence is still the default
+	 * arm, because a rule added later would otherwise arrive here as
+	 * nothing.</p>
+	 *
+	 * @param problem which rule the derived identifier broke.
+	 */
+	private String problemText(final LayoutIdentifierProblem problem) {
+		return switch (problem.rule()) {
+			case BLANK -> text("problem.blank");
+			case RESERVED -> text("problem.reserved");
+			case DEVICE_NAME -> text("problem.deviceName");
+			default -> problem.message();
+		};
+	}
+
+	/**
 	 * {@return what a menu item says, marked when it is the one in effect.}
 	 *
 	 * <p>The mark goes in the item's own text rather than into a {@code Label}
@@ -562,11 +691,16 @@ public class LayoutsMenu extends Menu {
 	 * <p>An empty menu opens as an empty popup, which reads as a fault rather
 	 * than as an answer.</p>
 	 *
+	 * <p>Mnemonic parsing off for the same reason as on a stored layout's item:
+	 * nothing can be navigated to on a disabled item, so an underscore a
+	 * translation happened to contain would be eaten for nothing.</p>
+	 *
 	 * @param menu the menu to add to.
 	 * @param text what the item says.
 	 */
 	private static void addDisabledItem(final Menu menu, final String text) {
 		final MenuItem item = new MenuItem(text);
+		item.setMnemonicParsing(false);
 		item.setDisable(true);
 		menu.getItems().add(item);
 	}
@@ -607,7 +741,7 @@ public class LayoutsMenu extends Menu {
 		final Alert alert = new Alert(Alert.AlertType.ERROR);
 
 		alert.initOwner(owner);
-		alert.setTitle("Docking Layouts");
+		alert.setTitle(text("dialog.title"));
 		alert.setHeaderText(header);
 		alert.setContentText(content);
 		alert.showAndWait();
@@ -629,7 +763,7 @@ public class LayoutsMenu extends Menu {
 		final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 
 		alert.initOwner(owner);
-		alert.setTitle("Docking Layouts");
+		alert.setTitle(text("dialog.title"));
 		alert.setHeaderText(header);
 		alert.setContentText(content);
 		alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);

@@ -1,6 +1,4 @@
-package software.coley.boxfx.demo.persistence;
-
-import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
+package software.coley.bentofx.persistence.core.api.storage;
 
 import java.util.Locale;
 
@@ -8,9 +6,9 @@ import java.util.Locale;
  * Turns the name a user types for a docking layout into the identifier the
  * layout is stored under.
  *
- * <p>Its own class rather than a static method on {@link LayoutsMenu}: loading
- * a JavaFX control starts the toolkit, so a derivation living on the menu could
- * not be reached from a test that does not raise a window.</p>
+ * <p>The counterpart to {@link LayoutIdentifiers}, which says whether an
+ * identifier may be used. This says how to arrive at one in the first place,
+ * which the framework deliberately leaves to whoever collects the name.</p>
  *
  * @author Phil Bryant
  */
@@ -25,7 +23,9 @@ public final class LayoutNames {
 	private static final int MAX_LAYOUT_IDENTIFIER_LENGTH = 64;
 
 	private LayoutNames() {
-		// Static members only.
+		throw new UnsupportedOperationException(
+				"Utility classes should not be instantiated."
+		);
 	}
 
 	/**

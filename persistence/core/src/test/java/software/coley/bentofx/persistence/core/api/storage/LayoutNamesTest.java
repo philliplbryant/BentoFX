@@ -1,9 +1,7 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.persistence.core.api.storage;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem.Rule;
-import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 
 import java.util.EnumSet;
 import java.util.List;

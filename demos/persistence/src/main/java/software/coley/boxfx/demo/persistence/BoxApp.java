@@ -40,6 +40,7 @@ import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.boxfx.demo.persistence.provider.BoxAppDockContainerLeafMenuFactoryProvider;
@@ -404,13 +405,13 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		// closed here rather than abandoned. The layout it returns is already built,
 		// so closing the storage afterward costs nothing.
 		try (final LayoutRestorer layoutRestorer =
-					 persistenceProvider.getLayoutRestorer(
-							 layoutPersistenceProfile,
-							 bentoProvider,
-							 dockableStateProvider,
-							 stageIconImageProvider,
-							 dockContainerLeafMenuFactoryProvider
-					 )) {
+				     persistenceProvider.getLayoutRestorer(
+						     layoutPersistenceProfile,
+						     bentoProvider,
+						     dockableStateProvider,
+						     stageIconImageProvider,
+						     dockContainerLeafMenuFactoryProvider
+				     )) {
 
 			return layoutRestorer.restoreLayout(fallbackLayoutSupplier);
 		} catch (BentoStateException e) {
@@ -482,6 +483,16 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 				}
 			}
 		}
+	}
+
+	@Override
+	public DockingLayoutPersistenceProvider getPersistenceProvider() {
+		return persistenceProvider;
+	}
+
+	@Override
+	public BentoProvider getBentoProvider() {
+		return bentoProvider;
 	}
 
 	/**
@@ -564,11 +575,9 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 			// thread, where JavaFX components cannot be built.
 			currentSceneRoot = new VBox(
 					new BoxAppMenuBar(
-							this,
-							this::exitApplication,
 							stage,
-							persistenceProvider,
-							bentoProvider
+							this,
+							this::exitApplication
 					),
 					bentoRootBranch
 			);

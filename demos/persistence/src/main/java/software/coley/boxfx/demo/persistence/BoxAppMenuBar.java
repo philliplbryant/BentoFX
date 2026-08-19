@@ -4,8 +4,8 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Window;
-import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
+import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
 
 /**
  * The {@link MenuBar} for {@link BoxApp}.
@@ -24,30 +24,24 @@ import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersist
 final class BoxAppMenuBar extends MenuBar {
 
 	/**
+	 * @param owner the window the dialogs these menus raise belong to.
 	 * @param dockingLayoutRestorable the application whose docking layout the
 	 * {@code Layouts} menu switches.
-	 * @param onExit what the {@code File | Exit} item runs. A function rather
-	 * than something to call back into, because exiting is one action with
-	 * nothing to ask about first.
-	 * @param owner the window the dialogs these menus raise belong to.
-	 * @param persistenceProvider reads, writes, and lists stored layouts.
-	 * @param bentoProvider supplies what a save captures.
+	 * @param onExit what the {@code File | Exit} item runs.
 	 */
 	BoxAppMenuBar(
-			final DockingLayoutRestorable dockingLayoutRestorable,
-			final Runnable onExit,
 			final Window owner,
-			final DockingLayoutPersistenceProvider persistenceProvider,
-			final BentoProvider bentoProvider
+			final DockingLayoutRestorable dockingLayoutRestorable,
+			final Runnable onExit
 	) {
 		getMenus().setAll(
 				createFileMenu(onExit),
-				createWindowMenu(new LayoutsMenu(
-						dockingLayoutRestorable,
-						owner,
-						persistenceProvider,
-						bentoProvider
-				))
+				createWindowMenu(
+						new LayoutsMenu(
+								owner,
+								dockingLayoutRestorable
+						)
+				)
 		);
 	}
 

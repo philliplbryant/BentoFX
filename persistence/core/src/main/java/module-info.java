@@ -6,7 +6,8 @@ import software.coley.bentofx.persistence.core.impl.provider.DefaultDockingLayou
 
 /**
  * This module provides the persistence Application Programming Interface (API)
- * for the BentoFX docking framework.
+ * for the BentoFX docking framework, along with the controls an application
+ * needs to put that API in front of a user.
  *
  * @author Phil Bryant
  */
@@ -30,7 +31,13 @@ module bento.fx.persistence.core {
 
     requires static org.jspecify;
 
-    requires javafx.controls;
+    /*
+     * Transitive because an exported type extends one from it: LayoutsMenu is a
+     * javafx.scene.control.Menu. Without this an application could not use or
+     * subclass it without a 'requires javafx.controls' of its own.
+     */
+    requires transitive javafx.controls;
+
     requires org.slf4j;
 
     exports software.coley.bentofx.persistence.core.api.codec;
@@ -38,6 +45,15 @@ module bento.fx.persistence.core {
     exports software.coley.bentofx.persistence.core.api.storage;
     exports software.coley.bentofx.persistence.core.api;
     exports software.coley.bentofx.persistence.core.api.state;
+
+    /*
+     * Ready-made controls, which are neither a contract an application
+     * implements nor an internal detail, so they are neither 'api' nor 'impl'.
+     * Kept apart from both because a control is the one thing here that a unit
+     * test cannot reach without starting the JavaFX toolkit, so this is the
+     * package to exclude when measuring coverage.
+     */
+    exports software.coley.bentofx.persistence.core.ui;
 
     /*
      * None of the impl packages are exported. Everything in them is an implementation
