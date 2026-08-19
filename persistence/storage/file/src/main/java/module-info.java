@@ -1,5 +1,5 @@
 import org.jspecify.annotations.NullMarked;
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.impl.storage.file.provider.FileLayoutStorageProvider;
 
 /**
@@ -12,7 +12,7 @@ import software.coley.bentofx.persistence.impl.storage.file.provider.FileLayoutS
 @NullMarked
 module bento.fx.persistence.storage.file {
 
-    requires transitive bento.fx.persistence.api;
+    requires transitive bento.fx.persistence.core;
 
     requires static org.jspecify;
 

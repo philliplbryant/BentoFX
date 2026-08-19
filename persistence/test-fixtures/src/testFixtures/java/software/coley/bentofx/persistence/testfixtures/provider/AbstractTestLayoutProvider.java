@@ -1,6 +1,6 @@
 package software.coley.bentofx.persistence.testfixtures.provider;
 
-import software.coley.bentofx.persistence.api.provider.LayoutPersistenceComponentProvider;
+import software.coley.bentofx.persistence.core.api.provider.LayoutPersistenceComponentProvider;
 
 /**
  * Shared configurable provider metadata for persistence provider tests.

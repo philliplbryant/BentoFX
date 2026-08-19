@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.impl.codec.json.provider;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.impl.codec.json.JsonLayoutCodec;
 
 import static org.assertj.core.api.Assertions.assertThat;

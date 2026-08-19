@@ -4,8 +4,8 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Window;
-import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 
 /**
  * The {@link MenuBar} for {@link BoxApp}.

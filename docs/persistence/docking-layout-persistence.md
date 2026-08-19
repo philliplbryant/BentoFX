@@ -4,8 +4,8 @@ For a high-level architectural overview, see the [README Persistence Framework](
 
 
 This document describes BentoFX layout persistence as implemented by
-[DockingLayoutSaver](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutSaver.java)
-and [DockingLayoutRestorer](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutRestorer.java).
+[DockingLayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutSaver.java)
+and [DockingLayoutRestorer](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutRestorer.java).
 
 For the overarching design, [docking layout persistence diagrams](docking-layout-persistence-diagrams.md) are also
 available.
@@ -430,9 +430,9 @@ Applications may choose eager, lazy, static, dynamic, or dependency-injected pro
 
 `LayoutSaver.saveLayout()` persists the current state of all `Bento` instances returned by the `BentoProvider`.
 
-The default implementation, [DockingLayoutSaver](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/DockingLayoutSaver.java),
-extends [AbstractAutoCloseableLayoutSaver](../../persistence/api/src/main/java/software/coley/bentofx/persistence/impl/AbstractAutoCloseableLayoutSaver.java),
-which implements [LayoutSaver](../../persistence/api/src/main/java/software/coley/bentofx/persistence/api/LayoutSaver.java).
+The default implementation, [DockingLayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutSaver.java),
+extends [AbstractAutoCloseableLayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/AbstractAutoCloseableLayoutSaver.java),
+which implements [LayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/api/LayoutSaver.java).
 
 `AbstractAutoCloseableLayoutSaver` can automatically save at scheduled intervals. To avoid unnecessary writes, it listens
 for `DockEvent` changes and only saves when the layout has changed. Because it implements `AutoCloseable`, applications

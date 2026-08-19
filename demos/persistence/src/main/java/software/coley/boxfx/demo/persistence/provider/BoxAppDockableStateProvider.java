@@ -12,10 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
-import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
-import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.api.state.DockableState;
-import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.core.api.provider.DockableMenuFactoryProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.core.api.state.DockableState;
+import software.coley.bentofx.persistence.core.api.state.DockableState.DockableStateBuilder;
 
 import java.util.Optional;
 

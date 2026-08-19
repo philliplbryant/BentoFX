@@ -9,21 +9,21 @@ import javafx.stage.Window;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.DockingLayout;
-import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem;
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
+import software.coley.bentofx.persistence.core.api.DockingLayout;
+import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
+import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
+import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static software.coley.bentofx.persistence.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in

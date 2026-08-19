@@ -1,5 +1,5 @@
 import org.jspecify.annotations.NullMarked;
-import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
+import software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.impl.codec.xml.provider.XmlLayoutCodecProvider;
 
 /**
@@ -12,7 +12,7 @@ import software.coley.bentofx.persistence.impl.codec.xml.provider.XmlLayoutCodec
 @NullMarked
 module bento.fx.persistence.codec.xml {
 
-    requires transitive bento.fx.persistence.api;
+    requires transitive bento.fx.persistence.core;
 
     requires bento.fx.persistence.codec.common;
 

@@ -1,10 +1,10 @@
 package software.coley.bentofx.persistence.testfixtures.codec;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
+import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -8,7 +8,7 @@ description = "H2 Database Implementation of the Bento LayoutStorage interface"
 
 dependencies {
 
-    api projects.persistence.api
+    api projects.persistenceCore
 
     api libs.jakarta.persistence
 

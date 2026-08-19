@@ -3,9 +3,9 @@ package software.coley.bentofx.persistence.impl.storage.db.provider;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.jspecify.annotations.Nullable;
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 
 import java.util.List;

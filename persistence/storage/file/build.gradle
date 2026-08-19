@@ -8,5 +8,5 @@ description = 'BentoFX Persistence for Files'
 
 dependencies {
 
-    api projects.persistence.api
+    api projects.persistenceCore
 }

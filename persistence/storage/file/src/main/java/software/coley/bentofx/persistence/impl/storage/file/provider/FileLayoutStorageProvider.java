@@ -1,8 +1,8 @@
 package software.coley.bentofx.persistence.impl.storage.file.provider;
 
-import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;

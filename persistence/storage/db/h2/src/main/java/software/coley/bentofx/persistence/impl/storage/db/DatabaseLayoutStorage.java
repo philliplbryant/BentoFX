@@ -5,7 +5,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -3,7 +3,7 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import org.jspecify.annotations.Nullable;
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 
 import java.io.Serializable;
 import java.util.Objects;

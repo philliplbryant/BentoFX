@@ -246,7 +246,7 @@ Application developers control the serialized format and storage destination by 
 
 In addition to the `core` module, applications using persistence need:
 
-* `persistence-api`
+* `persistence-core`
 * one codec implementation, such as `persistence-codec-json` or `persistence-codec-xml`
 * one storage implementation, such as `persistence-storage-file` or `persistence-storage-db-h2`
 
@@ -257,7 +257,7 @@ The codec and storage provider implementations are discovered at runtime using t
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>
 
 ```groovy
-implementation 'software.coley.bento-fx:persistence-api:${version}'
+implementation 'software.coley.bento-fx:persistence-core:${version}'
 runtimeOnly 'software.coley.bento-fx:persistence-codec-xml:${version}'
 runtimeOnly 'software.coley.bento-fx:persistence-storage-file:${version}'
 // (optional example to enable persistence logging using JUL)
@@ -267,7 +267,7 @@ runtimeOnly 'org.slf4j:slf4j-jdk14:${slf4j-version}'
 <h4 id="persistence-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>
 
 ```kotlin
-implementation("software.coley.bento-fx:persistence-api:${version}")
+implementation("software.coley.bento-fx:persistence-core:${version}")
 runtimeOnly("software.coley.bento-fx:persistence-codec-xml:${version}")
 runtimeOnly("software.coley.bento-fx:persistence-storage-file:${version}")
 // (optional example to enable persistence logging using JUL)
@@ -279,7 +279,7 @@ runtimeOnly("org.slf4j:slf4j-jdk14:${slf4j-version}")
 ```xml
 <dependency>
     <groupId>software.coley.bento-fx</groupId>
-    <artifactId>persistence-api</artifactId>
+    <artifactId>persistence-core</artifactId>
     <version>${version}</version>
 </dependency>
 <dependency>

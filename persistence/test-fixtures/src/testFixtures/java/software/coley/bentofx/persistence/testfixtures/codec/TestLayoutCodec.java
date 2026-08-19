@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.testfixtures.codec;
 
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.codec.PersistableLayout;
+import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
 
 import java.io.InputStream;
 import java.io.OutputStream;

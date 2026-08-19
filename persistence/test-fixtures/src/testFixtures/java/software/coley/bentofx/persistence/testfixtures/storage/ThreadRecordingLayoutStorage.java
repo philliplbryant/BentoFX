@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.testfixtures.storage;
 
 import org.jspecify.annotations.Nullable;
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

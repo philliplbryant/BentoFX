@@ -1,7 +1,7 @@
 package software.coley.boxfx.demo.persistence;
 
-import software.coley.bentofx.persistence.api.DockingLayout;
-import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
+import software.coley.bentofx.persistence.core.api.DockingLayout;
+import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 
 import java.util.function.Supplier;
 

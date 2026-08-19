@@ -9,7 +9,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 module bento.fx.persistence.codec.common {
 
-    requires transitive bento.fx.persistence.api;
+    requires transitive bento.fx.persistence.core;
 
     requires transitive javafx.graphics;
 

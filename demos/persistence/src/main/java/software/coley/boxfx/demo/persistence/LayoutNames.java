@@ -1,6 +1,6 @@
 package software.coley.boxfx.demo.persistence;
 
-import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 
 import java.util.Locale;
 

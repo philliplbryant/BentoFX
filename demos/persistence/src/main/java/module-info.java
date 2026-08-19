@@ -11,7 +11,7 @@ import org.jspecify.annotations.NullMarked;
 module bento.fx.demo.persistence {
 
     requires bento.fx;
-    requires bento.fx.persistence.api;
+    requires bento.fx.persistence.core;
 
     requires java.logging;
     requires javafx.controls;

@@ -38,7 +38,25 @@ include 'core'
 include 'demos:basic'
 include 'demos:persistence'
 
-include 'persistence:api'
+/*
+ * Declared flat as ':persistence-core' rather than nested as
+ * 'persistence:core', even though it lives in persistence/core with its
+ * siblings below.
+ *
+ * Gradle identifies a project within a build by its group and its *name*, not
+ * by its path, and every project here shares one group. Nesting this one would
+ * name it 'core', which the docking framework at the repository root is already
+ * called, so the two would claim the same identity and Gradle would resolve one
+ * into the other - this module's 'api projects.core' came back as a dependency
+ * on itself, and the build failed with a circular task graph. The published
+ * artifactId is derived from the path, so it reads 'persistence-core'.
+ *
+ * Renaming this project back to a nested 'persistence:core' brings that cycle
+ * back.
+ */
+include ':persistence-core'
+project(':persistence-core').projectDir = file('persistence/core')
+
 include 'persistence:codec:common'
 include 'persistence:codec:json'
 include 'persistence:codec:xml'

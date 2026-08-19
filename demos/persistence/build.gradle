@@ -20,7 +20,7 @@ javafx {
 dependencies {
 
     implementation projects.core
-    implementation projects.persistence.api
+    implementation projects.persistenceCore
 
     implementation libs.slf4j.api
 

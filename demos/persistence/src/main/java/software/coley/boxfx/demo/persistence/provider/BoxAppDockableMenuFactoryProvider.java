@@ -5,7 +5,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableMenuFactory;
-import software.coley.bentofx.persistence.api.provider.DockableMenuFactoryProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockableMenuFactoryProvider;
 
 import java.util.Optional;
 

@@ -1,6 +1,6 @@
 package software.coley.bentofx.persistence.impl.storage.file;
 
-import software.coley.bentofx.persistence.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
 import java.io.File;
 import java.io.FilterOutputStream;

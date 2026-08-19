@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
-import software.coley.bentofx.persistence.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 
 import java.util.Optional;
 

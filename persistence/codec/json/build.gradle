@@ -13,7 +13,7 @@ javafx {
 
 dependencies {
 
-    api projects.persistence.api
+    api projects.persistenceCore
 
     implementation projects.persistence.codec.common
 

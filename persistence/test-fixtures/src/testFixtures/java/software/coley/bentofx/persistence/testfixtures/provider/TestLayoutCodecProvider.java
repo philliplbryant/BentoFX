@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.testfixtures.provider;
 
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
+import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.TestLayoutCodec;
 
 import java.util.concurrent.atomic.AtomicInteger;

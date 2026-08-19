@@ -3,7 +3,7 @@ package software.coley.boxfx.demo.persistence.provider;
 import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 
 import java.io.IOException;
 import java.io.InputStream;

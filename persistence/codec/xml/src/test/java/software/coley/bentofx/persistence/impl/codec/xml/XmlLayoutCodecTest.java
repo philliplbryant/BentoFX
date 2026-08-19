@@ -1,13 +1,13 @@
 package software.coley.bentofx.persistence.impl.codec.xml;
 
 import org.junit.jupiter.api.Test;
-import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.api.state.BentoState;
-import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.api.state.DockContainerState;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
+import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 

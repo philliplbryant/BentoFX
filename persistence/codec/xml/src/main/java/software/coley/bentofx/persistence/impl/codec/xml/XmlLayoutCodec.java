@@ -2,9 +2,9 @@ package software.coley.bentofx.persistence.impl.codec.xml;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.codec.PersistableLayout;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
+import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 import software.coley.bentofx.persistence.impl.codec.xml.mixins.XmlMapperMixins;

@@ -20,7 +20,7 @@ group = versionCatalog.findVersion("maven-group").get().requiredVersion
 def publishedModuleStagingRepositories = [
         'platform/build/staging-deploy',
         'core/build/staging-deploy',
-        'persistence/api/build/staging-deploy',
+        'persistence/core/build/staging-deploy',
         'persistence/codec/common/build/staging-deploy',
         'persistence/codec/json/build/staging-deploy',
         'persistence/codec/xml/build/staging-deploy',
