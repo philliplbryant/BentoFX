@@ -216,17 +216,77 @@ public final class LayoutIdentifiers {
         final Optional<LayoutIdentifierProblem> problem =
                 findProblem(layoutIdentifier, codecIdentifier);
 
-        if (problem.isPresent()
-                || layoutIdentifier == null
-                || !isReserved(layoutIdentifier)) {
+        if (problem.isPresent() || layoutIdentifier == null) {
             return problem;
+        }
+
+        return findReservedProblem(layoutIdentifier);
+    }
+
+    /**
+     * {@return why the layout identifier alone cannot be used for a layout a
+     * user named, or an empty {@link Optional} when it can.}
+     *
+     * <p>Every rule {@link #findUserLayoutProblem(String, String)} applies
+     * except {@link LayoutIdentifierProblem.Rule#TOO_LONG}, which measures the
+     * two identifiers together and so cannot be judged from one of them. For an
+     * application that leaves the codec to this framework's own selection, that
+     * is the check a "save as" dialog can actually make: it has a name from the
+     * user and no codec identifier to pair it with.</p>
+     *
+     * <p>Skipping that one rule loses nothing that matters, because it is not
+     * this method a save relies on. Storage implementations call
+     * {@link #requireValid} as the pair arrives, with the codec identifier that
+     * was really selected, so a pair too long together is still refused there,
+     * with the right numbers. What is lost is only the earlier and friendlier
+     * telling.</p>
+     *
+     * @param layoutIdentifier identifies the layout the user named.
+     */
+    public static Optional<LayoutIdentifierProblem> findUserLayoutProblem(
+            final @Nullable String layoutIdentifier
+    ) {
+        final LayoutIdentifierProblem nameProblem =
+                findUsableNameProblem(layoutIdentifier, LAYOUT_IDENTIFIER);
+
+        if (nameProblem != null) {
+            return Optional.of(nameProblem);
+        }
+
+        // Non-null once its own check has passed.
+        final String layout = requireNonNull(layoutIdentifier);
+
+        final LayoutIdentifierProblem deviceProblem =
+                findDeviceNameProblem(layout);
+
+        if (deviceProblem != null) {
+            return Optional.of(deviceProblem);
+        }
+
+        return findReservedProblem(layout);
+    }
+
+    /**
+     * {@return why the identifier is one this framework reserves, or an empty
+     * {@link Optional} when it is not.}
+     *
+     * <p>Shared by both {@code findUserLayoutProblem} overloads so the sentence
+     * a user reads for a reserved name is written once.</p>
+     *
+     * @param layoutIdentifier identifies the layout the user named.
+     */
+    private static Optional<LayoutIdentifierProblem> findReservedProblem(
+            final String layoutIdentifier
+    ) {
+        if (!isReserved(layoutIdentifier)) {
+            return Optional.empty();
         }
 
         return Optional.of(new LayoutIdentifierProblem(
                 RESERVED,
                 LAYOUT_IDENTIFIER,
-                "layoutIdentifier must not be one this framework reserves, but was '"
-                        + layoutIdentifier + "'."
+                "layoutIdentifier must not be one this framework reserves, "
+                        + "but was '" + layoutIdentifier + "'."
         ));
     }
 

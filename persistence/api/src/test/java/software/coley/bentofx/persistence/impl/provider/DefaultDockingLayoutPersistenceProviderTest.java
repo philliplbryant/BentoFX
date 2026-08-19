@@ -49,7 +49,9 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
         final TestLayoutStorageProvider storageProvider =
                 new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
-        storageProvider.setStoredLayoutIdentifiers(List.of("recent", "review"));
+        storageProvider.setStoredLayoutIdentifiers(
+                List.of("compact", "multi-monitor")
+        );
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -61,7 +63,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 LayoutPersistenceProfile.of(DEFAULT_LAYOUT_IDENTIFIER)
         ))
                 .describedAs("layouts the selected storage provider holds")
-                .containsExactly("recent", "review");
+                .containsExactly("compact", "multi-monitor");
         assertThat(storageProvider.getCatalogCodecIdentifier())
                 .describedAs("the codec identifier the catalog was asked with")
                 .isEqualTo(JSON_CODEC_IDENTIFIER);
@@ -73,7 +75,9 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         final TestLayoutStorageProvider storageProvider =
                 new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
-        storageProvider.setStoredLayoutIdentifiers(List.of("recent", "review"));
+        storageProvider.setStoredLayoutIdentifiers(
+                List.of("compact", "multi-monitor")
+        );
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -98,12 +102,12 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 )
                 .containsExactlyInAnyOrder(
                         tuple(
-                                "recent",
+                                "compact",
                                 JSON_CODEC_IDENTIFIER,
                                 FILE_STORAGE_IDENTIFIER
                         ),
                         tuple(
-                                "review",
+                                "multi-monitor",
                                 JSON_CODEC_IDENTIFIER,
                                 FILE_STORAGE_IDENTIFIER
                         )
@@ -114,7 +118,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
     void reportsAndDeletesOneStoredLayout() throws BentoStateException {
         final TestLayoutStorageProvider storageProvider =
                 new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
-        storageProvider.setStoredLayoutIdentifiers(List.of("recent"));
+        storageProvider.setStoredLayoutIdentifiers(List.of("compact"));
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -122,7 +126,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(storageProvider)
                 );
 
-        final LayoutPersistenceProfile profile = LayoutPersistenceProfile.of("recent");
+        final LayoutPersistenceProfile profile =
+                LayoutPersistenceProfile.of("compact");
 
         assertThat(provider.isLayoutStored(profile))
                 .describedAs("isLayoutStored for a layout the destination holds")

@@ -17,8 +17,6 @@ import software.coley.bentofx.persistence.api.provider.DockableStateProvider;
 import software.coley.bentofx.persistence.api.state.DockableState;
 import software.coley.bentofx.persistence.api.state.DockableState.DockableStateBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static javafx.scene.effect.BlurType.ONE_PASS_BOX;
@@ -36,12 +34,6 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 
 	private static final Logger logger =
 			LoggerFactory.getLogger(BoxAppDockableStateProvider.class);
-
-	/**
-	 * Maps {@link DockableState} to {@link Dockable} identifier.
-	 */
-	private final Map<String, DockableState> dockableStateMap =
-			new HashMap<>();
 
 	private final @Nullable DockableMenuFactoryProvider dockableMenuFactoryProvider;
 
@@ -61,32 +53,18 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 	public Optional<DockableState> resolveDockableState(
 			String id
 	) {
-		// The states are built here, on the first request, rather than in the
-		// constructor. They hold JavaFX components, the constructor runs on the
-		// JavaFX-Launcher thread where those cannot be built, and both callers of
-		// this method - the application while it starts, and the restorer through
-		// the persistence API - are on the JavaFX application thread. Building them
-		// from a queued task instead leaves this map empty until that task runs, which
-		// makes every lookup depend on JavaFX queue ordering nothing states.
-		if (dockableStateMap.isEmpty()) {
-			putDockableStates();
-		}
-
-		return Optional.ofNullable(dockableStateMap.get(id));
-	}
-
-	/**
-	 * Builds a {@link DockableState} for every {@link DockableProperties} and maps
-	 * it to its identifier.
-	 */
-	private void putDockableStates() {
-		for (final DockableProperties dockableProperties :
-				DockableProperties.values()) {
-			dockableStateMap.put(
-					dockableProperties.getIdentifier(),
-					buildDockableState(dockableProperties)
-			);
-		}
+		// Built here rather than in the constructor because a state holds
+		// JavaFX components, the constructor runs on the JavaFX-Launcher thread
+		// where those cannot be built, and both callers of this method - the
+		// application while it starts, and the restorer through the persistence
+		// API - are on the JavaFX application thread.
+		//
+		// Built fresh on every call rather than cached, because a state holds
+		// one node instance and a node has one parent. Handing the same state
+		// to two restores would have the second layout take the first layout's
+		// content out of it, leaving a blank panel behind.
+		return DockableProperties.findByIdentifier(id)
+				.map(this::buildDockableState);
 	}
 
 	/**

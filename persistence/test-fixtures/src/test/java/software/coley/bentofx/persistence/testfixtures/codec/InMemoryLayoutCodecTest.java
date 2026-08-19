@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class InMemoryLayoutCodecTest {
 
     private static final String BENTO_IDENTIFIER = "bento:test";
-    private static final String DISPLAY_NAME = "Sprint 12";
+    private static final String DISPLAY_NAME = "Multi-Monitor";
 
     @Test
     void encodedLayoutCanBeDecodedBySameCodecInstance()

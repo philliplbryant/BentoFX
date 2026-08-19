@@ -701,14 +701,17 @@ for (final LayoutPersistenceProfile stored :
 }
 ```
 
-Four things are worth knowing:
+Five things are worth knowing:
 
 * **`saveLayout` is not a `LayoutSaver`.** It writes once and returns; nothing is scheduled and no listener is registered. Keep `getLayoutSaver` for the layout that follows the session and use this for a layout a user asked to keep.
 * **A display name is stored, not addressed by.** `LayoutPersistenceProfile.named(identifier, displayName, codec, storage)` carries the name into the layout; the identifier still does the addressing. `getStoredLayoutIdentifiers` returns identifiers cheaply, while `getStoredLayouts` reads each layout to recover its name, so use the identifier listing when the names are not needed.
-* **The identifier is the application's to choose.** The framework validates one and stores a name, but does not yet turn a display name into an identifier; deriving `sprint-12` from "Sprint 12" is the application's step for now. `LayoutIdentifiers.findUserLayoutProblem(identifier, codec)` reports whether a chosen identifier is usable, including whether it collides with the reserved session name.
+* **The identifier is the application's to choose.** The framework validates one and stores a name, but does not yet turn a display name into an identifier; deriving `multi-monitor` from "Multi-Monitor" is the application's step for now. `LayoutIdentifiers.findUserLayoutProblem(identifier, codec)` reports whether a chosen identifier is usable, including whether it collides with the reserved session name. Pass the identifier alone when the codec is the framework's own selection to make and the application has none to name: that overload applies every rule but the joined-length one, which needs both halves.
 * **Restoring a different layout while running is not the same as restoring one at startup.** The containers a restorer hands back are unattached, so the application replaces the scene root and re-shows any drag/drop stages itself, and the switch itself looks like a layout change to a running auto-save. Save the current layout first, or take auto-save down around the switch.
+* **Saving before a switch writes the layout the *saver* names, which is not the layout being left.** A `LayoutSaver` writes to the profile it was built for, and that is the session layout. So the arrangement on screen at the moment of a switch goes to the session layout, not to the named layout the user had been working in: whatever they changed since they last saved that layout stays out of it. An application offering named layouts therefore needs a "save changes" of its own, writing the live layout back under the name it came from with `saveLayout`. The same is true of a rename, which cannot write only the name - `saveLayout` captures the live containers, so renaming stores the current arrangement under the new name. That is why the persistence demo offers both only for the layout showing.
 
 A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.
+
+The persistence demo does all of this, if you would rather read it working than described. `Window > Layouts` in `demos/persistence` saves the layout showing under a name, restores a stored one live, renames it, and deletes it; `BoxApp.toLayoutIdentifier` is its display-name-to-identifier step.
 
 For a dialog, ask instead of being refused. `LayoutIdentifiers.findUserLayoutProblem(...)` returns an empty `Optional` when the pair is usable, and otherwise names the rule that was broken, which identifier broke it, and a message ready to show:
 

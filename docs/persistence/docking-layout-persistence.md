@@ -62,8 +62,27 @@ metadata, and `getStoredLayouts` reads it back. The name is stored, never addres
 which layout a save or restore touches - which is why the same layout can be renamed without moving what holds it. A
 layout saved without a name, the session layout among them, has none, and `findDisplayName()` returns empty for it.
 
+Renaming a layout is a save under the same identifier with a different name, so it rewrites the layout as well as its
+label: `saveLayout` reads the live containers and there is no way to write only the metadata. An application can
+therefore rename only the layout that is on screen, and a rename stores the current arrangement whether or not the user
+thought of it as a save. The demo makes that limit visible by offering `Rename` only for the active layout.
+
 Deriving the identifier from the name is still the application's step; see "Deriving a layout identifier from a display
 name" under the capabilities below.
+
+### Which layout a switch writes to
+
+An application that lets a user move between named layouts has to write the outgoing arrangement before it takes the
+outgoing tree apart, both because the arrangement would otherwise be lost and because auto-save has to come down for the
+switch. What it writes to is worth being deliberate about, because it is not the layout the user was working in.
+
+A `LayoutSaver` writes to the profile it was built for. The saver an application keeps running is the one for the session
+layout, so releasing it on the way into a switch writes the session layout - and any rearranging the user did inside a
+named layout since they last saved it lands there rather than with the name they associate it with. That is not a defect
+to work around: the session layout is meant to be whatever was last on screen, so that a restart comes back to it. It
+does mean a named layout needs a save of its own, which is why `saveLayout` exists as a one-shot write next to
+`getLayoutSaver`, and why the demo has a `Save Changes` item that does nothing more than call it with the active
+profile.
 
 
 ## Internal orchestration collaborators
@@ -548,7 +567,9 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 | Dockable placement | Placement is hard-coded during startup. | Default placement is hard-coded, but restored placement comes from persisted layout state. |
 | Menus | Menu factories are set directly. | Menu factories are supplied by providers so restored objects receive the same behavior. |
 | Stage handling | Creates and shows the primary scene directly. | Applies the restored `BentoLayout` to the stage and shows restored drag/drop stages, falling back to the default layout when none can be applied. |
-| Shutdown behavior | Exits on hidden. | Saves the docking layout on close request, then closes the saver, both before stages are closed. |
+| Shutdown behavior | Exits on hidden. | Saves the docking layout on close request, then closes the saver, both before stages are closed. Also offers `File > Exit`, which saves explicitly because closing a stage in code raises no close request. |
+| Application menus | None. The scene root is the docking root branch. | A `MenuBar` above the docking area, so the scene root is a `VBox`. The basic demo has no menu bar because it has no application-level commands to offer. |
+| Named layouts | None. | `Window > Layouts` saves the layout showing under a name, and restores, renames or deletes a stored one. Switching happens live, so the demo also owns taking auto-save down around the switch, and writing the outgoing arrangement to the session layout on the way out. |
 
 ## Design patterns used
 
@@ -573,7 +594,13 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 
 A layout identifier becomes a file name in file-backed storage, so it cannot be whatever a user types. Storing the name a
 user chose is done - see "Display names" above - but deriving the identifier from that name is not: an application that
-lets a user save "Sprint 12" still picks `sprint-12` itself.
+lets a user save "Multi-Monitor" still picks `multi-monitor` itself.
+
+The persistence demo carries a worked example of that step, in `BoxApp.toLayoutIdentifier`. It keeps only letters and
+digits, replaces every run of anything else with a single `-`, and strips the ends, which is enough that its output
+cannot break any rule about the *characters* in an identifier. What it cannot rule out is a name that reduces to nothing,
+to the reserved session identifier, or to a name Windows resolves to a device - so it still puts the result to
+`LayoutIdentifiers.findUserLayoutProblem`. Any derivation the framework grew would have the same three left over.
 
 Two things have to be decided before the framework can do it:
 
@@ -604,5 +631,6 @@ The comparison is case-insensitive, since a file name is case-insensitive on Win
 ### Other capabilities
 
 - Add layout versioning and migration, likely in the codec layer.
-- Extend the demo with menu items to save the current layout under a name and to restore a previously saved layout,
-  which the operations above now support.
+- Let an application rewrite a stored layout's display name without applying that layout first. A save reads the live
+  containers, so renaming today means renaming the layout on screen - which is why the demo offers `Rename` only for the
+  layout showing.

@@ -10,7 +10,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,6 +33,7 @@ import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.DockingLayout;
 import software.coley.bentofx.persistence.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.api.DockingLayoutPersistence;
+import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.api.LayoutRestorer;
 import software.coley.bentofx.persistence.api.LayoutSaver;
 import software.coley.bentofx.persistence.api.provider.BentoProvider;
@@ -46,6 +50,7 @@ import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static software.coley.bentofx.persistence.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.boxfx.demo.persistence.provider.DockableProperties.*;
@@ -58,7 +63,7 @@ import static software.coley.boxfx.demo.persistence.provider.DockableProperties.
  * @author Matt Coley
  * @author Phil Bryant
  */
-public class BoxApp extends Application {
+public class BoxApp extends Application implements DockingLayoutRestorable {
 
 	private static final Logger logger =
 			LoggerFactory.getLogger(BoxApp.class);
@@ -97,6 +102,15 @@ public class BoxApp extends Application {
 	private @Nullable Stage stage;
 
 	private @Nullable LayoutSaver layoutSaver;
+
+	/**
+	 * The scene root, holding the menu bar above the docking tree.
+	 *
+	 * <p>Built by the first {@link #applyBentoLayout} and kept, so that a
+	 * layout change replaces the docking tree below the menu bar rather than
+	 * the whole scene, so the menu that started a change survives it.</p>
+	 */
+	private @Nullable VBox sceneRoot;
 
 	@Override
 	public void start(Stage stage) {
@@ -198,9 +212,14 @@ public class BoxApp extends Application {
 
 		// A Scene is created and additional Stage properties are set when
 		// applying the docking layout.
-		DockingLayout dockingLayout = getDockingLayout();
+		DockingLayout dockingLayout = getDockingLayout(
+				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER),
+				this::getDefaultDockingLayout
+		);
 
 		if (!applyDockingLayout(dockingLayout)) {
+			discardDockingLayout(dockingLayout);
+
 			// Nothing was applied, so the stage has no Scene and was never shown.
 			// Falling back to the default layout keeps the application usable and
 			// leaves the reason in the log; without it a saved layout this demo
@@ -310,8 +329,10 @@ public class BoxApp extends Application {
 	 * {@code null} when one cannot be created.}
 	 *
 	 * <p>The saver returned from a {@link DockingLayoutPersistenceProvider}
-	 * already has auto-save running, so this is called once, while the
-	 * application is starting, rather than where the layout is saved.</p>
+	 * already has auto-save running, so this is called where auto-save should
+	 * start rather than where the layout is saved: once while the application
+	 * is starting, and again after a switch has replaced the tree it was
+	 * watching.</p>
 	 */
 	private @Nullable LayoutSaver createLayoutSaver() {
 		try {
@@ -335,12 +356,33 @@ public class BoxApp extends Application {
 	 * runs while the windows still exist, and closing is what removes the saver's
 	 * listener from each {@code Bento} and stops its auto-save. Saving explicitly
 	 * first is deliberate: closing saves only when a dock event has been received
-	 * since the last save.</p>
+	 * since the last save. Both are done by
+	 * {@link #saveAndReleaseLayoutSaver()}, which this application's own exit
+	 * and a layout switch need as well.</p>
 	 *
 	 * @param windowEvent unused.
 	 */
 	private void saveDockingLayout(final WindowEvent windowEvent) {
+		saveAndReleaseLayoutSaver();
+	}
+
+	/**
+	 * Saves the docking layout and then releases the saver, leaving auto-save
+	 * stopped.
+	 *
+	 * <p>Called when the window is closing, when {@code File | Exit} is chosen,
+	 * and before a layout switch. A switch needs both halves of this for its
+	 * own reasons: the outgoing layout has to be written before it is taken
+	 * apart, and auto-save has to be down while it is, or a capture landing
+	 * mid-switch writes a layout that is neither one.</p>
+	 *
+	 * <p>The field is cleared first, so a second call cannot close the same
+	 * saver twice - the window's close request and this application's own exit
+	 * both reach here.</p>
+	 */
+	private void saveAndReleaseLayoutSaver() {
 		final LayoutSaver saver = layoutSaver;
+		layoutSaver = null;
 
 		try (saver) {
 			if (saver == null) {
@@ -352,32 +394,28 @@ public class BoxApp extends Application {
 		}
 	}
 
-	/**
-	 * @return if a prior {@link DockingLayout} has been saved, restores and
-	 * returns it. Otherwise, returns the default {@link DockingLayout}.
-	 *
-	 * @see #getDefaultDockingLayout()
-	 */
-	private DockingLayout getDockingLayout() {
+	@Override
+	public DockingLayout getDockingLayout(
+			final LayoutPersistenceProfile layoutPersistenceProfile,
+			final Supplier<DockingLayout> fallbackLayoutSupplier
+	) {
 
 		// The restorer owns the LayoutStorage it was given and closes it, so it is
 		// closed here rather than abandoned. The layout it returns is already built,
 		// so closing the storage afterward costs nothing.
 		try (final LayoutRestorer layoutRestorer =
 					 persistenceProvider.getLayoutRestorer(
-							 SESSION_LAYOUT_IDENTIFIER,
+							 layoutPersistenceProfile,
 							 bentoProvider,
 							 dockableStateProvider,
 							 stageIconImageProvider,
 							 dockContainerLeafMenuFactoryProvider
 					 )) {
 
-			return layoutRestorer.restoreLayout(
-					this::getDefaultDockingLayout
-			);
+			return layoutRestorer.restoreLayout(fallbackLayoutSupplier);
 		} catch (BentoStateException e) {
 			logger.warn("Could not create the docking layout restorer.", e);
-			return getDefaultDockingLayout();
+			return fallbackLayoutSupplier.get();
 		}
 	}
 
@@ -411,13 +449,48 @@ public class BoxApp extends Application {
 	}
 
 	/**
-	 * Builds and returns the {@link DockingLayout} for {@link #bento} and
-	 * {@link #defaultRootBranches}.
+	 * Lets go of a restored {@link DockingLayout} that is not going to be
+	 * applied.
 	 *
-	 * @return the {@link DockingLayout} for {@link #bento} and
-	 * {@link #defaultRootBranches}.
+	 * <p>A restorer gives every drag/drop stage it rebuilds a {@code Scene}
+	 * straight away, and a root branch registers itself with its {@link Bento}
+	 * as soon as it has one. So a layout that is restored and then abandoned
+	 * leaves root branches registered that nothing is showing, and the next
+	 * save captures them: the layout written then holds more than one root
+	 * branch, {@link #applyBentoLayout} refuses such a layout, and the next
+	 * launch quietly comes up with the default layout instead.</p>
+	 *
+	 * <p>Unregistering by hand rather than by hiding the stages: a drag/drop
+	 * stage does clear its scene root when hidden, and that is what unregisters
+	 * a floating layout the user was looking at, but it happens from a
+	 * window-hidden event filter. These stages were never shown, so hiding them
+	 * raises no event and would leave every branch registered.</p>
+	 *
+	 * @param dockingLayout the layout being abandoned.
 	 */
-	private DockingLayout getDefaultDockingLayout() {
+	private void discardDockingLayout(final DockingLayout dockingLayout) {
+		for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
+			for (final DragDropStage dragDropStage :
+					bentoLayout.getDragDropStages()) {
+
+				final Scene dragDropStageScene = dragDropStage.getScene();
+
+				if (dragDropStageScene != null
+						&& dragDropStageScene.getRoot()
+						instanceof DockContainerRootBranch rootBranch) {
+					bento.unregisterRoot(rootBranch);
+				}
+			}
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Built from {@link #bento} and {@link #defaultRootBranches}.</p>
+	 */
+	@Override
+	public DockingLayout getDefaultDockingLayout() {
 
 		DockingLayoutBuilder dockingLayoutBuilder =
 				new DockingLayoutBuilder();
@@ -473,10 +546,45 @@ public class BoxApp extends Application {
 		}
 
 		// Apply the root branch of the BentoLayout
-		final Scene scene =
-				new Scene(bentoRootBranches.getFirst());
-		scene.getStylesheets().add("/bento.css");
-		stage.setScene(scene);
+		final DockContainerRootBranch bentoRootBranch =
+				bentoRootBranches.getFirst();
+
+		// The docking tree takes every pixel the menu bar leaves.
+		VBox.setVgrow(bentoRootBranch, Priority.ALWAYS);
+
+		VBox currentSceneRoot = sceneRoot;
+
+		if (currentSceneRoot == null) {
+			// One Scene and one MenuBar for as long as the application runs.
+			// Switching layouts replaces the docking tree below the menu bar,
+			// so the menu the switch was started from is still there afterward.
+			//
+			// The MenuBar is built here rather than in a field initializer
+			// because those run in the constructor, on the JavaFX-Launcher
+			// thread, where JavaFX components cannot be built.
+			currentSceneRoot = new VBox(
+					new BoxAppMenuBar(
+							this,
+							this::exitApplication,
+							stage,
+							persistenceProvider,
+							bentoProvider
+					),
+					bentoRootBranch
+			);
+			sceneRoot = currentSceneRoot;
+
+			final Scene scene = new Scene(currentSceneRoot);
+			scene.getStylesheets().add("/bento.css");
+			stage.setScene(scene);
+		} else {
+			// Child 0 is the menu bar and child 1 the docking tree. Replacing
+			// child 1 is also what clears the outgoing branch's Scene, and that
+			// is what unregisters it from the Bento so the next save does not
+			// capture both trees.
+			currentSceneRoot.getChildren().set(1, bentoRootBranch);
+		}
+
 		stage.show();
 
 		// Show the DragDropStages that were showing when the layout was saved.
@@ -492,5 +600,94 @@ public class BoxApp extends Application {
 		}
 
 		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The arrangement being left is written to the <em>session</em> layout,
+	 * not to the named layout the user was working in. The saver this releases
+	 * was built for the session layout, and that is the layout meant to hold
+	 * whatever was last on screen so a restart returns to it. The consequence
+	 * worth knowing is that rearranging a named layout and then switching away
+	 * does not put those changes with the name: {@code Save Changes} is what
+	 * does that.</p>
+	 */
+	@Override
+	public boolean switchToLayout(
+			final Supplier<DockingLayout> dockingLayoutSupplier
+	) {
+		// Auto-save comes down for the whole switch, and releasing the saver
+		// writes the outgoing layout on the way. Between taking one tree out
+		// and putting the next one in, this Bento knows about both trees or
+		// neither, and a capture landing there would write a layout that is
+		// neither the one being left nor the one being restored.
+		saveAndReleaseLayoutSaver();
+
+		try {
+			final DockingLayout dockingLayout = dockingLayoutSupplier.get();
+
+			// Taken before anything is applied. The window list is live, and
+			// applying the incoming layout shows floating windows of its own,
+			// which must not be hidden along with the outgoing ones.
+			final List<DragDropStage> outgoingDragDropStages =
+					getShowingDragDropStages();
+
+			if (!applyDockingLayout(dockingLayout)) {
+				// Nothing was applied. Everything applyBentoLayout checks, it
+				// checks before it changes anything, so the layout on screen is
+				// still whole.
+				discardDockingLayout(dockingLayout);
+				return false;
+			}
+
+			// Hiding is what takes the outgoing floating layouts apart: a
+			// drag/drop stage clears its scene root when hidden, and that is
+			// what unregisters the branch so the next save does not capture it.
+			// Hiding raises no close request, so this does not run the
+			// close-every-dockable path and does not ask about unsaved
+			// dockables.
+			for (final DragDropStage dragDropStage : outgoingDragDropStages) {
+				dragDropStage.hide();
+			}
+
+			return true;
+		} finally {
+			// However the switch went, auto-save has to come back. Leaving it
+			// down would leave the application running with nothing saving and
+			// nothing on screen to say so.
+			layoutSaver = createLayoutSaver();
+		}
+	}
+
+	/**
+	 * {@return the drag/drop stages on screen now.}
+	 *
+	 * <p>{@code Window.getWindows()} lists only windows that are showing, and
+	 * it is a live list, so this copies it.</p>
+	 */
+	private static List<DragDropStage> getShowingDragDropStages() {
+		return Window.getWindows().stream()
+				.filter(DragDropStage.class::isInstance)
+				.map(DragDropStage.class::cast)
+				.toList();
+	}
+
+	/**
+	 * Saves the docking layout and closes the application.
+	 *
+	 * <p>Handed to {@link BoxAppMenuBar} as the {@code File | Exit} action.</p>
+	 *
+	 * <p>Saving here rather than leaving it to the close-request handler:
+	 * {@code Stage.close()} raises no close request, so choosing
+	 * {@code File | Exit} would otherwise close the window without writing the
+	 * layout. Closing the stage hides it, which is what ends the process.</p>
+	 */
+	private void exitApplication() {
+		saveAndReleaseLayoutSaver();
+
+		if (stage != null) {
+			stage.close();
+		}
 	}
 }

@@ -2,6 +2,11 @@ package software.coley.boxfx.demo.persistence.provider;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * Convenience objects for aggregating some {@code Dockable} properties.
  *
@@ -25,6 +30,26 @@ public enum DockableProperties {
     CLASS_4("Class 4", "This is the Class 4 tooltip text.", 0, 3),
     CLASS_5("Class 5", "This is the Class 5 tooltip text.", 0, 4),
     SOMETHING_ELSE("some-other-dockable", "This is the tooltip text for some other dockable.");
+
+    /**
+     * Maps each constant to its identifier, for {@link #findByIdentifier}.
+     *
+     * <p>A holder class rather than a static field on the enum: an enum's
+     * static initializers run after its constants, so a map built in one could
+     * not be populated from a constructor.</p>
+     */
+    private static final class Lookup {
+
+        private static final Map<String, DockableProperties> BY_IDENTIFIER =
+                Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(
+                        DockableProperties::getIdentifier,
+                        dockableProperties -> dockableProperties
+                ));
+
+        private Lookup() {
+            throw new IllegalStateException("Utility class");
+        }
+    }
 
     private final String identifier;
     private final @Nullable String tooltipText;
@@ -66,6 +91,22 @@ public enum DockableProperties {
         this.tooltipText = tooltipText;
         this.shapeMode = shapeMode;
         this.colorIndex = colorIndex;
+    }
+
+    /**
+     * {@return the properties of the identified dockable, or an empty
+     * {@link Optional} when this application decorates no such dockable.}
+     *
+     * <p>Built once into a map rather than searched through {@link #values()}
+     * on each call, because a restore looks up every dockable in the
+     * layout.</p>
+     *
+     * @param identifier identifies the dockable whose properties are wanted.
+     */
+    public static Optional<DockableProperties> findByIdentifier(
+            final String identifier
+    ) {
+        return Optional.ofNullable(Lookup.BY_IDENTIFIER.get(identifier));
     }
 
     public String getIdentifier() {

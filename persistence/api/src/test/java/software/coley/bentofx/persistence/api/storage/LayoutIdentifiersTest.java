@@ -323,4 +323,85 @@ class LayoutIdentifiersTest {
                 )
                 .withMessageContaining(String.valueOf(MAX_JOINED_LENGTH));
     }
+
+    @Test
+    void theLayoutOnlyUserCheckReportsEveryRuleThatOneIdentifierCanBreak() {
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(LAYOUT_IDENTIFIER))
+                .describedAs("a name a user may take")
+                .isEmpty();
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(null))
+                .describedAs("a missing name")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.MISSING);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("  "))
+                .describedAs("a blank name")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.BLANK);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("a/b"))
+                .describedAs("a name holding a path separator")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.PATH);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(".."))
+                .describedAs("a name naming a directory")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.DIRECTORY);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("a?b"))
+                .describedAs("a name holding a forbidden character")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.FORBIDDEN_CHARACTER);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("layout."))
+                .describedAs("a name ending in a period")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.TRAILING_SPACE_OR_PERIOD);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("NUL"))
+                .describedAs("a name Windows resolves to a device")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.DEVICE_NAME);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem("SeSsIoN"))
+                .describedAs("the reserved identifier in mixed case")
+                .get()
+                .extracting(
+                        LayoutIdentifierProblem::rule,
+                        LayoutIdentifierProblem::parameter
+                )
+                .containsExactly(Rule.RESERVED, Parameter.LAYOUT_IDENTIFIER);
+    }
+
+    @Test
+    void theLayoutOnlyUserCheckCannotReportALengthItCannotMeasure() {
+        // Long enough that adding any codec identifier puts the pair over the
+        // limit, which is the one rule this overload leaves to the storage
+        // boundary because it needs both halves to judge.
+        final String longLayoutIdentifier = "a".repeat(MAX_JOINED_LENGTH);
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(
+                longLayoutIdentifier
+        ))
+                .describedAs("a name that only a joined length would refuse")
+                .isEmpty();
+
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(
+                longLayoutIdentifier,
+                CODEC_IDENTIFIER
+        ))
+                .describedAs("the same name checked against a codec identifier")
+                .get()
+                .extracting(LayoutIdentifierProblem::rule)
+                .isEqualTo(Rule.TOO_LONG);
+    }
 }

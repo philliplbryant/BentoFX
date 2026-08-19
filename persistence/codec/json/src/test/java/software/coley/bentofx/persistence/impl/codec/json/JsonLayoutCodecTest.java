@@ -260,14 +260,14 @@ class JsonLayoutCodecTest {
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         codec.encode(
-                new PersistableLayout("Sprint 12", createBentoStates()),
+                new PersistableLayout("Multi-Monitor", createBentoStates()),
                 out
         );
 
         assertThat(codec.decode(new ByteArrayInputStream(out.toByteArray()))
                 .displayName())
                 .describedAs("display name restored from JSON")
-                .isEqualTo("Sprint 12");
+                .isEqualTo("Multi-Monitor");
     }
 
     @Test
