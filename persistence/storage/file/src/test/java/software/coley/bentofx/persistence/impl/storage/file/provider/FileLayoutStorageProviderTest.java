@@ -38,7 +38,7 @@ class FileLayoutStorageProviderTest {
                 .isInstanceOf(FileLayoutStorage.class);
         assertThat(layoutFile((FileLayoutStorage) storage))
                 .describedAs("layoutFile((FileLayoutStorage) storage)")
-                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/main-layout.json"));
+                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/layouts/main-layout.json"));
     }
 
     @Test
@@ -52,7 +52,7 @@ class FileLayoutStorageProviderTest {
 
         assertThat(layoutFile(storage))
                 .describedAs("layoutFile(storage)")
-                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/main-layout.xml"));
+                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/layouts/main-layout.xml"));
     }
 
     @Test

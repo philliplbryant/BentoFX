@@ -3,14 +3,13 @@ package software.coley.bentofx.persistence.impl.codec.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.mixinsByDto;
@@ -37,25 +36,26 @@ public final class JsonLayoutCodec implements LayoutCodec {
 
     @Override
     public void encode(
-            final List<BentoState> states,
+            final PersistableLayout layout,
             final OutputStream outputStream
     ) throws BentoStateException {
 
         try {
 
-            final DockingLayoutDto bentoStateDto = BentoStateMapper.toDto(states);
-            mapper.writeValue(outputStream, bentoStateDto);
+            final DockingLayoutDto dockingLayoutDto =
+                    BentoStateMapper.toDto(layout);
+            mapper.writeValue(outputStream, dockingLayoutDto);
         } catch (final IOException | RuntimeException e) {
 
             throw new BentoStateException(
-                    "Failed to encode BentoState as JSON",
+                    "Failed to encode layout as JSON",
                     e
             );
         }
     }
 
     @Override
-    public List<BentoState> decode(
+    public PersistableLayout decode(
             final InputStream inputStream
     ) throws BentoStateException {
         try {
@@ -72,7 +72,7 @@ public final class JsonLayoutCodec implements LayoutCodec {
             // malformed payload can fail anywhere in the mapper or
             // the state builders.
             throw new BentoStateException(
-                    "Failed to decode BentoStateList from JSON",
+                    "Failed to decode layout from JSON",
                     e
             );
         }

@@ -29,15 +29,28 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	private static final Logger logger =
 			LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
-	/**
-	 * Native because JPQL's {@code length} takes a string and the payload is a
-	 * blob. Built from the mapping's own names so the two cannot drift apart.
-	 */
+
+	// Query constants are native because Jakarta Persistence Query Language's
+	// {@code length} takes a string and the payload is a blob. They are also
+	// built from the mapping's own names so they cannot drift apart.
+
 	private static final String PAYLOAD_LENGTH_QUERY =
 			"select length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") from "
 					+ DockingLayoutEntity.TABLE_NAME + " where "
 					+ DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1 and "
 					+ DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
+
+	 // A row whose payload is empty is not a layout.
+	private static final String LAYOUT_IDENTIFIERS_QUERY =
+			"select " + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME
+					+ " from " + DockingLayoutEntity.TABLE_NAME
+					+ " where " + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?1"
+					+ " and length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") > 0";
+
+	private static final String DELETE_LAYOUT_QUERY =
+			"delete from " + DockingLayoutEntity.TABLE_NAME
+					+ " where " + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1"
+					+ " and " + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
 
 	private final EntityManagerFactory emf;
 	private final String layoutIdentifier;
@@ -187,6 +200,83 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 		};
 	}
 
+
+	/**
+	 * {@return the identifiers of the layouts stored for the supplied codec,
+	 * in no particular order.}
+	 *
+	 * <p>A catalog is not a property of one layout's storage. It lives here so
+	 * that the queries sit beside the mapping whose table and column names they
+	 * are built from.</p>
+	 *
+	 * @param entityManagerFactory the factory to take an entity manager from. It remains the
+	 * caller's to close.
+	 * @param codecIdentifier identifies the codec whose layouts are wanted.
+	 */
+	public static List<String> getLayoutIdentifiers(
+			final EntityManagerFactory entityManagerFactory,
+			final String codecIdentifier
+	) {
+		requireNonNull(entityManagerFactory, "entityManagerFactory");
+		requireNonNull(codecIdentifier, "codecIdentifier");
+
+		try (final EntityManager entityManager =
+				     entityManagerFactory.createEntityManager()) {
+
+			final List<?> identifiers =
+					entityManager.createNativeQuery(LAYOUT_IDENTIFIERS_QUERY)
+							.setParameter(1, codecIdentifier)
+							.getResultList();
+
+			return identifiers.stream()
+					.filter(String.class::isInstance)
+					.map(String.class::cast)
+					.toList();
+		}
+	}
+
+	/**
+	 * Removes the stored layout, if there is one.
+	 *
+	 * @param entityManagerFactory the factory to take an entity manager from.
+	 * It remains the caller's to close.
+	 * @param layoutIdentifier identifies the layout to remove.
+	 * @param codecIdentifier identifies the codec whose output is stored.
+	 * @return {@code true} when a row was removed; otherwise, {@code false}.
+	 */
+	public static boolean deleteLayout(
+			final EntityManagerFactory entityManagerFactory,
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		requireNonNull(entityManagerFactory, "entityManagerFactory");
+		requireNonNull(layoutIdentifier, "layoutIdentifier");
+		requireNonNull(codecIdentifier, "codecIdentifier");
+
+		final EntityManager entityManager =
+				entityManagerFactory.createEntityManager();
+		final EntityTransaction transaction = entityManager.getTransaction();
+
+		try (entityManager) {
+			transaction.begin();
+
+			final int removed =
+					entityManager.createNativeQuery(DELETE_LAYOUT_QUERY)
+					.setParameter(1, layoutIdentifier)
+					.setParameter(2, codecIdentifier)
+					.executeUpdate();
+
+			transaction.commit();
+
+			return removed > 0;
+		} catch (final RuntimeException e) {
+			if (transaction.isActive()) {
+				transaction.rollback();
+			}
+
+			throw e;
+		}
+	}
 
 	/**
 	 * {@return the key identifying this storage's row.}

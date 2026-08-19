@@ -8,6 +8,8 @@ import software.coley.bentofx.persistence.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 
+import java.util.List;
+
 /**
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
  * Bento layouts to databases.
@@ -38,29 +40,62 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
         return IDENTIFIER;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Synchronized because the first call is the one that creates the shared
-     * factory, and a saver and a restorer are not required to be built on the
-     * same thread.</p>
-     */
     @Override
-    public synchronized LayoutStorage getLayoutStorage(
+    public LayoutStorage getLayoutStorage(
             final String layoutIdentifier,
             final String codecIdentifier
     ) {
         LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
+        return new DatabaseLayoutStorage(
+                getEntityManagerFactory(),
+                layoutIdentifier,
+                codecIdentifier
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>One row per layout and codec, so the layouts stored are the layout
+     * identifiers on rows with a payload.</p>
+     */
+    @Override
+    public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+        return DatabaseLayoutStorage.getLayoutIdentifiers(
+                getEntityManagerFactory(),
+                codecIdentifier
+        );
+    }
+
+    @Override
+    public boolean deleteLayout(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
+
+        return DatabaseLayoutStorage.deleteLayout(
+                getEntityManagerFactory(),
+                layoutIdentifier,
+                codecIdentifier
+        );
+    }
+
+    /**
+     * {@return the shared {@link EntityManagerFactory}, creating it when this is the
+     * first call to need it.}
+     *
+     * <p>Synchronized because the first caller is the one that creates it, and
+     * nothing says a saver, a restorer and a catalog lookup happen on one
+     * thread.</p>
+     */
+    private synchronized EntityManagerFactory getEntityManagerFactory() {
         if (entityManagerFactory == null) {
             entityManagerFactory =
                     Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
         }
 
-        return new DatabaseLayoutStorage(
-                entityManagerFactory,
-                layoutIdentifier,
-                codecIdentifier
-        );
+        return entityManagerFactory;
     }
 }

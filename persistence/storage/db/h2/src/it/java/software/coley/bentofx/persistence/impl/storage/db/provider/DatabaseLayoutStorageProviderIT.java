@@ -91,16 +91,67 @@ class DatabaseLayoutStorageProviderIT {
     }
 
     @Test
+    void listsAndDeletesStoredLayouts() throws IOException {
+        final DatabaseLayoutStorageProvider provider =
+                new DatabaseLayoutStorageProvider();
+
+        storeLayout(provider, "first-layout");
+        storeLayout(provider, "second-layout");
+
+        assertThat(provider.getLayoutIdentifiers(CODEC_IDENTIFIER))
+                .describedAs("layouts stored for this codec")
+                .containsExactlyInAnyOrder("first-layout", "second-layout");
+        assertThat(provider.getLayoutIdentifiers("none"))
+                .describedAs("layouts stored for a codec nothing was written with")
+                .isEmpty();
+
+        assertThat(provider.isLayoutStored("first-layout", CODEC_IDENTIFIER))
+                .describedAs("isLayoutStored before the delete")
+                .isTrue();
+        assertThat(provider.deleteLayout("first-layout", CODEC_IDENTIFIER))
+                .describedAs("deleteLayout for a stored layout")
+                .isTrue();
+        assertThat(provider.deleteLayout("first-layout", CODEC_IDENTIFIER))
+                .describedAs("deleteLayout for a layout that is already gone")
+                .isFalse();
+
+        assertThat(provider.getLayoutIdentifiers(CODEC_IDENTIFIER))
+                .describedAs("layouts stored after the delete")
+                .containsExactly("second-layout");
+    }
+
+    @Test
     void appliesTheSharedIdentifierRule() {
         final DatabaseLayoutStorageProvider provider =
                 new DatabaseLayoutStorageProvider();
 
-        // Nothing about a column width rejects this one, so it holds only if the
-        // provider applies the rule the file storage applies.
+        // A device name fits every column this storage has, so nothing here would
+        // reject it: this passes only if the provider applies the shared identifier
+        // rule as well.
         assertThatThrownBy(() -> provider.getLayoutStorage("nul", CODEC_IDENTIFIER))
                 .describedAs("layout identifier naming a device")
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("device");
+    }
+
+    /**
+     * Writes a layout through the provider, so that the catalog reads rows the
+     * provider's own storage produced.
+     *
+     * @param provider the provider to store through.
+     * @param layoutIdentifier identifies the layout to store.
+     * @throws IOException when the write fails.
+     */
+    private static void storeLayout(
+            final DatabaseLayoutStorageProvider provider,
+            final String layoutIdentifier
+    ) throws IOException {
+        try (final LayoutStorage storage =
+                     provider.getLayoutStorage(layoutIdentifier, CODEC_IDENTIFIER);
+             final OutputStream outputStream = storage.openOutputStream()) {
+
+            outputStream.write(TEST_DATA.getBytes(UTF_8));
+        }
     }
 
     @Test

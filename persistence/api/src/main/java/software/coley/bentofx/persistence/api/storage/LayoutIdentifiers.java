@@ -1,9 +1,15 @@
 package software.coley.bentofx.persistence.api.storage;
 
+import org.jspecify.annotations.Nullable;
+import software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem.Parameter;
+
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
+import static software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem.Parameter.*;
+import static software.coley.bentofx.persistence.api.storage.LayoutIdentifierProblem.Rule.*;
 
 /**
  * The rule for the two identifiers that name a stored layout, in one place
@@ -46,6 +52,26 @@ public final class LayoutIdentifiers {
     public static final int MAX_JOINED_LENGTH = 255;
 
     /**
+     * The layout an application saves to while it runs and restores when it
+     * starts.
+     *
+     * <p>Reserved, not invalid. Every operation accepts it, because saving to
+     * it, restoring it and deleting it are all things an application
+     * legitimately does; what is reserved is a user's freedom to take the name
+     * for a layout of their own. See {@link #isReserved(String)}.</p>
+     */
+    public static final String SESSION_LAYOUT_IDENTIFIER = "session";
+
+    /**
+     * Identifiers this framework has taken for itself.
+     *
+     * <p>Compared without case, because a file name is case-insensitive on
+     * Windows and macOS.</p>
+     */
+    private static final Set<String> RESERVED_LAYOUT_IDENTIFIERS =
+            Set.of(SESSION_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT));
+
+    /**
      * Names that Windows resolves to a device rather than to a file, whichever
      * directory they are used in. Matched against the identifier and against what
      * precedes its first {@code .}, because {@code NUL.txt} and {@code NUL.tar.gz}
@@ -79,6 +105,26 @@ public final class LayoutIdentifiers {
     }
 
     /**
+     * {@return {@code true} when the identifier is one this framework has taken
+     * for itself; otherwise, {@code false}.}
+     *
+     * <p>Reserved identifiers are worth leaving out of a menu of layouts a user
+     * may restore. However, {@code getStoredLayoutIdentifiers} reports them
+     * like any other, because a catalog that hid a stored layout would
+     * misreport what the destination holds.</p>
+     *
+     * @param layoutIdentifier the identifier to test. Compared without regard
+     * to case.
+     */
+    public static boolean isReserved(final String layoutIdentifier) {
+        requireNonNull(layoutIdentifier, "layoutIdentifier");
+
+        return RESERVED_LAYOUT_IDENTIFIERS.contains(
+                layoutIdentifier.toUpperCase(Locale.ROOT)
+        );
+    }
+
+    /**
      * Accepts a pair of identifiers that every storage implementation can use,
      * and rejects the rest.
      *
@@ -97,61 +143,160 @@ public final class LayoutIdentifiers {
      * period, or if the two together exceed {@link #MAX_JOINED_LENGTH}.
      */
     public static void requireValid(
-            final String layoutIdentifier,
-            final String codecIdentifier
+            final @Nullable String layoutIdentifier,
+            final @Nullable String codecIdentifier
     ) {
-        requireUsableName(layoutIdentifier, "layoutIdentifier");
-        requireUsableName(codecIdentifier, "codecIdentifier");
-        requireNotADeviceName(layoutIdentifier);
-
-        // The two arrive as one path component joined by a '.', so what has to
-        // fit is both of them plus that separator.
-        final int joinedLength =
-                layoutIdentifier.length() + 1 + codecIdentifier.length();
-
-        if (joinedLength > MAX_JOINED_LENGTH) {
-            throw new IllegalArgumentException(
-                    "layoutIdentifier and codecIdentifier must take at most "
-                            + MAX_JOINED_LENGTH + " characters together, but '"
-                            + layoutIdentifier + "' and '" + codecIdentifier
-                            + "' take " + joinedLength + "."
-            );
-        }
+        findProblem(layoutIdentifier, codecIdentifier)
+                .ifPresent(LayoutIdentifiers::throwFor);
     }
 
     /**
-     * Rejects an identifier that is not usable as part of a name.
+     * {@return why the pair cannot be used, or an empty {@link Optional} when it
+     * can.}
+     *
+     * <p>The same rules {@link #requireValid} enforces, reported rather than thrown,
+     * for a caller that is asking: a dialog validating what a user typed, or code
+     * choosing between identifiers. Never throws, including for {@code null}, which
+     * is reported as {@link LayoutIdentifierProblem.Rule#MISSING}.</p>
+     *
+     * <p>A reserved identifier is <em>not</em> reported here, because it is valid -
+     * see {@link #findUserLayoutProblem} for the check a "save as" dialog wants.</p>
+     *
+     * @param layoutIdentifier identifies the layout.
+     * @param codecIdentifier identifies the codec whose output is stored.
+     */
+    public static Optional<LayoutIdentifierProblem> findProblem(
+            final @Nullable String layoutIdentifier,
+            final @Nullable String codecIdentifier
+    ) {
+        final LayoutIdentifierProblem layoutProblem =
+                findUsableNameProblem(layoutIdentifier, LAYOUT_IDENTIFIER);
+
+        if (layoutProblem != null) {
+            return Optional.of(layoutProblem);
+        }
+
+        final LayoutIdentifierProblem codecProblem =
+                findUsableNameProblem(codecIdentifier, CODEC_IDENTIFIER);
+
+        if (codecProblem != null) {
+            return Optional.of(codecProblem);
+        }
+
+        // Both are non-null once their own checks have passed.
+        final String layout = requireNonNull(layoutIdentifier);
+        final String codec = requireNonNull(codecIdentifier);
+
+        final LayoutIdentifierProblem deviceProblem = findDeviceNameProblem(layout);
+
+        if (deviceProblem != null) {
+            return Optional.of(deviceProblem);
+        }
+
+        return Optional.ofNullable(findJoinedLengthProblem(layout, codec));
+    }
+
+    /**
+     * {@return why the pair cannot be used for a layout a user named, or an empty
+     * {@link Optional} when it can.}
+     *
+     * <p>{@link #findProblem}'s rules plus
+     * {@link LayoutIdentifierProblem.Rule#RESERVED}, which is the one difference
+     * between an identifier an application chose and one a user did. This is the
+     * check for a "save as" dialog, and for whatever turns a display name into an
+     * identifier.</p>
+     *
+     * @param layoutIdentifier identifies the layout the user named.
+     * @param codecIdentifier identifies the codec whose output is stored.
+     */
+    public static Optional<LayoutIdentifierProblem> findUserLayoutProblem(
+            final @Nullable String layoutIdentifier,
+            final @Nullable String codecIdentifier
+    ) {
+        final Optional<LayoutIdentifierProblem> problem =
+                findProblem(layoutIdentifier, codecIdentifier);
+
+        if (problem.isPresent()
+                || layoutIdentifier == null
+                || !isReserved(layoutIdentifier)) {
+            return problem;
+        }
+
+        return Optional.of(new LayoutIdentifierProblem(
+                RESERVED,
+                LAYOUT_IDENTIFIER,
+                "layoutIdentifier must not be one this framework reserves, but was '"
+                        + layoutIdentifier + "'."
+        ));
+    }
+
+    /**
+     * Throws the exception a problem describes.
+     *
+     * <p>A missing identifier is a {@link NullPointerException} naming the parameter,
+     * because that is what a missing argument is; everything else is an
+     * {@link IllegalArgumentException} carrying the problem's own message, so that
+     * what is thrown and what {@link #findProblem} reports are the same sentence.</p>
+     *
+     * @param problem the problem to throw for.
+     */
+    private static void throwFor(final LayoutIdentifierProblem problem) {
+        if (problem.rule() == MISSING) {
+            throw new NullPointerException(problem.message());
+        }
+
+        throw new IllegalArgumentException(problem.message());
+    }
+
+    /**
+     * {@return why the identifier is not usable as part of a name, or {@code null}
+     * when it is.}
      *
      * @param identifier the identifier to check.
-     * @param parameterName what to call it when rejecting it.
+     * @param parameter which identifier this is.
      */
-    private static void requireUsableName(
-            final String identifier,
-            final String parameterName
+    private static @Nullable LayoutIdentifierProblem findUsableNameProblem(
+            final @Nullable String identifier,
+            final Parameter parameter
     ) {
-        requireNonNull(identifier, parameterName);
+        final String parameterName = nameOf(parameter);
+
+        if (identifier == null) {
+            return new LayoutIdentifierProblem(MISSING, parameter, parameterName);
+        }
 
         if (identifier.isBlank()) {
-            throw new IllegalArgumentException(
+            return new LayoutIdentifierProblem(
+                    BLANK,
+                    parameter,
                     parameterName + " must not be blank."
             );
         }
 
         if (identifier.indexOf('/') >= 0 || identifier.indexOf('\\') >= 0) {
-            throw new IllegalArgumentException(
+            return new LayoutIdentifierProblem(
+                    PATH,
+                    parameter,
                     parameterName + " must be one name rather than a path, but was '"
                             + identifier + "'."
             );
         }
 
         if (DIRECTORY_NAMES.contains(identifier)) {
-            throw new IllegalArgumentException(
+            return new LayoutIdentifierProblem(
+                    DIRECTORY,
+                    parameter,
                     parameterName + " must name a layout rather than a directory, but was '"
                             + identifier + "'."
             );
         }
 
-        requireNoForbiddenCharacter(identifier, parameterName);
+        final LayoutIdentifierProblem characterProblem =
+                findForbiddenCharacterProblem(identifier, parameter);
+
+        if (characterProblem != null) {
+            return characterProblem;
+        }
 
         // Windows keeps neither: the shell and the interface drop a trailing space
         // or period, so the name asked for and the name stored are not the same
@@ -159,22 +304,27 @@ public final class LayoutIdentifiers {
         final char lastCharacter = identifier.charAt(identifier.length() - 1);
 
         if (lastCharacter == ' ' || lastCharacter == '.') {
-            throw new IllegalArgumentException(
+            return new LayoutIdentifierProblem(
+                    TRAILING_SPACE_OR_PERIOD,
+                    parameter,
                     parameterName + " must not end with a space or a period, but was '"
                             + identifier + "'."
             );
         }
+
+        return null;
     }
 
     /**
-     * Rejects an identifier containing a character that no file name may hold.
+     * {@return why the identifier holds a character no file name may hold, or
+     * {@code null} when it holds none.}
      *
      * @param identifier the identifier to check.
-     * @param parameterName what to call it when rejecting it.
+     * @param parameter which identifier this is.
      */
-    private static void requireNoForbiddenCharacter(
+    private static @Nullable LayoutIdentifierProblem findForbiddenCharacterProblem(
             final String identifier,
-            final String parameterName
+            final Parameter parameter
     ) {
         for (int index = 0; index < identifier.length(); index++) {
             final char character = identifier.charAt(index);
@@ -189,30 +339,81 @@ public final class LayoutIdentifiers {
                     "the character with code " + (int) character :
                     "'" + character + "'";
 
-            throw new IllegalArgumentException(
-                    parameterName + " must not contain " + description
+            return new LayoutIdentifierProblem(
+                    FORBIDDEN_CHARACTER,
+                    parameter,
+                    nameOf(parameter) + " must not contain " + description
                             + ", but has one at index " + index + "."
             );
         }
+
+        return null;
     }
 
     /**
-     * Rejects an identifier that a filesystem would resolve to a device.
+     * {@return why the identifier names a device, or {@code null} when it does not.}
      *
      * @param layoutIdentifier the identifier to check.
      */
-    private static void requireNotADeviceName(final String layoutIdentifier) {
+    private static @Nullable LayoutIdentifierProblem findDeviceNameProblem(
+            final String layoutIdentifier
+    ) {
         final int firstDot = layoutIdentifier.indexOf('.');
 
         final String baseName = firstDot < 0 ?
                 layoutIdentifier :
                 layoutIdentifier.substring(0, firstDot);
 
-        if (RESERVED_DEVICE_NAMES.contains(baseName.toUpperCase(Locale.ROOT))) {
-            throw new IllegalArgumentException(
-                    "layoutIdentifier must not be a name reserved for a device, but was '"
-                            + layoutIdentifier + "'."
-            );
+        if (!RESERVED_DEVICE_NAMES.contains(baseName.toUpperCase(Locale.ROOT))) {
+            return null;
         }
+
+        return new LayoutIdentifierProblem(
+                DEVICE_NAME,
+                LAYOUT_IDENTIFIER,
+                "layoutIdentifier must not be a name reserved for a device, but was '"
+                        + layoutIdentifier + "'."
+        );
+    }
+
+    /**
+     * {@return why the two identifiers are too long together, or {@code null} when
+     * they are not.}
+     *
+     * @param layoutIdentifier identifies the layout.
+     * @param codecIdentifier identifies the codec whose output is stored.
+     */
+    private static @Nullable LayoutIdentifierProblem findJoinedLengthProblem(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        // The two arrive as one path component joined by a '.', so what has to
+        // fit is both of them plus that separator.
+        final int joinedLength =
+                layoutIdentifier.length() + 1 + codecIdentifier.length();
+
+        if (joinedLength <= MAX_JOINED_LENGTH) {
+            return null;
+        }
+
+        return new LayoutIdentifierProblem(
+                TOO_LONG,
+                BOTH,
+                "layoutIdentifier and codecIdentifier must take at most "
+                        + MAX_JOINED_LENGTH + " characters together, but '"
+                        + layoutIdentifier + "' and '" + codecIdentifier
+                        + "' take " + joinedLength + "."
+        );
+    }
+
+    /**
+     * {@return the parameter's name, as a message naming it should spell it.}
+     *
+     * @param parameter the parameter to name.
+     */
+    private static String nameOf(final Parameter parameter) {
+        return parameter == CODEC_IDENTIFIER ?
+                "codecIdentifier" :
+                "layoutIdentifier";
     }
 }

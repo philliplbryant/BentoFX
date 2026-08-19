@@ -6,8 +6,13 @@ import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
@@ -19,8 +24,19 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
     private static final String IDENTIFIER = "file";
 
+    /**
+     * The directory layout files are kept in, below the BentoFX directory in the
+     * user's home.
+     *
+     * <p>Named rather than spelled into the path, so that the one place it is decided
+     * is the one place it is read. The BentoFX directory above it may hold whatever
+     * else an installation puts there, which is why layouts get a directory of their
+     * own instead of sitting loose beside it.</p>
+     */
+    private static final String LAYOUTS_DIRECTORY_NAME = "layouts";
+
     private static final String DEFAULT_BENTO_DIRECTORY =
-            System.getProperty("user.home") + "/.bentofx";
+            System.getProperty("user.home") + "/.bentofx/" + LAYOUTS_DIRECTORY_NAME;
 
     @Override
     public String getIdentifier() {
@@ -39,16 +55,104 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
     ) {
         LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
-        final String normalizedFileExtension = codecIdentifier.startsWith(".") ?
-                codecIdentifier.substring(1) :
-                codecIdentifier;
-
         return new FileLayoutStorage(
                 getLayoutFile(
-                        Path.of(DEFAULT_BENTO_DIRECTORY).toAbsolutePath().normalize(),
-                        layoutIdentifier + "." + normalizedFileExtension
+                        getLayoutDirectory(),
+                        getFileName(layoutIdentifier, codecIdentifier)
                 )
         );
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>One file per layout means the layouts stored are the directory's
+     * entries that end in the codec's extension. An empty file is skipped, for
+     * the same reason {@code FileLayoutStorage.exists()} skips it: there is
+     * nothing in it to restore.</p>
+     */
+    @Override
+    public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+        final Path directory = getLayoutDirectory();
+
+        if (!Files.isDirectory(directory)) {
+            return List.of();
+        }
+
+        final String extension = "." + getNormalizedFileExtension(codecIdentifier);
+
+        try (final Stream<Path> entries = Files.list(directory)) {
+            return entries
+                    .map(Path::toFile)
+                    .filter(file -> file.isFile() && file.length() > 0)
+                    .map(File::getName)
+                    .filter(name -> name.endsWith(extension)
+                            && name.length() > extension.length())
+                    .map(name -> name.substring(0, name.length() - extension.length()))
+                    .toList();
+        } catch (final IOException e) {
+            // Unchecked, matching what LayoutStorage.exists() promises: a
+            // destination that cannot be read says so rather than reporting that it
+            // holds nothing.
+            throw new UncheckedIOException(
+                    "Could not list the layouts in " + directory + ".",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public boolean deleteLayout(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
+
+        final File layoutFile = getLayoutFile(
+                getLayoutDirectory(),
+                getFileName(layoutIdentifier, codecIdentifier)
+        );
+
+        try {
+            return Files.deleteIfExists(layoutFile.toPath());
+        } catch (final IOException e) {
+            throw new UncheckedIOException(
+                    "Could not delete the layout file " + layoutFile + ".",
+                    e
+            );
+        }
+    }
+
+    /**
+     * {@return the absolute, normalized directory layouts are kept in.}
+     */
+    private static Path getLayoutDirectory() {
+        return Path.of(DEFAULT_BENTO_DIRECTORY).toAbsolutePath().normalize();
+    }
+
+    /**
+     * {@return the file name the two identifiers name.}
+     *
+     * @param layoutIdentifier identifies the layout.
+     * @param codecIdentifier identifies the codec whose output is stored.
+     */
+    private static String getFileName(
+            final String layoutIdentifier,
+            final String codecIdentifier
+    ) {
+        return layoutIdentifier + "." + getNormalizedFileExtension(codecIdentifier);
+    }
+
+    /**
+     * {@return the codec identifier as a file extension, without a leading dot.}
+     *
+     * @param codecIdentifier identifies the codec whose output is stored, written
+     * either as {@code json} or as {@code .json}.
+     */
+    private static String getNormalizedFileExtension(final String codecIdentifier) {
+        return codecIdentifier.startsWith(".") ?
+                codecIdentifier.substring(1) :
+                codecIdentifier;
     }
 
     /**

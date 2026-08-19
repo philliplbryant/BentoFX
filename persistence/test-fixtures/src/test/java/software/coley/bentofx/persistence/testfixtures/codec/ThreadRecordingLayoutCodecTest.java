@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.testfixtures.codec;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 
@@ -22,7 +23,7 @@ class ThreadRecordingLayoutCodecTest {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         final Thread currentThread = Thread.currentThread();
 
-        codec.encode(List.of(state), outputStream);
+        codec.encode(PersistableLayout.of(List.of(state)), outputStream);
 
         assertThat(codec.getEncodeThread())
                 .describedAs("codec.getEncodeThread()")
@@ -41,9 +42,11 @@ class ThreadRecordingLayoutCodecTest {
         final BentoState state = new BentoStateBuilder(BENTO_IDENTIFIER).build();
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        codec.encode(List.of(state), outputStream);
+        codec.encode(PersistableLayout.of(List.of(state)), outputStream);
 
-        assertThat(codec.decode(new ByteArrayInputStream(outputStream.toByteArray())))
+        assertThat(codec.decode(
+                new ByteArrayInputStream(outputStream.toByteArray()))
+                .bentoStates())
                 .describedAs("states decoded after encoding them")
                 .containsExactly(state);
     }
@@ -57,8 +60,10 @@ class ThreadRecordingLayoutCodecTest {
 
         codec.writeEncoded(List.of(state), outputStream);
 
-        assertThat(codec.decode(new ByteArrayInputStream(outputStream.toByteArray())))
-                .describedAs("codec.decode(new ByteArrayInputStream(outputStream.toByteArray()))")
+        assertThat(codec.decode(
+                new ByteArrayInputStream(outputStream.toByteArray()))
+                .bentoStates())
+                .describedAs("states decoded from the seeded stream")
                 .containsExactly(state);
         assertThat(codec.getDecodeThread())
                 .describedAs("codec.getDecodeThread()")

@@ -54,7 +54,7 @@ final class LayoutStateReader implements AutoCloseable {
     List<BentoState> readLayoutState() throws BentoStateException {
         try (final InputStream in = layoutStorage.openInputStream()) {
 
-            return layoutCodec.decode(in);
+            return layoutCodec.decode(in).bentoStates();
         } catch (final IOException e) {
 
             throw new BentoStateException(

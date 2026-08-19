@@ -19,6 +19,9 @@ import software.coley.bentofx.persistence.impl.AbstractAutoCloseableLayoutSaver;
 import software.coley.bentofx.persistence.impl.DockingLayoutRestorer;
 import software.coley.bentofx.persistence.impl.DockingLayoutSaver;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
@@ -160,6 +163,183 @@ public class DefaultDockingLayoutPersistenceProvider
                 stageIconImageProvider,
                 dockContainerLeafMenuFactoryProvider
         );
+    }
+
+    @Override
+    public void saveLayout(
+            final LayoutPersistenceProfile layoutPersistenceProfile,
+            final BentoProvider bentoProvider
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+
+        final LayoutStorage layoutStorage =
+                selectStorageProvider(layoutPersistenceProfile).getLayoutStorage(
+                        layoutPersistenceProfile.layoutIdentifier(),
+                        layoutCodec.getIdentifier()
+                );
+
+        // Deliberately not enabling startAutoSave because a one-shot save must not
+        // register a listener on any Bento or start a scheduler it would then have
+        // to take down. Closing releases the storage, and its own final save is a
+        // no-op because no dock event can have reached a saver nothing listens with.
+        try (final DockingLayoutSaver layoutSaver = new DockingLayoutSaver(
+                layoutCodec,
+                layoutStorage,
+                bentoProvider,
+                layoutPersistenceProfile.displayName()
+        )) {
+            layoutSaver.saveLayout();
+        }
+    }
+
+    @Override
+    public List<String> getStoredLayoutIdentifiers(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        return selectStorageProvider(layoutPersistenceProfile)
+                .getLayoutIdentifiers(codecIdentifier(layoutPersistenceProfile));
+    }
+
+    @Override
+    public List<LayoutPersistenceProfile> getStoredLayouts(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+        final LayoutStorageProvider layoutStorageProvider =
+                selectStorageProvider(layoutPersistenceProfile);
+
+        final List<LayoutPersistenceProfile> layouts = new ArrayList<>();
+
+        final String codecIdentifier = layoutCodec.getIdentifier();
+
+        for (final String layoutIdentifier :
+                layoutStorageProvider.getLayoutIdentifiers(codecIdentifier)) {
+
+            layouts.add(new LayoutPersistenceProfile(
+                    layoutIdentifier,
+                    layoutPersistenceProfile.codecIdentifier(),
+                    layoutPersistenceProfile.storageIdentifier(),
+                    readDisplayName(
+                            layoutStorageProvider,
+                            layoutCodec,
+                            layoutIdentifier
+                    )
+            ));
+        }
+
+        return layouts;
+    }
+
+    /**
+     * {@return the display name stored with a layout, or {@code null} when it
+     * was saved without one.}
+     *
+     * <p>The display name lives inside the layout, so reading it means decoding
+     * the layout. This opens its storage, decodes, and closes.</p>
+     *
+     * @param layoutStorageProvider the storage the layout is held in.
+     * @param layoutCodec the codec the layout was written with.
+     * @param layoutIdentifier identifies the layout to read.
+     * @throws BentoStateException when the layout cannot be read or decoded.
+     */
+    private static @Nullable String readDisplayName(
+            final LayoutStorageProvider layoutStorageProvider,
+            final LayoutCodec layoutCodec,
+            final String layoutIdentifier
+    ) throws BentoStateException {
+
+        try (final LayoutStorage layoutStorage =
+                     layoutStorageProvider.getLayoutStorage(
+                             layoutIdentifier,
+                             layoutCodec.getIdentifier()
+                     );
+             final InputStream inputStream = layoutStorage.openInputStream()) {
+
+            return layoutCodec.decode(inputStream).displayName();
+        } catch (final IOException e) {
+            throw new BentoStateException(
+                    "Could not read the stored layout '"
+                            + layoutIdentifier + "'.",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public boolean isLayoutStored(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        return selectStorageProvider(layoutPersistenceProfile).isLayoutStored(
+                layoutPersistenceProfile.layoutIdentifier(),
+                codecIdentifier(layoutPersistenceProfile)
+        );
+    }
+
+    @Override
+    public boolean deleteLayout(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        return selectStorageProvider(layoutPersistenceProfile).deleteLayout(
+                layoutPersistenceProfile.layoutIdentifier(),
+                codecIdentifier(layoutPersistenceProfile)
+        );
+    }
+
+    /**
+     * {@return the {@link LayoutCodecProvider} the profile selects.}
+     *
+     * @param layoutPersistenceProfile identifies the codec provider to select.
+     * @throws BentoStateException when no single codec provider can be selected.
+     */
+    private LayoutCodecProvider selectCodec(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+        return selectProvider(
+                LayoutCodecProvider.class,
+                layoutCodecProviders,
+                layoutPersistenceProfile.codecIdentifier()
+        );
+    }
+
+    /**
+     * {@return the {@link LayoutStorageProvider} the profile selects.}
+     *
+     * @param layoutPersistenceProfile identifies the storage provider to select.
+     * @throws BentoStateException when no single storage provider can be selected.
+     */
+    private LayoutStorageProvider selectStorageProvider(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+        return selectProvider(
+                LayoutStorageProvider.class,
+                layoutStorageProviders,
+                layoutPersistenceProfile.storageIdentifier()
+        );
+    }
+
+    /**
+     * {@return the identifier of the codec the profile selects.}
+     *
+     * <p>Read from a codec rather than from its provider, because it is a codec's
+     * identifier that a storage destination files a layout under, and nothing
+     * requires the two to be the same string.</p>
+     *
+     * @param layoutPersistenceProfile identifies the codec provider to select.
+     * @throws BentoStateException when no single codec provider can be selected.
+     */
+    private String codecIdentifier(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+        return selectCodec(layoutPersistenceProfile)
+                .getLayoutCodec()
+                .getIdentifier();
     }
 
     /**

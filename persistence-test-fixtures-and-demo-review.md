@@ -1,994 +1,569 @@
-# Review: `persistence/test-fixtures` and `demos/persistence`
+# Review: layout persistence as a whole
 
-Scope: two areas that are not production code but are read as though they were -
-`persistence/test-fixtures`, whose fixtures four other modules build their tests
-on, and `demos/persistence`, which is the worked example of the persistence API.
-Covers the fixture sources and the tests that module owns, the demo's
-application, providers, module descriptor and build file.
+Scope: every module under `persistence` - `api`, `codec/common`, `codec/json`, `codec/xml`,
+`storage/file`, `storage/db/h2`, `test-fixtures` - plus `demos/persistence`, the
+persistence sections of `README.md`, and both documents under `docs/persistence`.
 
-`demos/basic` was read for comparison only. `persistence/api` was read where a
-finding depends on its contracts: who closes a `LayoutSaver`, which thread
-resolves a `DockableState`, and what `PersistenceThreading` does when the caller
-is already on the JavaFX application thread.
+`core` and `demos/basic` were read where the persistence framework depends on them
+and are otherwise left alone. Nothing in either blocks this framework, so neither
+carries a finding here.
+
+This pass reads the framework the way a migrating application will: as one API to
+learn, against the JIDE docking framework it is meant to replace, and against the
+plan to let users create and switch named layouts at runtime. It therefore looks at
+the public surface and the documents that describe it rather than at
+implementation detail.
 
 Line numbers refer to the files as they stand on `enhancement/issue-13` at
-`f67689c`.
-
-Every finding is fixed. The demo work is committed; the fixture minors and nits are
-verified in the working tree and not yet committed.
-
-Four of the fixture fixes changed behavior rather than documentation. Three carry a
-regression test that fails against the previous fixture - [M4](#m4), [N6](#n6) and
-[N7](#n7) - and the fourth, [N9](#n9), broke a codec test that had been built on the
-same aliasing the fixture had. That test is updated, and the break is recorded under
-N9 because it is the most useful thing the fix demonstrates.
-
-`demos/basic` is untouched. Only one fix makes the two demos differ where they
-previously agreed: [T7](#t7) removes a duplicated line the persistence demo had
-inherited, so that line now appears twice in the basic demo and once here.
-Everything else sits in code the basic demo has no counterpart for.
-
-The demo fixes are **not exercised**. That demo has no test source set, and giving
-it one would hand it something `demos/basic` does not have, so what stands behind
-them is the compiler, NullAway, and the reading below. Two exceptions: M4 has a
-regression test that fails against the previous fixture, and [T8](#t8)'s
-transcription was measured, because moving twelve hand-written argument pairs onto
-an enum is the kind of change that silently swaps two of them.
+`f8eec95`.
 
 ## Status
 
-**No blockers, four majors, twelve minors, nine nits.** The majors were three in
-the demo and one in the fixtures, unrelated to each other, and each finding below
-records what was done about it. The demo's were all about lifecycle: the only
-`LayoutSaver` it created was created while the application was closing, neither the
-saver nor the restorer was ever closed, and a restored layout it could not apply
-left the process running with no window. The fixtures' was that
-`ThreadRecordingLayoutStorage` destroyed what it had stored the moment a new output
-stream was opened, which is the defect
-[B1](persistence-storage-review.md#b1) removed from both real storages.
+**No blockers, two majors, seven minors, four nits.** Thirteen are fixed: every
+documentation and consistency defect, the catalog operations, the reserved session
+identifier, and the typed reason a caller gets when it asks rather than being refused -
+the last three implemented after this pass rather than only recommended. One remains
+decided but not yet built, and one is deliberately not being built at all.
 
-Everything marked **Measured** was settled by running the code, not by reading it.
-The probes were one temporary test class in `persistence/test-fixtures`, run once
-and deleted; each measurement below quotes the output it came from. Four candidate
-findings did not survive that step, or survived reading the API they depend on,
-and are recorded at the end under [Withdrawn](#withdrawn) rather than dropped -
-three of them look correct from the source alone and would be raised again by the
-next reader.
+The documentation was the substance of this pass. Three of the persistence
+framework's behaviors changed recently, and the README and implementation document
+still described the previous ones, including in code an application would copy. A
+library's documentation being wrong about its own lifecycle costs more than most
+defects in the library, because it is what a reader trusts instead of reading the
+source.
 
-The single most useful change was not any one fix: it was **giving the demo the
-lifecycle it is meant to demonstrate** ([M1](#m1), [M2](#m2)). The framework's
-auto-save, its listener removal and its storage release are all reached through
-`close()`, and the demo called it nowhere - so the one artifact a user copies from
-showed none of them. It now creates its saver at startup, closes it while the
-windows still exist, and closes the restorer it borrows.
+Everything marked **Measured** was settled by running a tool over the artifacts,
+not by reading about them: the JIDE method counts come from `javap` over the jars
+in the Gradle cache, and the BentoFX counts from `javap` over the built classes.
 
-There is a pattern behind the fixture findings. Two generations of fixture live in
-this module: `InMemoryLayoutStorage`, `InMemoryLayoutCodec` and
-`SampleBentoStateFactory` are written to be substitutes for the real thing, with
-defensive copies, `@author` tags and Javadoc on their public methods;
-`TestLayoutStorage`, `TestLayoutCodec`, `ThreadRecording*` and
-`SampleDockingLayoutDtoFactory` are written to be probes for one narrow question,
-with none of those. Both kinds are reasonable. The trouble is that nothing in the
-second kind says so, so the fixtures that quietly store nothing, refuse to
-round-trip, or lose the previous layout look interchangeable with the ones that
-behave.
+The single most useful change is not any one fix: it is **giving the framework the
+operations a layout catalog needs** ([M2](#m2)). Named layouts are the next feature,
+JIDE advertises the same capability as two of its selling points, and until this pass
+the API could express neither without an application reaching around it to list a
+directory or query a table itself.
 
 ### BLOCKER
 
-None. Nothing in either area loses a layout a user had, and nothing in
-`demos/basic` blocks work on the persistence demo - see
-[demos/basic](#demos-basic).
+None. Nothing in the framework loses a layout, and nothing in `core` or
+`demos/basic` blocks work on it.
 
 ### MAJOR
 
-| | Module | Finding | Status |
+| | Area | Finding | Status |
 |---|---|---|---|
-| [M1](#m1) | demo | The only `LayoutSaver` is built inside the close handler and never closed, so auto-save never runs and its listener is never removed | **Fixed** 2026-08-17 |
-| [M2](#m2) | demo | The `LayoutRestorer` is never closed, so the `LayoutStorage` it owns is never released | **Fixed** 2026-08-17 |
-| [M3](#m3) | demo | A restored layout the demo cannot apply leaves the application running with no window and no way to exit | **Fixed** 2026-08-17 |
-| [M4](#m4) | fixtures | `ThreadRecordingLayoutStorage` destroys the stored bytes when an output stream is opened | **Fixed** 2026-08-17 |
+| [M1](#m1) | docs | The README and implementation document described lifecycle behavior the framework no longer has, in code samples meant to be copied | **Fixed** 2026-08-18 |
+| [M2](#m2) | api | Nothing lists, tests for, or deletes a stored layout, so user-managed named layouts cannot be built on this API | **Fixed** 2026-08-18 |
 
 ### MINOR
 
-| | Module | Finding | Status |
+| | Area | Finding | Status |
 |---|---|---|---|
-| [N1](#n1) | demo | `applyBentoLayout` is public in a class whose every other member is private | **Fixed** 2026-08-17 |
-| [N2](#n2) | demo | `rootBranches` holds a branch that is never displayed once a layout is restored | **Fixed** 2026-08-17 |
-| [N3](#n3) | demo | `Runner` calls `printStackTrace`, which this project's standards rule out | **Fixed** 2026-08-17 |
-| [N4](#n4) | demo | The dockable states are published from a queued task, so every read depends on JavaFX queue ordering | **Fixed** 2026-08-17 |
-| [N5](#n5) | demo | `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier | **Fixed** 2026-08-17 |
-| [N6](#n6) | fixtures | `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more | **Fixed** 2026-08-17 |
-| [N7](#n7) | fixtures | `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns | **Fixed** 2026-08-17 |
-| [N8](#n8) | fixtures | The two provider fixtures record what they were called with in fields no thread boundary protects | **Fixed** 2026-08-17 |
-| [N9](#n9) | fixtures | `SampleDockingLayoutDtoFactory` puts one divider instance in two parents | **Fixed** 2026-08-17 |
-| [N10](#n10) | fixtures | `InMemoryLayoutStorage` mixes `volatile` with `synchronized`, and the write that matters holds neither | **Fixed** 2026-08-17 |
-| [N11](#n11) | fixtures | Two Javadoc conventions across one module, and half the fixtures have no `@author` | **Fixed** 2026-08-17 |
-| [N12](#n12) | fixtures | `AbstractTestLayoutProvider` satisfies the provider interface by name without declaring it | **Fixed** 2026-08-17 |
+| [N1](#n1) | api | The identifier rule refuses by throwing, with no way to ask, and user-typed layout names are the next caller | **Fixed** 2026-08-18 |
+| [N2](#n2) | api | A user-visible layout name is not usable as a storage identifier, and nothing says who converts one to the other | **Decided** 2026-08-18; see below |
+| [N3](#n3) | api | The session layout shares one namespace with the layouts users will name | **Fixed** 2026-08-18 |
+| [N4](#n4) | api | No side channel for application data, which JIDE applications commonly rely on | **Won't fix** 2026-08-18; see below |
+| [N5](#n5) | docs | The implementation document's restorer sample had its first two arguments transposed | **Fixed** 2026-08-18 |
+| [N6](#n6) | docs | The README understated what a profile already selects and misstated the actual limit | **Fixed** 2026-08-18 |
+| [N7](#n7) | docs | Neither document mentioned closing a saver or a restorer, which is how listeners and storage are released | **Fixed** 2026-08-18 |
 
 ### NIT
 
-| | Module | Finding | Status |
+| | Area | Finding | Status |
 |---|---|---|---|
-| [T1](#t1) | fixtures | `import java.io.*` in a module whose every other file imports explicitly | **Fixed** 2026-08-17 |
-| [T2](#t2) | fixtures | The anonymous output stream calls `toByteArray()`, which the enclosing class also declares | **Fixed** 2026-08-17 |
-| [T3](#t3) | fixtures | `TestLayoutStorage` accepts a write, stores nothing, and says nothing | **Fixed** 2026-08-17 |
-| [T4](#t4) | fixtures | `new DragDropStageStateBuilder(true)` passes an unnamed boolean | **Fixed** 2026-08-17 |
-| [T5](#t5) | fixtures | Truncated `describedAs` strings, ending mid-word in an ellipsis | **Fixed** 2026-08-17 |
-| [T6](#t6) | fixtures | `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few | **Fixed** 2026-08-17 |
-| [T7](#t7) | demo | `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic` | **Fixed** 2026-08-17 |
-| [T8](#t8) | demo | Twelve near-identical `put` blocks that the enum they read from could drive | **Fixed** 2026-08-17 |
-| [T9](#t9) | demo | The two menu-factory providers declare their `factory` field below the method that returns it | **Fixed** 2026-08-17 |
+| [T1](#t1) | docs | British spellings in comments and documents | **Fixed** 2026-08-18 |
+| [T2](#t2) | code | Two comments referred to the process that produced them rather than to the code | **Fixed** 2026-08-18 |
+| [T3](#t3) | docs | The startup diagram showed a saver auto-saving from its constructor | **Fixed** 2026-08-18 |
+| [T4](#t4) | docs | The storage extension example omitted the three conventions a storage implementation has to follow | **Fixed** 2026-08-18 |
 
-Every identifier in the tables links to that finding's own section. The anchors
-are explicit rather than derived from the heading text, matching the other three
-reviews, so that appending an outcome to a heading later does not break the link.
+Every identifier in the tables links to that finding's own section. The anchors are
+explicit rather than derived from the heading text, matching the other documents in
+this series.
 
 ---
 
 ## MAJOR
 
-### <a id="m1"></a>M1. The only `LayoutSaver` is built inside the close handler and never closed, so auto-save never runs and its listener is never removed
+### <a id="m1"></a>M1. The README and implementation document described lifecycle behavior the framework no longer has
 
-`demos/persistence/.../BoxApp.java:189, 290-302`, with
-`persistence/api/.../impl/AbstractAutoCloseableLayoutSaver.java:155-164, 281-308`
+`README.md`, `docs/persistence/docking-layout-persistence.md`
 
-The demo builds a saver in one place, and that place is the window's close
-handler:
+Three descriptions had fallen behind the code, and all three appeared as samples an
+application would copy:
 
-```java
-stage.setOnCloseRequest(this::saveDockingLayout);
-```
+- **Auto-save.** Both documents said `AbstractAutoCloseableLayoutSaver` enables
+  automatic saving when it is constructed. It deliberately does not: starting a
+  scheduler from a constructor published a partly-built object to a scheduler thread
+  and to every `Bento` event bus, so arming moved to `startAutoSave(...)`, which the
+  persistence provider calls once construction is complete.
+- **Provider initialization.** Both showed a `Platform.runLater(...)` block filling a
+  `DockableState` map from a provider constructor. That leaves the map empty until
+  the queued task runs, so every lookup depends on the order in which JavaFX drains
+  its queue. The demo builds the states on first use instead, which is where both
+  callers already are: the JavaFX Application Thread.
+- **Saving and restoring.** The README's save sample obtained a saver inside the
+  close handler and abandoned it, and its restore sample abandoned the restorer.
+  Abandoning a saver leaves a `DockEventListener` registered on every `Bento` and a
+  scheduler running; abandoning a restorer leaves the `LayoutStorage` it owns
+  unreleased.
 
-```java
-final LayoutSaver layoutSaver =
-        persistenceProvider.getLayoutSaver(
-                DEFAULT_LAYOUT_IDENTIFIER,
-                bentoProvider
-        );
+All three are corrected, and the surrounding prose now says why each shape is what
+it is rather than only what to type. The README also gained the ordering constraint
+the samples imply: obtain the saver after the layout is applied, because a capture
+reads the root branches that have a `Scene`.
 
-layoutSaver.saveLayout();
-```
+### <a id="m2"></a>M2. Nothing lists, tests for, or deletes a stored layout
 
-Three things follow, and each of them costs the demo something it exists to show.
+`api/provider/LayoutStorageProvider.java`, `api/provider/DockingLayoutPersistenceProvider.java`
 
-**Auto-save never runs.** `DefaultDockingLayoutPersistenceProvider.getLayoutSaver`
-returns its saver through `AbstractAutoCloseableLayoutSaver.startAutoSave`, which
-arms a five-minute timer and registers a `DockEventListener` on every `Bento`. The
-demo asks for that saver as the window is closing, so the timer is armed for an
-application that is about to exit and has never had one while the user was editing
-the layout. The framework's headline feature is present, configured, and never
-exercised.
+A layout is addressed by identifier, and a `LayoutPersistenceProfile` chooses the
+codec and the storage destination, so an application can already read and write as
+many layouts as it likes. It cannot discover them. Three operations have no home:
 
-**The listener is never removed.** `close()` is what unregisters
-`dockEventListener` from each `Bento`'s event bus and shuts the scheduler down. The
-demo never calls it, so the registration outlives the object that made it. That
-this project cares about the pattern is not in doubt - the saver holds the listener
-in a field precisely so add and remove can be handed the same instance, with a
-comment saying why - and the demo is the artifact a reader copies.
+- list the layout identifiers a storage destination holds
+- report whether one layout is stored, without building a restorer to ask it
+- delete a stored layout
 
-**The final save is the one thing that does work**, because `saveLayout()` is
-called directly. Note that `close()` would not be a drop-in replacement: it routes
-through `autoSave(true)`, which returns without saving when no dock event has been
-received. For a demo, saving unconditionally is the better behavior; the point is
-that the demo demonstrates neither the try-with-resources form the class
-documentation promotes nor any release of what it built.
+The middle one is derivable today, awkwardly, through
+`getLayoutStorage(...).exists()`. The first and third are not derivable at all, so
+an application that lets users manage named layouts has to reach around the API and
+list a directory or query a table itself - which also means it has to know which
+storage implementation is in use, the one thing the framework exists to hide.
 
-The saver is now created once, in `start`, after the layout has been applied, and
-kept in a field. Auto-save therefore runs for the session, which is what the demo
-was meant to show, and building it after the layout is applied matters: a capture
-only sees root branches that have a `Scene`. The close handler saves explicitly and
-then releases the saver:
+Both bundled implementations could answer all three cheaply. File storage keeps one
+path component per layout, so listing is a directory scan filtered by extension and
+deleting is a file delete. Database storage keys rows by layout and codec
+identifier, so listing is a `select` of one column and deleting is a `delete` on the
+composite key.
 
-```java
-final LayoutSaver saver = layoutSaver;
+This is a major rather than a minor because it is the difference between the stated
+plan being buildable and not. A migrating application will expect it as well: JIDE
+sells "List available layouts" and "Instantly switch layout" as features on its
+product page.
 
-try (saver) {
-    if (saver == null) {
-        return;
-    }
-    saver.saveLayout();
-} catch (final BentoStateException e) {
-    logger.warn("Could not save the docking layout.", e);
-}
-```
-
-Closing there rather than from a `stop()` override is not a style preference. This
-demo exits through `System.exit(0)` from `setOnHidden`, mirrored from
-`demos/basic`, and that call never lets `stop()` run - so a `stop()` override would
-have looked like a fix and released nothing. The close handler also runs while the
-windows still exist, which is the constraint the original comment on this method
-already recorded. Saving explicitly before the close is deliberate: `close()` saves
-only when a dock event has arrived since the last save, and a demo should write a
-layout on exit whether or not the user moved anything.
-
-Not exercised - see the note in [Status](#status).
-
-### <a id="m2"></a>M2. The `LayoutRestorer` is never closed, so the `LayoutStorage` it owns is never released
-
-`demos/persistence/.../BoxApp.java:310-329`, with
-`persistence/api/.../storage/LayoutStorage.java:10-18` and
-`persistence/api/.../impl/DockingLayoutRestorer.java:158-160`
-
-`getDockingLayout` builds a restorer, calls `restoreLayout`, and drops it:
+**Implemented.** `LayoutStorageProvider` gained the three operations as `default`
+methods, so a storage implementation that cannot enumerate or delete stays valid:
 
 ```java
-final LayoutRestorer layoutRestorer =
-        persistenceProvider.getLayoutRestorer(...);
-
-return layoutRestorer.restoreLayout(
-        this::getDefaultDockingLayout
-);
+default List<String> getLayoutIdentifiers(String codecIdentifier);
+default boolean isLayoutStored(String layoutIdentifier, String codecIdentifier);
+default boolean deleteLayout(String layoutIdentifier, String codecIdentifier);
 ```
 
-`LayoutRestorer` is `AutoCloseable`, and `DockingLayoutRestorer.close()` closes the
-`LayoutStateReader`, which closes the `LayoutStorage`. The interface states the
-ownership plainly: an instance "is owned by whichever component it is handed to",
-and that component "closes it when that component is closed". The demo is the one
-worked example of that contract and it does not honour it.
+Only `isLayoutStored` has a default that answers usefully, by asking the storage
+itself. The other two report "nothing" and "nothing removed", and both bundled
+implementations override all three: file storage lists the directory entries ending
+in the codec's extension and deletes one file, and database storage selects the
+layout identifiers on rows with a payload and deletes by composite key. Both skip
+empty content, which is the rule `LayoutStorage.exists()` already applies.
 
-With the file storage the demo ships with, releasing the storage costs nothing -
-there is no handle to give back. That is what makes this worth writing down rather
-than harmless: the demo's `build.gradle` offers the H2 storage as a one-line swap,
-and the reader who takes that swap inherits a usage the storage documentation
-tells them not to write.
+`DockingLayoutPersistenceProvider` exposes them to applications as
+`getStoredLayoutIdentifiers`, `isLayoutStored` and `deleteLayout`, each taking a
+profile so that codec and storage selection stays in one place. A one-shot
+`saveLayout(profile, bentoProvider)` came with them: a named save is one write, not
+a session, so it must not arm a five-minute scheduler and register a listener on
+every `Bento` that it then has to take down.
 
-The restorer is now a try-with-resources resource, so the storage is released on
-every path out of the method. Closing it after `restoreLayout` returns is safe
-because the layout is fully built by then - the containers are in memory and no
-longer need the storage - and `DockingLayoutRestorer.close()` declares no checked
-exception, so the existing `catch (BentoStateException)` around
-`getLayoutRestorer` is still the only one needed.
+Note the layering the display-name decision forces. Identifiers can be listed from
+the storage layer alone; display names live inside each layout, so listing them means
+decoding, which is why `getLayoutIdentifiers` deals only in identifiers and a
+name-aware listing will sit beside it on the persistence provider, where a codec is
+available.
 
-Not exercised - see the note in [Status](#status).
-
-### <a id="m3"></a>M3. A restored layout the demo cannot apply leaves the application running with no window and no way to exit
-
-`demos/persistence/.../BoxApp.java:190, 380-409`
-
-`applyBentoLayout` decides between four branches, and only the last one puts
-anything on screen:
-
-```java
-if (bentoRootBranches.size() != 1) {
-    logger.error(...);
-} else if (stage == null) {
-    logger.error(...);
-} else if (!bentoLayout.matchesIdentity(bento)) {
-    logger.warn(...);
-} else {
-    final Scene scene = new Scene(bentoRootBranches.getFirst());
-    ...
-    stage.setScene(scene);
-    stage.show();
-}
-```
-
-The first three branches log and return. No scene is set, `stage.show()` is never
-called, and because the demo's only exit path is
-`stage.setOnHidden(e -> System.exit(0))`, a stage that was never shown can never be
-hidden. The JavaFX toolkit keeps running with no window, so what the user sees is a
-process that started and did nothing, ended only from the task manager. The log
-line explaining why goes to a console the user of a windowed application is not
-reading.
-
-`getDefaultDockingLayout` always produces exactly one root branch, so this needs a
-persisted layout with a different count - which is reachable, since what gets
-persisted is whatever the previous run's `Bento` had registered. A demo is allowed
-to be strict about what it can apply. What it should not do is fail closed into an
-invisible process.
-
-Both methods now report whether they applied anything, and `start` falls back:
-
-```java
-if (!applyDockingLayout(dockingLayout)) {
-    logger.warn(
-            "Could not apply the restored docking layout; " +
-                    "applying the default docking layout instead."
-    );
-
-    if (!applyDockingLayout(getDefaultDockingLayout())) {
-        logger.error("Could not apply the default docking layout.");
-    }
-}
-```
-
-The else-if chain became guard clauses, each returning `false`, which is what makes
-the outcome reportable at all - and it also removes a hazard the chain was hiding,
-since three of its four branches shared one exit into code that dereferences
-`stage` and calls `getFirst()` on a list it has just been told does not hold one
-element.
-
-The fallback is reachable in the case that matters and cannot loop: the default
-layout is built from `rootBranches`, which holds exactly one root branch, and it
-carries this `Bento`'s own identifier, so the two conditions that rejected the
-restored layout cannot reject it. The remaining `logger.error` covers only
-`stage == null`, which `start` has already ruled out.
-
-The drag/drop stages moved inside the success path. Showing them from a layout
-whose root branch could not be applied would have put floating windows on screen
-with nothing behind them, which is a worse outcome than the one this finding is
-about.
-
-Not exercised - see the note in [Status](#status).
-
-### <a id="m4"></a>M4. `ThreadRecordingLayoutStorage` destroys the stored bytes when an output stream is opened - MEASURED
-
-`persistence/test-fixtures/.../storage/ThreadRecordingLayoutStorage.java:19, 28-32`
-
-The fixture holds one `ByteArrayOutputStream` for its lifetime and hands the same
-instance to every caller, resetting it first:
-
-```java
-private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-@Override
-public synchronized OutputStream openOutputStream() {
-    openOutputStreamThread.set(Thread.currentThread());
-    outputStream.reset();
-    return outputStream;
-}
-```
-
-So the previously stored layout is gone the moment a save opens its stream,
-whatever happens next. Measured by storing three bytes, then opening a second
-stream the way a save that fails part way through would, and abandoning it:
-
-```
-PROBE recording-stored-after-save=3
-PROBE recording-stored-after-reopen=0
-PROBE recording-exists-after-reopen=false
-```
-
-This is exactly the behavior [B1](persistence-storage-review.md#b1) removed from both
-real storages, which now stage or buffer their bytes and only publish them when the
-stream closes cleanly. A fixture is entitled to be simpler than what it stands in
-for, but this one is simpler in the one dimension the blocker was about, and it
-gives no sign of it. A test that used this fixture to check that a failed save
-leaves the previous layout alone would fail for the fixture's reasons, and a test
-that asserted the fragment was visible would pass for them.
-
-Each call now gets a buffer of its own, and closing the stream is what stores its
-bytes - which is what `InMemoryLayoutStorage` already does in the same package, and
-what both real storages do by staging or buffering. `exists()` answers from the
-stored bytes rather than from a buffer a save is still filling, so a write in
-flight no longer reports a layout that is not there yet. The stored bytes live in an
-`AtomicReference`, which also retires the `synchronized` methods: the fixture's
-whole purpose is to be called from more than one thread.
-
-The regression test is `previouslyStoredBytesSurviveAnAbandonedStream`, next to
-this fixture's existing tests and modelled on
-`FileLayoutStorageIT.previousLayoutSurvivesAStreamThatIsNeverClosed`. Measured
-against the previous fixture, it fails - and the failure is worse than this finding
-first described:
-
-```
-[storage.toByteArray() after an abandoned save]
-Expecting actual:
-  [9]
-to contain exactly (and in same order):
-  [1, 2, 3]
-```
-
-The abandoned fragment had not merely displaced the stored layout, it had *become*
-the stored layout, because the caller was writing into the storage's own buffer.
-That is [B1](persistence-storage-review.md#b1)'s data loss exactly, in the fixture
-a test would use to check for it.
-
-The one behavior change to know about: bytes written but not yet flushed and closed
-are no longer visible through `exists()` or `toByteArray()`. `DockingLayoutSaverFT`,
-the only other user of this fixture, asserts on recorded threads and passes
-unchanged - re-run against the new fixture rather than taken from cache.
+Covered by tests against both real destinations - `FileLayoutStorageCatalogIT` and
+`DatabaseLayoutStorageProviderIT` - plus provider-level tests that the profile's
+storage identifier picks which destination is asked, and `OneShotLayoutSaveFT`, which
+pins that one call encodes and writes exactly once and that a call with nothing
+attached leaves the stored layout alone.
 
 ---
 
 ## MINOR
 
-### <a id="n1"></a>N1. `applyBentoLayout` is public in a class whose every other member is private
-
-`demos/persistence/.../BoxApp.java:380`
-
-`buildDockable`, `handleDockableClosing`, `addDockable`, `saveDockingLayout`,
-`getDockingLayout`, `applyDockingLayout` and `getDefaultDockingLayout` are all
-private. `applyBentoLayout` is public, and its only caller is
-`applyDockingLayout` four lines up. Nothing outside the class can usefully call it
-either - it reads `stage`, which only `start` sets. This project's standards ask
-for accidental public surface to be flagged, and a demo is where a reader learns
-which members were meant to be reachable.
-
-Private now. [M3](#m3) had already changed its signature, so this was the moment to
-settle its visibility as well.
-
-### <a id="n2"></a>N2. `rootBranches` holds a branch that is never displayed once a layout is restored
-
-`demos/persistence/.../BoxApp.java:69-73, 178, 359-373`
-
-The field says what it is for:
-
-```java
-/**
- * Collect the {@link DockContainerRootBranch} so they can be persisted.
- */
-private final List<DockContainerRootBranch> rootBranches =
-        new ArrayList<>();
-```
-
-It is not what gets persisted. A save captures whatever each `Bento` has
-registered, which is the branch that has a `Scene` - and on a run that restores a
-layout, that is the branch `applyBentoLayout` took from the restored
-`BentoLayout`, not the default branch `start` put in this list. The list's only
-real use is `getDefaultDockingLayout`, the supplier handed to `restoreLayout` for
-when there is nothing to restore.
-
-Nothing breaks, because the default supplier is called before any of it is
-attached. But the comment tells a reader that this collection is the persistence
-input, which is the one thing it is not, and after a successful restore the demo
-holds a root branch that will never be shown.
-
-The field is `defaultRootBranches` now, and its documentation says what it feeds -
-`getDefaultDockingLayout`, for when there is nothing to restore - and states that a
-capture reads the root branches each `Bento` knows about instead, so the branch in
-here is not the one that gets persisted.
-
-### <a id="n3"></a>N3. `Runner` calls `printStackTrace`, which this project's standards rule out
-
-`demos/persistence/.../Runner.java:35-37`
-
-```java
-} catch (Exception e) {
-    e.printStackTrace(System.err);
-}
-```
-
-The agent instructions for these modules are explicit - no swallowed exceptions,
-no empty catch blocks, no `printStackTrace` - and the class already carries a
-`@SuppressWarnings("java:S106")` acknowledging that it writes to the standard
-streams on purpose.
-
-The purpose is defensible: this runs before `LogManager` has read its
-configuration, so a logger here would be the thing that just failed. The `else`
-branch immediately above already handles that case with
-`System.err.println(...)`, so the fix is to say what happened in the same voice
-rather than to dump a stack trace, or to state in a comment why this one call is
-the exception. As written, the file both bans and performs the same act.
-
-It now reports the failure the way the branch above it does, naming the resource and
-including the exception, and a comment says why this one place writes to the standard
-error stream rather than to a log. The stack trace goes: for a malformed logging
-configuration the exception's type and message are what identify it.
-
-### <a id="n4"></a>N4. The dockable states are published from a queued task, so every read depends on JavaFX queue ordering
-
-`demos/persistence/.../provider/BoxAppDockableStateProvider.java:45-46, 54-167`,
-read from `BoxApp.java:78-81, 162-176`
-
-The constructor populates a `HashMap` inside a `Platform.runLater`, for a reason it
-states - the states hold JavaFX nodes, and the constructor runs on the
-JavaFX-Launcher thread where those cannot be built. The consequence is that the map
-is empty when the constructor returns, and the field initializer that calls it
-completes before `start` begins.
-
-`start` then resolves every dockable through it:
-
-```java
-addDockable(WORKSPACE, dockableStateProvider, leafWorkspaceTools);
-```
-
-and `addDockable` treats a miss as a warning and moves on:
-
-```java
-() -> logger.warn("Could not add dockable {}.", dockableProperties)
-```
-
-This works, and works for a reason the code does not state: the queued task was
-submitted before the launcher queued `start`, and the JavaFX event queue runs them
-in that order. Nothing in the JavaFX contract promises that relationship between an
-`Application` constructor and `start`, and if it ever failed to hold, the demo
-would come up with an empty layout and twelve warnings in a log rather than an
-error anyone would notice. See [Withdrawn](#withdrawn), W3, for the sharper
-version of this that was raised and did not survive: the map is not read across a
-thread boundary.
-
-The states are built on demand now, inside `resolveDockableState`, so there is no
-queued task and nothing to order. Both callers - the application while it starts,
-and the restorer through the persistence API - are on the JavaFX application thread,
-which is what makes building JavaFX components there safe; the comment on the method
-says so, because that is the assumption the next reader needs and the one the
-constructor's `Platform.runLater` was standing in for. `demos/basic` builds its
-dockables inline in `start`, so this moves the persistence demo toward it rather
-than away.
-
-### <a id="n5"></a>N5. `BoxAppDockableMenuFactoryProvider` names its parameter after the wrong kind of identifier
-
-`demos/persistence/.../provider/BoxAppDockableMenuFactoryProvider.java:18-25`
-
-```java
-public Optional<DockableMenuFactory> getDockableMenuFactory(
-        final String dockContainerLeafIdentifier
-) {
-```
-
-The argument is a dockable's identifier; the name came from
-`BoxAppDockContainerLeafMenuFactoryProvider`, where it is correct. Both providers
-ignore the argument and return one shared factory, so nothing misbehaves - but a
-reader matching the demo against the interface it implements is told the wrong
-thing about what the framework passes. The class is also the only one in the demo
-with no `@author` tag.
-
-The parameter is `dockableIdentifier` now, and the class has the `@author` tag its
-siblings carry.
-
-### <a id="n6"></a>N6. `InMemoryLayoutStorage.exists()` is true for empty content, which neither real storage reports any more - MEASURED
-
-`persistence/test-fixtures/.../storage/InMemoryLayoutStorage.java:37-47, 57-60`
-
-The behavior is deliberate and documented: the byte-array constructor marks the
-storage as existing "even when the supplied byte array is empty, which allows
-tests to distinguish between 'missing' and 'existing but empty' storage".
-Measured:
-
-```
-PROBE in-memory-default-exists=false
-PROBE in-memory-empty-exists=true
-```
-
-That distinction no longer exists in either implementation. The database storage
-asks for the payload's length and answers `false` unless it is greater than zero;
-the file storage, since [M6](persistence-storage-review.md#m6), answers
-`file.isFile() && file.length() > 0`. So "existing but empty" is a state a test can
-construct only with this fixture, and a test that exercises what the reader does
-with it - decode an empty layout, report a failure - is exercising a path no real
-storage produces.
-
-The fixture answers the way both storages answer now: `bytes.length > 0`. The
-`exists` field is gone, along with the `InMemoryLayoutStorage(boolean)` constructor
-that existed to set it - nothing used that constructor, and what it offered was a
-state no implementation can be in. `delete()` clears the bytes and existence follows.
-
-Documenting the discrepancy was the other option, and it is what this finding
-originally proposed. Removing it is better: a fixture that can hold a state the
-contract cannot produce invites a test to assert on that state, and no amount of
-Javadoc stops that.
-
-`emptyContentIsNotALayout` pins it, and fails against the previous fixture.
-
-### <a id="n7"></a>N7. `ThreadRecordingLayoutCodec` does not round-trip: what `encode` records is not what `decode` returns - MEASURED
-
-`persistence/test-fixtures/.../codec/ThreadRecordingLayoutCodec.java:21-22, 30-45, 58-64`
-
-Two fields, written by two different methods:
-
-```java
-private List<BentoState> encodedStates = List.of();
-private List<BentoState> decodedStates = List.of();
-```
-
-`encode` fills the first. `decode` returns the second, and reads nothing from the
-`InputStream` it is handed. Only `writeEncoded` fills `decodedStates`, so encoding
-a layout and decoding it back yields an empty list. Measured:
-
-```
-PROBE recording-codec-encoded=1
-PROBE recording-codec-decoded-after-encode=0
-```
-
-For recording which thread called which method, this is enough, and the
-`writeEncoded` seam is documented. What is not documented is the trap: a test that
-saves through this codec and then restores gets an empty layout and no error, and
-the natural reading of "codec" is that the two halves are inverses.
-
-They are inverses now: `encode` seeds what `decode` returns as well as what
-`getEncodedStates` reports. `writeEncoded` stays, for a test that restores without
-having encoded, and the class documentation says which of the two to reach for. The
-one thing this fixture still does not do is read the stream it is handed, which is
-now stated on the class along with a pointer at `InMemoryLayoutCodec` for tests that
-need the storage's bytes to reach the codec.
-
-`encodedStatesCanBeDecodedBack` pins the round trip, and fails against the previous
-fixture.
-
-### <a id="n8"></a>N8. The two provider fixtures record what they were called with in fields no thread boundary protects
-
-`persistence/test-fixtures/.../provider/TestLayoutCodecProvider.java:11, 20-24`
-and `.../provider/TestLayoutStorageProvider.java:14-15, 24-32`
-
-```java
-private int createdCodecCount;
-...
-createdCodecCount++;
-```
-
-```java
-private @Nullable String layoutIdentifier;
-...
-this.layoutIdentifier = layoutIdentifier;
-```
-
-Both are written by the framework calling the provider and read afterwards by the
-test asserting on it. The persistence API deliberately moves work between the
-JavaFX application thread and its own I/O thread, so which thread performs the
-write is the framework's business, not the test's, and there is no ordering
-between that write and the test's read. A read that misses the write shows up as
-`0` or `null` in an assertion that ran too early - the failure a test author will
-call flaky and re-run.
-
-The two `ThreadRecording*` fixtures in this module already use `AtomicReference`
-for exactly this, which is what makes the inconsistency worth a line: the module
-knows the answer in one place and not in the other.
-
-An `AtomicInteger` and two `AtomicReference`s now, with a line on each class saying
-why - that the persistence API decides which thread calls a provider, so the test
-asserting on what was recorded is not the thread that recorded it.
-
-### <a id="n9"></a>N9. `SampleDockingLayoutDtoFactory` puts one divider instance in two parents - MEASURED
-
-`persistence/test-fixtures/.../codec/dto/SampleDockingLayoutDtoFactory.java:18-23, 72-88`
-
-The class documentation promises that "every container appears in exactly one
-parent, and every identifier is distinct". One `DividerPositionDto` breaks the
-spirit of it:
-
-```java
-final DividerPositionDto divider = new DividerPositionDto();
-divider.index = DIVIDER_INDEX;
-divider.position = DIVIDER_POSITION;
-
-final DockContainerBranchDto branch = new DockContainerBranchDto();
-...
-branch.dividerPositions.add(divider);
-
-final DockContainerRootBranchDto root = new DockContainerRootBranchDto();
-...
-root.dividerPositions.add(divider);
-```
-
-Measured:
-
-```
-PROBE root-divider-count=1
-PROBE branch-divider-count=1
-PROBE divider-is-same-instance=true
-```
-
-The DTOs are public-field carriers, so this is one mutable object reachable through
-two paths. A mapper that normalises a divider in place would change both parents at
-once, and a round-trip that lost the branch's divider and duplicated the root's
-would still compare equal on the values.
-
-Each parent gets its own instance now, at its own position - the root at 0.42, the
-branch at 0.58 - built by one small factory method.
-
-**This is the fix that earned its keep.** It failed
-`ObjectMapperMixinsCompatibilityTest.serializesDockingLayoutUsingCommonMapperFieldNames`,
-which builds the JSON it expects by hand and had been reusing one divider node for
-both parents - `dividerPositions.deepCopy()` into the branch and again into the root.
-So the test agreed with the fixture rather than checking it: two positions that
-should have been distinguishable were the same number in both the input and the
-expectation. The expected tree now carries the two positions separately, and the
-test compares something the mapper could get wrong.
-
-### <a id="n10"></a>N10. `InMemoryLayoutStorage` mixes `volatile` with `synchronized`, and the write that matters holds neither
-
-`persistence/test-fixtures/.../storage/InMemoryLayoutStorage.java:17-18, 63-72`
-
-`exists` and `bytes` are `volatile`; `openOutputStream`, `openInputStream`,
-`write`, `delete` and `toByteArray` are `synchronized`. The two strategies overlap
-everywhere except in the one place that publishes a saved layout:
-
-```java
-public synchronized OutputStream openOutputStream() {
-    return new ByteArrayOutputStream() {
-        @Override
-        public void close() throws IOException {
-            super.close();
-            bytes = toByteArray();
-            exists = true;
-        }
-    };
-}
-```
-
-`close()` runs whenever the caller closes the stream, which is not inside the
-`synchronized` method that returned it. So the monitor on `openOutputStream`
-protects nothing about the write, and what makes the assignment visible to a later
-reader is the `volatile` on the fields. That is sound, and it is not what the
-method signatures suggest.
-
-The monitor is the single strategy now. `volatile` is gone, and the store the stream
-performs on close goes through a private `synchronized` method, so every read and
-every write of the stored bytes holds the same lock. The class documentation says so
-outright, since a fixture other modules' concurrency tests lean on should not leave
-its own strategy to be inferred.
-
-### <a id="n11"></a>N11. Two Javadoc conventions across one module, and half the fixtures have no `@author`
-
-`persistence/test-fixtures/.../storage/TestLayoutStorage.java:10-13`,
-`.../storage/ThreadRecordingLayoutStorage.java:12-15`,
-`.../codec/TestLayoutCodec.java:11-14`,
-`.../codec/ThreadRecordingLayoutCodec.java:15-17, 47-57`,
-`.../provider/AbstractTestLayoutProvider.java:3-6`,
-`.../codec/dto/SampleDockingLayoutDtoFactory.java:18-23`
-
-`InMemoryLayoutStorage`, `InMemoryLayoutCodec` and `SampleBentoStateFactory` carry
-an `@author` tag, a Javadoc sentence on each public method, and the
-`@param name description.` form used everywhere else in this repository. The six
-files above carry no `@author`, no method Javadoc, and where they do document a
-parameter they use a different form:
-
-```java
-     * @param bentoStates
-     *        States to return when decoding.
-```
-
-The fixtures are not published - `bento.test.test-fixtures` applies
-`java-library` and `java-test-fixtures` and no publishing convention - so the
-standard that every public method carries Javadoc is looser here than in a shipped
-module. The inconsistency is the finding rather than the absence: one module,
-two conventions, and no way for a reader to tell which one is current.
-
-One convention now. Every fixture carries `@author`, every public method has a
-sentence saying what it does, and the `@param name` / indented-description form is
-gone in favour of the `@param name description.` form the rest of the repository
-uses. Two of those sentences turned out to be worth more than the tag they came
-with: the ones on `TestLayoutStorage` and `TestLayoutCodec` that say what those
-fixtures discard - see [T3](#t3).
-
-### <a id="n12"></a>N12. `AbstractTestLayoutProvider` satisfies the provider interface by name without declaring it
-
-`persistence/test-fixtures/.../provider/AbstractTestLayoutProvider.java:6-25`
-
-```java
-public abstract class AbstractTestLayoutProvider {
-    ...
-    public final String getIdentifier() { ... }
-    public final boolean isDefault() { ... }
-}
-```
-
-`getIdentifier()` and `isDefault()` are `LayoutPersistenceComponentProvider`'s
-methods, and each subclass implements a sub-interface of it separately. The base
-class supplies both by coincidence of name: nothing checks that these signatures
-still match the interface, so a change to the interface breaks the subclasses with
-no error at the class that actually implements the methods. Declaring
-`implements LayoutPersistenceComponentProvider` on the base costs one clause and
-makes the relationship the compiler's business.
-
-It declares it now, and both methods carry `@Override`.
+### <a id="n1"></a>N1. The identifier rule refuses by throwing, with no way to ask
+
+`api/storage/LayoutIdentifiers.java`
+
+`requireValid(layoutIdentifier, codecIdentifier)` is the shared rule both storages
+apply, and throwing is right for it: the two providers must refuse a pair they
+cannot store, and a message naming the parameter and the rule is worth more than a
+boolean.
+
+That reasoning assumed identifiers come from application code. Once users name
+their own layouts, the same rule meets a text field. An application asking "may I
+offer to save this as *Quarterly Review: v2*" wants an answer, not an exception to
+catch, and a dialog that validates as the user types cannot afford one per
+keystroke.
+
+**Fixed.** `LayoutIdentifierProblem` is a record carrying the rule that was broken, the
+identifier that broke it, and a message ready to show. Two entry points return it and
+one throws it:
+
+- `findProblem(layout, codec)` - the rules `requireValid` enforces, reported rather
+  than thrown, and never throwing even for `null`, which arrives as `Rule.MISSING`.
+- `findUserLayoutProblem(layout, codec)` - the same plus `Rule.RESERVED`, for a name a
+  user chose. Two methods rather than one because reserved is *valid*: an application
+  saving the session layout must not be refused, and a user naming a layout must.
+- `requireValid(layout, codec)` - unchanged in signature, now implemented over
+  `findProblem`, throwing a `NullPointerException` for a missing identifier and an
+  `IllegalArgumentException` carrying the problem's own message for everything else.
+
+That last point is the property worth having: the check exists once, so what the
+framework reports and what it throws cannot drift apart. A test asserts it directly by
+comparing the thrown message against the reported one, and the sixteen tests written
+against the throwing behavior passed unchanged through the refactor, which is what
+shows the messages are still the same sentences.
+
+`Rule` is what an application switches on to phrase its own text, in its own language;
+`message()` is the framework's rendering for when there is nothing better to say.
+`Parameter` says which of the two identifiers is at fault, or `BOTH` for the one rule
+about the pair.
+
+A boolean was the alternative, rejected because every application would write its own
+explanation of a refusal and those explanations drift from the rule as the rule
+changes.
+
+### <a id="n2"></a>N2. A user-visible layout name is not usable as a storage identifier
+
+`storage/file/.../provider/FileLayoutStorageProvider.java`, `api/storage/LayoutIdentifiers.java`
+
+File-backed storage joins the layout identifier and the codec identifier into one
+path component, so the identifier is a file name. That is why the shared rule
+rejects separators, reserved device names, and characters no filesystem accepts,
+and why the pair is bounded at 255 characters together.
+
+None of those constraints are ones an end user should meet. "Sprint 12: UI work" is
+a reasonable thing to call a layout and an unreasonable thing to call a file.
+
+**Decided: the framework will carry the display name.** A name goes into the layout
+metadata, the identifier is generated from it, and the catalog reports both, so that
+no application writes the same mapping twice. Not yet implemented; three consequences
+shape how it lands:
+
+- Listing names means decoding each stored layout, while listing identifiers is a
+  directory scan or one query. That is why the identifiers already ship on
+  `LayoutStorageProvider` and the name-aware listing will be added beside it on
+  `DockingLayoutPersistenceProvider`, where a codec is available. The existing
+  `getStoredLayoutIdentifiers` keeps its meaning; names are an addition.
+- The metadata field is a schema change, so it touches both codecs and the schema
+  version.
+- Generating an identifier means deciding what happens when two display names reduce
+  to the same one.
+
+### <a id="n3"></a>N3. The session layout shares one namespace with the layouts users will name
+
+`demos/persistence/.../BoxApp.java:65`
+
+The demo saves the most recent layout under the identifier `recent`, which is the
+right shape - the session layout is just a layout with a well-known name. Once
+users name layouts, one of them can choose that name, and the automatic save then
+overwrites what the user saved.
+
+**Fixed.** `LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER` is `session`, with
+`isReserved(String)` beside it, and the demo now takes its identifier from the
+constant rather than spelling out `recent`.
+
+`session` was chosen over `recent`, `latest`, `current` and `active` for two reasons.
+The comparatives imply a list, which reads wrong for a single fixed slot, and
+`current`/`active` are the natural names for a *pointer* - "which named layout did the
+user last restore?" - which a layout-switching UI tends to grow. `session` is also the
+only candidate that stays true in both directions: the slot holds this session's layout
+while the application runs, and the previous session's when it starts.
+
+Two properties are worth stating, because both were tempting to get wrong:
+
+- **Reserved is not invalid.** `requireValid` accepts it, since saving to it,
+  restoring it, and deleting it - which is how an application offers "reset to the
+  default layout" - are all legitimate.
+- **The framework cannot enforce the reservation by itself.** Enumerating the
+  operations settles it: the session save and a user's "save as" reach the same
+  method, and so do the restores and the deletes, so there is no user-driven-only path
+  to refuse from. The framework publishes the identifier and the test; the application
+  applies the test where it knows a user chose the name. That becomes enforceable
+  inside the framework when display names arrive, because the generator that turns a
+  name into an identifier *is* a user-driven path.
+
+The comparison ignores case, since a file name is case-insensitive on Windows and
+macOS: a layout called `Session` would be the session's own layout on two of the three
+platforms this runs on.
+
+### <a id="n4"></a>N4. No side channel for application data
+
+`codec/common/.../mapper/dto/LayoutMetadataDto.java`
+
+The framework persists layout structure and nothing else, which is a good boundary:
+the codec DTOs stay closed, and an application's own state stays in the
+application's own store.
+
+JIDE applications will not arrive expecting that boundary. `LayoutPersistence`
+exposes `setSaveCallback` and `setLoadCallback`, each taking a callback whose single
+method receives an `org.w3c.dom.Document` and an `Element`, so writing extra data
+into the layout file is a documented JIDE technique. Code being migrated may well
+use it.
+
+**Decided: the boundary holds, and the README will say so.** The framework persists
+layout structure; application state lives in the application's own store, keyed by
+the same stable identifiers the framework already hands back when it asks for a
+`DockableState`. Nothing to add to the schema, nothing to version, and no matching
+work in both codecs.
+
+The argument that settled it is lifetime rather than size. Content state is usually
+per-document, not per-layout: once a user keeps four named layouts, a per-layout
+channel holds four drifting copies of the same scroll positions, and the data ends up
+moved out of the layout anyway. What the boundary costs is a single artifact - a
+layout file copied to another machine carries positions but not content state - so an
+"export my layout" feature that includes both is the application's to assemble.
+
+A narrow `Map<String, String>` in the layout metadata remains available later, and is
+additive, if a concrete need appears.
+
+### <a id="n5"></a>N5. The implementation document's restorer sample had its first two arguments transposed
+
+`docs/persistence/docking-layout-persistence.md`
+
+One of the two restorer samples passed `bentoProvider` before the layout identifier,
+which does not compile, while the other sample in the same document had them the
+right way round. Corrected, and both samples now show the restorer as a
+try-with-resources resource.
+
+### <a id="n6"></a>N6. The README understated what a profile already selects
+
+`README.md`
+
+The README told readers the framework "is currently limited to saving and restoring
+a single format at a single storage destination". A `LayoutPersistenceProfile`
+already chooses a codec and a storage destination per saver and per restorer, so an
+application can use several of each.
+
+The note now says what is actually true: a saver and a restorer each work with one
+layout in one format at one destination, an application may use several, and the
+real gap is the catalog from [M2](#m2).
+
+### <a id="n7"></a>N7. Neither document mentioned closing a saver or a restorer
+
+`README.md`, `docs/persistence/docking-layout-persistence.md`
+
+`LayoutSaver` and `LayoutRestorer` are both `AutoCloseable`, and closing is not
+housekeeping: it is what removes the saver's listener from each `Bento`, stops its
+scheduler, and releases the `LayoutStorage` the component was handed. Neither
+document said so, and the README's samples showed both components being abandoned.
+
+Both now cover it, including the constraint that makes the placement matter: an
+application that exits with `System.exit(...)` never runs `Application.stop()`, so
+a window's close request handler is the last point at which closing still happens.
 
 ---
 
 ## NIT
 
-### <a id="t1"></a>T1. `import java.io.*` in a module whose every other file imports explicitly
+### <a id="t1"></a>T1. British spellings in comments and documents
 
-`persistence/test-fixtures/.../storage/InMemoryLayoutStorage.java:5`
+Fixed in `demos/persistence`, `persistence/api`, `CONTRIBUTING.md`, `README.md`, and
+the other documents in this series: *colour*, *recognise*, *initialising*,
+*serialised*, *behaviour*, *organised*, *judgement*, *normalisation*, *amongst*, and
+*towards* where American English prefers *toward*.
 
-The four other fixture files that need the same types list them one per line.
-`TestLayoutStorage`, in the same package and needing exactly the same four, is the
-direct contrast.
+`core` keeps `DockEvent.cancelled`, which is a field and method name rather than
+prose, and is out of scope.
 
-Listed one per line now, like its neighbours.
+### <a id="t2"></a>T2. Two comments referred to the process that produced them
 
-### <a id="t2"></a>T2. The anonymous output stream calls `toByteArray()`, which the enclosing class also declares
+`persistence/api/build.gradle:16`, `persistence/api/src/test/.../DockContainerRootBranchStateBuilderTest.java:19`
 
-`persistence/test-fixtures/.../storage/InMemoryLayoutStorage.java:68, 100-102`
+One comment ended "survived review here" and one cited an item identifier. Both now
+describe the problem without referring to how it was found, which is what a reader
+of the code needs.
 
-Inside the anonymous `ByteArrayOutputStream`, `bytes = toByteArray()` resolves to
-the stream's own inherited method, which is what is wanted. The enclosing class
-declares a public `toByteArray()` of its own that returns a defensive copy of the
-stored bytes. The line is correct and reads as though it might not be; qualifying
-it, or naming one of the two differently, settles the question for the reader.
+### <a id="t3"></a>T3. The startup diagram showed a saver auto-saving from its constructor
 
-The collision is gone: the stream is a `FilterOutputStream` over a named buffer, and
-the store goes through a private `storeBytes` rather than through a name the stream
-also has. That last part is not cosmetic - `FilterOutputStream` declares
-`write(byte[])`, so the obvious spelling of this inside the stream would have written
-the bytes back into the buffer instead of storing them. The method's Javadoc records
-that, because the next person to tidy the name will otherwise reintroduce it.
+`docs/persistence/docking-layout-persistence-diagrams.md`
 
-### <a id="t3"></a>T3. `TestLayoutStorage` accepts a write, stores nothing, and says nothing - MEASURED
+The startup sequence had the saver constructing, auto-saving and writing before the
+application had asked for anything, and never showed either component being closed.
+It now follows the order an application actually uses - restore, apply, then obtain
+the saver and keep it - and shows arming, the interval loop, the explicit save on
+close request, and both `close()` calls.
 
-`persistence/test-fixtures/.../storage/TestLayoutStorage.java:13-28`
+The class diagram gained `exists()` and `close()` on `LayoutStorage`, `close()` on
+`LayoutSaver`, and `doesLayoutExist()` and `close()` on `LayoutRestorer`. The
+"Applying a DockingLayout" diagram was two arrows; it now shows the per-`BentoLayout`
+decision and the fallback when nothing could be applied.
 
-`openOutputStream` returns a fresh `ByteArrayOutputStream` that nothing reads,
-`openInputStream` returns an empty stream, and `exists()` is always `false`.
-Measured:
+### <a id="t4"></a>T4. The storage extension example omitted the conventions a storage implementation has to follow
 
-```
-PROBE test-storage-exists-after-write=false
-PROBE test-storage-read-back=0
-```
+`README.md`
 
-For the provider-selection tests it is named for, that is all it needs to do.
-
-It says so now, and points at `InMemoryLayoutStorage` for anything that saves and
-reads back - the same treatment [N7](#n7) got in the codec half.
-
-### <a id="t4"></a>T4. `new DragDropStageStateBuilder(true)` passes an unnamed boolean
-
-`persistence/test-fixtures/.../codec/state/SampleBentoStateFactory.java:130`
-
-Every other value in this factory is either named by its setter or pulled from a
-constant. This one is a bare `true` in a constructor, and a reader has to open
-`DragDropStageState` to learn which property it sets.
-
-It reads `IS_AUTO_CLOSED_WHEN_EMPTY` now, after the builder's own parameter, with a
-constant whose documentation says it is the one property that builder requires at
-construction.
-
-### <a id="t5"></a>T5. Truncated `describedAs` strings, ending mid-word in an ellipsis
-
-`persistence/test-fixtures/src/test/.../codec/InMemoryLayoutCodecTest.java:57`
-
-```java
-.describedAs("exception thrown by () -> reader.decode(new ByteArrayInputStream(outputStream.toByteArr...")
-```
-
-The description is the code that follows it, cut off at a fixed width. When the
-assertion fails, the message repeats the call AssertJ already reports and stops
-mid-identifier.
-
-It now reads "decoding a token another codec instance wrote", which is the thing
-being tested rather than an echo of the call. The same pattern appears in
-`persistence/api`'s `DefaultDockingLayoutPersistenceProviderTest`, which is outside
-this review's scope and worth the same treatment when that file is next touched.
-
-### <a id="t6"></a>T6. `SampleBentoStateFactory` claims every persistable property is set; two of its containers set a few
-
-`persistence/test-fixtures/.../codec/state/SampleBentoStateFactory.java:28-31, 118-127, 149-162`
-
-The class documentation says "Every persistable property is set to a value
-distinct from its neighbors', so a round-trip that drops one, or crosses two,
-shows up as an inequality". `createLastLeafState` sets no selected dockable and
-holds no dockables, and the leaf inside `createStageRootBranchState` sets only its
-side. Both are useful cases to have in the fixture - an empty leaf and a sparse one
-are exactly what a round-trip should survive - so the documentation is what needs
-adjusting, not the layout.
-
-Adjusted: the claim is now that a property, where set, is distinct from its
-neighbors', and a second paragraph says the two sparse containers are deliberate and
-what each of them is for.
-
-### <a id="t7"></a>T7. `setPruneWhenEmpty(false)` is called twice on the same leaf, mirrored from `demos/basic`
-
-`demos/persistence/.../BoxApp.java:118-119`, mirroring
-`demos/basic/.../BoxApp.java:46-47`
-
-```java
-leafTools.setPruneWhenEmpty(false);
-leafTools.setPruneWhenEmpty(false);
-```
-
-Harmless, and faithful: the duplicate is in the basic demo and was carried across
-with everything else.
-
-Removed from the persistence demo on request. `demos/basic` keeps its pair, so this
-is the one place the two demos now differ where they previously agreed - worth
-knowing when the next comparison between them is made, and worth removing there too
-whenever that demo is next touched.
-
-### <a id="t8"></a>T8. Twelve near-identical `put` blocks that the enum they read from could drive
-
-`demos/persistence/.../provider/BoxAppDockableStateProvider.java:59-166`
-
-Every entry has the same six lines, differing in the `DockableProperties` constant
-and two integers. Those two integers are the shape and color of the dockable's
-icon, and `DockableProperties` already carries the per-dockable data - so two more
-enum fields and a loop over `values()` would replace a hundred lines and make
-adding a dockable a one-line change. A demo has some licence to be explicit
-instead of clever; at twelve repetitions of six lines, the repetition is what a
-reader has to hold rather than the pattern.
-
-That is what it does now: the icon's shape and color sit on the enum, one loop over
-`values()` builds every state, and `createSecondDockableState` folded into the same
-builder - the undecorated dockable is the one the enum reports as
-`isDecorated() == false`, which is also how it keeps its plainer label and its
-absence of an icon and a menu.
-
-**Measured**, because moving twelve hand-written argument pairs onto an enum is
-exactly the change that silently swaps two of them. The enum's mapping printed and
-compared against the twelve original pairs:
-
-```
-PROP WORKSPACE      decorated=true  shape=1 color=0
-PROP BOOKMARKS      decorated=true  shape=1 color=1
-PROP MODIFICATIONS  decorated=true  shape=1 color=2
-PROP LOGGING        decorated=true  shape=2 color=0
-PROP TERMINAL       decorated=true  shape=2 color=1
-PROP PROBLEMS       decorated=true  shape=2 color=2
-PROP CLASS_1        decorated=true  shape=0 color=0
-PROP CLASS_2        decorated=true  shape=0 color=1
-PROP CLASS_3        decorated=true  shape=0 color=2
-PROP CLASS_4        decorated=true  shape=0 color=3
-PROP CLASS_5        decorated=true  shape=0 color=4
-PROP SOMETHING_ELSE decorated=false shape=-1 color=0
-```
-
-All twelve match. The last line also settles a trap this change had to avoid: the
-undecorated shape mode is written as the literal `-1` rather than as a named
-constant, because an enum's static fields are not initialized until after its
-constants, so a constant read from the constructor would have arrived as zero - and
-zero is a valid shape mode.
-
-### <a id="t9"></a>T9. The two menu-factory providers declare their `factory` field below the method that returns it
-
-`demos/persistence/.../provider/BoxAppDockableMenuFactoryProvider.java:20-32` and
-`.../provider/BoxAppDockContainerLeafMenuFactoryProvider.java:23-32`
-
-Both classes read `return Optional.of(factory);` before the reader has met
-`factory`. Every other class in the demo and in the fixtures declares its static
-fields at the top.
-
-Both now declare it there too.
+The example showed the three methods and nothing about the behavior callers rely
+on. Three conventions are now stated with it: closing the output stream is what
+stores the layout, `exists()` answers whether there is a layout to read rather than
+whether a location is present, and `close()` releases what the storage owns and
+nothing it was handed. Each is a property the bundled implementations have and a
+new implementation would otherwise have to infer.
 
 ---
 
-## <a id="demos-basic"></a>demos/basic
+## <a id="footprint-compared-with-jide"></a>Footprint compared with JIDE - MEASURED
 
-Read for comparison only, and **no blocker was found there** - nothing in the
-basic demo stands in the way of the persistence demo or of the findings above.
+Measured against the jars in the Gradle cache, JIDE 3.7.10: `jide-dock` (426 KB),
+`jide-common` (1.7 MB), `jide-components`.
 
-Two observations, neither proposed as a change:
+**In JIDE, persistence is not a separable surface.** An application holds a
+`com.jidesoft.docking.DockingManager`, an interface with 259 abstract methods, and
+44 of those come from `com.jidesoft.swing.LayoutPersistence`, which it extends. A
+reference held to arrange docking is the same reference that saves layouts, chooses
+the format, chooses the directory, and enumerates what was saved.
 
-**The duplicated `setPruneWhenEmpty(false)`** at `demos/basic/.../BoxApp.java:46-47`
-is the origin of [T7](#t7). It is harmless in both demos.
+```
+javap com.jidesoft.docking.DockingManager      -> 259 abstract methods
+javap com.jidesoft.swing.LayoutPersistence     ->  44 abstract methods
+javap com.jidesoft.swing.RootPanePersistence   ->   1 abstract method
+```
 
-**`DockContainerBranch.setResizableWithParent` and
-`SplitPane.setResizableWithParent` are the same method**, which is worth stating
-because the two demos call it by different names and that reads like a divergence.
-See [Withdrawn](#withdrawn), W1.
+**In BentoFX, an application saving and restoring one layout touches six types and
+about a dozen methods.** Counted over the built classes:
 
-Everything else the persistence demo does differently from the basic demo is
-accounted for by what it demonstrates: a named `Bento`, the stage-building flags,
-providers standing in for the inline factories, `DockContainerRootBranch` where
-basic uses `DockContainerBranch`, and a layout obtained from a restorer rather than
-built in place. None of it looks like drift.
+| Type | Public methods | Needed for |
+|---|---|---|
+| `DockingLayoutPersistence` | 2 | finding the provider |
+| `DockingLayoutPersistenceProvider` | 5 | obtaining a saver and a restorer |
+| `LayoutSaver` | 3 | saving, closing |
+| `LayoutRestorer` | 4 | asking, restoring, closing |
+| `BentoProvider` | 4 | telling the framework which `Bento`s exist |
+| `DockableStateProvider` | 2 | rebuilding dockable content |
 
----
+`LayoutStorage` (5) and `LayoutCodec` (4) are touched only when writing a new
+storage destination or format. The exported packages hold 28 top-level types in
+total, most of them the `*State` objects and their builders, which an application
+meets only if it inspects persisted state itself.
+
+**Where the two differ in kind, not just in size:**
+
+| Concern | JIDE | BentoFX |
+|---|---|---|
+| Choosing the format | `setXmlFormat(boolean)`, `setXmlEncoding(String)` on the docking manager | a runtime dependency, or a codec identifier in a profile |
+| Choosing the destination | `setUsePref(boolean)`, `setLayoutDirectory(String)`, `saveLayoutDataToFile(String)` | a runtime dependency, or a storage identifier in a profile |
+| A new destination or format | not an extension point | implement two interfaces of 3-5 methods and register a service provider |
+| Application data in the layout | `setSaveCallback`/`setLoadCallback`, typed to `org.w3c.dom.Document` | not offered - see [N4](#n4) |
+| Naming layouts | `saveLayoutDataAs(String)`, `loadLayoutDataFrom(String)` | a layout identifier per saver and restorer, plus a one-shot `saveLayout(profile, bentoProvider)` |
+| Listing layouts | `getAvailableLayouts()` | `getStoredLayoutIdentifiers(profile)` |
+| Testing for one layout | `isLayoutAvailable(String)` | `isLayoutStored(profile)` |
+| Deleting a layout | `removeLayout(String)` | `deleteLayout(profile)` |
+| Restoring the default | `resetToDefault()` | the application's own default layout supplier, which the restorer falls back to |
+| Partial restore | `setUseFrameState(boolean)`, `setUseFrameBounds(boolean)` | not offered; persisted state is applied as a whole |
+| Version handling | `getVersion()`/`setVersion(short)`, `isLayoutDataVersionValid(String)` | a schema version in the layout metadata, with no migration step yet |
+
+The four rows JIDE's product page advertises - "Load and save layout using javax pref
+package", "Load and save layout using file", "List available layouts", "Instantly
+switch layout" - are now all covered, the last two by the operations added in this
+pass. What remains uncovered is deliberate: no partial restore, no application-data
+channel, and no migration step, each of which is a decision recorded above rather
+than an omission.
+
+One migration note that is worth more than any API change: **applications should
+depend on `DockingLayoutPersistenceProvider`, not on a docking manager.**
+JIDE-shaped Swing code reaches for the manager for everything, so the cheapest
+preparation available today is to put an application-owned interface in front of
+JIDE's persistence calls on the Swing side. That interface then maps onto BentoFX's
+provider almost method for method, and the JavaFX migration stops being a
+find-and-replace across every window class.
+
+## <a id="api-changes-worth-making-now"></a>API changes
+
+**Done.** The four operations named under [M2](#m2) now exist: three on
+`LayoutStorageProvider` as defaults, overridden by both bundled implementations, and
+their application-facing counterparts plus a one-shot `saveLayout` on
+`DockingLayoutPersistenceProvider`. Together they map onto what a JIDE application
+calls today:
+
+| JIDE | BentoFX |
+|---|---|
+| `saveLayoutData()` | `getLayoutSaver(...)`, which auto-saves for the session |
+| `saveLayoutDataAs(String)` | `saveLayout(profile, bentoProvider)` |
+| `loadLayoutData()`, `loadLayoutDataFrom(String)` | `getLayoutRestorer(profile, ...)` then `restoreLayout(...)` |
+| `getAvailableLayouts()` | `getStoredLayoutIdentifiers(profile)` |
+| `isLayoutAvailable(String)` | `isLayoutStored(profile)` |
+| `removeLayout(String)` | `deleteLayout(profile)` |
+| `resetToDefault()` | the application's default layout supplier, which the restorer already falls back to |
+
+**Done since:** the reserved session identifier ([N3](#n3)) and the typed reason ([N1](#n1)).
+
+**Decided, still to build:** display names ([N2](#n2)). A name in the layout metadata,
+an identifier generated from it, and a name-aware listing beside the identifier
+listing. A schema change, so it touches both codecs and the schema version, and it
+needs a collision rule. It is also what makes the session reservation enforceable
+inside the framework rather than by each application, since the generator that turns a
+name into an identifier is the one path that is always user-driven.
+
+**Decided against:** carrying application data inside a layout ([N4](#n4)). The
+boundary holds; the README will say so.
+
+## <a id="multiple-layouts"></a>Multiple layouts, storages, and codecs
+
+The framework is closer to the goal than it looks, because the addressing is already
+there. `LayoutPersistenceProfile` carries the layout identifier, the codec
+identifier and the storage identifier, and the storage provider is asked for a
+storage per layout and codec pair, so "the most recent layout in JSON on disk" and
+"a user's custom layout in XML on disk" are two profiles, not two frameworks.
+
+What a runtime layout manager needs on top of that:
+
+- the catalog operations, to populate a menu and to delete an entry - **now present**
+- a one-shot save, so that "Save layout as..." does not arm a session-long saver -
+  **now present**
+- display names, because the menu shows one and storage uses the other - decided,
+  still to build
+- one reserved or separated identifier for the session layout - still to decide
+
+What it does not need, and should not grow: a second saver lifecycle. The session
+saver stays exactly as it is - obtained at startup, auto-saving, closed on exit -
+and named layouts are one-shot writes and reads alongside it. Keeping those two
+paths distinct is what stops a "save as" from quietly becoming the layout that
+auto-save then overwrites.
+
+One consequence worth planning for: restoring a different layout while the
+application is running is not the same operation as restoring one at startup. The
+containers a restorer hands back are unattached, and the application has to replace
+the `Scene`'s root and re-show any drag/drop stages, while the session saver is
+still listening. An application should suspend auto-save around a layout switch, or
+the switch itself will look like a layout change worth persisting.
+
+## <a id="documentation-updated"></a>Documentation and diagrams updated
+
+- `README.md` - the limitation note, the provider-initialization sample, the save
+  and restore samples, the apply-with-fallback sample, the startup flow, the
+  auto-save description, the storage conventions, the demo comparison table, and one
+  heading level that disagreed with the table of contents.
+- `docs/persistence/docking-layout-persistence.md` - the transposed restorer
+  arguments, the provider-initialization sample, the auto-save description, the
+  fourth fallback case, the demo comparison table, and the future-capabilities
+  section, which now states the two decisions that come with named layouts.
+- `docs/persistence/docking-layout-persistence-diagrams.md` - the class diagram's
+  missing lifecycle methods, the startup sequence, and the apply sequence.
+
+The catalog operations were documented as they were added: a "Managing Several
+Layouts" section in the README with the four calls and the three things worth knowing
+about them, a table of the operations in the implementation document, and the two
+providers in the class diagram.
+
+The three documents have different audiences and now stay in their lanes: the README
+tells a library user how to use the framework, the implementation document explains
+how it works and what an application must supply, and the diagrams carry the
+sequences. `demos/basic` remains the how-to for building a layout, and
+`demos/persistence` mirrors it while showing only what persistence adds.
 
 ## <a id="withdrawn"></a>Withdrawn
 
-**W1. The two demos configure resizing through the same method.** The basic demo
-calls `DockContainerBranch.setResizableWithParent(leafTools, false)` and the
-persistence demo calls `SplitPane.setResizableWithParent(leafTools, false)`, which
-looked like the persistence demo bypassing a framework wrapper - and would have
-mattered, because the property is persisted.
-`core/.../DockContainerBranch.java:27` settles it:
+**W1. The demos do not disagree about `DockableProperties`.** The persistence demo
+now carries icon shape and color on that enum while the basic demo passes the same
+two integers positionally, which reads like the two demos drifting apart. It is not
+drift: the basic demo has no state provider to drive, so it has nothing to move onto
+an enum, and the persistence demo builds twelve states from one loop precisely
+because it does. The mirroring the two demos are meant to preserve is the layout
+they build and the order they build it in, and that is unchanged.
 
-```java
-public non-sealed class DockContainerBranch extends SplitPane implements DockContainer {
-```
-
-There is no wrapper. Both calls are the one static method `SplitPane` declares,
-and `BentoLayoutStateCaptor:377-383` captures the same property through
-`SplitPane.isResizableWithParent`, with a comment explaining that this - not
-`leaf.isResizable()` - is what the framework applies. The demos differ in which
-class name they qualify the call with, and in nothing else.
-
-**W2. The demo's save-on-close does not deadlock the JavaFX thread.**
-`saveDockingLayout` runs in a close-request handler, so it is on the JavaFX
-application thread, and saving hands the capture back to that same thread and
-waits for it. That is a self-deadlock in the general case, bounded only by a
-ten-second timeout, and it would mean the demo's final save never completes.
-`PersistenceThreading` handles it: `callOnFxThread` runs the task inline when
-`Platform.isFxApplicationThread()` is already true (line 141-143), and
-`callOffFxThread` does the converse for the I/O half (line 204-206). The class
-documentation states both. What remains true, and is documented there rather than
-being a defect, is that the save freezes the UI for as long as the storage write
-takes.
-
-**W3. The demo's dockable-state map is not read across a thread boundary.** The
-map is written inside a `Platform.runLater` and handed to a restorer that decodes
-off the JavaFX thread, which reads like a `HashMap` published without
-synchronization. It is not: `DockingLayoutRestorer:110` wraps state restoration in
-`PersistenceThreading.callOnFxThread`, and `DockingLayoutStateRestorer:512` calls
-`resolveDockableState` from inside that task, so both the write and every read
-happen on the JavaFX application thread. The ordering question survives as
-[N4](#n4); the data race does not.
-
-**W4. The check mark in the demo's leaf menu is not an encoding hazard.**
-`BoxAppDockContainerLeafMenuFactoryProvider:37` contains a literal `✓`, and
-`demos/basic` contains the same character, so a source encoding that differed from
-the one the file was written in would turn both into mojibake.
-`bento.project.project-convention.gradle:149` sets `encoding = 'UTF-8'` for
-compilation, so the source encoding is pinned rather than inherited from the
-platform.
+**W2. `LayoutPersistenceProfile` does not need a per-layout storage directory.**
+JIDE has `setLayoutDirectory(String)`, and its absence here looked like a gap for
+applications that keep user layouts somewhere other than the default. It is not:
+the directory is the storage implementation's business, and an application that
+needs a second location registers a second `LayoutStorageProvider` with its own
+identifier and names it in a profile. That is the same mechanism as choosing between
+file and database storage, which is why no new API is warranted.

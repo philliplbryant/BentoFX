@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.xml;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
@@ -43,7 +44,7 @@ class XmlLayoutCodecTest {
         final List<BentoState> states = createStates();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(states, out);
+        codec.encode(PersistableLayout.of(states), out);
 
         final String xml = out.toString(StandardCharsets.UTF_8);
 
@@ -107,11 +108,13 @@ class XmlLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        xml.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("unrecognized XML element reporting")
                 .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining("Failed to decode BentoStateList from XML")
+                .hasMessageContaining("Failed to decode layout from XML")
                 .cause()
                 .hasMessageContaining("unexpected");
     }
@@ -122,11 +125,11 @@ class XmlLayoutCodecTest {
         final List<BentoState> original = createBentoStates();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(original, out);
+        codec.encode(PersistableLayout.of(original), out);
 
         final List<BentoState> restored = codec.decode(
                 new ByteArrayInputStream(out.toByteArray())
-        );
+        ).bentoStates();
 
         assertThat(restored)
                 .describedAs("layout restored from XML")
@@ -139,7 +142,7 @@ class XmlLayoutCodecTest {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(createStates(), out);
+        codec.encode(PersistableLayout.of(createStates()), out);
 
         assertThat(out.toString(StandardCharsets.UTF_8))
                 .describedAs("encoded XML schema version metadata")
@@ -166,7 +169,9 @@ class XmlLayoutCodecTest {
                 """.formatted(futureSchemaVersion);
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        xml.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("future XML schema version validation")
                 .isInstanceOf(BentoStateException.class)
@@ -188,7 +193,9 @@ class XmlLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        xml.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("missing Bento identifier validation")
                 .isInstanceOf(BentoStateException.class)
@@ -200,11 +207,11 @@ class XmlLayoutCodecTest {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(mixedRootStates(), out);
+        codec.encode(PersistableLayout.of(mixedRootStates()), out);
 
         final List<BentoState> restored = codec.decode(
                 new ByteArrayInputStream(out.toByteArray())
-        );
+        ).bentoStates();
 
         assertThat(restored.getFirst()
                 .getRootBranchStates().getFirst()
@@ -215,7 +222,7 @@ class XmlLayoutCodecTest {
     }
 
     private static List<BentoState> createStates() throws Exception {
-        return BentoStateMapper.fromDto(createDockingLayoutDto());
+        return BentoStateMapper.fromDto(createDockingLayoutDto()).bentoStates();
     }
 
     /**

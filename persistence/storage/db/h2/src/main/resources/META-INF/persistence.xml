@@ -19,7 +19,7 @@
          <property name="jakarta.persistence.jdbc.driver"
                    value="org.h2.Driver"/>
          <property name="jakarta.persistence.jdbc.url"
-                   value="jdbc:h2:file:${user.home}/.bentofx/bento-layouts"/>
+                   value="jdbc:h2:file:${user.home}/.bentofx/layouts"/>
 
           <!-- Tell Hibernate to use Hikari -->
           <property name="hibernate.connection.provider_class"

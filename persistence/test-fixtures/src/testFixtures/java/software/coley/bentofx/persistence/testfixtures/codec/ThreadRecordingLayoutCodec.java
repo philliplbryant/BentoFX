@@ -3,12 +3,12 @@ package software.coley.bentofx.persistence.testfixtures.codec;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,11 +42,11 @@ public final class ThreadRecordingLayoutCodec implements LayoutCodec {
 
 	@Override
 	public synchronized void encode(
-			final List<BentoState> bentoStates,
+			final PersistableLayout layout,
 			final OutputStream outputStream
 	) throws BentoStateException {
 		encodeThread.set(Thread.currentThread());
-		encodedStates = List.copyOf(bentoStates);
+		encodedStates = layout.bentoStates();
 
 		// Also what decode returns. A codec whose halves are not inverses hands a
 		// test that saves and then restores an empty layout and no error.
@@ -56,11 +56,11 @@ public final class ThreadRecordingLayoutCodec implements LayoutCodec {
 	}
 
 	@Override
-	public synchronized List<BentoState> decode(
+	public synchronized PersistableLayout decode(
 			final InputStream inputStream
 	) throws BentoStateException {
 		decodeThread.set(Thread.currentThread());
-		return new ArrayList<>(decodedStates);
+		return PersistableLayout.of(decodedStates);
 	}
 
 	/**

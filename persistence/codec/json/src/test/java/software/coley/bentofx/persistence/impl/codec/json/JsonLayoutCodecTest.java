@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.json;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.api.state.DockContainerLeafState;
@@ -41,7 +42,7 @@ class JsonLayoutCodecTest {
         final List<BentoState> states = createStates();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(states, out);
+        codec.encode(PersistableLayout.of(states), out);
 
         final String json = out.toString(StandardCharsets.UTF_8);
 
@@ -55,10 +56,10 @@ class JsonLayoutCodecTest {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(createStates(), out);
+        codec.encode(PersistableLayout.of(createStates()), out);
 
-        // The XML codec needs a root element; JSON puts the layout's own fields
-        // at the top level.
+        // JSON needs no wrapping element: the layout's own fields sit at the top
+        // level, so the shared root element name should not appear at all.
         assertThat(out.toString(StandardCharsets.UTF_8))
                 .describedAs("encoded JSON root")
                 .doesNotContain(DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
@@ -71,7 +72,7 @@ class JsonLayoutCodecTest {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(emptyRootStates(), out);
+        codec.encode(PersistableLayout.of(emptyRootStates()), out);
 
         // The DTO list fields are never null, so only NON_EMPTY keeps a layout
         // with nothing in it from writing a line per empty list.
@@ -87,7 +88,7 @@ class JsonLayoutCodecTest {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(scrambledDividerStates(), out);
+        codec.encode(PersistableLayout.of(scrambledDividerStates()), out);
 
         final String json = out.toString(StandardCharsets.UTF_8);
 
@@ -119,7 +120,9 @@ class JsonLayoutCodecTest {
                 """.formatted(futureSchemaVersion);
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        json.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("future JSON schema version validation")
                 .isInstanceOf(BentoStateException.class)
@@ -139,7 +142,9 @@ class JsonLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        json.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("missing Bento identifier validation")
                 .isInstanceOf(BentoStateException.class)
@@ -170,7 +175,9 @@ class JsonLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        json.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("missing container identifier validation")
                 .isInstanceOf(BentoStateException.class)
@@ -193,11 +200,13 @@ class JsonLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        json.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("unchecked decode failure reporting")
                 .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining("Failed to decode BentoStateList from JSON")
+                .hasMessageContaining("Failed to decode layout from JSON")
                 .cause()
                 .isInstanceOf(NullPointerException.class);
     }
@@ -216,11 +225,13 @@ class JsonLayoutCodecTest {
                 """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
 
         assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))
+                codec.decode(new ByteArrayInputStream(
+                        json.getBytes(StandardCharsets.UTF_8)))
+                        .bentoStates()
         )
                 .describedAs("unrecognized JSON property reporting")
                 .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining("Failed to decode BentoStateList from JSON")
+                .hasMessageContaining("Failed to decode layout from JSON")
                 .cause()
                 .hasMessageContaining("unexpected");
     }
@@ -231,11 +242,11 @@ class JsonLayoutCodecTest {
         final List<BentoState> original = createBentoStates();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(original, out);
+        codec.encode(PersistableLayout.of(original), out);
 
         final List<BentoState> restored = codec.decode(
                 new ByteArrayInputStream(out.toByteArray())
-        );
+        ).bentoStates();
 
         assertThat(restored)
                 .describedAs("layout restored from JSON")
@@ -244,15 +255,44 @@ class JsonLayoutCodecTest {
     }
 
     @Test
+    void encodeThenDecodeRoundTripsTheDisplayName() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(
+                new PersistableLayout("Sprint 12", createBentoStates()),
+                out
+        );
+
+        assertThat(codec.decode(new ByteArrayInputStream(out.toByteArray()))
+                .displayName())
+                .describedAs("display name restored from JSON")
+                .isEqualTo("Sprint 12");
+    }
+
+    @Test
+    void aLayoutWithNoDisplayNameRoundTripsWithoutOne() throws Exception {
+        final JsonLayoutCodec codec = new JsonLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(PersistableLayout.of(createBentoStates()), out);
+
+        assertThat(codec.decode(new ByteArrayInputStream(out.toByteArray()))
+                .displayName())
+                .describedAs("display name from a layout saved without one")
+                .isNull();
+    }
+
+    @Test
     void encodeThenDecodePreservesMixedRootChildOrder() throws Exception {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        codec.encode(mixedRootStates(), out);
+        codec.encode(PersistableLayout.of(mixedRootStates()), out);
 
         final List<BentoState> restored = codec.decode(
                 new ByteArrayInputStream(out.toByteArray())
-        );
+        ).bentoStates();
 
         assertThat(restored.getFirst()
                 .getRootBranchStates().getFirst()
@@ -263,7 +303,7 @@ class JsonLayoutCodecTest {
     }
 
     private static List<BentoState> createStates() throws BentoStateException {
-        return BentoStateMapper.fromDto(createDockingLayoutDto());
+        return BentoStateMapper.fromDto(createDockingLayoutDto()).bentoStates();
     }
 
     /**
