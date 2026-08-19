@@ -689,10 +689,23 @@ final boolean wouldReplace = persistenceProvider.isLayoutStored(profile);
 final boolean wasRemoved = persistenceProvider.deleteLayout(profile);
 ```
 
-Three things are worth knowing:
+To show users the names they chose rather than identifiers, list with `getStoredLayouts`, which returns a profile per stored layout carrying its display name:
+
+```java
+for (final LayoutPersistenceProfile stored :
+        persistenceProvider.getStoredLayouts(profile)) {
+
+    if (!LayoutIdentifiers.isReserved(stored.layoutIdentifier())) {
+        menu.add(stored.findDisplayName().orElse(stored.layoutIdentifier()), stored);
+    }
+}
+```
+
+Four things are worth knowing:
 
 * **`saveLayout` is not a `LayoutSaver`.** It writes once and returns; nothing is scheduled and no listener is registered. Keep `getLayoutSaver` for the layout that follows the session and use this for a layout a user asked to keep.
-* **`getStoredLayoutIdentifiers` ignores the profile's layout identifier**, since it reports every layout the destination holds. The profile is there to select the codec and the storage to ask. The session layout is in the result, so filter it with `LayoutIdentifiers.isReserved(...)` rather than by comparing strings.
+* **A display name is stored, not addressed by.** `LayoutPersistenceProfile.named(identifier, displayName, codec, storage)` carries the name into the layout; the identifier still does the addressing. `getStoredLayoutIdentifiers` returns identifiers cheaply, while `getStoredLayouts` reads each layout to recover its name, so use the identifier listing when the names are not needed.
+* **The identifier is the application's to choose.** The framework validates one and stores a name, but does not yet turn a display name into an identifier; deriving `sprint-12` from "Sprint 12" is the application's step for now. `LayoutIdentifiers.findUserLayoutProblem(identifier, codec)` reports whether a chosen identifier is usable, including whether it collides with the reserved session name.
 * **Restoring a different layout while running is not the same as restoring one at startup.** The containers a restorer hands back are unattached, so the application replaces the scene root and re-shows any drag/drop stages itself, and the switch itself looks like a layout change to a running auto-save. Save the current layout first, or take auto-save down around the switch.
 
 A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.

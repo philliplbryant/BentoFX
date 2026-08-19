@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 import software.coley.bentofx.persistence.impl.codec.xml.mixins.XmlMapperMixins;
@@ -12,7 +12,6 @@ import software.coley.bentofx.persistence.impl.codec.xml.mixins.XmlMapperMixins;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 /**
  * XML implementation of {@link LayoutCodec} using Jackson XML and external
@@ -40,19 +39,19 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
     @Override
     public void encode(
-            final List<BentoState> bentoStates,
+            final PersistableLayout layout,
             final OutputStream outputStream
     ) throws BentoStateException {
         try {
-            final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
+            final DockingLayoutDto dto = BentoStateMapper.toDto(layout);
             mapper.writeValue(outputStream, dto);
         } catch (final IOException | RuntimeException e) {
-            throw new BentoStateException("Failed to encode BentoState as XML", e);
+            throw new BentoStateException("Failed to encode layout as XML", e);
         }
     }
 
     @Override
-    public List<BentoState> decode(
+    public PersistableLayout decode(
             final InputStream inputStream
     ) throws BentoStateException {
         try {
@@ -61,7 +60,10 @@ public final class XmlLayoutCodec implements LayoutCodec {
 
             return BentoStateMapper.fromDto(dockingLayoutDto);
         } catch (final IOException | RuntimeException e) {
-            throw new BentoStateException("Failed to decode BentoStateList from XML", e);
+            throw new BentoStateException(
+                    "Failed to decode layout from XML",
+                    e
+            );
         }
     }
 }

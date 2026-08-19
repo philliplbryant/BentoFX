@@ -13,6 +13,7 @@ import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.api.provider.LayoutStorageProvider;
@@ -95,6 +96,55 @@ class OneShotLayoutSaveFT {
         assertThat(codec.getEncodeCalls())
                 .describedAs(ENCODE_CALLS_DESCRIPTION + " once the layout is taken down")
                 .hasSize(1);
+    }
+
+    @Test
+    void saveLayoutWritesTheProfilesDisplayName(FxRobot robot)
+            throws BentoStateException {
+
+        final Bento bento = new Bento();
+        final DockBuilding dockBuilding = bento.dockBuilding();
+        final DockContainerRootBranch root = dockBuilding.root("root");
+        root.addContainer(dockBuilding.leaf("leaf"));
+
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+
+        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+        bentoProvider.addBento(bento);
+
+        final DockingLayoutPersistenceProvider persistenceProvider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(codecProvider(codec)),
+                        List.of(storageProvider(storage))
+                );
+
+        final AtomicReference<Stage> stageRef = new AtomicReference<>();
+
+        robot.interact(() -> {
+            final Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.show();
+            stageRef.set(stage);
+        });
+
+        persistenceProvider.saveLayout(
+                LayoutPersistenceProfile.named(
+                        LAYOUT_IDENTIFIER,
+                        "My Layout",
+                        null,
+                        null
+                ),
+                bentoProvider
+        );
+
+        assertThat(codec.getEncodedLayouts())
+                .describedAs("encoded layouts")
+                .singleElement()
+                .extracting(PersistableLayout::displayName)
+                .isEqualTo("My Layout");
+
+        robot.interact(() -> stageRef.get().hide());
     }
 
     @Test

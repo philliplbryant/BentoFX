@@ -1,15 +1,13 @@
 package software.coley.bentofx.persistence.api.codec;
 
 import software.coley.bentofx.persistence.api.BentoStateException;
-import software.coley.bentofx.persistence.api.state.BentoState;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 /**
- * Codec for encoding/decoding {@link BentoState} to/from some persistence
- * format (XML/JSON/etc).
+ * Codec for encoding and decoding a {@link PersistableLayout} to and from some
+ * persistence format (XML, JSON, and so on).
  *
  * @author Phil Bryant
  */
@@ -24,26 +22,31 @@ public interface LayoutCodec {
     String getIdentifier();
 
     /**
-     * Encode the {@link BentoState} and write it to the {@link OutputStream}.
+     * Encode the {@link PersistableLayout} and write it to the
+     * {@link OutputStream}.
      *
-     * @param bentoStates the {@link BentoState}s to be encoded.
+     * <p>The layout's display name is part of what is written, so a codec that
+     * drops it does not round-trip: a layout decoded later would come back
+     * without the name it was saved under.</p>
+     *
+     * @param layout the {@link PersistableLayout} to be encoded.
      * @param outputStream the {@link OutputStream} where the encoded
-     * {@link BentoState} is to be written.
+     * {@link PersistableLayout} is to be written.
      * @throws BentoStateException on error
      */
     void encode(
-            final List<BentoState> bentoStates,
+            final PersistableLayout layout,
             final OutputStream outputStream
     ) throws BentoStateException;
 
     /**
-     * Read InputStream
+     * Read the {@link PersistableLayout} from an {@link InputStream}.
      *
-     * @param inputStream Stream to which {@link BentoState} was written
-     * @return {@link BentoState}
+     * @param inputStream stream a {@link PersistableLayout} was written to.
+     * @return the decoded {@link PersistableLayout}.
      * @throws BentoStateException on error
      */
-    List<BentoState> decode(
+    PersistableLayout decode(
             final InputStream inputStream
     ) throws BentoStateException;
 }

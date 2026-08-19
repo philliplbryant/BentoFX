@@ -19,8 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @NullMarked
 class DefaultDockingLayoutPersistenceProviderTest {
@@ -66,6 +65,49 @@ class DefaultDockingLayoutPersistenceProviderTest {
         assertThat(storageProvider.getCatalogCodecIdentifier())
                 .describedAs("the codec identifier the catalog was asked with")
                 .isEqualTo(JSON_CODEC_IDENTIFIER);
+    }
+
+    @Test
+    void listsStoredLayoutsAsProfilesCarryingTheProfilesCodecAndStorage()
+            throws BentoStateException {
+
+        final TestLayoutStorageProvider storageProvider =
+                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        storageProvider.setStoredLayoutIdentifiers(List.of("recent", "review"));
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(new TestLayoutCodecProvider(
+                                JSON_CODEC_IDENTIFIER, false
+                        )),
+                        List.of(storageProvider)
+                );
+
+        final LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
+                DEFAULT_LAYOUT_IDENTIFIER,
+                JSON_CODEC_IDENTIFIER,
+                FILE_STORAGE_IDENTIFIER
+        );
+
+        assertThat(provider.getStoredLayouts(profile))
+                .describedAs("stored layouts as profiles")
+                .extracting(
+                        LayoutPersistenceProfile::layoutIdentifier,
+                        LayoutPersistenceProfile::codecIdentifier,
+                        LayoutPersistenceProfile::storageIdentifier
+                )
+                .containsExactlyInAnyOrder(
+                        tuple(
+                                "recent",
+                                JSON_CODEC_IDENTIFIER,
+                                FILE_STORAGE_IDENTIFIER
+                        ),
+                        tuple(
+                                "review",
+                                JSON_CODEC_IDENTIFIER,
+                                FILE_STORAGE_IDENTIFIER
+                        )
+                );
     }
 
     @Test

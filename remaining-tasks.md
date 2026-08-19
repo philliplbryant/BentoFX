@@ -14,7 +14,7 @@
    2. Use environment variables
       1. `NEXUS_USERNAME`
       2. `NEXUS_PASSWORD`
-3. Analyze code coverage reports.
+3. Analyze code coverage reports and look for gaps.
    1. Exclude files in `core` and `demos`.
    2. Create additional tests to increase coverage.
    3. Consider coverage for both normal and exceptional flows.

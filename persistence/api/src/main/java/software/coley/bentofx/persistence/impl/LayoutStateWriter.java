@@ -1,7 +1,9 @@
 package software.coley.bentofx.persistence.impl;
 
+import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
@@ -21,14 +23,17 @@ final class LayoutStateWriter implements AutoCloseable {
 
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
+    private final @Nullable String displayName;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     LayoutStateWriter(
+            final @Nullable String displayName,
             final LayoutCodec layoutCodec,
             final LayoutStorage layoutStorage
     ) {
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
+        this.displayName = displayName;
     }
 
     /**
@@ -71,7 +76,10 @@ final class LayoutStateWriter implements AutoCloseable {
 
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        layoutCodec.encode(bentoStateList, buffer);
+        layoutCodec.encode(
+                new PersistableLayout(displayName, bentoStateList),
+                buffer
+        );
 
         return buffer.toByteArray();
     }

@@ -19,6 +19,9 @@ import software.coley.bentofx.persistence.impl.AbstractAutoCloseableLayoutSaver;
 import software.coley.bentofx.persistence.impl.DockingLayoutRestorer;
 import software.coley.bentofx.persistence.impl.DockingLayoutSaver;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
@@ -184,7 +187,8 @@ public class DefaultDockingLayoutPersistenceProvider
         try (final DockingLayoutSaver layoutSaver = new DockingLayoutSaver(
                 layoutCodec,
                 layoutStorage,
-                bentoProvider
+                bentoProvider,
+                layoutPersistenceProfile.displayName()
         )) {
             layoutSaver.saveLayout();
         }
@@ -197,6 +201,73 @@ public class DefaultDockingLayoutPersistenceProvider
 
         return selectStorageProvider(layoutPersistenceProfile)
                 .getLayoutIdentifiers(codecIdentifier(layoutPersistenceProfile));
+    }
+
+    @Override
+    public List<LayoutPersistenceProfile> getStoredLayouts(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+        final LayoutStorageProvider layoutStorageProvider =
+                selectStorageProvider(layoutPersistenceProfile);
+
+        final List<LayoutPersistenceProfile> layouts = new ArrayList<>();
+
+        final String codecIdentifier = layoutCodec.getIdentifier();
+
+        for (final String layoutIdentifier :
+                layoutStorageProvider.getLayoutIdentifiers(codecIdentifier)) {
+
+            layouts.add(new LayoutPersistenceProfile(
+                    layoutIdentifier,
+                    layoutPersistenceProfile.codecIdentifier(),
+                    layoutPersistenceProfile.storageIdentifier(),
+                    readDisplayName(
+                            layoutStorageProvider,
+                            layoutCodec,
+                            layoutIdentifier
+                    )
+            ));
+        }
+
+        return layouts;
+    }
+
+    /**
+     * {@return the display name stored with a layout, or {@code null} when it
+     * was saved without one.}
+     *
+     * <p>The display name lives inside the layout, so reading it means decoding
+     * the layout. This opens its storage, decodes, and closes.</p>
+     *
+     * @param layoutStorageProvider the storage the layout is held in.
+     * @param layoutCodec the codec the layout was written with.
+     * @param layoutIdentifier identifies the layout to read.
+     * @throws BentoStateException when the layout cannot be read or decoded.
+     */
+    private static @Nullable String readDisplayName(
+            final LayoutStorageProvider layoutStorageProvider,
+            final LayoutCodec layoutCodec,
+            final String layoutIdentifier
+    ) throws BentoStateException {
+
+        try (final LayoutStorage layoutStorage =
+                     layoutStorageProvider.getLayoutStorage(
+                             layoutIdentifier,
+                             layoutCodec.getIdentifier()
+                     );
+             final InputStream inputStream = layoutStorage.openInputStream()) {
+
+            return layoutCodec.decode(inputStream).displayName();
+        } catch (final IOException e) {
+            throw new BentoStateException(
+                    "Could not read the stored layout '"
+                            + layoutIdentifier + "'.",
+                    e
+            );
+        }
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
@@ -40,7 +41,8 @@ class LayoutStateWriterTest {
                 .build();
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
-            new LayoutStateWriter(codec, storage).writeLayout(List.of(bentoState));
+            new LayoutStateWriter(null, codec, storage)
+                    .writeLayout(List.of(bentoState));
 
             assertThat(codec.getEncodedBentoStates())
                     .describedAs("codec.getEncodedBentoStates()")
@@ -59,7 +61,8 @@ class LayoutStateWriterTest {
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+                    new LayoutStateWriter(null, codec, storage)
+                    .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION)
                     .isSameAs(expectedCause);
@@ -73,7 +76,8 @@ class LayoutStateWriterTest {
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+                    new LayoutStateWriter(null, codec, storage)
+                    .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when the codec fails")
                     .isInstanceOf(BentoStateException.class);
@@ -95,7 +99,8 @@ class LayoutStateWriterTest {
             storage.setOpenOutputStreamException(expectedCause);
 
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(codec, storage).writeLayout(List.of())
+                    new LayoutStateWriter(null, codec, storage)
+                    .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when storage fails")
                     .isInstanceOf(BentoStateException.class)
@@ -109,7 +114,8 @@ class LayoutStateWriterTest {
     void closeClosesStorageOnce() {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
         final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
-        final LayoutStateWriter writer = new LayoutStateWriter(codec, storage);
+        final LayoutStateWriter writer =
+                new LayoutStateWriter(null, codec, storage);
 
         writer.close();
         writer.close();
@@ -131,14 +137,14 @@ class LayoutStateWriterTest {
 
         @Override
         public void encode(
-                final List<BentoState> bentoStates,
+                final PersistableLayout layout,
                 final OutputStream outputStream
         ) throws BentoStateException {
             if (encodeException != null) {
                 throw encodeException;
             }
 
-            encodedBentoStates = List.copyOf(bentoStates);
+            encodedBentoStates = List.copyOf(layout.bentoStates());
             try {
                 outputStream.write(ENCODED_LAYOUT.getBytes(StandardCharsets.UTF_8));
             } catch (final IOException e) {
@@ -147,8 +153,8 @@ class LayoutStateWriterTest {
         }
 
         @Override
-        public List<BentoState> decode(final InputStream inputStream) {
-            return List.of();
+        public PersistableLayout decode(final InputStream inputStream) {
+            return PersistableLayout.of(List.of());
         }
 
         @Nullable

@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
@@ -80,7 +81,8 @@ class BentoStateMapperITP {
 		bentoStates.add(bentoState);
 
 		// Perform Domain to DTO Mapping
-		final DockingLayoutDto dto = BentoStateMapper.toDto(bentoStates);
+		final DockingLayoutDto dto =
+				BentoStateMapper.toDto(PersistableLayout.of(bentoStates));
 
 		// Validate the DTO
 		assertThat(dto)
@@ -157,14 +159,16 @@ class BentoStateMapperITP {
 				.isEqualTo(expectedRootIdentifier);
 
 		// Perform DTO to Domain Mapping
-		final List<BentoState> deserializedBentoStates = BentoStateMapper.fromDto(dto);
+		final List<BentoState> deserializedBentoStates =
+				BentoStateMapper.fromDto(dto).bentoStates();
 
 		// Validate the Round-tripped Result
 		assertThat(deserializedBentoStates)
 				.describedAs("deserializedBentoStates")
 				.isNotNull().hasSize(1);
 
-		final BentoState deserializedBentoState = deserializedBentoStates.getFirst();
+		final BentoState deserializedBentoState =
+				deserializedBentoStates.getFirst();
 		assertThat(deserializedBentoState.getIdentifier())
 				.describedAs("deserializedBentoState.getIdentifier()")
 				.isEqualTo(expectedBentoIdentifier);
@@ -232,8 +236,10 @@ class BentoStateMapperITP {
 				.build();
 
 		final List<BentoState> roundTripped = BentoStateMapper.fromDto(
-				BentoStateMapper.toDto(List.of(bentoState))
-		);
+				BentoStateMapper.toDto(
+						PersistableLayout.of(List.of(bentoState))
+				)
+		).bentoStates();
 
 		assertThat(roundTripped.getFirst()
 				.getRootBranchStates().getFirst()

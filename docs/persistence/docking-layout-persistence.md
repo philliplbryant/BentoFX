@@ -25,6 +25,8 @@ classes:
 - `DockingLayout` is the application-facing restored layout. It contains one or more `BentoLayout` instances.
 - `BentoLayout` contains runtime `DockContainerRootBranch` and `DragDropStage` instances for a single `Bento`.
 - `BentoState` is the serializable state for a persisted `Bento`.
+- `PersistableLayout` is what a codec encodes and decodes: the `BentoState` list a save captured, plus the layout-level
+  metadata that travels with it. The one piece of metadata so far is the optional display name.
 - `DockContainerRootBranchState`, `DockContainerBranchState`, and `DockContainerLeafState` represent the container tree.
 - `DockableState` represents the information needed to reconstruct a runtime `Dockable`.
 - `DragDropStageState` represents secondary drag/drop stages and contains a root-branch state.
@@ -49,6 +51,19 @@ This decoupling lets applications choose the persisted format, such as XML or JS
 file or database, without changing the save/restore orchestration. In the simple case, changing providers requires only 
 a dependency change. When multiple providers are present, applications can select a specific codec or storage provider 
 by identifier with `LayoutPersistenceProfile`.
+
+### Display names
+
+A layout identifier has to be usable as a file name, so it is not what a user would want to read in a menu. A layout
+therefore carries an optional display name as well: the label the user gave it.
+
+`LayoutPersistenceProfile.named(identifier, displayName, codec, storage)` supplies one, the saver puts it in the layout
+metadata, and `getStoredLayouts` reads it back. The name is stored, never addressed by - the identifier still selects
+which layout a save or restore touches - which is why the same layout can be renamed without moving what holds it. A
+layout saved without a name, the session layout among them, has none, and `findDisplayName()` returns empty for it.
+
+Deriving the identifier from the name is still the application's step; see "Deriving a layout identifier from a display
+name" under the capabilities below.
 
 
 ## Internal orchestration collaborators
@@ -251,13 +266,20 @@ selection logic:
 |-----------|---------|
 | `saveLayout(profile, bentoProvider)` | Writes the layout showing now, once. Nothing is scheduled and no listener is registered, which is what distinguishes it from a `LayoutSaver`. |
 | `getStoredLayoutIdentifiers(profile)` | Lists every layout the destination holds. The profile selects the codec and storage to ask; its layout identifier is not used. |
+| `getStoredLayouts(profile)` | The same catalog with display names: a profile per stored layout, carrying the identifier and whatever name was saved with it. |
 | `isLayoutStored(profile)` | Reports whether a layout is stored, without building a restorer to ask. |
 | `deleteLayout(profile)` | Removes a stored layout, reporting whether there was one. |
 
-The last three delegate to `LayoutStorageProvider`, where they have default implementations: a storage destination that
-cannot enumerate reports no layouts, and one that cannot delete reports that it removed nothing. Both bundled
-implementations answer all three, since file storage keeps one file per layout and database storage one row per layout and
-codec.
+`getStoredLayoutIdentifiers`, `isLayoutStored`, and `deleteLayout` delegate to `LayoutStorageProvider`, where they have
+default implementations: a storage destination that cannot enumerate reports no layouts, and one that cannot delete
+reports that it removed nothing. Both bundled implementations answer all three, since file storage keeps one file per
+layout and database storage one row per layout and codec.
+
+`getStoredLayouts` is the one that cannot delegate. A display name lives inside the layout, so recovering it means
+opening and decoding every stored layout, which needs the codec that storage alone does not have. That is the cost of
+the name-aware listing, and the reason the identifier listing stays: use identifiers when the names are not needed.
+Each returned profile carries the codec and storage identifiers it was asked with, so it can be handed straight back to
+`getLayoutRestorer` or `deleteLayout`. Like the identifier listing, it includes the session layout.
 
 ## Application design for persistence
 
@@ -547,22 +569,19 @@ restoration. That keeps first-run behavior and restored behavior consistent.
 
 ## Additional capabilities under consideration
 
-### Display names for user-created layouts
+### Deriving a layout identifier from a display name
 
-A layout identifier becomes a file name in file-backed storage, so it cannot be whatever a user types. The framework will
-therefore carry a display name of its own: a name goes into the layout metadata, the identifier is generated from it, and
-the catalog reports both, so that no application has to write the same mapping.
+A layout identifier becomes a file name in file-backed storage, so it cannot be whatever a user types. Storing the name a
+user chose is done - see "Display names" above - but deriving the identifier from that name is not: an application that
+lets a user save "Sprint 12" still picks `sprint-12` itself.
 
-That work is not done. Three consequences shape how it will be added:
+Two things have to be decided before the framework can do it:
 
-- The display name lives inside the layout, so listing names means decoding each stored layout, while listing identifiers
-  is a directory scan or one query. The two belong at different layers, which is why
-  `LayoutStorageProvider.getLayoutIdentifiers(String)` deals only in identifiers and a name-aware listing will sit beside
-  it on `DockingLayoutPersistenceProvider`, where a codec is available.
-- `getStoredLayoutIdentifiers` keeps its meaning when names arrive; the name-aware call is an addition rather than a
-  replacement.
-- Generating an identifier means deciding what to do about collisions, since two display names can reduce to the same
-  identifier.
+- What a derivation does with the characters an identifier cannot hold. `LayoutIdentifiers.findUserLayoutProblem` reports
+  that a name is unusable, which is enough for a dialog that rejects it, but not enough to rewrite it into something
+  storable.
+- What happens on a collision, since two display names can reduce to the same identifier, and the second save would
+  otherwise overwrite the first.
 
 ### The reserved session layout
 

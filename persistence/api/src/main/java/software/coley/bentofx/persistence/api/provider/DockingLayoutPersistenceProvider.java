@@ -183,6 +183,30 @@ public interface DockingLayoutPersistenceProvider {
 	) throws BentoStateException;
 
 	/**
+	 * {@return a profile for each layout already stored, carrying its
+	 * identifier and its display name, in no particular order.}
+	 *
+	 * <p>Unlike {@link #getStoredLayoutIdentifiers}, this reads each layout's
+	 * display name, which means opening and decoding every stored layout - the
+	 * display name lives inside the layout, not in its identifier. Use it to
+	 * populate a menu that shows users the names they chose; use the identifier
+	 * listing when the names are not needed.</p>
+	 *
+	 * <p>Each returned profile carries the codec and storage identifiers of the
+	 * profile passed in, so it can be handed straight back to
+	 * {@link #getLayoutRestorer} or {@link #deleteLayout}. The session layout is
+	 * included, as it is in the identifier listing.</p>
+	 *
+	 * @param layoutPersistenceProfile selects the codec and storage to ask.
+	 *
+	 * @throws BentoStateException when the codec or storage cannot be selected,
+	 * or a stored layout cannot be read.
+	 */
+	List<LayoutPersistenceProfile> getStoredLayouts(
+			final LayoutPersistenceProfile layoutPersistenceProfile
+	) throws BentoStateException;
+
+	/**
 	 * {@return {@code true} when the profile's layout is already stored;
 	 * otherwise, {@code false}.}
 	 *

@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.testfixtures.codec;
 
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
-import software.coley.bentofx.persistence.api.state.BentoState;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,28 +26,28 @@ public record TestLayoutCodec(String identifier) implements LayoutCodec {
 	}
 
 	/**
-	 * Discards the supplied states, writing nothing.
+	 * Discards the supplied layout, writing nothing.
 	 *
-	 * @param bentoStates ignored.
+	 * @param layout ignored.
 	 * @param outputStream ignored, and left unwritten.
 	 */
 	@Override
 	public void encode(
-			final List<BentoState> bentoStates,
+			final PersistableLayout layout,
 			final OutputStream outputStream
 	) {
 		// no-op
 	}
 
 	/**
-	 * {@return an empty list, whatever the stream holds.}
+	 * {@return an empty layout, whatever the stream holds.}
 	 *
 	 * @param inputStream ignored, and left unread.
 	 */
 	@Override
-	public List<BentoState> decode(
+	public PersistableLayout decode(
 			final InputStream inputStream
 	) {
-		return List.of();
+		return PersistableLayout.of(List.of());
 	}
 }

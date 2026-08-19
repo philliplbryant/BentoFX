@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.state.DockContainerBranchState;
@@ -51,21 +52,21 @@ public final class BentoStateMapper {
 	}
 
 	/**
-	 * Maps a {@code List<BentoState>} to a {@link DockingLayoutDto}.
+	 * Maps a {@link PersistableLayout} to a {@link DockingLayoutDto}.
 	 *
-	 * @param bentoStates the {@code List<BentoState>} to map.
+	 * @param layout the {@link PersistableLayout} to map.
 	 * @return the {@link DockingLayoutDto} mapped from the
-	 * {@code List<BentoState>}.
+	 * {@link PersistableLayout}.
 	 */
 	public static DockingLayoutDto toDto(
-			final List<BentoState> bentoStates
+			final PersistableLayout layout
 	) {
-		requireNonNull(bentoStates, "bentoStates");
+		requireNonNull(layout, "layout");
 
 		final DockingLayoutDto dockingLayoutDto = new DockingLayoutDto();
-		dockingLayoutDto.metadata = createMetadata();
+		dockingLayoutDto.metadata = createMetadata(layout.displayName());
 
-		for (final BentoState state : bentoStates) {
+		for (final BentoState state : layout.bentoStates()) {
 			dockingLayoutDto.bentoStates.add(toDto(state));
 		}
 
@@ -73,13 +74,18 @@ public final class BentoStateMapper {
 	}
 
 	/**
-	 * Creates metadata for a persisted layout payload.
+	 * Creates metadata for a persisted layout.
 	 *
+	 * @param displayName the layout's display name, or {@code null} when it has
+	 * none.
 	 * @return the metadata DTO.
 	 */
-	private static LayoutMetadataDto createMetadata() {
+	private static LayoutMetadataDto createMetadata(
+			final @Nullable String displayName
+	) {
 		final LayoutMetadataDto metadata = new LayoutMetadataDto();
 		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+		metadata.displayName = displayName;
 		return metadata;
 	}
 
@@ -337,14 +343,14 @@ public final class BentoStateMapper {
 	}
 
 	/**
-	 * Maps a {@link DockingLayoutDto} to a {@code List<BentoState>}.
+	 * Maps a {@link DockingLayoutDto} to a {@link PersistableLayout}.
 	 *
 	 * @param dockingLayoutDto the {@link DockingLayoutDto} to map.
 	 *
-	 * @return the {@code List<BentoState>} mapped from the
+	 * @return the {@link PersistableLayout} mapped from the
 	 * {@link DockingLayoutDto}.
 	 */
-	public static List<BentoState> fromDto(
+	public static PersistableLayout fromDto(
 			final DockingLayoutDto dockingLayoutDto
 	) throws BentoStateException {
 		requireNonNull(dockingLayoutDto, "dockingLayoutDto");
@@ -357,7 +363,11 @@ public final class BentoStateMapper {
 			bentoStateList.add(fromDto(stateDto));
 		}
 
-		return bentoStateList;
+		final String displayName = dockingLayoutDto.metadata == null ?
+				null :
+				dockingLayoutDto.metadata.displayName;
+
+		return new PersistableLayout(displayName, bentoStateList);
 	}
 
 	/**

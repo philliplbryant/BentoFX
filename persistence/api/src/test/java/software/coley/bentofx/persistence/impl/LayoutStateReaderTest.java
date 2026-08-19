@@ -5,11 +5,16 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
 import software.coley.bentofx.persistence.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -111,14 +116,14 @@ class LayoutStateReaderTest {
 
         @Override
         public void encode(
-                final List<BentoState> bentoStates,
+                final PersistableLayout layout,
                 final OutputStream outputStream
         ) {
             // no-op
         }
 
         @Override
-        public List<BentoState> decode(
+        public PersistableLayout decode(
                 final InputStream inputStream
         ) throws BentoStateException {
             if (decodeException != null) {
@@ -133,7 +138,7 @@ class LayoutStateReaderTest {
             } catch (final IOException e) {
                 throw new BentoStateException("Could not read test input", e);
             }
-            return decodedBentoStates;
+            return PersistableLayout.of(decodedBentoStates);
         }
 
         @Nullable

@@ -362,7 +362,7 @@ public class BoxApp extends Application {
 
 		// The restorer owns the LayoutStorage it was given and closes it, so it is
 		// closed here rather than abandoned. The layout it returns is already built,
-		// so closing the storage afterwards costs nothing.
+		// so closing the storage afterward costs nothing.
 		try (final LayoutRestorer layoutRestorer =
 					 persistenceProvider.getLayoutRestorer(
 							 SESSION_LAYOUT_IDENTIFIER,

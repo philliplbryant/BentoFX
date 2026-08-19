@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.testfixtures.codec;
 
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.api.BentoStateException;
+import software.coley.bentofx.persistence.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.api.state.BentoState;
 import software.coley.bentofx.persistence.api.state.BentoState.BentoStateBuilder;
 
@@ -15,18 +16,31 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class InMemoryLayoutCodecTest {
 
     private static final String BENTO_IDENTIFIER = "bento:test";
+    private static final String DISPLAY_NAME = "Sprint 12";
 
     @Test
-    void encodedStatesCanBeDecodedBySameCodecInstance() throws BentoStateException {
+    void encodedLayoutCanBeDecodedBySameCodecInstance()
+            throws BentoStateException {
+
         final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final BentoState state = new BentoStateBuilder(BENTO_IDENTIFIER).build();
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        codec.encode(List.of(state), outputStream);
+        codec.encode(
+                new PersistableLayout(DISPLAY_NAME, List.of(state)),
+                outputStream
+        );
 
-        assertThat(codec.decode(new ByteArrayInputStream(outputStream.toByteArray())))
-                .describedAs("codec.decode(new ByteArrayInputStream(outputStream.toByteArray()))")
+        final PersistableLayout decoded = codec.decode(
+                new ByteArrayInputStream(outputStream.toByteArray())
+        );
+
+        assertThat(decoded.bentoStates())
+                .describedAs("decoded states")
                 .containsExactly(state);
+        assertThat(decoded.displayName())
+                .describedAs("decoded display name")
+                .isEqualTo(DISPLAY_NAME);
         assertThat(codec.getEncodedStates())
                 .describedAs("codec.getEncodedStates()")
                 .containsExactly(state);
@@ -36,11 +50,12 @@ class InMemoryLayoutCodecTest {
     }
 
     @Test
-    void emptyInputDecodesToEmptyStateList() throws BentoStateException {
+    void emptyInputDecodesToEmptyLayout() throws BentoStateException {
         final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 
-        assertThat(codec.decode(new ByteArrayInputStream(new byte[0])))
-                .describedAs("codec.decode(new ByteArrayInputStream(new byte[0]))")
+        assertThat(codec.decode(new ByteArrayInputStream(new byte[0]))
+                .bentoStates())
+                .describedAs("states decoded from empty input")
                 .isEmpty();
     }
 
@@ -51,7 +66,7 @@ class InMemoryLayoutCodecTest {
         final BentoState state = new BentoStateBuilder(BENTO_IDENTIFIER).build();
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        writer.encode(List.of(state), outputStream);
+        writer.encode(PersistableLayout.of(List.of(state)), outputStream);
 
         assertThatThrownBy(() -> reader.decode(new ByteArrayInputStream(outputStream.toByteArray())))
                 .describedAs("decoding a token another codec instance wrote")
