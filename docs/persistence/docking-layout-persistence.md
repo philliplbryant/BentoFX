@@ -1,6 +1,6 @@
 # Docking Layout Persistence Implementation
 
-For a high-level architectural overview, see the [README Persistence Framework](../../README.md#persistence).
+For a high-level architectural overview, see the [BentoFX Persistence guide](../../README-PERSISTENCE.md).
 
 
 This document describes BentoFX layout persistence as implemented by

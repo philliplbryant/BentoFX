@@ -13,7 +13,7 @@
 
           <!-- H2 database. One desktop application's own layouts, in a file only
                that application opens, so there is no AUTO_SERVER listening for
-               other processes and no user or password: a credential shipped in
+               other processes and no user or password: a credential carried in
                the artifact, identical everywhere, secures nothing. The file's own
                permissions are the boundary. -->
          <property name="jakarta.persistence.jdbc.driver"

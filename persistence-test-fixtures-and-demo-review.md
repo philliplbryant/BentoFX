@@ -240,7 +240,7 @@ no application writes the same mapping twice. Not yet implemented; three consequ
 shape how it lands:
 
 - Listing names means decoding each stored layout, while listing identifiers is a
-  directory scan or one query. That is why the identifiers already ship on
+  directory scan or one query. That is why the identifiers are already on
   `LayoutStorageProvider` and the name-aware listing will be added beside it on
   `DockingLayoutPersistenceProvider`, where a codec is available. The existing
   `getStoredLayoutIdentifiers` keeps its meaning; names are an addition.

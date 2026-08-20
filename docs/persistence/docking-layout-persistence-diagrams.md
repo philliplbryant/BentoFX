@@ -1,6 +1,6 @@
 # Bento layout persistence diagrams
 
-For implementation details and application integration guidance, see [Docking Layout Persistence Implementation](docking-layout-persistence.md). For a high-level overview, see the [README Persistence Framework](../../README.md#persistence).
+For implementation details and application integration guidance, see [Docking Layout Persistence Implementation](docking-layout-persistence.md). For a high-level overview, see the [BentoFX Persistence guide](../../README-PERSISTENCE.md).
 
 
 ## Components overview

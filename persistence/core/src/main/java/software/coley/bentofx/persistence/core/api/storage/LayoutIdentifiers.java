@@ -31,7 +31,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  * {@code /} and a zero byte, so a rule wide enough for Windows is wide enough for
  * Linux and macOS - while a rule that only held on the platform it was written on
  * would let an application name a layout it cannot restore on the next machine
- * it ships to.</p>
+ * it runs on.</p>
  *
  * @author Phil Bryant
  * @see <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file">

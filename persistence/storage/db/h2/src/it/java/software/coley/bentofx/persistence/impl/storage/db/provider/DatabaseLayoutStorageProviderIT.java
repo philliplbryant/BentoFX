@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Exercises the persistence unit the module ships, which the storage tests
+ * Exercises the persistence unit the module contains, which the storage tests
  * replace with a temporary one. Everything the packaged unit decides: where the
  * database file goes, what credentials open it, how the table comes to exist.
  */
@@ -40,7 +40,7 @@ class DatabaseLayoutStorageProviderIT {
     void setUp() {
         realUserHome = System.getProperty(USER_HOME_PROPERTY);
 
-        // The shipped JDBC URL is relative to the user's home, and Hibernate
+        // The declared JDBC URL is relative to the user's home, and Hibernate
         // resolves that placeholder from the system property when the factory is
         // created.
         System.setProperty(USER_HOME_PROPERTY, temporaryHome.toString());

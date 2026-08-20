@@ -119,7 +119,7 @@ from the source alone and would be raised again by the next reader.
 
 The single most useful change is not any one fix: it is **a round-trip test that
 compares a whole layout instead of three identifiers** ([M4](#m4)). B1, M1 and
-M3 all shipped through a suite that cannot see them, and any fix to B1 will need
+M3 all got past a suite that cannot see them, and any fix to B1 will need
 that test before it can be trusted.
 
 That test now exists in both codec modules, comparing a decoded layout against

@@ -50,7 +50,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  *
  * <p>Every word a user reads comes from a {@link ResourceBundle}, so an
  * application in another language either drops a translation beside the one
- * shipped here or hands over a bundle of its own. See
+ * this module provides or hands over a bundle of its own. See
  * {@code LayoutsMenu.properties}.</p>
  *
  * @author Phil Bryant
@@ -65,7 +65,7 @@ public class LayoutsMenu extends Menu {
 	/**
 	 * The bundle this menu reads when an application does not supply one.
 	 *
-	 * <p>Resolved against this module, which is where the shipped
+	 * <p>Resolved against this module, which is where its own
 	 * {@code LayoutsMenu.properties} lives. A bundle in the application's own
 	 * module cannot be found by this name - resources in a named module are not
 	 * visible to another - which is why the way to substitute text is to pass a
@@ -93,7 +93,7 @@ public class LayoutsMenu extends Menu {
 	private @Nullable LayoutPersistenceProfile activeCustomLayoutProfile;
 
 	/**
-	 * Builds a menu that reads the text shipped with this framework, in the
+	 * Builds a menu that reads the text this framework provides, in the
 	 * default locale.
 	 *
 	 * @param owner the window the dialogs these items raise belong to.
@@ -105,8 +105,8 @@ public class LayoutsMenu extends Menu {
 			final DockingLayoutRestorable dockingLayoutRestorable
 	) {
 		this(
-				dockingLayoutRestorable,
 				owner,
+				dockingLayoutRestorable,
 				ResourceBundle.getBundle(BUNDLE_BASE_NAME)
 		);
 	}
@@ -115,20 +115,20 @@ public class LayoutsMenu extends Menu {
 	 * Builds a menu that reads the supplied text.
 	 *
 	 * <p>For an application that keeps its own wording, or that supports a
-	 * language no translation shipped here covers. The bundle has to carry
+	 * language no translation here covers. The bundle has to carry
 	 * every key in {@code LayoutsMenu.properties}: a missing one raises
 	 * {@link java.util.MissingResourceException} when the item that needs it is
 	 * built, which is the first time the menu opens rather than at
 	 * construction.</p>
 	 *
+	 * @param owner the window the dialogs these items raise belong to.
 	 * @param dockingLayoutRestorable the application whose docking layout these
 	 * items switch, and whose providers they read and write it through.
-	 * @param owner the window the dialogs these items raise belong to.
 	 * @param texts every word a user reads from this menu.
 	 */
 	public LayoutsMenu(
-			final DockingLayoutRestorable dockingLayoutRestorable,
 			final Window owner,
+			final DockingLayoutRestorable dockingLayoutRestorable,
 			final ResourceBundle texts
 	) {
 		super(texts.getString("menu.layouts"));

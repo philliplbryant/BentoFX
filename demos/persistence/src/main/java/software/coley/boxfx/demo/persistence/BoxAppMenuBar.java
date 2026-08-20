@@ -37,10 +37,7 @@ final class BoxAppMenuBar extends MenuBar {
 		getMenus().setAll(
 				createFileMenu(onExit),
 				createWindowMenu(
-						new LayoutsMenu(
-								owner,
-								dockingLayoutRestorable
-						)
+						new LayoutsMenu(owner, dockingLayoutRestorable)
 				)
 		);
 	}

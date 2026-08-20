@@ -31,7 +31,7 @@ The rule is Windows' by origin and applied on every platform, because a POSIX
 filesystem reserves no names at all and forbids only `/` and a zero byte: a rule wide
 enough for Windows is wide enough for Linux and macOS, while one that held only where
 it was written would let an application name a layout it cannot restore on the next
-machine it ships to. Checked against Microsoft's *Naming Files, Paths, and
+machine it runs on. Checked against Microsoft's *Naming Files, Paths, and
 Namespaces* rather than from memory, which corrected two things: `COM0` and `LPT0`
 are **not** reserved, and the six ISO/IEC 8859-1 superscript forms - `COM` and `LPT`
 followed by a superscript 1, 2 or 3 - **are**, in every directory. Those six are
@@ -54,7 +54,7 @@ M1 and M3 went together, because they are one question asked twice: who owns the
 `EntityManagerFactory`. The provider now creates one and keeps it; the storages it
 hands out borrow it and no longer close it.
 
-M4 went with [N5](#n5) rather than on its own account: dropping a shipped
+M4 went with [N5](#n5) rather than on its own account: dropping a carried
 credential is only safe once nothing is listening for other processes to use it.
 
 **Two claims in B1 as first written were wrong, and the fix is wider than it
@@ -134,8 +134,8 @@ is to copy the one that is right.
 | [N2](#n2) | `DatabaseLayoutStorage`'s constructor checks nothing, while `FileLayoutStorage`'s checks everything | **Fixed** 2026-08-16 |
 | [N3](#n3) | `exists()` reads the whole payload to ask whether it is empty, and the annotation meant to prevent that is inert | **Fixed** 2026-08-16 |
 | [N4](#n4) | `hibernate.hbm2ddl.auto=update` migrates the schema of whatever database it finds | **Won't fix** 2026-08-17; see below |
-| [N5](#n5) | The persistence unit ships a user name and a password | **Fixed** 2026-08-16 |
-| [N6](#n6) | Nothing exercises the shipped persistence unit or the provider that reads it | **Fixed** 2026-08-16 |
+| [N5](#n5) | The persistence unit contains a user name and a password | **Fixed** 2026-08-16 |
+| [N6](#n6) | Nothing exercises the module's persistence unit or the provider that reads it | **Fixed** 2026-08-16 |
 | [N7](#n7) | The two modules configure the JavaFX plugin differently for the same reason | **Fixed** 2026-08-16 |
 | [N8](#n8) | A database output stream that is never closed saves nothing and says nothing | **Fixed** 2026-08-16 |
 | [N9](#n9) | `exists()` can throw from the database storage where the file storage cannot | **Fixed** 2026-08-16 |
@@ -633,14 +633,14 @@ is one table.
 
 **Closed as won't fix.** `update` is what creates that one table on a first run,
 and it is also what carried [B2](#b2) to databases that already existed - measured,
-it widened `layout_id` from 24 to 255 in place. Replacing it means shipping a
+it widened `layout_id` from 24 to 255 in place. Replacing it means adding a
 script that both creates the table and alters the columns, which is a migration
 file to maintain for a module with one table and no released version. The exposure
 it leaves is an application repointing this persistence unit at a database it
 shares with something else, which is not a use this module offers: the URL names a
 private file under the user's home.
 
-### <a id="n5"></a>N5. The persistence unit ships a user name and a password
+### <a id="n5"></a>N5. The persistence unit contains a user name and a password
 
 `META-INF/persistence.xml:19-22`
 
@@ -661,24 +661,24 @@ to one application's own layout file. What guards the database now is the
 permissions on the file, which is what guarded it in practice all along. The
 persistence unit says as much where the URL is declared.
 
-Nothing existing has to be migrated, because `persistence` has never shipped -
+Nothing existing has to be migrated, because `persistence` has never been released -
 `persistence/` is absent from both `master` and `upstream/master`. Anyone holding a
 database created with the old credentials would have to delete it, which is worth
 knowing if that includes a development machine.
 
-### <a id="n6"></a>N6. Nothing exercises the shipped persistence unit or the provider that reads it
+### <a id="n6"></a>N6. Nothing exercises the module's persistence unit or the provider that reads it
 
 `impl/storage/db/provider/DatabaseLayoutStorageProvider.java`, with
 `src/it/.../DatabaseLayoutStorageIT.java:53-60`
 
 The integration test overrides the JDBC URL to a temporary directory, which is
-right for a test, and means the shipped URL - placeholder, `AUTO_SERVER`,
+right for a test, and means the declared URL - placeholder, `AUTO_SERVER`,
 credentials and all - is never opened by the build. `DatabaseLayoutStorageProvider`
 has no test at all, so the one line that reads the persistence unit by name is
 unexercised too. Compare the file module, which at least asserts the path its
 provider constructs.
 
-That the shipped configuration works was established here by measurement rather
+That the module's configuration works was established here by measurement rather
 than by the suite - see [Withdrawn](#withdrawn), W1.
 
 `DatabaseLayoutStorageProviderIT` now covers it. It points `user.home` at a
@@ -786,7 +786,7 @@ The class and its three fields are package-private now, which costs nothing:
 package, so no accessors had to be written. Field-access mapping is unaffected,
 and Hibernate still reaches the class through the `opens` directive the module
 descriptor already had. Measured by the module's own integration tests, which
-store and read layouts through the shipped persistence unit and pass unchanged.
+store and read layouts through the module's persistence unit and pass unchanged.
 
 `DockingLayoutEntityCompositeKey` still has public mutable fields. It is not
 reachable from outside either - nothing hands one out, and the two identifiers are
@@ -886,7 +886,7 @@ contains `${user.home}`, and the JPA specification says nothing about expanding
 placeholders in `persistence.xml`, so the database looked like it might be
 created in a literal `${user.home}` directory beside the working directory.
 Hibernate resolves it from system properties. Measured by pointing `user.home` at
-a temporary directory and opening the shipped persistence unit by name:
+a temporary directory and opening the module's persistence unit by name:
 
 ```
 PROBE emf-open=true
