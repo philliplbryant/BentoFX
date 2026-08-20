@@ -3,19 +3,11 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -190,6 +182,19 @@ class DatabaseLayoutStorageIT {
 
         assertThat(readData())
                 .describedAs("data read through a storage sharing that factory")
+                .isEqualTo(TEST_DATA);
+    }
+
+    @Test
+    void closingTheOutputStreamTwicePersistsOnlyOnce() throws IOException {
+        final OutputStream outputStream = storage.openOutputStream();
+        outputStream.write(TEST_DATA.getBytes(UTF_8));
+
+        outputStream.close();
+        outputStream.close();
+
+        assertThat(readData())
+                .describedAs("data after closing the output stream twice")
                 .isEqualTo(TEST_DATA);
     }
 

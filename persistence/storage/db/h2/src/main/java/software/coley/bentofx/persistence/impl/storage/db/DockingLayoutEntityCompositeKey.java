@@ -43,8 +43,8 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
             final String layoutIdentifier,
             final String codecIdentifier
     ) {
-        this.layoutIdentifier = Objects.requireNonNull(layoutIdentifier);
-        this.codecIdentifier = Objects.requireNonNull(codecIdentifier);
+        this.layoutIdentifier = Objects.requireNonNull(layoutIdentifier, "layoutIdentifier");
+        this.codecIdentifier = Objects.requireNonNull(codecIdentifier, "codecIdentifier");
     }
 
     @Override

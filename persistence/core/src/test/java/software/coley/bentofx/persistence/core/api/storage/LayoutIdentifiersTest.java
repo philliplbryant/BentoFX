@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem.Parameter;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem.Rule;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import static org.assertj.core.api.Assertions.*;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.MAX_JOINED_LENGTH;
 
@@ -403,5 +406,24 @@ class LayoutIdentifiersTest {
                 .get()
                 .extracting(LayoutIdentifierProblem::rule)
                 .isEqualTo(Rule.TOO_LONG);
+    }
+
+    /**
+     * A utility class with only static members has no reason to be
+     * instantiated; the private constructor exists to say so rather than to
+     * silently allow it.
+     */
+    @Test
+    void utilityClassConstructorThrowsIllegalStateException() throws Exception {
+        final Constructor<LayoutIdentifiers> constructor =
+                LayoutIdentifiers.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        assertThatThrownBy(constructor::newInstance)
+                .describedAs("reflective instantiation of the utility class")
+                .isInstanceOf(InvocationTargetException.class)
+                .cause()
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Utility class");
     }
 }

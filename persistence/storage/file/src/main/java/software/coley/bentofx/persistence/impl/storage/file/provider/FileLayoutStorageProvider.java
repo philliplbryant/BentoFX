@@ -35,9 +35,6 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
      */
     private static final String LAYOUTS_DIRECTORY_NAME = "layouts";
 
-    private static final String DEFAULT_BENTO_DIRECTORY =
-            System.getProperty("user.home") + "/.bentofx/" + LAYOUTS_DIRECTORY_NAME;
-
     @Override
     public String getIdentifier() {
         return IDENTIFIER;
@@ -125,9 +122,18 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
 
     /**
      * {@return the absolute, normalized directory layouts are kept in.}
+     *
+     * <p>Read from {@code user.home} on every call rather than cached, so that
+     * redirecting the property - which is otherwise unobservable from outside
+     * this class - takes effect immediately rather than only for whichever
+     * caller happens to run before this class is first loaded.</p>
      */
     private static Path getLayoutDirectory() {
-        return Path.of(DEFAULT_BENTO_DIRECTORY).toAbsolutePath().normalize();
+        return Path.of(
+                System.getProperty("user.home"),
+                ".bentofx",
+                LAYOUTS_DIRECTORY_NAME
+        ).toAbsolutePath().normalize();
     }
 
     /**

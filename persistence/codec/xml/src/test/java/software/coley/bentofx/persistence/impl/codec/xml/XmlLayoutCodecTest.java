@@ -3,16 +3,14 @@ package software.coley.bentofx.persistence.impl.codec.xml;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.core.api.state.BentoState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerState;
+import software.coley.bentofx.persistence.core.api.state.*;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -36,6 +34,27 @@ class XmlLayoutCodecTest {
         assertThat(codec.getIdentifier())
                 .describedAs("codec identifier")
                 .isEqualTo(XML_CODEC_IDENTIFIER);
+    }
+
+    @Test
+    void encodeWrapsAnIOExceptionAsBentoStateException() {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+        final IOException writeFailure = new IOException("disk full");
+        final OutputStream failingOutputStream = new OutputStream() {
+            @Override
+            public void write(final int b) throws IOException {
+                throw writeFailure;
+            }
+        };
+
+        assertThatThrownBy(() ->
+                codec.encode(PersistableLayout.of(createStates()), failingOutputStream)
+        )
+                .describedAs("encode with a failing output stream")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining("Failed to encode layout as XML")
+                .rootCause()
+                .isSameAs(writeFailure);
     }
 
     @Test

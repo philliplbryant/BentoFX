@@ -32,13 +32,13 @@ class FileLayoutStorageCatalogIT {
 	private static Path bentoDirectory;
 
 	/**
-	 * Because the provider resolves its directory from {@code user.home} when
-	 * the class is initialized, these tests direct {@code user.home} to a
-	 * temporary directory before using the provider. Then tests to determine if
-	 * the redirection succeeded by writing a layout through the provider and
-	 * finding it there.</p>
+	 * Because the provider resolves its directory from {@code user.home} on
+	 * every call, these tests direct {@code user.home} to a temporary
+	 * directory before using the provider. Then tests to determine if the
+	 * redirection succeeded by writing a layout through the provider and
+	 * finding it there.
 	 *
-	 * @throws IOException
+	 * @throws IOException when writing the probe layout fails.
 	 */
 	@BeforeAll
 	static void redirectUserHomeAndProveItTook() throws IOException {
@@ -130,6 +130,27 @@ class FileLayoutStorageCatalogIT {
 		assertThat(provider.deleteLayout("removable", CODEC_IDENTIFIER))
 				.describedAs("deleteLayout for a layout that is already gone")
 				.isFalse();
+	}
+
+	/**
+	 * A separate, never-redirected-to home directory, distinct from the
+	 * class-level one every other test in this file shares: that one already
+	 * has its layouts directory created by {@link #redirectUserHomeAndProveItTook()}.
+	 */
+	@Test
+	void reportsNoLayoutsWhenTheLayoutsDirectoryDoesNotExistYet(
+			@TempDir final Path freshHome
+	) throws IOException {
+		final String realUserHome = System.getProperty(USER_HOME_PROPERTY);
+		System.setProperty(USER_HOME_PROPERTY, freshHome.toString());
+
+		try {
+			assertThat(new FileLayoutStorageProvider().getLayoutIdentifiers(CODEC_IDENTIFIER))
+					.describedAs("layouts stored when the layouts directory does not exist yet")
+					.isEmpty();
+		} finally {
+			System.setProperty(USER_HOME_PROPERTY, realUserHome);
+		}
 	}
 
 	private static void writeLayout(final String fileName) throws IOException {

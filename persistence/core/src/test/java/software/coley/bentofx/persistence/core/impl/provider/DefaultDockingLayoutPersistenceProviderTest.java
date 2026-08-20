@@ -11,10 +11,7 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutCodecProvider;
 import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutStorageProvider;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -424,6 +421,100 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .hasMessageContaining("Multiple default LayoutCodecProvider implementations")
                 .hasMessageContaining(JSON_CODEC_IDENTIFIER)
                 .hasMessageContaining(XML_CODEC_IDENTIFIER);
+    }
+
+    /**
+     * The no-args constructor discovers providers with {@code ServiceLoader}
+     * rather than taking them explicitly. This module declares no {@code
+     * provides} clause of its own, so discovery legitimately finds nothing -
+     * what this covers is that construction itself succeeds either way.
+     */
+    @Test
+    void noArgsConstructorDiscoversProvidersViaServiceLoaderWithoutThrowing() {
+        assertThatCode(DefaultDockingLayoutPersistenceProvider::new)
+                .describedAs("constructing DefaultDockingLayoutPersistenceProvider() with no explicit providers")
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void getStoredLayoutsWrapsAReadFailureAsBentoStateException() {
+        final String layoutIdentifier = "unreadable";
+        final IOException openFailure = new IOException("could not open");
+        final FailingOpenLayoutStorageProvider storageProvider =
+                new FailingOpenLayoutStorageProvider(
+                        FILE_STORAGE_IDENTIFIER,
+                        layoutIdentifier,
+                        openFailure
+                );
+
+        final DefaultDockingLayoutPersistenceProvider provider =
+                new DefaultDockingLayoutPersistenceProvider(
+                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(storageProvider)
+                );
+
+        assertThatThrownBy(() -> provider.getStoredLayouts(
+                new LayoutPersistenceProfile(
+                        DEFAULT_LAYOUT_IDENTIFIER,
+                        JSON_CODEC_IDENTIFIER,
+                        FILE_STORAGE_IDENTIFIER
+                )
+        ))
+                .describedAs("exception thrown by getStoredLayouts when reading a layout's display name fails")
+                .isInstanceOf(BentoStateException.class)
+                .hasMessageContaining(layoutIdentifier)
+                .hasCause(openFailure);
+    }
+
+    /**
+     * Reports one stored layout, whose storage fails to open for reading -
+     * the way an entry could disappear, or become unreadable, between being
+     * listed and being read.
+     */
+    private static final class FailingOpenLayoutStorageProvider
+            extends software.coley.bentofx.persistence.testfixtures.provider.AbstractTestLayoutProvider
+            implements LayoutStorageProvider {
+
+        private final String layoutIdentifier;
+        private final IOException openFailure;
+
+        private FailingOpenLayoutStorageProvider(
+                final String identifier,
+                final String layoutIdentifier,
+                final IOException openFailure
+        ) {
+            super(identifier, false);
+            this.layoutIdentifier = layoutIdentifier;
+            this.openFailure = openFailure;
+        }
+
+        @Override
+        public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+            return List.of(layoutIdentifier);
+        }
+
+        @Override
+        public LayoutStorage getLayoutStorage(
+                final String layoutIdentifier,
+                final String codecIdentifier
+        ) {
+            return new LayoutStorage() {
+                @Override
+                public boolean exists() {
+                    return true;
+                }
+
+                @Override
+                public InputStream openInputStream() throws IOException {
+                    throw openFailure;
+                }
+
+                @Override
+                public OutputStream openOutputStream() {
+                    return new ByteArrayOutputStream();
+                }
+            };
+        }
     }
 
 

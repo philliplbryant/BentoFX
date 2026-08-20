@@ -3,27 +3,17 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.*;
 import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
-import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
-import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
-import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
-import software.coley.bentofx.persistence.core.api.state.DockContainerState;
-import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.bentofx.persistence.core.api.state.DockableState.DockableStateBuilder;
-import software.coley.bentofx.persistence.core.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.core.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +21,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.*;
 
-class BentoStateMapperITP {
+class BentoStateMapperTest {
 	// This test follows the "Single Act Rule" and only exercises the unit
 	// under test (BentoStateMapper) once each: for mapping to and from a DTO.
 	// As such, we are suppressing the warning for the number of assertions
@@ -250,6 +240,68 @@ class BentoStateMapperITP {
 	}
 
 	@Test
+	void aBranchNestedInsideAnotherBranchRoundTripsCorrectly() throws BentoStateException {
+		// A branch whose only child is itself a branch, rather than a leaf.
+		final DockContainerBranchState innerBranchState =
+				new DockContainerBranchStateBuilder("inner-branch")
+						.addDockContainerState(
+								new DockContainerLeafStateBuilder("leaf-in-inner").build())
+						.build();
+
+		final DockContainerBranchState outerBranchState =
+				new DockContainerBranchStateBuilder("outer-branch")
+						.addDockContainerState(innerBranchState)
+						.build();
+
+		final DockContainerBranchDto outerBranchDto =
+				BentoStateMapper.toDto(outerBranchState);
+
+		assertThat(outerBranchDto.childDockContainers)
+				.describedAs("outerBranchDto.childDockContainers")
+				.hasSize(1);
+		assertThat(outerBranchDto.childDockContainers.getFirst())
+				.describedAs("outerBranchDto's nested child")
+				.isInstanceOf(DockContainerBranchDto.class);
+
+		final DockContainerRootBranchState rootState =
+				new DockContainerRootBranchStateBuilder("root-1")
+						.addDockContainerState(outerBranchState)
+						.build();
+		final BentoState bentoState = new BentoStateBuilder("bento-1")
+				.addRootBranchState(rootState)
+				.build();
+
+		final List<BentoState> roundTripped = BentoStateMapper.fromDto(
+				BentoStateMapper.toDto(PersistableLayout.of(List.of(bentoState)))
+		).bentoStates();
+
+		final DockContainerBranchState roundTrippedOuter =
+				(DockContainerBranchState) roundTripped.getFirst()
+						.getRootBranchStates().getFirst()
+						.getChildDockContainerStates().getFirst();
+		assertThat(roundTrippedOuter.getIdentifier())
+				.describedAs("round-tripped outer branch identifier")
+				.isEqualTo("outer-branch");
+
+		final DockContainerBranchState roundTrippedInner =
+				(DockContainerBranchState) roundTrippedOuter
+						.getChildDockContainerStates().getFirst();
+		assertThat(roundTrippedInner.getIdentifier())
+				.describedAs("round-tripped inner branch identifier")
+				.isEqualTo("inner-branch");
+	}
+
+	@Test
+	void fromDtoTreatsAMissingMetadataObjectAsNoDisplayName() throws BentoStateException {
+		final DockingLayoutDto dto = new DockingLayoutDto();
+		// dto.metadata left null: a legacy payload written before metadata existed.
+
+		assertThat(BentoStateMapper.fromDto(dto).displayName())
+				.describedAs("display name derived from a DTO with no metadata object")
+				.isNull();
+	}
+
+	@Test
 	void validateSupportedMetadataAllowsMissingMetadata() {
 		assertThatCode(() ->
 				BentoStateMapper.validateSupportedMetadata(null)
@@ -328,5 +380,24 @@ class BentoStateMapperITP {
 				.describedAs("toDto(DockContainerLeafState) null argument")
 				.isInstanceOf(NullPointerException.class)
 				.hasMessage("leafState");
+	}
+
+	/**
+	 * A utility class with only static members has no reason to be
+	 * instantiated; the private constructor exists to say so rather than to
+	 * silently allow it.
+	 */
+	@Test
+	void utilityClassConstructorThrowsIllegalStateException() throws Exception {
+		final Constructor<BentoStateMapper> constructor =
+				BentoStateMapper.class.getDeclaredConstructor();
+		constructor.setAccessible(true);
+
+		assertThatThrownBy(constructor::newInstance)
+				.describedAs("reflective instantiation of the utility class")
+				.isInstanceOf(InvocationTargetException.class)
+				.cause()
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessage("Utility class");
 	}
 }

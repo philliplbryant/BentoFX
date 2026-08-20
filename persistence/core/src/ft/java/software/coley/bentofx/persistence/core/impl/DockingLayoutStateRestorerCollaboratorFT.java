@@ -14,6 +14,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.core.api.BentoLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout;
@@ -191,6 +192,166 @@ class DockingLayoutStateRestorerCollaboratorFT {
         assertThat(bentoLayout.wasShowing(stages.get(2)))
                 .describedAs("wasShowing(stage with no persisted showing flag)")
                 .isTrue();
+    }
+
+    @Test
+    void restoreDockingLayoutAppliesTheLeafMenuFactoryWhenProviderSupplied(
+            final FxRobot robot
+    ) {
+        final DockContainerLeafMenuFactory menuFactory = container -> null;
+        final AtomicReference<DockContainerLeaf> leafReference =
+                new AtomicReference<>();
+
+        robot.interact(() -> {
+            final DockContainerLeafStateBuilder leafStateBuilder =
+                    new DockContainerLeafStateBuilder(LEAF_ID);
+
+            final DockContainerRootBranchStateBuilder rootBranchStateBuilder =
+                    new DockContainerRootBranchStateBuilder(ROOT_BRANCH_ID);
+            rootBranchStateBuilder.addDockContainerState(leafStateBuilder.build());
+
+            final BentoState bentoState =
+                    new BentoState.BentoStateBuilder(BENTO_ID)
+                            .addRootBranchState(rootBranchStateBuilder.build())
+                            .build();
+
+            final DockingLayout dockingLayout =
+                    new DockingLayoutStateRestorer(
+                            new DefaultBentoProvider(new Bento(BENTO_ID)),
+                            actualId -> Optional.empty(),
+                            null,
+                            leafIdentifier -> leafIdentifier.equals(LEAF_ID)
+                                    ? Optional.of(menuFactory)
+                                    : Optional.empty()
+                    ).restoreDockingLayout(List.of(bentoState));
+
+            final DockContainerRootBranch rootBranch =
+                    dockingLayout.getBentoLayouts()
+                            .getFirst()
+                            .getRootBranches()
+                            .getFirst();
+            leafReference.set(
+                    getOnlyChildContainer(rootBranch, DockContainerLeaf.class)
+            );
+        });
+
+        assertThat(leafReference.get().getMenuFactory())
+                .describedAs("leaf.getMenuFactory()")
+                .isSameAs(menuFactory);
+    }
+
+    /**
+     * The dockable is built from the identifier that was asked for, not from
+     * the resolved state's own - see {@code restoreDockable}'s javadoc.
+     */
+    @Test
+    void restoreDockingLayoutAppliesTheStateUnderTheRequestedIdentifierWhenProviderAnswersWithADifferentOne(
+            final FxRobot robot
+    ) {
+        final AtomicReference<Dockable> dockableReference =
+                new AtomicReference<>();
+
+        robot.interact(() -> {
+            final DockableState requestedDockableState =
+                    new DockableStateBuilder(DOCKABLE_ID).build();
+            final DockableState mismatchedDockableState =
+                    new DockableStateBuilder("some-other-identifier")
+                            .setTitle(DOCKABLE_TITLE)
+                            .build();
+
+            final DockContainerLeafStateBuilder leafStateBuilder =
+                    new DockContainerLeafStateBuilder(LEAF_ID);
+            leafStateBuilder.addChildDockableState(requestedDockableState);
+
+            final DockContainerRootBranchStateBuilder rootBranchStateBuilder =
+                    new DockContainerRootBranchStateBuilder(ROOT_BRANCH_ID);
+            rootBranchStateBuilder.addDockContainerState(leafStateBuilder.build());
+
+            final BentoState bentoState =
+                    new BentoState.BentoStateBuilder(BENTO_ID)
+                            .addRootBranchState(rootBranchStateBuilder.build())
+                            .build();
+
+            final DockingLayout dockingLayout =
+                    new DockingLayoutStateRestorer(
+                            new DefaultBentoProvider(new Bento(BENTO_ID)),
+                            actualId -> Optional.of(mismatchedDockableState),
+                            null,
+                            null
+                    ).restoreDockingLayout(List.of(bentoState));
+
+            final DockContainerRootBranch rootBranch =
+                    dockingLayout.getBentoLayouts()
+                            .getFirst()
+                            .getRootBranches()
+                            .getFirst();
+            final DockContainerLeaf leaf =
+                    getOnlyChildContainer(rootBranch, DockContainerLeaf.class);
+            dockableReference.set(leaf.getDockables().getFirst());
+        });
+
+        assertThat(dockableReference.get().getIdentifier())
+                .describedAs("dockable.getIdentifier()")
+                .isEqualTo(DOCKABLE_ID);
+        assertThat(dockableReference.get().getTitle())
+                .describedAs("dockable.getTitle()")
+                .isEqualTo(DOCKABLE_TITLE);
+    }
+
+    /**
+     * {@code setContainerCollapsed} refuses to collapse a leaf with no
+     * sibling to divide space with, so a leaf persisted as collapsed but
+     * restored as the sole child of its branch stays uncollapsed.
+     */
+    @Test
+    void restoreDockingLayoutLeavesASoleLeafUncollapsedWhenPersistedAsCollapsed(
+            final FxRobot robot
+    ) {
+        final AtomicReference<DockContainerLeaf> leafReference =
+                new AtomicReference<>();
+
+        robot.interact(() -> {
+            final DockContainerLeafStateBuilder leafStateBuilder =
+                    new DockContainerLeafStateBuilder(LEAF_ID);
+            leafStateBuilder.setSide(LEFT);
+            leafStateBuilder.setCollapsed(true);
+
+            final DockContainerBranchStateBuilder branchStateBuilder =
+                    new DockContainerBranchStateBuilder(BRANCH_ID);
+            branchStateBuilder.addDockContainerState(leafStateBuilder.build());
+
+            final DockContainerRootBranchStateBuilder rootBranchStateBuilder =
+                    new DockContainerRootBranchStateBuilder(ROOT_BRANCH_ID);
+            rootBranchStateBuilder.addDockContainerState(branchStateBuilder.build());
+
+            final BentoState bentoState =
+                    new BentoState.BentoStateBuilder(BENTO_ID)
+                            .addRootBranchState(rootBranchStateBuilder.build())
+                            .build();
+
+            final DockingLayout dockingLayout =
+                    new DockingLayoutStateRestorer(
+                            new DefaultBentoProvider(new Bento(BENTO_ID)),
+                            actualId -> Optional.empty(),
+                            null,
+                            null
+                    ).restoreDockingLayout(List.of(bentoState));
+
+            final DockContainerRootBranch rootBranch =
+                    dockingLayout.getBentoLayouts()
+                            .getFirst()
+                            .getRootBranches()
+                            .getFirst();
+            final DockContainerBranch branch =
+                    getOnlyChildContainer(rootBranch, DockContainerBranch.class);
+            leafReference.set(
+                    getOnlyChildContainer(branch, DockContainerLeaf.class)
+            );
+        });
+
+        assertThat(leafReference.get().isCollapsed())
+                .describedAs("leaf.isCollapsed() after a collapse setContainerCollapsed refused")
+                .isFalse();
     }
 
     private static DragDropStageState dragDropStageState(

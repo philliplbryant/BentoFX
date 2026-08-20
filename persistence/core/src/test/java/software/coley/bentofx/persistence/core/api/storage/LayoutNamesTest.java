@@ -3,12 +3,15 @@ package software.coley.bentofx.persistence.core.api.storage;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem.Rule;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Coverage for turning a name a user typed into a layout identifier.
@@ -157,5 +160,24 @@ class LayoutNamesTest {
         return LayoutIdentifiers
                 .findUserLayoutProblem(LayoutNames.toIdentifier(displayName))
                 .map(LayoutIdentifierProblem::rule);
+    }
+
+    /**
+     * A utility class with only static members has no reason to be
+     * instantiated; the private constructor exists to say so rather than to
+     * silently allow it.
+     */
+    @Test
+    void utilityClassConstructorThrowsUnsupportedOperationException() throws Exception {
+        final Constructor<LayoutNames> constructor =
+                LayoutNames.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        assertThatThrownBy(constructor::newInstance)
+                .describedAs("reflective instantiation of the utility class")
+                .isInstanceOf(InvocationTargetException.class)
+                .cause()
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessage("Utility classes should not be instantiated.");
     }
 }

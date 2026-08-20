@@ -18,6 +18,7 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.core.api.BentoLayout;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
@@ -33,8 +34,11 @@ import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec
 import software.coley.bentofx.persistence.testfixtures.codec.ThreadRecordingLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,6 +47,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.LEFT;
 import static javafx.stage.Modality.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(ApplicationExtension.class)
 class DockingLayoutRestorerFT {
@@ -418,5 +423,109 @@ class DockingLayoutRestorerFT {
         assertThat(restoredLayout.get().getBentoLayouts())
                 .describedAs("restoredLayout.get().getBentoLayouts()")
                 .hasSize(1);
+    }
+
+    @Test
+    void restoreLayoutFallsBackToDefaultWhenTheStoredLayoutCannotBeDecoded() {
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        storage.write("not a token this codec ever produced".getBytes(StandardCharsets.UTF_8));
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final DockingLayout defaultLayout = new DockingLayoutBuilder().build();
+
+        final DockingLayoutRestorer restorer = new DockingLayoutRestorer(
+                codec,
+                storage,
+                new DefaultBentoProvider(new Bento()),
+                id -> Optional.empty(),
+                null,
+                null
+        );
+
+        final DockingLayout restoredLayout = restorer.restoreLayout(() -> defaultLayout);
+
+        assertThat(restoredLayout)
+                .describedAs("restoredLayout")
+                .isSameAs(defaultLayout);
+    }
+
+    @Test
+    void restoreLayoutWrapsADefaultLayoutSupplierFailureAsIllegalStateException() {
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+
+        final DockingLayoutRestorer restorer = new DockingLayoutRestorer(
+                codec,
+                storage,
+                new DefaultBentoProvider(new Bento()),
+                id -> Optional.empty(),
+                null,
+                null
+        );
+
+        assertThatThrownBy(() ->
+                restorer.restoreLayout(() -> {
+                    throw new RuntimeException("default layout supplier boom");
+                })
+        )
+                .describedAs("restoreLayout with a failing default layout supplier")
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Could not create default docking layout")
+                .cause()
+                .isInstanceOf(BentoStateException.class)
+                .cause()
+                .hasMessageContaining("default layout supplier boom");
+    }
+
+    @Test
+    void restoreLayoutFailsLoudlyWhenTheFxThreadNeverRunsTheRestore()
+            throws InterruptedException {
+        final String bentoId = "bento-timeout-test";
+        final BentoState state = new BentoState.BentoStateBuilder(bentoId).build();
+
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+        try (var out = storage.openOutputStream()) {
+            codec.writeEncoded(List.of(state), out);
+        } catch (final Exception e) {
+            throw new IllegalStateException(e);
+        }
+
+        final DockingLayoutRestorer restorer = new DockingLayoutRestorer(
+                codec,
+                storage,
+                new DefaultBentoProvider(new Bento(bentoId)),
+                id -> Optional.empty(),
+                null,
+                null
+        );
+
+        final CountDownLatch fxThreadOccupied = new CountDownLatch(1);
+        final CountDownLatch releaseFxThread = new CountDownLatch(1);
+
+        Platform.runLater(() -> {
+            fxThreadOccupied.countDown();
+            try {
+                releaseFxThread.await();
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        try {
+            assertThat(fxThreadOccupied.await(10, TimeUnit.SECONDS))
+                    .describedAs("JavaFX thread became occupied")
+                    .isTrue();
+
+            assertThatThrownBy(() ->
+                    restorer.restoreLayout(() -> new DockingLayoutBuilder().build())
+            )
+                    .describedAs("restoreLayout with an FX thread that never runs the restore")
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Timed out restoring the docking layout")
+                    .cause()
+                    .isInstanceOf(software.coley.bentofx.persistence.core.api.BentoStateTimeoutException.class);
+        } finally {
+            releaseFxThread.countDown();
+        }
     }
 }

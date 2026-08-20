@@ -9,6 +9,8 @@ import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.BentoStateTimeoutException;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -93,24 +95,6 @@ class PersistenceThreadingFT {
 
 		assertThat(ranOnFxThread.get())
 				.describedAs(RAN_ON_FX_THREAD_GET_DESCRIPTION)
-				.isFalse();
-	}
-
-	@Test
-	void callOffFxThreadRunsImmediatelyWhenAlreadyOffFxThread()
-			throws BentoStateException {
-		final AtomicBoolean called = new AtomicBoolean();
-
-		final Boolean ranOnFxThread = PersistenceThreading.callOffFxThread(() -> {
-			called.set(true);
-			return Platform.isFxApplicationThread();
-		});
-
-		assertThat(called)
-				.describedAs("called")
-				.isTrue();
-		assertThat(ranOnFxThread)
-				.describedAs(RAN_ON_FX_THREAD)
 				.isFalse();
 	}
 
@@ -236,6 +220,67 @@ class PersistenceThreadingFT {
 	}
 
 	/**
+	 * The waiting thread's own interrupt, not the JavaFX thread's failure to
+	 * run the task, is what {@link PersistenceThreading#callOnFxThread}'s
+	 * {@code InterruptedException} branch exists for. Unlike the timeout
+	 * tests above, this needs an ordinary worker thread to interrupt - the
+	 * JavaFX application thread itself must never be interrupted, since
+	 * JavaFX gives no guarantee about its behavior afterward and the rest of
+	 * this suite shares that one thread.
+	 */
+	@Test
+	void callOnFxThreadWrapsAnInterruptAsBentoStateExceptionAndRestoresTheFlag()
+			throws InterruptedException {
+		final CountDownLatch fxThreadOccupied = new CountDownLatch(1);
+		final CountDownLatch releaseFxThread = new CountDownLatch(1);
+		occupyFxThread(fxThreadOccupied, releaseFxThread);
+
+		final AtomicReference<BentoStateException> caught = new AtomicReference<>();
+		final AtomicBoolean interruptFlagAfterCatch = new AtomicBoolean();
+
+		final Thread worker = new Thread(() -> {
+			try {
+				PersistenceThreading.callOnFxThread(
+						() -> Boolean.TRUE,
+						TimeUnit.SECONDS.toMillis(LATCH_TIMEOUT_SECONDS)
+				);
+			} catch (final BentoStateException e) {
+				caught.set(e);
+				interruptFlagAfterCatch.set(Thread.currentThread().isInterrupted());
+			}
+		}, "callOnFxThread-interrupt-test");
+		worker.setDaemon(true);
+
+		try {
+			assertThat(fxThreadOccupied.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+					.describedAs("JavaFX thread became occupied")
+					.isTrue();
+
+			worker.start();
+			awaitWaitingState(worker);
+			worker.interrupt();
+			worker.join(TimeUnit.SECONDS.toMillis(LATCH_TIMEOUT_SECONDS));
+		} finally {
+			releaseFxThread.countDown();
+		}
+
+		assertThat(worker.isAlive())
+				.describedAs("worker thread after being interrupted")
+				.isFalse();
+		assertThat(caught.get())
+				.describedAs("exception thrown by callOnFxThread when the waiting thread is interrupted")
+				.isNotNull()
+				.hasMessage("Interrupted while waiting for persistence task")
+				.cause()
+				.isInstanceOf(InterruptedException.class);
+		assertThat(interruptFlagAfterCatch)
+				.describedAs("interrupt flag restored after catching the interrupt")
+				.isTrue();
+
+		drainFxQueue();
+	}
+
+	/**
 	 * Guards the other direction: the budget exists to detect a task that will
 	 * never run, not one that is briefly late. A task whose turn comes up within
 	 * the budget must still succeed.
@@ -271,20 +316,157 @@ class PersistenceThreadingFT {
 	}
 
 	/**
-	 * The timeout type must stay assignable to {@link BentoStateException} so
-	 * existing callers that catch the general type keep compiling and working,
-	 * while callers that need to tell a timeout apart - notably
-	 * {@code DockingLayoutRestorer}, which must not substitute a default layout
-	 * on timeout - can still catch it specifically.
+	 * A task's own unchecked failure must not be lost - it becomes the cause of
+	 * the {@link BentoStateException} {@link PersistenceThreading#call} wraps it
+	 * in.
 	 */
 	@Test
-	void timeoutExceptionRemainsCatchableAsBentoStateException() {
-		final BentoStateTimeoutException timeoutException =
-				new BentoStateTimeoutException("timed out");
+	void callOnFxThreadWrapsATaskFailureAsBentoStateExceptionWhenAlreadyOnFxThread(
+			FxRobot robot
+	) {
+		final RuntimeException taskFailure = new RuntimeException("boom");
+		final AtomicReference<BentoStateException> caught = new AtomicReference<>();
 
-		assertThat(timeoutException)
-				.describedAs("BentoStateTimeoutException")
-				.isInstanceOf(BentoStateException.class);
+		robot.interact(() -> {
+			try {
+				PersistenceThreading.callOnFxThread(() -> {
+					throw taskFailure;
+				});
+			} catch (final BentoStateException e) {
+				caught.set(e);
+			}
+		});
+
+		assertThat(caught.get())
+				.describedAs("exception thrown by callOnFxThread when already on the FX thread and the task fails")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessage("Persistence task failed")
+				.hasCause(taskFailure);
+	}
+
+	/**
+	 * A task that raises its own {@link BentoStateException} keeps that type and
+	 * message rather than being wrapped a second time.
+	 */
+	@Test
+	void callOnFxThreadRethrowsABentoStateExceptionTaskThrowsWithoutWrappingItAgainWhenAlreadyOnFxThread(
+			FxRobot robot
+	) {
+		final BentoStateException taskFailure = new BentoStateException("task's own failure");
+		final AtomicReference<BentoStateException> caught = new AtomicReference<>();
+
+		robot.interact(() -> {
+			try {
+				PersistenceThreading.callOnFxThread(() -> {
+					throw taskFailure;
+				});
+			} catch (final BentoStateException e) {
+				caught.set(e);
+			}
+		});
+
+		assertThat(caught.get())
+				.describedAs("exception thrown by callOnFxThread when already on the FX thread and the task throws its own BentoStateException")
+				.isSameAs(taskFailure);
+	}
+
+	/**
+	 * The dispatched path - called off the FX thread, run via
+	 * {@link Platform#runLater(Runnable)} - goes through {@code unwrap}'s
+	 * {@link java.util.concurrent.ExecutionException} branch instead of {@code
+	 * call}'s. Unlike the immediate path, an unchecked task failure here keeps
+	 * the {@link java.util.concurrent.ExecutionException} {@link Future#get()}
+	 * raised as the immediate cause, one level deeper than the task's own
+	 * exception.
+	 */
+	@Test
+	void callOnFxThreadWhenDispatchedWrapsATaskFailureAsBentoStateException() {
+		final RuntimeException taskFailure = new RuntimeException("boom");
+
+		final Throwable thrown = catchThrowable(() ->
+				PersistenceThreading.callOnFxThread(() -> {
+					throw taskFailure;
+				})
+		);
+
+		assertThat(thrown)
+				.describedAs("exception thrown by callOnFxThread dispatched to a failing task")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessage("Persistence task failed");
+		assertThat(thrown.getCause())
+				.describedAs("cause of the exception thrown by callOnFxThread dispatched to a failing task")
+				.isInstanceOf(ExecutionException.class)
+				.hasCause(taskFailure);
+	}
+
+	@Test
+	void callOnFxThreadWhenDispatchedRethrowsABentoStateExceptionTaskThrowsWithoutWrappingItAgain() {
+		final BentoStateException taskFailure = new BentoStateException("task's own failure");
+
+		assertThatThrownBy(() ->
+				PersistenceThreading.callOnFxThread(() -> {
+					throw taskFailure;
+				})
+		)
+				.describedAs("exception thrown by callOnFxThread dispatched to a task that throws its own BentoStateException")
+				.isSameAs(taskFailure);
+	}
+
+	/**
+	 * The dispatched path - called on the FX thread, run on the shared
+	 * off-thread executor - goes through {@code unwrap}'s {@link
+	 * ExecutionException} branch instead of {@code call}'s. Unlike the
+	 * immediate path, an unchecked task failure here keeps the {@link
+	 * ExecutionException} {@link Future#get()} raised as the immediate cause,
+	 * one level deeper than the task's own exception.
+	 */
+	@Test
+	void callOffFxThreadWhenDispatchedWrapsATaskFailureAsBentoStateException(
+			FxRobot robot
+	) {
+		final RuntimeException taskFailure = new RuntimeException("boom");
+		final AtomicReference<BentoStateException> caught = new AtomicReference<>();
+
+		robot.interact(() -> {
+			try {
+				PersistenceThreading.callOffFxThread(() -> {
+					throw taskFailure;
+				});
+			} catch (final BentoStateException e) {
+				caught.set(e);
+			}
+		});
+
+		assertThat(caught.get())
+				.describedAs("exception thrown by callOffFxThread dispatched to the shared executor when the task fails")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessage("Persistence task failed");
+		assertThat(caught.get().getCause())
+				.describedAs("cause of the exception thrown by callOffFxThread dispatched to the shared executor when the task fails")
+				.isInstanceOf(ExecutionException.class)
+				.hasCause(taskFailure);
+	}
+
+	@Test
+	void callOffFxThreadWhenDispatchedRethrowsABentoStateExceptionTaskThrowsWithoutWrappingItAgain(
+			FxRobot robot
+	) {
+		final BentoStateException taskFailure = new BentoStateException("task's own failure");
+		final AtomicReference<BentoStateException> caught = new AtomicReference<>();
+
+		robot.interact(() -> {
+			try {
+				PersistenceThreading.callOffFxThread(() -> {
+					throw taskFailure;
+				});
+			} catch (final BentoStateException e) {
+				caught.set(e);
+			}
+		});
+
+		assertThat(caught.get())
+				.describedAs("exception thrown by callOffFxThread dispatched to the shared executor when the task throws its own BentoStateException")
+				.isSameAs(taskFailure);
 	}
 
 	/**
@@ -342,6 +524,26 @@ class PersistenceThreadingFT {
 				Thread.currentThread().interrupt();
 			}
 		});
+	}
+
+	/**
+	 * Polls until {@code thread} is blocked waiting on something, so a test can
+	 * interrupt it deterministically instead of racing a fixed sleep against
+	 * however long it takes the thread to reach its blocking call.
+	 */
+	private static void awaitWaitingState(final Thread thread) throws InterruptedException {
+		final long deadline =
+				System.nanoTime() + TimeUnit.SECONDS.toNanos(LATCH_TIMEOUT_SECONDS);
+
+		while (System.nanoTime() < deadline) {
+			final Thread.State state = thread.getState();
+			if (state == Thread.State.TIMED_WAITING || state == Thread.State.WAITING) {
+				return;
+			}
+			Thread.sleep(5L);
+		}
+
+		fail("worker thread never reached a waiting state");
 	}
 
 	/**

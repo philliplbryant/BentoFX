@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.core.impl;
 
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -10,15 +11,12 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
+import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.core.api.state.BentoState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
-import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
-import software.coley.bentofx.persistence.core.api.state.DockableState;
+import software.coley.bentofx.persistence.core.api.state.*;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
@@ -253,6 +251,43 @@ class BentoLayoutStateCaptorFT {
                     .hasMessageContaining(UNCAPTURABLE_DOCKABLE_ID);
         } finally {
             robot.interact(stage::hide);
+        }
+    }
+
+    /**
+     * A live window can be a {@link DragDropStage} whose scene root is not a
+     * {@link DockContainerRootBranch} - this module's own restorer hands one
+     * back scene-less until the application places its root branch. Capture
+     * must ignore such a stage rather than fail on it.
+     */
+    @Test
+    void captureBentoStatesIgnoresADragDropStageWhoseSceneRootIsNotARootBranch(
+            final FxRobot robot
+    ) {
+        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+        final AtomicReference<List<BentoState>> bentoStatesReference =
+                new AtomicReference<>();
+        final AtomicReference<DragDropStage> rogueStageReference =
+                new AtomicReference<>();
+
+        robot.interact(() -> {
+            final DragDropStage rogueStage = new DragDropStage(true);
+            rogueStage.setScene(new Scene(new Pane()));
+            rogueStage.show();
+            rogueStageReference.set(rogueStage);
+
+            bentoStatesReference.set(
+                    new BentoLayoutStateCaptor(bentoProvider)
+                            .captureBentoStates()
+            );
+        });
+
+        try {
+            assertThat(bentoStatesReference.get())
+                    .describedAs("bentoStates with no Bentos registered")
+                    .isEmpty();
+        } finally {
+            robot.interact(rogueStageReference.get()::hide);
         }
     }
 

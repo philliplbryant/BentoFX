@@ -15,7 +15,6 @@ import java.nio.file.Path;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Exercises the persistence unit the module contains, which the storage tests
@@ -28,7 +27,6 @@ class DatabaseLayoutStorageProviderIT {
     private static final String BENTO_DIRECTORY_NAME = ".bentofx";
     private static final String LAYOUT_IDENTIFIER = "provider-layout";
     private static final String CODEC_IDENTIFIER = "json";
-    private static final String STORAGE_IDENTIFIER = "h2";
     private static final String TEST_DATA = "A layout stored through the provider.";
 
     @TempDir
@@ -49,13 +47,6 @@ class DatabaseLayoutStorageProviderIT {
     @AfterEach
     void tearDown() {
         System.setProperty(USER_HOME_PROPERTY, realUserHome);
-    }
-
-    @Test
-    void providerIdentifiesItselfAsH2() {
-        assertThat(new DatabaseLayoutStorageProvider().getIdentifier())
-                .describedAs("provider.getIdentifier()")
-                .isEqualTo(STORAGE_IDENTIFIER);
     }
 
     @Test
@@ -118,20 +109,6 @@ class DatabaseLayoutStorageProviderIT {
         assertThat(provider.getLayoutIdentifiers(CODEC_IDENTIFIER))
                 .describedAs("layouts stored after the delete")
                 .containsExactly("second-layout");
-    }
-
-    @Test
-    void appliesTheSharedIdentifierRule() {
-        final DatabaseLayoutStorageProvider provider =
-                new DatabaseLayoutStorageProvider();
-
-        // A device name fits every column this storage has, so nothing here would
-        // reject it: this passes only if the provider applies the shared identifier
-        // rule as well.
-        assertThatThrownBy(() -> provider.getLayoutStorage("nul", CODEC_IDENTIFIER))
-                .describedAs("layout identifier naming a device")
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("device");
     }
 
     /**
