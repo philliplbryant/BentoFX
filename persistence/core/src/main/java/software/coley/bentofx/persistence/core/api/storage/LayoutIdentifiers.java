@@ -216,11 +216,15 @@ public final class LayoutIdentifiers {
         final Optional<LayoutIdentifierProblem> problem =
                 findProblem(layoutIdentifier, codecIdentifier);
 
-        if (problem.isPresent() || layoutIdentifier == null) {
+        // A null layoutIdentifier always reaches here with problem already
+        // present - findProblem's own first check, findUsableNameProblem,
+        // reports MISSING for it - so this can only ever be a non-null
+        // identifier once problem.isPresent() is false.
+        if (problem.isPresent()) {
             return problem;
         }
 
-        return findReservedProblem(layoutIdentifier);
+        return findReservedProblem(requireNonNull(layoutIdentifier));
     }
 
     /**

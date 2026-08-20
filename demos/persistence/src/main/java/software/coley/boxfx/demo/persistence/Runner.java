@@ -1,6 +1,7 @@
 package software.coley.boxfx.demo.persistence;
 
 import javafx.application.Application;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
 
 import java.io.InputStream;
 import java.util.logging.LogManager;
@@ -15,6 +16,14 @@ import java.util.logging.LogManager;
 public class Runner {
 
     private static final String LOGGING_PROPERTIES = "logging.properties";
+
+    /**
+     * This demo's own subdirectory of the resolved BentoFX home - see
+     * {@link LayoutStorageLocations#configureNamespace}. Set here mainly to
+     * demonstrate the mechanism; a real application would pick something
+     * that identifies itself, such as its own application ID.
+     */
+    private static final String PERSISTENCE_NAMESPACE = "persistence-demo";
 
     // Using standard outputs when errors occur during logging initializing.
     @SuppressWarnings("java:S106")
@@ -41,6 +50,17 @@ public class Runner {
                             "default Java Utility Logging configuration."
             );
         }
+
+        // Gives this demo's persisted layouts their own subdirectory of the
+        // resolved BentoFX home, rather than the shared default every
+        // unconfigured BentoFX-based application on this machine would use.
+        // Must happen before DockingLayoutPersistence.provider() is first
+        // called, which for BoxApp is as soon as its constructor runs - i.e.
+        // before Application.launch(...) below, not from inside BoxApp
+        // itself. An application can reach the same setting with no code at
+        // all, through the BENTOFX_PERSISTENCE_NAMESPACE environment
+        // variable - see LayoutStorageLocations.
+        LayoutStorageLocations.configureNamespace(PERSISTENCE_NAMESPACE);
 
         // Launch the application
         Application.launch(BoxApp.class, args);

@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.assertj.core.api.Assertions.*;
 import static software.coley.bentofx.persistence.core.impl.PersistenceThreading.OFF_FX_EXECUTOR_THREAD_NAME;
@@ -530,8 +531,11 @@ class PersistenceThreadingFT {
 	 * Polls until {@code thread} is blocked waiting on something, so a test can
 	 * interrupt it deterministically instead of racing a fixed sleep against
 	 * however long it takes the thread to reach its blocking call.
+	 *
+	 * <p>Parks between polls rather than sleeping, since {@link
+	 * LockSupport#parkNanos} declares no {@code InterruptedException}.</p>
 	 */
-	private static void awaitWaitingState(final Thread thread) throws InterruptedException {
+	private static void awaitWaitingState(final Thread thread) {
 		final long deadline =
 				System.nanoTime() + TimeUnit.SECONDS.toNanos(LATCH_TIMEOUT_SECONDS);
 
@@ -540,7 +544,7 @@ class PersistenceThreadingFT {
 			if (state == Thread.State.TIMED_WAITING || state == Thread.State.WAITING) {
 				return;
 			}
-			Thread.sleep(5L);
+			LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(5L));
 		}
 
 		fail("worker thread never reached a waiting state");

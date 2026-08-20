@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.core.api;
 
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
 
 import java.util.ServiceLoader;
 
@@ -16,6 +17,13 @@ import java.util.ServiceLoader;
  * final DockingLayoutPersistenceProvider persistence =
  *         DockingLayoutPersistence.provider();
  *}
+ *
+ * <p>Where a locally-backed implementation keeps its data - and how to give
+ * this application its own directory so another BentoFX-based application on
+ * the same machine does not share it - is controlled by
+ * {@link LayoutStorageLocations}, either from code or from an environment
+ * variable that needs no code at all. Configure that, if at all, before
+ * calling {@link #provider()}.</p>
  *
  * @author Phil Bryant
  */

@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.impl.storage.file.provider;
 
 import org.junit.jupiter.api.Test;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
@@ -13,7 +14,6 @@ class FileLayoutStorageProviderTest {
 
     private static final String FILE_STORAGE_IDENTIFIER = "file";
     private static final String MAIN_LAYOUT_IDENTIFIER = "main-layout";
-    private static final String USER_HOME_PROPERTY = "user.home";
 
     @Test
     void exposesFileIdentifierAndIsDefault() {
@@ -38,7 +38,10 @@ class FileLayoutStorageProviderTest {
                 .isInstanceOf(FileLayoutStorage.class);
         assertThat(layoutFile((FileLayoutStorage) storage))
                 .describedAs("layoutFile((FileLayoutStorage) storage)")
-                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/layouts/main-layout.json"));
+                .isEqualTo(new File(
+                        System.getProperty(LayoutStorageLocations.USER_HOME_PROPERTY),
+                        LayoutStorageLocations.BENTOFX_DIRECTORY_NAME + "/layouts/main-layout.json"
+                ));
     }
 
     @Test
@@ -52,7 +55,10 @@ class FileLayoutStorageProviderTest {
 
         assertThat(layoutFile(storage))
                 .describedAs("layoutFile(storage)")
-                .isEqualTo(new File(System.getProperty(USER_HOME_PROPERTY), ".bentofx/layouts/main-layout.xml"));
+                .isEqualTo(new File(
+                        System.getProperty(LayoutStorageLocations.USER_HOME_PROPERTY),
+                        LayoutStorageLocations.BENTOFX_DIRECTORY_NAME + "/layouts/main-layout.xml"
+                ));
     }
 
     @Test

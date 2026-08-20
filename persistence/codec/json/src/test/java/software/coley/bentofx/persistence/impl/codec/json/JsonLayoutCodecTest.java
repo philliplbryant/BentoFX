@@ -104,7 +104,7 @@ class JsonLayoutCodecTest {
     }
 
     @Test
-    void encodeWrapsAnIOExceptionAsBentoStateException() {
+    void encodeWrapsAnIOExceptionAsBentoStateException() throws Exception {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
         final IOException writeFailure = new IOException("disk full");
         final OutputStream failingOutputStream = new OutputStream() {
@@ -113,10 +113,9 @@ class JsonLayoutCodecTest {
                 throw writeFailure;
             }
         };
+        final PersistableLayout layout = PersistableLayout.of(createStates());
 
-        assertThatThrownBy(() ->
-                codec.encode(PersistableLayout.of(createStates()), failingOutputStream)
-        )
+        assertThatThrownBy(() -> codec.encode(layout, failingOutputStream))
                 .describedAs("encode with a failing output stream")
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("Failed to encode layout as JSON")

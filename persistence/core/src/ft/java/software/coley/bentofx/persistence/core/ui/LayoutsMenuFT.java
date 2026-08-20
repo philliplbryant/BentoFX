@@ -11,6 +11,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.util.WaitForAsyncUtils;
@@ -223,37 +225,19 @@ class LayoutsMenuFT {
                 .isEmpty();
     }
 
-    @Test
-    void saveAsNewShowsAProblemErrorForABlankName() {
+    /**
+     * Covers three distinct reasons a typed name can be rejected before
+     * anything is saved: blank, derives the framework's reserved identifier,
+     * and derives a Windows reserved device name. Each name exercises a
+     * different branch of the same validation but the same reaction, so one
+     * parameterized test replaces what used to be three copies of it.
+     */
+    @ParameterizedTest(name = "rejects \"{0}\"")
+    @ValueSource(strings = {"   ", "Session", "CON"})
+    void saveAsNewShowsAProblemErrorForAnInvalidName(final String invalidName) {
         fire(
                 topItems().get(2),
-                typeAndDismiss("   ", ButtonType.OK),
-                dismiss(ButtonType.OK)
-        );
-
-        assertThat(persistenceProvider.savedProfiles)
-                .describedAs("persistenceProvider.savedProfiles")
-                .isEmpty();
-    }
-
-    @Test
-    void saveAsNewShowsAReservedProblemErrorForANameThatDerivesTheReservedIdentifier() {
-        fire(
-                topItems().get(2),
-                typeAndDismiss("Session", ButtonType.OK),
-                dismiss(ButtonType.OK)
-        );
-
-        assertThat(persistenceProvider.savedProfiles)
-                .describedAs("persistenceProvider.savedProfiles")
-                .isEmpty();
-    }
-
-    @Test
-    void saveAsNewShowsADeviceNameProblemErrorForAWindowsReservedDeviceName() {
-        fire(
-                topItems().get(2),
-                typeAndDismiss("CON", ButtonType.OK),
+                typeAndDismiss(invalidName, ButtonType.OK),
                 dismiss(ButtonType.OK)
         );
 

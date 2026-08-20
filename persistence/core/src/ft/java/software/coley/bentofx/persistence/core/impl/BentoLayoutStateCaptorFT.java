@@ -58,10 +58,7 @@ class BentoLayoutStateCaptorFT {
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
         final AtomicReference<List<BentoState>> bentoStatesReference =
                 new AtomicReference<>();
-
-        assertThat(stage)
-                .describedAs("stage")
-                .isNotNull();
+        final Stage primaryStage = getStage();
 
         robot.interact(() -> {
             final Bento bento = new Bento(BENTO_ID);
@@ -88,9 +85,9 @@ class BentoLayoutStateCaptorFT {
             branch.addContainer(leaf);
             rootBranch.addContainer(branch);
 
-            stage.setTitle(CAPTOR_STAGE_TITLE);
-            stage.setScene(new Scene(rootBranch));
-            stage.show();
+            primaryStage.setTitle(CAPTOR_STAGE_TITLE);
+            primaryStage.setScene(new Scene(rootBranch));
+            primaryStage.show();
 
             bentoProvider.addBento(bento);
 
@@ -182,7 +179,7 @@ class BentoLayoutStateCaptorFT {
                     .extracting(DockableState::getIdentifier)
                     .containsExactly(LEAF_DOCKABLE_ID);
         } finally {
-            robot.interact(stage::hide);
+            robot.interact(primaryStage::hide);
         }
     }
 
@@ -199,10 +196,7 @@ class BentoLayoutStateCaptorFT {
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
         final AtomicReference<Throwable> thrownReference =
                 new AtomicReference<>();
-
-        assertThat(stage)
-                .describedAs("stage")
-                .isNotNull();
+        final Stage primaryStage = getStage();
 
         robot.interact(() -> {
             final Bento bento = new Bento(FAILING_BENTO_ID);
@@ -229,8 +223,8 @@ class BentoLayoutStateCaptorFT {
 
             rootBranch.addContainer(leaf);
 
-            stage.setScene(new Scene(rootBranch));
-            stage.show();
+            primaryStage.setScene(new Scene(rootBranch));
+            primaryStage.show();
 
             bentoProvider.addBento(bento);
 
@@ -250,7 +244,7 @@ class BentoLayoutStateCaptorFT {
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining(UNCAPTURABLE_DOCKABLE_ID);
         } finally {
-            robot.interact(stage::hide);
+            robot.interact(primaryStage::hide);
         }
     }
 
@@ -289,6 +283,24 @@ class BentoLayoutStateCaptorFT {
         } finally {
             robot.interact(rogueStageReference.get()::hide);
         }
+    }
+
+    /**
+     * {@return the primary stage the {@code @Start} lifecycle method handed
+     * this test.}
+     *
+     * <p>{@link #stage} is {@code @Nullable} only because nothing assigns it
+     * before that callback runs; by the time any {@code @Test} method's body
+     * executes it always has, so this narrows it to a non-null local rather
+     * than every caller repeating the same assertion against the raw
+     * field.</p>
+     */
+    private Stage getStage() {
+        final Stage activeStage = stage;
+        assertThat(activeStage)
+                .describedAs("stage")
+                .isNotNull();
+        return activeStage;
     }
 
     /**

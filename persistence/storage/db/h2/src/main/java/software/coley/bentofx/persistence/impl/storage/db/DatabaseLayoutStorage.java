@@ -7,11 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,9 +30,14 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	// {@code length} takes a string and the payload is a blob. They are also
 	// built from the mapping's own names so they cannot drift apart.
 
+	private static final String WHERE_CLAUSE = " where ";
+
+	/** The {@code requireNonNull} message naming the {@code codecIdentifier} parameter. */
+	private static final String CODEC_IDENTIFIER_PARAMETER = "codecIdentifier";
+
 	private static final String PAYLOAD_LENGTH_QUERY =
 			"select length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") from "
-					+ DockingLayoutEntity.TABLE_NAME + " where "
+					+ DockingLayoutEntity.TABLE_NAME + WHERE_CLAUSE
 					+ DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1 and "
 					+ DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
 
@@ -44,12 +45,12 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	private static final String LAYOUT_IDENTIFIERS_QUERY =
 			"select " + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME
 					+ " from " + DockingLayoutEntity.TABLE_NAME
-					+ " where " + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?1"
+					+ WHERE_CLAUSE + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?1"
 					+ " and length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") > 0";
 
 	private static final String DELETE_LAYOUT_QUERY =
 			"delete from " + DockingLayoutEntity.TABLE_NAME
-					+ " where " + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1"
+					+ WHERE_CLAUSE + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1"
 					+ " and " + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
 
 	private final EntityManagerFactory emf;
@@ -71,7 +72,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	) {
 		this.emf = requireNonNull(emf, "emf");
 		this.layoutIdentifier = requireNonNull(layoutIdentifier, "layoutIdentifier");
-		this.codecIdentifier = requireNonNull(codecIdentifier, "codecIdentifier");
+		this.codecIdentifier = requireNonNull(codecIdentifier, CODEC_IDENTIFIER_PARAMETER);
 	}
 
 	/**
@@ -218,7 +219,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 			final String codecIdentifier
 	) {
 		requireNonNull(entityManagerFactory, "entityManagerFactory");
-		requireNonNull(codecIdentifier, "codecIdentifier");
+		requireNonNull(codecIdentifier, CODEC_IDENTIFIER_PARAMETER);
 
 		try (final EntityManager entityManager =
 				     entityManagerFactory.createEntityManager()) {
@@ -251,7 +252,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	) {
 		requireNonNull(entityManagerFactory, "entityManagerFactory");
 		requireNonNull(layoutIdentifier, "layoutIdentifier");
-		requireNonNull(codecIdentifier, "codecIdentifier");
+		requireNonNull(codecIdentifier, CODEC_IDENTIFIER_PARAMETER);
 
 		final EntityManager entityManager =
 				entityManagerFactory.createEntityManager();

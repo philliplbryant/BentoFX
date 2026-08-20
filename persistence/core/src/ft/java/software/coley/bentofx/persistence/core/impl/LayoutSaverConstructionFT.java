@@ -54,7 +54,7 @@ class LayoutSaverConstructionFT {
      * initializing.
      */
     @Test
-    void constructorDoesNotStartAutoSave() throws BentoStateException {
+    void constructorDoesNotStartAutoSave() {
         try (final DockingLayoutSaver saver = newSaver(new DefaultBentoProvider())) {
             assertThat(saver.isAutoSaveEnabled())
                     .describedAs("saver.isAutoSaveEnabled() straight after construction")
@@ -69,7 +69,7 @@ class LayoutSaverConstructionFT {
      * would reach a half-built listener.
      */
     @Test
-    void constructorDoesNotRegisterEventListeners() throws BentoStateException {
+    void constructorDoesNotRegisterEventListeners() {
         final Bento bento = new Bento("bento-construction-listeners");
         final BentoProvider bentoProvider = new DefaultBentoProvider(bento);
 
@@ -93,8 +93,7 @@ class LayoutSaverConstructionFT {
      * moved rather than lost.
      */
     @Test
-    void enableAutoSaveAfterConstructionStartsAutoSave()
-            throws BentoStateException {
+    void enableAutoSaveAfterConstructionStartsAutoSave() {
         try (final DockingLayoutSaver saver = newSaver(new DefaultBentoProvider())) {
             saver.enableAutoSave(1L, TimeUnit.HOURS);
 
@@ -110,7 +109,7 @@ class LayoutSaverConstructionFT {
      * cast.
      */
     @Test
-    void startAutoSaveArmsAndReturnsTheSameSaver() throws BentoStateException {
+    void startAutoSaveArmsAndReturnsTheSameSaver() {
         final DockingLayoutSaver constructed = newSaver(new DefaultBentoProvider());
 
         try (final DockingLayoutSaver saver =

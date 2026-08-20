@@ -24,6 +24,7 @@ Application developers control the serialized format and storage destination by 
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
   - [Provider Responsibilities](#provider-responsibilities)
   - [Provider Lifecycle](#provider-lifecycle)
+  - [Configuring Storage Location](#configuring-storage-location)
   - [Recommended Application Startup Flow](#recommended-application-startup-flow)
   - [Saving the Layout](#saving-the-layout)
   - [Restoring the Layout](#restoring-the-layout)
@@ -349,6 +350,29 @@ Provider implementations are typically application singletons or long-lived serv
 Applications generally create providers before layout restoration and reuse them for the lifetime of the application. Providers should not assume that layout restoration occurs only once. A provider may be called repeatedly whenever layouts are restored, when a default layout is created, or when future application features allow users to switch layouts.
 
 Providers should also avoid storing stale JavaFX objects when those objects are meant to be recreated. If a provider caches runtime content, the cache lifecycle should match the application lifecycle and JavaFX threading rules.
+
+<h4 id="configuring-storage-location">Configuring Storage Location</h4>
+
+By default, the included `persistence-storage-file` and `persistence-storage-db-h2` providers keep their data under `<user.home>/.bentofx`. Two situations call for changing that:
+
+* an application wants its data somewhere more appropriate than the user's home directory, such as a platform-specific application-data directory in a packaged desktop build.
+* more than one BentoFX-based application runs on the same machine. Left unconfigured, they share the same default directory and the same H2 database file, so one application's layouts collide with another's.
+
+Both providers resolve their location through `software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations`, which reads two settings fresh on every call. Each can be given either as a `System` property or as an environment variable of the matching name - the property always wins when both are set:
+
+| System property | Environment variable | Effect |
+|------------------|-----------------------|--------|
+| `bentofx.persistence.home` | `BENTOFX_PERSISTENCE_HOME` | Overrides the base directory, in place of `<user.home>/.bentofx`. |
+| `bentofx.persistence.namespace` | `BENTOFX_PERSISTENCE_NAMESPACE` | Names a subdirectory of the resolved home that is this application's own, so a different BentoFX-based application on the same machine does not share it. |
+
+The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/Runner.java) sets its namespace this way, in code, to show the alternative: `LayoutStorageLocations.configureNamespace("persistence-demo")`, along with `configureHome(Path)`, are typed alternatives to calling `System.setProperty` directly. Whichever way, this has to happen before the first save, restore, or catalog call - in practice, before `DockingLayoutPersistence.provider()` is first called - since that is when a storage provider actually reads the location:
+
+```java
+LayoutStorageLocations.configureNamespace("my-app");
+
+final DockingLayoutPersistenceProvider persistence =
+        DockingLayoutPersistence.provider();
+```
 
 <h4 id="recommended-application-startup-flow">Recommended Application Startup Flow</h4>
 

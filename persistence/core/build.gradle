@@ -75,5 +75,7 @@ dependencies {
 
     functionalTestImplementation testFixtures(projects.persistence.testFixtures)
 
+    functionalTestImplementation libs.junit.params
+
     functionalTestRuntimeOnly libs.slf4j.simple
 }

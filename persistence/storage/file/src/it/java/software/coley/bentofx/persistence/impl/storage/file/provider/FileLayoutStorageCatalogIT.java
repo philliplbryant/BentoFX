@@ -1,10 +1,12 @@
 package software.coley.bentofx.persistence.impl.storage.file.provider;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,8 +24,8 @@ class FileLayoutStorageCatalogIT {
 
 	private static final String CODEC_IDENTIFIER = "json";
 	private static final String OTHER_CODEC_IDENTIFIER = "xml";
-	private static final String USER_HOME_PROPERTY = "user.home";
-	private static final String LAYOUTS_DIRECTORY_PATH = ".bentofx/layouts";
+	private static final String LAYOUTS_DIRECTORY_PATH =
+			LayoutStorageLocations.BENTOFX_DIRECTORY_NAME + "/layouts";
 	private static final String LAYOUT_CONTENT = "{}";
 
 	@TempDir
@@ -42,7 +44,7 @@ class FileLayoutStorageCatalogIT {
 	 */
 	@BeforeAll
 	static void redirectUserHomeAndProveItTook() throws IOException {
-		System.setProperty(USER_HOME_PROPERTY, temporaryHome.toString());
+		System.setProperty(LayoutStorageLocations.USER_HOME_PROPERTY, temporaryHome.toString());
 
 		bentoDirectory = Files.createDirectories(
 				temporaryHome.resolve(LAYOUTS_DIRECTORY_PATH)
@@ -74,6 +76,17 @@ class FileLayoutStorageCatalogIT {
 				deleteRecursively(entry);
 			}
 		}
+	}
+
+	/**
+	 * Belt and suspenders: a test that sets these and fails before its own
+	 * cleanup runs must not leave a redirected home or namespace behind for
+	 * whatever test in this class runs next.
+	 */
+	@AfterEach
+	void clearHomeAndNamespaceOverrides() {
+		System.clearProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY);
+		System.clearProperty(LayoutStorageLocations.NAMESPACE_PROPERTY);
 	}
 
 	@Test
@@ -140,16 +153,88 @@ class FileLayoutStorageCatalogIT {
 	@Test
 	void reportsNoLayoutsWhenTheLayoutsDirectoryDoesNotExistYet(
 			@TempDir final Path freshHome
-	) throws IOException {
-		final String realUserHome = System.getProperty(USER_HOME_PROPERTY);
-		System.setProperty(USER_HOME_PROPERTY, freshHome.toString());
+	) {
+		final String realUserHome = System.getProperty(LayoutStorageLocations.USER_HOME_PROPERTY);
+		System.setProperty(LayoutStorageLocations.USER_HOME_PROPERTY, freshHome.toString());
 
 		try {
 			assertThat(new FileLayoutStorageProvider().getLayoutIdentifiers(CODEC_IDENTIFIER))
 					.describedAs("layouts stored when the layouts directory does not exist yet")
 					.isEmpty();
 		} finally {
-			System.setProperty(USER_HOME_PROPERTY, realUserHome);
+			System.setProperty(LayoutStorageLocations.USER_HOME_PROPERTY, realUserHome);
+		}
+	}
+
+	/**
+	 * {@value LayoutStorageLocations#HOME_DIRECTORY_PROPERTY} takes priority
+	 * over {@code user.home}, so an application can relocate storage without
+	 * touching a property this framework does not own.
+	 */
+	@Test
+	void homePropertyRedirectsWhereLayoutsAreStored(
+			@TempDir final Path customHome
+	) throws IOException {
+		System.setProperty(
+				LayoutStorageLocations.HOME_DIRECTORY_PROPERTY,
+				customHome.toString()
+		);
+
+		writeThroughProvider(new FileLayoutStorageProvider(), "relocated");
+
+		assertThat(customHome.resolve("layouts/relocated." + CODEC_IDENTIFIER))
+				.describedAs("a layout written under the home override")
+				.exists();
+		assertThat(new FileLayoutStorageProvider().getLayoutIdentifiers(CODEC_IDENTIFIER))
+				.describedAs("layouts visible under the home override")
+				.containsExactly("relocated");
+	}
+
+	/**
+	 * The concrete "two applications on one machine" scenario:
+	 * {@value LayoutStorageLocations#NAMESPACE_PROPERTY} gives each one its
+	 * own subdirectory of a shared home, so neither sees the other's layouts.
+	 */
+	@Test
+	void namespacePropertyIsolatesTwoApplicationsSharingTheSameHome(
+			@TempDir final Path sharedHome
+	) throws IOException {
+		System.setProperty(
+				LayoutStorageLocations.HOME_DIRECTORY_PROPERTY,
+				sharedHome.toString()
+		);
+
+		System.setProperty(LayoutStorageLocations.NAMESPACE_PROPERTY, "app-one");
+		writeThroughProvider(new FileLayoutStorageProvider(), "shared-name");
+
+		System.setProperty(LayoutStorageLocations.NAMESPACE_PROPERTY, "app-two");
+		writeThroughProvider(new FileLayoutStorageProvider(), "shared-name");
+
+		assertThat(new FileLayoutStorageProvider().getLayoutIdentifiers(CODEC_IDENTIFIER))
+				.describedAs("layouts visible to app-two")
+				.containsExactly("shared-name");
+
+		System.setProperty(LayoutStorageLocations.NAMESPACE_PROPERTY, "app-one");
+		assertThat(new FileLayoutStorageProvider().getLayoutIdentifiers(CODEC_IDENTIFIER))
+				.describedAs("layouts visible to app-one")
+				.containsExactly("shared-name");
+
+		assertThat(sharedHome.resolve("app-one/layouts/shared-name." + CODEC_IDENTIFIER))
+				.describedAs("app-one's own copy of the identically-named layout")
+				.exists();
+		assertThat(sharedHome.resolve("app-two/layouts/shared-name." + CODEC_IDENTIFIER))
+				.describedAs("app-two's own copy of the identically-named layout")
+				.exists();
+	}
+
+	private static void writeThroughProvider(
+			final FileLayoutStorageProvider provider,
+			final String layoutIdentifier
+	) throws IOException {
+		try (final LayoutStorage storage =
+				     provider.getLayoutStorage(layoutIdentifier, CODEC_IDENTIFIER);
+		     final OutputStream outputStream = storage.openOutputStream()) {
+			outputStream.write(LAYOUT_CONTENT.getBytes(UTF_8));
 		}
 	}
 

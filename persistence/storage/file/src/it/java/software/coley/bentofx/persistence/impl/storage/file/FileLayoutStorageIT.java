@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.impl.storage.file;
 
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -17,11 +16,16 @@ class FileLayoutStorageIT {
 	private static final String TEST_FILE_CONTENT = "Test data for FileLayoutStorage integration test";
 	private static final String PREVIOUS_FILE_CONTENT = "A layout that was already saved";
 
+	// None of these three are @Nullable: @TempDir populates temporaryDirectory
+	// before any @BeforeEach or @Test method runs, and setUp() below
+	// unconditionally assigns the other two before every @Test method runs -
+	// neither is ever actually null at any point this class's own code
+	// observes it.
 	@TempDir
-	private @Nullable Path temporaryDirectory;
+	private Path temporaryDirectory;
 
-	private @Nullable FileLayoutStorage fileLayoutStorage;
-	private @Nullable File testFile;
+	private FileLayoutStorage fileLayoutStorage;
+	private File testFile;
 
 	@BeforeEach
 	void setUp() {

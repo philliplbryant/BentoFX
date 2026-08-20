@@ -18,6 +18,11 @@
                permissions are the boundary. -->
          <property name="jakarta.persistence.jdbc.driver"
                    value="org.h2.Driver"/>
+
+          <!-- DatabaseLayoutStorageProvider always overrides this value with one
+               built from LayoutStorageLocations.resolveBentoFxHome(), so this is
+               only what a JPA tool sees if it opens this persistence unit
+               directly rather than through that provider. -->
          <property name="jakarta.persistence.jdbc.url"
                    value="jdbc:h2:file:${user.home}/.bentofx/layouts"/>
 

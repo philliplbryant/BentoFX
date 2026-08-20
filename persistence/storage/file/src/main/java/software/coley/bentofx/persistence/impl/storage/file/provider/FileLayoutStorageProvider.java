@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.impl.storage.file.provider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
 import software.coley.bentofx.persistence.impl.storage.file.FileLayoutStorage;
 
 import java.io.File;
@@ -17,6 +18,10 @@ import java.util.stream.Stream;
 /**
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
  * Bento layouts to a file.
+ *
+ * <p>Where those files are kept is controlled by
+ * {@link LayoutStorageLocations#HOME_DIRECTORY_PROPERTY} and
+ * {@link LayoutStorageLocations#NAMESPACE_PROPERTY}.</p>
  *
  * @author Phil Bryant
  */
@@ -123,17 +128,18 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
     /**
      * {@return the absolute, normalized directory layouts are kept in.}
      *
-     * <p>Read from {@code user.home} on every call rather than cached, so that
-     * redirecting the property - which is otherwise unobservable from outside
-     * this class - takes effect immediately rather than only for whichever
-     * caller happens to run before this class is first loaded.</p>
+     * <p>Resolved fresh from {@link LayoutStorageLocations#resolveBentoFxHome()}
+     * on every call rather than cached, so that redirecting it - which is
+     * otherwise unobservable from outside this class - takes effect
+     * immediately rather than only for whichever caller happens to run before
+     * this class is first loaded. See {@link LayoutStorageLocations} for how
+     * to point this at a different directory, or namespace it so more than
+     * one application's layouts do not share this one.</p>
      */
     private static Path getLayoutDirectory() {
-        return Path.of(
-                System.getProperty("user.home"),
-                ".bentofx",
-                LAYOUTS_DIRECTORY_NAME
-        ).toAbsolutePath().normalize();
+        return LayoutStorageLocations.resolveBentoFxHome()
+                .resolve(LAYOUTS_DIRECTORY_NAME)
+                .normalize();
     }
 
     /**

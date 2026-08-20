@@ -55,8 +55,26 @@ public final class LayoutNames {
 						displayName :
 						displayName.substring(0, MAX_LAYOUT_IDENTIFIER_LENGTH);
 
-		return cutName.toLowerCase(Locale.ROOT)
-				.replaceAll("[^\\p{IsAlphabetic}\\p{IsDigit}]+", "-")
-				.replaceAll("^-+|-+$", "");
+		// A single pass instead of chained regexes: quantified regexes applied
+		// one after another over the same input can backtrack super-linearly
+		// on pathological input, and a plain scan is both faster and immune to
+		// that by construction.
+		final String lowercase = cutName.toLowerCase(Locale.ROOT);
+		final StringBuilder identifier = new StringBuilder(lowercase.length());
+		boolean pendingSeparator = false;
+
+		for (final int codePoint : lowercase.codePoints().toArray()) {
+			if (Character.isAlphabetic(codePoint) || Character.isDigit(codePoint)) {
+				if (pendingSeparator && !identifier.isEmpty()) {
+					identifier.append('-');
+				}
+				identifier.appendCodePoint(codePoint);
+				pendingSeparator = false;
+			} else {
+				pendingSeparator = true;
+			}
+		}
+
+		return identifier.toString();
 	}
 }
