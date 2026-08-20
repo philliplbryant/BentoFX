@@ -180,17 +180,17 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		// Make the bottom collapsed by default
 		branchRoot.setContainerCollapsed(leafTools, true);
 
-		// Adding dockables to leafWorkspaceTools
+		// Adding dockables to the WorkspaceTools leaf
 		addDockable(WORKSPACE, dockableStateProvider, leafWorkspaceTools);
 		addDockable(BOOKMARKS, dockableStateProvider, leafWorkspaceTools);
 		addDockable(MODIFICATIONS, dockableStateProvider, leafWorkspaceTools);
 
-		// Adding dockables to leafTools
+		// Adding dockables to Tools leaf
 		addDockable(LOGGING, dockableStateProvider, leafTools);
 		addDockable(TERMINAL, dockableStateProvider, leafTools);
 		addDockable(PROBLEMS, dockableStateProvider, leafTools);
 
-		// Adding dockables to leafWorkspaceHeaders
+		// Adding dockables to WorkspaceHeaders leaf
 		addDockable(CLASS_1, dockableStateProvider, leafWorkspaceHeaders);
 		addDockable(CLASS_2, dockableStateProvider, leafWorkspaceHeaders);
 		addDockable(CLASS_3, dockableStateProvider, leafWorkspaceHeaders);
@@ -219,12 +219,12 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		);
 
 		if (!applyDockingLayout(dockingLayout)) {
+			// Nothing was applied, so the stage has no Scene and was never
+			// shown. Fall back to the default layout to keep the application
+			// usable; continuing without a saved layout would leave the
+			// application process running with no window.
 			discardDockingLayout(dockingLayout);
 
-			// Nothing was applied, so the stage has no Scene and was never shown.
-			// Falling back to the default layout keeps the application usable and
-			// leaves the reason in the log; without it a saved layout this demo
-			// cannot apply leaves a running process with no window.
 			logger.warn(
 					"Could not apply the restored docking layout; " +
 							"applying the default docking layout instead."
@@ -566,10 +566,11 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		VBox currentSceneRoot = sceneRoot;
 
 		if (currentSceneRoot == null) {
+
 			// One Scene and one MenuBar for as long as the application runs.
 			// Switching layouts replaces the docking tree below the menu bar,
-			// so the menu the switch was started from is still there afterward.
-			//
+			// so the menu used to start the switch is still there afterward.
+
 			// The MenuBar is built here rather than in a field initializer
 			// because those run in the constructor, on the JavaFX-Launcher
 			// thread, where JavaFX components cannot be built.
@@ -597,10 +598,9 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		stage.show();
 
 		// Show the DragDropStages that were showing when the layout was saved.
-		// Showing all of them unconditionally is what made the persisted
-		// isShowing flag pointless: a stage the user had closed came back open.
-		// Only reached once the main layout is up: floating windows from a layout
-		// whose root branch could not be applied would be the only thing on screen.
+		// Only reached after the main layout is up; otherwise, the only thing
+		// on screen would be floating windows from a layout whose root branch
+		// could not be applied.
 		for (final DragDropStage dragDropStage :
 				bentoLayout.getDragDropStages()) {
 			if (bentoLayout.wasShowing(dragDropStage)) {
