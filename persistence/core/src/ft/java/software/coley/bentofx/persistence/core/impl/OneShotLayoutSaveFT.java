@@ -26,6 +26,7 @@ import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutSto
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -154,7 +155,7 @@ class OneShotLayoutSaveFT {
 
         final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final InMemoryLayoutStorage storage =
-                new InMemoryLayoutStorage("a-good-layout".getBytes());
+                new InMemoryLayoutStorage("a-good-layout".getBytes(UTF_8));
 
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
         bentoProvider.addBento(bento);
@@ -175,7 +176,7 @@ class OneShotLayoutSaveFT {
                 .isEmpty();
         assertThat(storage.toByteArray())
                 .describedAs("the previously stored layout")
-                .isEqualTo("a-good-layout".getBytes());
+                .isEqualTo("a-good-layout".getBytes(UTF_8));
     }
 
     /**

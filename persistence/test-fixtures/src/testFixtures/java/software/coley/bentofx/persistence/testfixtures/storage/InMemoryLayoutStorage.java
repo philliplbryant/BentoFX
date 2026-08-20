@@ -2,12 +2,7 @@ package software.coley.bentofx.persistence.testfixtures.storage;
 
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Arrays;
 
 /**
@@ -50,7 +45,6 @@ public class InMemoryLayoutStorage implements LayoutStorage {
      * <p>Existence is answered considering a layout only exists once bytes have been
      * stored for it, and empty content is no layout. There is deliberately no way to
      * make this storage report that an empty layout exists.</p>
-     * @return
      */
     @Override
     public synchronized boolean exists() {
