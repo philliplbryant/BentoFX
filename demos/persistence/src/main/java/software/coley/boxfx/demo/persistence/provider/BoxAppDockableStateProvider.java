@@ -55,9 +55,7 @@ public class BoxAppDockableStateProvider implements DockableStateProvider {
 	) {
 		// Built here rather than in the constructor because a state holds
 		// JavaFX components, the constructor runs on the JavaFX-Launcher thread
-		// where those cannot be built, and both callers of this method - the
-		// application while it starts, and the restorer through the persistence
-		// API - are on the JavaFX application thread.
+		// where those cannot be built.
 		//
 		// Built fresh on every call rather than cached, because a state holds
 		// one node instance and a node has one parent. Handing the same state

@@ -3,14 +3,26 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.core.api.state.*;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
+import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState.DockContainerBranchStateBuilder;
+import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
+import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
 import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState.DockContainerRootBranchStateBuilder;
+import software.coley.bentofx.persistence.core.api.state.DockContainerState;
+import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.bentofx.persistence.core.api.state.DockableState.DockableStateBuilder;
+import software.coley.bentofx.persistence.core.api.state.DragDropStageState;
 import software.coley.bentofx.persistence.core.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.*;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.BentoStateDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerLeafDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockContainerRootBranchDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DragDropStageDto;
+import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.LayoutMetadataDto;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -292,33 +304,47 @@ class BentoStateMapperTest {
 	}
 
 	@Test
-	void fromDtoTreatsAMissingMetadataObjectAsNoDisplayName() throws BentoStateException {
+	void fromDtoRejectsADtoWithNoMetadata() {
 		final DockingLayoutDto dto = new DockingLayoutDto();
-		// dto.metadata left null: a legacy payload written before metadata existed.
+
+		assertThatThrownBy(() -> BentoStateMapper.fromDto(dto))
+				.describedAs("mapping a DTO with no metadata object")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessageContaining("declares no schema version");
+	}
+
+	@Test
+	void fromDtoReadsTheDisplayNameFromMetadata() throws BentoStateException {
+		final DockingLayoutDto dto = new DockingLayoutDto();
+		dto.metadata = new LayoutMetadataDto();
+		dto.metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+		dto.metadata.displayName = "Multi-Monitor";
 
 		assertThat(BentoStateMapper.fromDto(dto).displayName())
-				.describedAs("display name derived from a DTO with no metadata object")
-				.isNull();
+				.describedAs("display name read from metadata")
+				.isEqualTo("Multi-Monitor");
 	}
 
 	@Test
-	void validateSupportedMetadataAllowsMissingMetadata() {
-		assertThatCode(() ->
+	void validateSupportedMetadataRejectsMissingMetadata() {
+		assertThatThrownBy(() ->
 				BentoStateMapper.validateSupportedMetadata(null)
 		)
-				.describedAs("missing legacy metadata validation")
-				.doesNotThrowAnyException();
+				.describedAs("missing metadata validation")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessageContaining("declares no schema version");
 	}
 
 	@Test
-	void validateSupportedMetadataAllowsMissingSchemaVersion() {
+	void validateSupportedMetadataRejectsMissingSchemaVersion() {
 		final LayoutMetadataDto metadata = new LayoutMetadataDto();
 
-		assertThatCode(() ->
+		assertThatThrownBy(() ->
 				BentoStateMapper.validateSupportedMetadata(metadata)
 		)
-				.describedAs("missing legacy schema version validation")
-				.doesNotThrowAnyException();
+				.describedAs("missing schema version validation")
+				.isInstanceOf(BentoStateException.class)
+				.hasMessageContaining("declares no schema version");
 	}
 
 	@Test

@@ -9,4 +9,25 @@ description = 'BentoFX Persistence for Files'
 dependencies {
 
     api projects.persistenceCore
+
+    /**
+     * Both codecs, so {@link FileLayoutConversionIT} can store a layout
+     * through either one. Integration-test scope only; this module's published
+     * artifact stays codec-agnostic.
+     */
+    integrationTestImplementation projects.persistence.codec.json
+    integrationTestImplementation projects.persistence.codec.xml
+
+    integrationTestImplementation testFixtures(
+            projects.persistence.testFixtures
+    )
+
+    /**
+     * {@link FileLayoutConversionIT} reads
+     * {@link javafx.application.Platform} directly, to assert the JavaFX
+     * runtime is not started while it stores a layout.
+     */
+    integrationTestImplementation libs.javafx.graphics
+
+    integrationTestImplementation libs.junit.params
 }

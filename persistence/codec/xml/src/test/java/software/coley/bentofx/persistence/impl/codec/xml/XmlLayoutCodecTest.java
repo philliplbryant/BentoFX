@@ -1,9 +1,14 @@
 package software.coley.bentofx.persistence.impl.codec.xml;
 
+import javafx.application.Platform;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
-import software.coley.bentofx.persistence.core.api.state.*;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerState;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.BentoStateMapper;
 import software.coley.bentofx.persistence.impl.codec.common.mapper.dto.DockingLayoutDto;
 
@@ -140,6 +145,13 @@ class XmlLayoutCodecTest {
 
     @Test
     void encodeThenDecodeRoundTripsTheWholeLayout() throws Exception {
+        // This codec cannot require a started JavaFX runtime: an external tool
+        // converting layouts from another docking framework has none.
+        assertThatThrownBy(() -> Platform.runLater(() -> { }))
+                .describedAs("JavaFX runtime state for this suite")
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Toolkit not initialized");
+
         final XmlLayoutCodec codec = new XmlLayoutCodec();
         final List<BentoState> original = createBentoStates();
 
@@ -238,6 +250,35 @@ class XmlLayoutCodecTest {
                 .describedAs("decoded root branch child dock containers, in order")
                 .extracting(DockContainerState::getIdentifier)
                 .containsExactly("leaf-A", "branch-B", "leaf-C");
+    }
+
+    @Test
+    void encodeThenDecodeRoundTripsTheDisplayName() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(
+                new PersistableLayout("Multi-Monitor", createBentoStates()),
+                out
+        );
+
+        assertThat(codec.decode(new ByteArrayInputStream(out.toByteArray()))
+                .displayName())
+                .describedAs("display name restored from XML")
+                .isEqualTo("Multi-Monitor");
+    }
+
+    @Test
+    void aLayoutWithNoDisplayNameRoundTripsWithoutOne() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(PersistableLayout.of(createBentoStates()), out);
+
+        assertThat(codec.decode(new ByteArrayInputStream(out.toByteArray()))
+                .displayName())
+                .describedAs("display name from a layout saved without one")
+                .isNull();
     }
 
     private static List<BentoState> createStates() throws Exception {

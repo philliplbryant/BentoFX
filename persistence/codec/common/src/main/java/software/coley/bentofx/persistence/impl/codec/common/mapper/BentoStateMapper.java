@@ -349,13 +349,17 @@ public final class BentoStateMapper {
 	 *
 	 * @return the {@link PersistableLayout} mapped from the
 	 * {@link DockingLayoutDto}.
+	 *
+	 * @throws BentoStateException when the layout declares no schema version, or
+	 * declares one this framework cannot restore.
 	 */
 	public static PersistableLayout fromDto(
 			final DockingLayoutDto dockingLayoutDto
 	) throws BentoStateException {
 		requireNonNull(dockingLayoutDto, "dockingLayoutDto");
 
-		validateSupportedMetadata(dockingLayoutDto.metadata);
+		final LayoutMetadataDto metadata =
+				validateSupportedMetadata(dockingLayoutDto.metadata);
 
 		final List<BentoState> bentoStateList = new ArrayList<>();
 
@@ -363,28 +367,27 @@ public final class BentoStateMapper {
 			bentoStateList.add(fromDto(stateDto));
 		}
 
-		final String displayName = dockingLayoutDto.metadata == null ?
-				null :
-				dockingLayoutDto.metadata.displayName;
-
-		return new PersistableLayout(displayName, bentoStateList);
+		return new PersistableLayout(metadata.displayName, bentoStateList);
 	}
 
 	/**
 	 * Validates that decoded layout metadata can be restored by this version of
 	 * the persistence framework.
 	 *
-	 * @param metadata the decoded metadata. {@code null} indicates a legacy
-	 * payload that did not include metadata.
+	 * @param metadata the decoded metadata.
 	 *
-	 * @throws BentoStateException when the metadata describes an unsupported
-	 * schema version.
+	 * @return the validated metadata.
+	 *
+	 * @throws BentoStateException when the layout declares no schema version, or
+	 * declares one this framework cannot restore.
 	 */
-	static void validateSupportedMetadata(
+	static LayoutMetadataDto validateSupportedMetadata(
 			final @Nullable LayoutMetadataDto metadata
 	) throws BentoStateException {
 		if (metadata == null || metadata.schemaVersion == null) {
-			return;
+			throw new BentoStateException(
+					"BentoFX docking layout declares no schema version"
+			);
 		}
 
 		if (metadata.schemaVersion < 1) {
@@ -402,6 +405,8 @@ public final class BentoStateMapper {
 							+ DockingLayoutDto.getCurrentSchemaVersion()
 			);
 		}
+
+		return metadata;
 	}
 
 	/**
