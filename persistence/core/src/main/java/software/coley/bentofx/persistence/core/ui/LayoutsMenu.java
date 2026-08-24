@@ -213,7 +213,11 @@ public class LayoutsMenu extends Menu {
 		// names decodes every stored layout, so asking again would decode again.
 		final Optional<List<LayoutPersistenceProfile>> storedLayouts =
 				findStoredCustomLayouts();
-		final Optional<List<String>> groupNames = findGroupNames(storedLayouts);
+		// flatMap, so that layouts which could not be listed give no groups
+		// either: with no layouts to reconcile against, a catalog on its own
+		// would report groups for a list of layouts this menu does not have.
+		final Optional<List<String>> groupNames =
+				storedLayouts.flatMap(this::findGroupNames);
 
 		final List<Menu> layoutMenus =
 				List.of(restoreMenu, renameMenu, moveToGroupMenu, deleteMenu);
@@ -466,26 +470,21 @@ public class LayoutsMenu extends Menu {
 	 * could not be read.}
 	 *
 	 * <p>The stored catalog together with the groups the layouts themselves name -
-	 * see {@link LayoutGroups#mergeGroupNames}. An empty {@link Optional} in,
-	 * meaning the layouts could not be listed, gives an empty {@link Optional}
-	 * out: with no layouts to reconcile against, a catalog on its own would
-	 * report groups for a list of layouts this menu does not have.</p>
+	 * see {@link LayoutGroups#mergeGroupNames}. Callers that could not list the
+	 * layouts must not call this at all, because a catalog on its own would
+	 * report groups for a list of layouts the menu does not have.</p>
 	 *
 	 * @param storedLayouts the layouts storage reported.
 	 */
 	private Optional<List<String>> findGroupNames(
-			final Optional<List<LayoutPersistenceProfile>> storedLayouts
+			final List<LayoutPersistenceProfile> storedLayouts
 	) {
-		if (storedLayouts.isEmpty()) {
-			return Optional.empty();
-		}
-
 		try {
 			return Optional.of(LayoutGroups.mergeGroupNames(
 					persistenceProvider().getStoredGroups(
 							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
 					),
-					storedLayouts.get()
+					storedLayouts
 			));
 		} catch (final BentoStateException e) {
 			logger.warn("Could not list the stored layout groups.", e);
@@ -602,7 +601,7 @@ public class LayoutsMenu extends Menu {
 		}
 
 		final Optional<List<String>> groupNames =
-				findGroupNames(findStoredCustomLayouts());
+				findStoredCustomLayouts().flatMap(this::findGroupNames);
 
 		if (groupNames.isEmpty()) {
 			showLayoutError(text("error.listGroupsFailed.header"), null);
@@ -731,7 +730,7 @@ public class LayoutsMenu extends Menu {
 			final LayoutPersistenceProfile storedLayout
 	) {
 		final Optional<List<String>> groupNames =
-				findGroupNames(findStoredCustomLayouts());
+				findStoredCustomLayouts().flatMap(this::findGroupNames);
 
 		if (groupNames.isEmpty()) {
 			showLayoutError(text("error.listGroupsFailed.header"), null);
