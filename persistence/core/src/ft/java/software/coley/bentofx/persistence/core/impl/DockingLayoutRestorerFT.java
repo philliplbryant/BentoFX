@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.LEFT;
@@ -290,7 +291,9 @@ class DockingLayoutRestorerFT {
         assertThat(dockables.getFirst().getTooltip())
                 .describedAs("dockables.getFirst().getTooltip()")
                 .isNotNull();
-        assertThat(dockables.getFirst().getTooltip().getText())
+        assertThat(
+                requireNonNull(dockables.getFirst().getTooltip()).getText()
+        )
                 .describedAs("dockables.getFirst().getTooltip().getText()")
                 .isEqualTo(expectedDockableTooltipText);
         assertThat(dockables.getFirst().isClosable())

@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.core.impl;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Side.LEFT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,8 +140,10 @@ class LeafUncollapsedSizeRoundTripFT {
                 new AtomicReference<>();
 
         robot.interact(() -> {
-            final DockContainerBranch parent =
-                    collapsedLeaf.getParentContainer();
+            final DockContainerBranch parent = requireNonNull(
+                    collapsedLeaf.getParentContainer(),
+                    "collapsedLeaf.getParentContainer()"
+            );
             parent.setContainerCollapsed(collapsedLeaf, false);
         });
 
@@ -167,7 +171,7 @@ class LeafUncollapsedSizeRoundTripFT {
             final FxRobot robot,
             final String leafIdentifier
     ) {
-        final AtomicReference<DockContainerLeaf> leafReference =
+        final AtomicReference<@Nullable DockContainerLeaf> leafReference =
                 new AtomicReference<>();
 
         robot.interact(() -> {
@@ -197,11 +201,10 @@ class LeafUncollapsedSizeRoundTripFT {
         robot.interact(() -> { /* fence */ });
         robot.interact(() -> { /* fence */ });
 
-        assertThat(leafReference.get())
-                .describedAs("leaf " + leafIdentifier)
-                .isNotNull();
-
-        return leafReference.get();
+        return requireNonNull(
+                leafReference.get(),
+                "leaf " + leafIdentifier
+        );
     }
 
     /**
@@ -261,7 +264,7 @@ class LeafUncollapsedSizeRoundTripFT {
         return Optional.empty();
     }
 
-    private static DockContainerLeaf findLeaf(
+    private static @Nullable DockContainerLeaf findLeaf(
             final DockContainerBranch branch,
             final String leafIdentifier
     ) {

@@ -152,7 +152,7 @@ The [report aggregation project](./report-aggregation/build.gradle) creates aggr
 A CI-style local build is:
 
 ```bash
-gradlew build buildHealth checkAll checkJSpecify
+gradlew build checkAll
 ```
 
 The GitHub workflow runs this build command, uploads JaCoCo HTML/XML reports as artifacts, and writes source-line and coverage statistics to the workflow summary.

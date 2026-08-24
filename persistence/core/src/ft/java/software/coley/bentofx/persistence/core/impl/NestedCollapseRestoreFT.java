@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Side.LEFT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -108,7 +109,7 @@ class NestedCollapseRestoreFT {
             final FxRobot robot,
             final String leafIdentifier
     ) {
-        final AtomicReference<DockContainerLeaf> leafReference =
+        final AtomicReference<@Nullable DockContainerLeaf> leafReference =
                 new AtomicReference<>();
         final AtomicReference<Stage> stageReference = new AtomicReference<>();
 
@@ -150,11 +151,10 @@ class NestedCollapseRestoreFT {
         robot.interact(() -> { /* fence */ });
 
         try {
-            assertThat(leafReference.get())
-                    .describedAs("nested leaf " + leafIdentifier)
-                    .isNotNull();
-
-            return leafReference.get();
+            return requireNonNull(
+                    leafReference.get(),
+                    "nested leaf " + leafIdentifier
+            );
         } finally {
             robot.interact(() -> stageReference.get().close());
         }

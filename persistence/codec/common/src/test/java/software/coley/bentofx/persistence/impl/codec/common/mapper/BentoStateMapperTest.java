@@ -326,6 +326,64 @@ class BentoStateMapperTest {
 	}
 
 	@Test
+	void fromDtoReadsTheGroupFromMetadata() throws BentoStateException {
+		final DockingLayoutDto dto = new DockingLayoutDto();
+		dto.metadata = new LayoutMetadataDto();
+		dto.metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
+		dto.metadata.group = "Debugging";
+		dto.metadata.groups = List.of("Debugging", "Presentation");
+
+		final PersistableLayout layout = BentoStateMapper.fromDto(dto);
+
+		assertThat(layout.group())
+				.describedAs("group read from metadata")
+				.isEqualTo("Debugging");
+		assertThat(layout.groups())
+				.describedAs("group catalog read from metadata")
+				.containsExactly("Debugging", "Presentation");
+	}
+
+	/**
+	 * A layout that carries neither the group nor the group catalog has to decode
+	 * rather than fail, since both are optional in the stored form. Written out as
+	 * a literal {@code 1} on purpose: reading the constant would assert the code
+	 * against itself and pass however far the version moves.
+	 */
+	@Test
+	void fromDtoReadsASchemaVersionOneLayoutAsUngrouped()
+			throws BentoStateException {
+		final DockingLayoutDto dto = new DockingLayoutDto();
+		dto.metadata = new LayoutMetadataDto();
+		dto.metadata.schemaVersion = 1;
+		dto.metadata.displayName = "Multi-Monitor";
+		dto.metadata.group = null;
+
+		final PersistableLayout layout = BentoStateMapper.fromDto(dto);
+
+		assertThat(layout.displayName())
+				.describedAs("display name from a version 1 layout")
+				.isEqualTo("Multi-Monitor");
+		assertThat(layout.group())
+				.describedAs("group from a version 1 layout")
+				.isNull();
+		assertThat(layout.groups())
+				.describedAs("catalog from a version 1 layout")
+				.isEmpty();
+	}
+
+	/**
+	 * Pinned to a literal so that moving it is a deliberate edit here as well.
+	 * Version 1 is the only version there has been, and a bump makes every layout
+	 * this framework writes unreadable by the version before it.
+	 */
+	@Test
+	void writesSchemaVersionOne() {
+		assertThat(DockingLayoutDto.getCurrentSchemaVersion())
+				.describedAs("schema version this framework writes")
+				.isEqualTo(1);
+	}
+
+	@Test
 	void validateSupportedMetadataRejectsMissingMetadata() {
 		assertThatThrownBy(() ->
 				BentoStateMapper.validateSupportedMetadata(null)
@@ -386,6 +444,9 @@ class BentoStateMapperTest {
 	}
 
 	@Test
+	// Suppress warnings for passing null argument to parameter annotated as
+	// non-null; that's what we're testing.
+	@SuppressWarnings({"ConstantConditions", "NullAway"})
 	void everyToDtoOverloadNamesTheArgumentItRejects() {
 		assertThatThrownBy(() -> BentoStateMapper.toDto((DragDropStageState) null))
 				.describedAs("toDto(DragDropStageState) null argument")

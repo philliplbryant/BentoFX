@@ -19,13 +19,16 @@ import java.util.Optional;
  * @param codecIdentifier optional codec provider identifier
  * @param storageIdentifier optional storage provider identifier
  * @param displayName optional human-readable name stored with the layout
+ * @param group optional group the layout belongs to, {@code null} when it
+ * belongs to none
  * @author Phil Bryant
  */
 public record LayoutPersistenceProfile(
         String layoutIdentifier,
         @Nullable String codecIdentifier,
         @Nullable String storageIdentifier,
-        @Nullable String displayName
+        @Nullable String displayName,
+        @Nullable String group
 ) {
 
     /**
@@ -48,7 +51,30 @@ public record LayoutPersistenceProfile(
             final @Nullable String codecIdentifier,
             final @Nullable String storageIdentifier
     ) {
-        this(layoutIdentifier, codecIdentifier, storageIdentifier, null);
+        this(layoutIdentifier, codecIdentifier, storageIdentifier, null, null);
+    }
+
+    /**
+     * Create a profile carrying a display name but no group.
+     *
+     * @param layoutIdentifier stable identifier for the saved layout
+     * @param codecIdentifier optional codec provider identifier
+     * @param storageIdentifier optional storage provider identifier
+     * @param displayName optional human-readable name stored with the layout
+     */
+    public LayoutPersistenceProfile(
+            final String layoutIdentifier,
+            final @Nullable String codecIdentifier,
+            final @Nullable String storageIdentifier,
+            final @Nullable String displayName
+    ) {
+        this(
+                layoutIdentifier,
+                codecIdentifier,
+                storageIdentifier,
+                displayName,
+                null
+        );
     }
 
     /**
@@ -59,7 +85,13 @@ public record LayoutPersistenceProfile(
      * @return layout persistence profile
      */
     public static LayoutPersistenceProfile of(final String layoutIdentifier) {
-        return new LayoutPersistenceProfile(layoutIdentifier, null, null, null);
+        return new LayoutPersistenceProfile(
+                layoutIdentifier,
+                null,
+                null,
+                null,
+                null
+        );
     }
 
     /**
@@ -89,7 +121,32 @@ public record LayoutPersistenceProfile(
                 layoutIdentifier,
                 codecIdentifier,
                 storageIdentifier,
-                displayName
+                displayName,
+                null
+        );
+    }
+
+    /**
+     * {@return this profile with a different display name and group, and the
+     * same selections otherwise.}
+     *
+     * <p>What a rename and a move to another group are asked for with. Both
+     * values are stored as given, so a {@code null} clears rather than
+     * leaving what is stored alone.</p>
+     *
+     * @param displayName the name to store, or {@code null} to store none.
+     * @param group the group to store, or {@code null} for no group.
+     */
+    public LayoutPersistenceProfile withNaming(
+            final @Nullable String displayName,
+            final @Nullable String group
+    ) {
+        return new LayoutPersistenceProfile(
+                layoutIdentifier,
+                codecIdentifier,
+                storageIdentifier,
+                displayName,
+                group
         );
     }
 
@@ -98,5 +155,13 @@ public record LayoutPersistenceProfile(
      */
     public Optional<String> findDisplayName() {
         return Optional.ofNullable(displayName);
+    }
+
+    /**
+     * {@return the group this profile's layout belongs to, if it belongs to
+     * one.}
+     */
+    public Optional<String> findGroup() {
+        return Optional.ofNullable(group);
     }
 }

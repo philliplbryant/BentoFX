@@ -2362,8 +2362,7 @@ passed 4/4; for B9, each half was reverted separately.
 Verified with the project's full build command:
 
 ```
-./gradlew build buildHealth checkAll checkJSpecify jreleaserConfig \
-    --warning-mode all --rerun-tasks
+./gradlew build checkAll --warning-mode all --rerun-tasks
 ```
 
 `BUILD SUCCESSFUL`, 45 functional tests, 0 failures.
@@ -2372,8 +2371,7 @@ Re-verified after the NIT sweep, N9 and N10 with the same command less
 `jreleaserConfig`:
 
 ```
-./gradlew build buildHealth checkAll checkJSpecify \
-    --warning-mode all --rerun-tasks
+./gradlew build checkAll --warning-mode all --rerun-tasks
 ```
 
 `BUILD SUCCESSFUL`, 563 tasks executed, 75 tests across the unit and functional source

@@ -76,8 +76,6 @@ jreleaser-gradlePlugin-dependency = { module = "org.jreleaser:org.jreleaser.grad
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
-junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
-junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params" }
 # noinspection UnusedVersionCatalogEntry
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
@@ -93,8 +91,7 @@ zaxxer-hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "zaxxer-hikar
 [bundles]
 annotations = ["jspecify"]
 javafx = [ "javafx-base", "javafx-controls", "javafx-graphics", ]
-test-libraries = ["assertj", "junit-api",  "junit-params", "testfx", "testfx-core","testfx-monocle"]
-test-runtime = ["junit-engine", "junit-launcher"]
+test-libraries = ["assertj", "testfx", "testfx-core", "testfx-monocle"]
 
 [plugins]
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }

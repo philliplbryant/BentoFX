@@ -63,13 +63,20 @@ public final class LayoutIdentifiers {
     public static final String SESSION_LAYOUT_IDENTIFIER = "session";
 
     /**
+     * The entry that records which groups exist.
+     */
+    public static final String GROUP_CATALOG_LAYOUT_IDENTIFIER = "groups";
+
+    /**
      * Identifiers this framework has taken for itself.
      *
      * <p>Compared without case, because a file name is case-insensitive on
      * Windows and macOS.</p>
      */
-    private static final Set<String> RESERVED_LAYOUT_IDENTIFIERS =
-            Set.of(SESSION_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT));
+    private static final Set<String> RESERVED_LAYOUT_IDENTIFIERS = Set.of(
+            SESSION_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT),
+            GROUP_CATALOG_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT)
+    );
 
     /**
      * Names that Windows resolves to a device rather than to a file, whichever

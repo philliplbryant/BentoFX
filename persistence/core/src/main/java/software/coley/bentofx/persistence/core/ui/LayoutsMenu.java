@@ -2,6 +2,7 @@ package software.coley.bentofx.persistence.core.ui;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
@@ -21,13 +22,17 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
+import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in
@@ -47,6 +52,11 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  * <p>This menu owns which named layout is showing, because its own items are
  * the only thing that changes it. An application that switches layouts by some
  * other route as well would need a say in that, which none does today.</p>
+ *
+ * <p>Users organize their saved layouts into groups from this menu: create one,
+ * rename one, move layouts in and out, and delete one without losing the layouts
+ * that were in it. A group is stored as a field of its own. A group also exists
+ * before there is anything in it.</p>
  *
  * <p>Every word a user reads comes from a {@link ResourceBundle}, so an
  * application in another language either drops a translation beside the one
@@ -180,63 +190,244 @@ public class LayoutsMenu extends Menu {
 	/**
 	 * Fills the {@code Custom} menu.
 	 *
-	 * <p>Saving changes and renaming are offered only for the layout showing
-	 * now, because both write the containers on screen; there is no way to
-	 * rewrite a layout that is only in storage.</p>
+	 * <p>Saving changes is offered only for the layout showing now, because it
+	 * writes the containers on screen. Renaming and moving to a group are offered
+	 * for any stored layout: both change only what a layout is called, and
+	 * {@link DockingLayoutPersistenceProvider#updateStoredLayoutNaming} does that
+	 * without reading the scene graph.</p>
 	 *
 	 * @param customMenu the menu to fill.
 	 */
 	private void populateCustomMenu(final Menu customMenu) {
 		final Menu restoreMenu = new Menu(text("menu.restore"));
+		final Menu renameMenu = new Menu(text("menu.rename"));
+		final Menu moveToGroupMenu = new Menu(text("menu.moveToGroup"));
 		final Menu deleteMenu = new Menu(text("menu.delete"));
+		final Menu groupsMenu = new Menu(text("menu.groups"));
 
 		final MenuItem saveChangesItem = new MenuItem(text("item.saveChanges"));
 		saveChangesItem.setDisable(activeCustomLayoutProfile == null);
 		saveChangesItem.setOnAction(event -> saveChangesToActiveLayout());
 
-		final MenuItem renameItem = new MenuItem(text("item.rename"));
-		renameItem.setDisable(activeCustomLayoutProfile == null);
-		renameItem.setOnAction(event -> renameActiveLayout());
-
-		// One reading of storage fills both lists. Listing with display names
-		// decodes every stored layout, so asking twice would decode twice.
+		// One reading of storage fills every list below. Listing with display
+		// names decodes every stored layout, so asking again would decode again.
 		final Optional<List<LayoutPersistenceProfile>> storedLayouts =
 				findStoredCustomLayouts();
+		final Optional<List<String>> groupNames = findGroupNames(storedLayouts);
 
-		if (storedLayouts.isEmpty()) {
-			addDisabledItem(restoreMenu, text("item.listFailed"));
-			addDisabledItem(deleteMenu, text("item.listFailed"));
-		} else if (storedLayouts.get().isEmpty()) {
-			addDisabledItem(restoreMenu, text("item.noLayouts"));
-			addDisabledItem(deleteMenu, text("item.noLayouts"));
+		final List<Menu> layoutMenus =
+				List.of(restoreMenu, renameMenu, moveToGroupMenu, deleteMenu);
+
+		if (storedLayouts.isEmpty() || groupNames.isEmpty()) {
+			layoutMenus.forEach(
+					menu -> addDisabledItem(menu, text("item.listFailed"))
+			);
+			addDisabledItem(groupsMenu, text("item.listFailed"));
 		} else {
-			for (final LayoutPersistenceProfile storedLayout :
-					storedLayouts.get()) {
+			addLayoutItems(
+					restoreMenu,
+					storedLayouts.get(),
+					groupNames.get(),
+					true,
+					this::restoreStoredLayout
+			);
+			addLayoutItems(
+					renameMenu,
+					storedLayouts.get(),
+					groupNames.get(),
+					false,
+					this::renameStoredLayout
+			);
+			addLayoutItems(
+					deleteMenu,
+					storedLayouts.get(),
+					groupNames.get(),
+					false,
+					this::deleteStoredLayout
+			);
 
-				final MenuItem restoreItem = layoutItem(markedText(
-						getLayoutLabel(storedLayout),
-						isActiveLayout(storedLayout)
-				));
-				restoreItem.setOnAction(
-						event -> restoreStoredLayout(storedLayout)
+			// Nothing to move a layout into until a group exists, and an item
+			// that opens a dialog offering no choice is worse than one that says
+			// so.
+			if (groupNames.get().isEmpty()) {
+				addDisabledItem(moveToGroupMenu, text("item.noGroups"));
+			} else {
+				addLayoutItems(
+						moveToGroupMenu,
+						storedLayouts.get(),
+						groupNames.get(),
+						false,
+						this::moveStoredLayoutToGroup
 				);
-				restoreMenu.getItems().add(restoreItem);
-
-				final MenuItem deleteItem =
-						layoutItem(getLayoutLabel(storedLayout));
-				deleteItem.setOnAction(
-						event -> deleteStoredLayout(storedLayout)
-				);
-				deleteMenu.getItems().add(deleteItem);
 			}
+
+			populateGroupsMenu(groupsMenu, storedLayouts.get(), groupNames.get());
 		}
 
 		customMenu.getItems().setAll(
 				restoreMenu,
 				saveChangesItem,
-				renameItem,
-				deleteMenu
+				renameMenu,
+				moveToGroupMenu,
+				deleteMenu,
+				groupsMenu
 		);
+	}
+
+	/**
+	 * Fills the {@code Groups} menu, which acts on the groups themselves rather
+	 * than on any layout.
+	 *
+	 * <p>FX Application Thread only.</p>
+	 *
+	 * @param groupsMenu the menu to fill.
+	 * @param storedLayouts the layouts a rename or a delete has to carry along.
+	 * @param groupNames the groups that exist.
+	 */
+	private void populateGroupsMenu(
+			final Menu groupsMenu,
+			final List<LayoutPersistenceProfile> storedLayouts,
+			final List<String> groupNames
+	) {
+		final MenuItem newGroupItem = new MenuItem(text("item.newGroup"));
+		newGroupItem.setOnAction(event -> createGroup(groupNames));
+
+		final Menu renameGroupMenu = new Menu(text("menu.renameGroup"));
+		final Menu deleteGroupMenu = new Menu(text("menu.deleteGroup"));
+
+		if (groupNames.isEmpty()) {
+			addDisabledItem(renameGroupMenu, text("item.noGroups"));
+			addDisabledItem(deleteGroupMenu, text("item.noGroups"));
+		} else {
+			for (final String groupName : groupNames) {
+				final MenuItem renameItem = layoutItem(groupName);
+				renameItem.setOnAction(event ->
+						renameGroup(groupName, groupNames, storedLayouts)
+				);
+				renameGroupMenu.getItems().add(renameItem);
+
+				final MenuItem deleteItem = layoutItem(groupName);
+				deleteItem.setOnAction(event ->
+						deleteGroup(groupName, storedLayouts)
+				);
+				deleteGroupMenu.getItems().add(deleteItem);
+			}
+		}
+
+		groupsMenu.getItems().setAll(
+				newGroupItem,
+				renameGroupMenu,
+				deleteGroupMenu
+		);
+	}
+
+	/**
+	 * Fills a menu with one item per stored layout, nesting the layouts that
+	 * belong to a group into a submenu for it.
+	 *
+	 * <p>Mnemonic parsing is off because a group name is a name a user typed.</p>
+	 *
+	 * <p>FX Application Thread only, like everything that builds these items.</p>
+	 *
+	 * @param targetMenu the menu to fill.
+	 * @param storedLayouts the layouts to list, in label order.
+	 * @param groupNames the groups that exist, in the order to show them.
+	 * @param marksActiveLayout whether to mark the layout showing now, which
+	 * suits a menu that switches layouts and misleads on one that deletes them.
+	 * @param action what to do with the layout an item names.
+	 */
+	private void addLayoutItems(
+			final Menu targetMenu,
+			final List<LayoutPersistenceProfile> storedLayouts,
+			final List<String> groupNames,
+			final boolean marksActiveLayout,
+			final Consumer<LayoutPersistenceProfile> action
+	) {
+		LayoutGroups.groupLayouts(groupNames, storedLayouts)
+				.forEach((groupName, groupLayouts) -> targetMenu.getItems().add(
+						groupMenu(
+								groupName,
+								groupLayouts,
+								marksActiveLayout,
+								action
+						)
+				));
+
+		for (final LayoutPersistenceProfile ungroupedLayout :
+				LayoutGroups.ungroupedLayouts(groupNames, storedLayouts)) {
+
+			targetMenu.getItems().add(
+					layoutItemFor(ungroupedLayout, marksActiveLayout, action)
+			);
+		}
+
+		// An empty menu opens as an empty popup, which reads as a fault rather
+		// than as an answer. Reached when nothing is stored and no group exists.
+		if (targetMenu.getItems().isEmpty()) {
+			addDisabledItem(targetMenu, text("item.noLayouts"));
+		}
+	}
+
+	/**
+	 * {@return one group's submenu, holding an item per layout in it.}
+	 *
+	 * <p>FX Application Thread only.</p>
+	 *
+	 * @param groupName the group to build for.
+	 * @param groupLayouts the layouts in it, which may be none.
+	 * @param marksActiveLayout whether to mark the layout showing now.
+	 * @param action what to do with the layout an item names.
+	 */
+	private Menu groupMenu(
+			final String groupName,
+			final List<LayoutPersistenceProfile> groupLayouts,
+			final boolean marksActiveLayout,
+			final Consumer<LayoutPersistenceProfile> action
+	) {
+		final Menu groupMenu = new Menu(markedText(
+				groupName,
+				marksActiveLayout
+						&& groupLayouts.stream().anyMatch(this::isActiveLayout)
+		));
+		groupMenu.setMnemonicParsing(false);
+
+		if (groupLayouts.isEmpty()) {
+			addDisabledItem(groupMenu, text("item.noLayouts"));
+
+			return groupMenu;
+		}
+
+		for (final LayoutPersistenceProfile groupLayout : groupLayouts) {
+			groupMenu.getItems().add(
+					layoutItemFor(groupLayout, marksActiveLayout, action)
+			);
+		}
+
+		return groupMenu;
+	}
+
+	/**
+	 * {@return an item naming one stored layout, which carries out the supplied
+	 * action on it.}
+	 *
+	 * <p>FX Application Thread only.</p>
+	 *
+	 * @param storedLayout the layout the item names.
+	 * @param marksActiveLayout whether to mark the layout showing now.
+	 * @param action what to do with the layout when the item is chosen.
+	 */
+	private MenuItem layoutItemFor(
+			final LayoutPersistenceProfile storedLayout,
+			final boolean marksActiveLayout,
+			final Consumer<LayoutPersistenceProfile> action
+	) {
+		final MenuItem item = layoutItem(markedText(
+				getLayoutLabel(storedLayout),
+				marksActiveLayout && isActiveLayout(storedLayout)
+		));
+		item.setOnAction(event -> action.accept(storedLayout));
+
+		return item;
 	}
 
 	/**
@@ -266,6 +457,38 @@ public class LayoutsMenu extends Menu {
 			);
 		} catch (final BentoStateException e) {
 			logger.warn("Could not list the stored docking layouts.", e);
+			return Optional.empty();
+		}
+	}
+
+	/**
+	 * {@return the groups to show, or an empty {@link Optional} when storage
+	 * could not be read.}
+	 *
+	 * <p>The stored catalog together with the groups the layouts themselves name -
+	 * see {@link LayoutGroups#mergeGroupNames}. An empty {@link Optional} in,
+	 * meaning the layouts could not be listed, gives an empty {@link Optional}
+	 * out: with no layouts to reconcile against, a catalog on its own would
+	 * report groups for a list of layouts this menu does not have.</p>
+	 *
+	 * @param storedLayouts the layouts storage reported.
+	 */
+	private Optional<List<String>> findGroupNames(
+			final Optional<List<LayoutPersistenceProfile>> storedLayouts
+	) {
+		if (storedLayouts.isEmpty()) {
+			return Optional.empty();
+		}
+
+		try {
+			return Optional.of(LayoutGroups.mergeGroupNames(
+					persistenceProvider().getStoredGroups(
+							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
+					),
+					storedLayouts.get()
+			));
+		} catch (final BentoStateException e) {
+			logger.warn("Could not list the stored layout groups.", e);
 			return Optional.empty();
 		}
 	}
@@ -344,7 +567,11 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
-	 * Asks for a name and saves the layout showing now under it.
+	 * Asks for a name, asks which group it belongs in, and saves the layout
+	 * showing now under both.
+	 *
+	 * <p>The group is asked for only when there is a group to choose, so an
+	 * application whose users never make one never sees a second dialog.</p>
 	 */
 	private void saveCurrentLayoutAsNew() {
 		final Optional<String> displayName = findLayoutName(
@@ -374,9 +601,37 @@ public class LayoutsMenu extends Menu {
 			return;
 		}
 
+		final Optional<List<String>> groupNames =
+				findGroupNames(findStoredCustomLayouts());
+
+		if (groupNames.isEmpty()) {
+			showLayoutError(text("error.listGroupsFailed.header"), null);
+			return;
+		}
+
+		final String group;
+
+		if (groupNames.get().isEmpty()) {
+			group = null;
+		} else {
+			final Optional<String> choice = findGroupChoice(
+					text("dialog.saveAsNew.title"),
+					text("dialog.saveAsNew.groupPrompt"),
+					null,
+					groupNames.get()
+			);
+
+			if (choice.isEmpty()) {
+				return;
+			}
+
+			group = chosenGroup(choice.get());
+		}
+
 		final LayoutPersistenceProfile newLayout = newProfile(
 				layoutIdentifier,
-				displayName.get()
+				displayName.get(),
+				group
 		);
 
 		final boolean isAlreadyStored;
@@ -419,30 +674,29 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
-	 * Asks for a new name for the layout showing now and stores it under that
-	 * name.
+	 * Asks for a new name for a stored layout and stores it under that name.
 	 *
 	 * <p>The layout identifier does not change, so the layout keeps the place
 	 * in storage it already had - a display name is stored with a layout, not
-	 * what the layout is addressed by.</p>
+	 * what the layout is addressed by. Nor does the group, so renaming a layout
+	 * does not move it.</p>
 	 *
-	 * <p>A rename is a save as well, not only a relabelling: a save reads the
-	 * live containers, and nothing writes the stored metadata on its own, so
-	 * the arrangement on screen goes to storage along with the new name. That
-	 * is why this is offered only for the layout showing now - there is no way
-	 * to rename a layout without also rewriting it.</p>
+	 * <p>Only the name is written. A rename used to be a save as well, because
+	 * nothing could rewrite the stored metadata on its own, which both restricted
+	 * it to the layout on screen and meant renaming a layout quietly stored
+	 * whatever arrangement happened to be showing.
+	 * {@link DockingLayoutPersistenceProvider#updateStoredLayoutNaming} rewrites
+	 * the name and leaves the docking state alone, so neither is true now.</p>
+	 *
+	 * @param storedLayout identifies the layout to rename.
 	 */
-	private void renameActiveLayout() {
-		final LayoutPersistenceProfile activeLayout = activeCustomLayoutProfile;
-
-		if (activeLayout == null) {
-			return;
-		}
-
+	private void renameStoredLayout(
+			final LayoutPersistenceProfile storedLayout
+	) {
 		final Optional<String> displayName = findLayoutName(
 				text("dialog.rename.title"),
 				text("dialog.rename.prompt"),
-				getLayoutLabel(activeLayout)
+				getLayoutLabel(storedLayout)
 		);
 
 		if (displayName.isEmpty()) {
@@ -457,10 +711,381 @@ public class LayoutsMenu extends Menu {
 			return;
 		}
 
-		writeLayout(newProfile(
-				activeLayout.layoutIdentifier(),
-				displayName.get()
-		));
+		updateStoredLayoutNaming(
+				storedLayout,
+				displayName.get(),
+				storedLayout.group()
+		);
+	}
+
+	/**
+	 * Asks which group a stored layout belongs in and moves it there.
+	 *
+	 * <p>Offered for any stored layout rather than only the one showing, and it
+	 * rewrites nothing but the group - a layout does not have to be restored to be
+	 * filed.</p>
+	 *
+	 * @param storedLayout identifies the layout to move.
+	 */
+	private void moveStoredLayoutToGroup(
+			final LayoutPersistenceProfile storedLayout
+	) {
+		final Optional<List<String>> groupNames =
+				findGroupNames(findStoredCustomLayouts());
+
+		if (groupNames.isEmpty()) {
+			showLayoutError(text("error.listGroupsFailed.header"), null);
+			return;
+		}
+
+		final Optional<String> choice = findGroupChoice(
+				text("dialog.moveToGroup.title"),
+				text("dialog.moveToGroup.prompt"),
+				storedLayout.group(),
+				groupNames.get()
+		);
+
+		if (choice.isEmpty()) {
+			return;
+		}
+
+		updateStoredLayoutNaming(
+				storedLayout,
+				storedLayout.displayName(),
+				chosenGroup(choice.get())
+		);
+	}
+
+	/**
+	 * {@return the group a user picked, or an empty {@link Optional} when the
+	 * dialog was dismissed.}
+	 *
+	 * <p>What comes back is the label that was picked, which is
+	 * {@code choice.noGroup} when the user chose to leave the layout in no group -
+	 * put it through {@link #chosenGroup(String)} to get the group to store.</p>
+	 *
+	 * <p>A {@link ChoiceDialog} rather than a submenu of groups, because the menu
+	 * item this opens from already names a layout and an item cannot both act and
+	 * hold a submenu.</p>
+	 *
+	 * <p>FX Application Thread only, and blocks in a nested event loop until the
+	 * dialog is dismissed.</p>
+	 *
+	 * @param title the dialog's title.
+	 * @param prompt what to ask for.
+	 * @param currentGroup the group to start on, or {@code null} to start on no
+	 * group.
+	 * @param groupNames the groups to choose between.
+	 */
+	private Optional<String> findGroupChoice(
+			final String title,
+			final String prompt,
+			final @Nullable String currentGroup,
+			final List<String> groupNames
+	) {
+		final String noGroupChoice = text("choice.noGroup");
+		final List<String> choices = new ArrayList<>();
+		choices.add(noGroupChoice);
+		choices.addAll(groupNames);
+
+		// Starting on a group that is not offered would show the dialog with a
+		// selection the list does not hold, so an unknown group starts on none.
+		final String startingChoice =
+				currentGroup != null && choices.contains(currentGroup)
+						? currentGroup
+						: noGroupChoice;
+
+		final ChoiceDialog<String> dialog =
+				new ChoiceDialog<>(startingChoice, choices);
+
+		dialog.initOwner(owner);
+		dialog.setTitle(title);
+		dialog.setHeaderText(null);
+		dialog.setContentText(prompt);
+
+		return dialog.showAndWait();
+	}
+
+	/**
+	 * {@return the group to store for a label a user picked, which is
+	 * {@code null} when they picked no group.}
+	 *
+	 * @param choice the label {@link #findGroupChoice} returned.
+	 */
+	private @Nullable String chosenGroup(final String choice) {
+		return choice.equals(text("choice.noGroup")) ? null : choice;
+	}
+
+	/**
+	 * Asks for a name and adds a group under it.
+	 *
+	 * <p>The group is written to the catalog and holds nothing, which is what
+	 * lets it be created before there is a layout to put in it.</p>
+	 *
+	 * @param groupNames the groups that already exist, which a new name may not
+	 * repeat.
+	 */
+	private void createGroup(final List<String> groupNames) {
+		final Optional<String> groupName = findLayoutName(
+				text("dialog.newGroup.title"),
+				text("dialog.newGroup.prompt"),
+				""
+		);
+
+		if (groupName.isEmpty() || !isUsableGroupName(
+				groupName.get(),
+				groupNames,
+				null
+		)) {
+			return;
+		}
+
+		// Read the catalog rather than reusing the merged list: merging folds in
+		// the groups the layouts name, and writing those back would quietly
+		// promote a group into the catalog that nobody asked to create.
+		writeGroupCatalog(catalog -> {
+			final List<String> updated = new ArrayList<>(catalog);
+			updated.add(groupName.get().trim());
+			return updated;
+		}, text("error.groupFailed.header"));
+	}
+
+	/**
+	 * Asks for a new name for a group and renames it, along with every layout in
+	 * it.
+	 *
+	 * <p>The catalog is rewritten first and the layouts after. Either order can be
+	 * interrupted, and neither loses a layout: the group a layout records and the
+	 * catalog are read together as a union, so a layout left behind under the old
+	 * name still appears - under that name - rather than vanishing.</p>
+	 *
+	 * @param groupName the group to rename.
+	 * @param groupNames the groups that exist.
+	 * @param storedLayouts the layouts to carry across.
+	 */
+	private void renameGroup(
+			final String groupName,
+			final List<String> groupNames,
+			final List<LayoutPersistenceProfile> storedLayouts
+	) {
+		final Optional<String> newGroupName = findLayoutName(
+				text("dialog.renameGroup.title"),
+				text("dialog.renameGroup.prompt"),
+				groupName
+		);
+
+		if (newGroupName.isEmpty() || !isUsableGroupName(
+				newGroupName.get(),
+				groupNames,
+				groupName
+		)) {
+			return;
+		}
+
+		final String trimmedName = newGroupName.get().trim();
+
+		final boolean catalogWritten = writeGroupCatalog(
+				catalog -> catalog.stream()
+						.map(stored -> stored.equalsIgnoreCase(groupName)
+								? trimmedName
+								: stored)
+						.toList(),
+				text("error.renameGroupFailed.header")
+		);
+
+		if (catalogWritten) {
+			moveGroupMembers(
+					groupName,
+					trimmedName,
+					storedLayouts,
+					text("error.renameGroupFailed.header")
+			);
+		}
+	}
+
+	/**
+	 * Confirms, then removes a group and takes the layouts in it out of it.
+	 *
+	 * <p>The layouts are not deleted. They are moved out of the group first and
+	 * the catalog is rewritten after, so an interrupted delete leaves a group that
+	 * is empty rather than one that appears to hold layouts no longer in it.</p>
+	 *
+	 * @param groupName the group to remove.
+	 * @param storedLayouts the layouts to take out of it.
+	 */
+	private void deleteGroup(
+			final String groupName,
+			final List<LayoutPersistenceProfile> storedLayouts
+	) {
+		if (!confirmLayoutAction(
+				text("confirm.deleteGroup.header", groupName),
+				text("confirm.deleteGroup.content")
+		)) {
+			return;
+		}
+
+		final boolean membersMoved = moveGroupMembers(
+				groupName,
+				null,
+				storedLayouts,
+				text("error.deleteGroupFailed.header")
+		);
+
+		if (membersMoved) {
+			writeGroupCatalog(
+					catalog -> catalog.stream()
+							.filter(stored -> !stored.equalsIgnoreCase(groupName))
+							.toList(),
+					text("error.deleteGroupFailed.header")
+			);
+		}
+	}
+
+	/**
+	 * Moves every layout in a group to another group, or out of any group.
+	 *
+	 * @param groupName the group whose layouts to move.
+	 * @param newGroupName the group to move them to, or {@code null} to take them
+	 * out of any group.
+	 * @param storedLayouts the layouts to look through.
+	 * @param errorHeader what to tell the user when a layout cannot be written.
+	 * @return {@code true} when every layout in the group was moved; otherwise,
+	 * {@code false}, the user having been told.
+	 */
+	private boolean moveGroupMembers(
+			final String groupName,
+			final @Nullable String newGroupName,
+			final List<LayoutPersistenceProfile> storedLayouts,
+			final String errorHeader
+	) {
+		for (final LayoutPersistenceProfile storedLayout : storedLayouts) {
+			final String layoutGroup = storedLayout.group();
+
+			if (layoutGroup == null || !layoutGroup.equalsIgnoreCase(groupName)) {
+				continue;
+			}
+
+			try {
+				persistenceProvider().updateStoredLayoutNaming(
+						storedLayout.withNaming(
+								storedLayout.displayName(),
+								newGroupName
+						)
+				);
+			} catch (final BentoStateException e) {
+				logger.warn(
+						"Could not move the stored layout '{}' out of the group "
+								+ "'{}'.",
+						storedLayout.layoutIdentifier(),
+						groupName,
+						e
+				);
+				showLayoutError(errorHeader, e.getMessage());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Reads the group catalog, changes it, and writes it back.
+	 *
+	 * @param change what the catalog should become, given what it holds now.
+	 * @param errorHeader what to tell the user when it cannot be read or written.
+	 * @return {@code true} when the catalog was written; otherwise, {@code false},
+	 * the user having been told.
+	 */
+	private boolean writeGroupCatalog(
+			final UnaryOperator<List<String>> change,
+			final String errorHeader
+	) {
+		final LayoutPersistenceProfile storageProfile =
+				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER);
+
+		try {
+			persistenceProvider().setStoredGroups(
+					storageProfile,
+					change.apply(
+							persistenceProvider().getStoredGroups(storageProfile)
+					)
+			);
+			return true;
+		} catch (final BentoStateException e) {
+			logger.warn("Could not write the stored layout groups.", e);
+			showLayoutError(errorHeader, e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Stores a different display name and group for a layout already in storage.
+	 *
+	 * @param storedLayout identifies the layout to rewrite.
+	 * @param displayName the name to store.
+	 * @param group the group to store, or {@code null} for no group.
+	 */
+	private void updateStoredLayoutNaming(
+			final LayoutPersistenceProfile storedLayout,
+			final @Nullable String displayName,
+			final @Nullable String group
+	) {
+		try {
+			if (!persistenceProvider().updateStoredLayoutNaming(
+					storedLayout.withNaming(displayName, group)
+			)) {
+				// Deleted from under the menu, which is rebuilt each time it
+				// opens, so the next open shows the truth.
+				showLayoutError(text("error.notStored.header"), null);
+			}
+		} catch (final BentoStateException e) {
+			logger.warn(
+					"Could not rewrite the naming of the stored layout '{}'.",
+					storedLayout.layoutIdentifier(),
+					e
+			);
+			showLayoutError(text("error.saveFailed.header"), e.getMessage());
+		}
+	}
+
+	/**
+	 * {@return {@code true} when the name can be a group; otherwise,
+	 * {@code false}, the user having been told why.}
+	 *
+	 * @param groupName the name the user typed.
+	 * @param groupNames the groups that exist.
+	 * @param renamedGroup the group being renamed, or {@code null} when one is
+	 * being created.
+	 */
+	private boolean isUsableGroupName(
+			final String groupName,
+			final List<String> groupNames,
+			final @Nullable String renamedGroup
+	) {
+		final Optional<GroupNameProblem> problem =
+				LayoutGroups.findGroupNameProblem(
+						groupName,
+						groupNames,
+						renamedGroup
+				);
+
+		if (problem.isEmpty()) {
+			return true;
+		}
+
+		showLayoutError(
+				text("error.cannotNameGroup.header", groupName),
+				switch (problem.get()) {
+					case BLANK -> text("problem.blankGroup");
+					case TOO_LONG -> text(
+							"problem.groupTooLong",
+							LayoutGroups.MAX_GROUP_NAME_LENGTH
+					);
+					case DUPLICATE -> text("problem.duplicateGroup");
+				}
+		);
+
+		return false;
 	}
 
 	/**
@@ -533,17 +1158,20 @@ public class LayoutsMenu extends Menu {
 	 *
 	 * @param layoutIdentifier addresses the layout in storage.
 	 * @param displayName the name to store with the layout.
+	 * @param group the group to store with the layout, or {@code null} for no
+	 * group.
 	 */
 	private static LayoutPersistenceProfile newProfile(
 			final String layoutIdentifier,
-			final String displayName
+			final String displayName,
+			final @Nullable String group
 	) {
 		return LayoutPersistenceProfile.named(
 				layoutIdentifier,
 				displayName,
 				null,
 				null
-		);
+		).withNaming(displayName, group);
 	}
 
 	/**

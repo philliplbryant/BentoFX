@@ -281,6 +281,119 @@ class XmlLayoutCodecTest {
                 .isNull();
     }
 
+    /**
+     * The group is metadata of its own, so a display name holding the character
+     * that used to separate the two is nothing but a name.
+     */
+    @Test
+    void encodeThenDecodeRoundTripsTheGroupSeparatelyFromTheDisplayName()
+            throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(
+                new PersistableLayout(
+                        "TCP/IP Debug",
+                        createBentoStates(),
+                        "Debugging",
+                        List.of()
+                ),
+                out
+        );
+
+        final PersistableLayout restored =
+                codec.decode(new ByteArrayInputStream(out.toByteArray()));
+
+        assertThat(restored.displayName())
+                .describedAs("display name restored from XML")
+                .isEqualTo("TCP/IP Debug");
+        assertThat(restored.group())
+                .describedAs("group restored from XML")
+                .isEqualTo("Debugging");
+    }
+
+    /**
+     * An empty {@code <groups/>} is what XML reads back as a list holding one
+     * empty string, so a layout in no group has to write no element at all.
+     */
+    @Test
+    void aLayoutInNoGroupWritesNoGroupAtAll() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(PersistableLayout.of(createBentoStates()), out);
+
+        assertThat(out.toString(StandardCharsets.UTF_8))
+                .describedAs("XML for a layout in no group")
+                .doesNotContain("<" + GROUP_ELEMENT_NAME + ">")
+                .doesNotContain("<" + GROUP_LIST_ELEMENT_NAME);
+
+        final PersistableLayout restored =
+                codec.decode(new ByteArrayInputStream(out.toByteArray()));
+
+        assertThat(restored.group())
+                .describedAs("group from a layout saved without one")
+                .isNull();
+        assertThat(restored.groups())
+                .describedAs("catalog from a layout saved without one")
+                .isEmpty();
+    }
+
+    @Test
+    void encodeThenDecodeRoundTripsTheGroupCatalog() throws Exception {
+        final XmlLayoutCodec codec = new XmlLayoutCodec();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(
+                PersistableLayout.ofGroups(List.of("Debugging", "Presentation")),
+                out
+        );
+
+        final PersistableLayout restored =
+                codec.decode(new ByteArrayInputStream(out.toByteArray()));
+
+        assertThat(restored.groups())
+                .describedAs("group catalog restored from XML")
+                .containsExactly("Debugging", "Presentation");
+        assertThat(restored.bentoStates())
+                .describedAs("state in a group catalog")
+                .isEmpty();
+    }
+
+    /**
+     * A layout written before groups existed declares schema version 1 and
+     * carries neither field. It has to keep restoring, which is the whole reason
+     * the two are optional.
+     */
+    @Test
+    void decodesASchemaVersionOneLayoutAsUngrouped() throws Exception {
+        final String versionOneLayout = """
+                <?xml version='1.0' encoding='UTF-8'?>
+                <dockingLayout>
+                  <metadata>
+                    <schemaVersion>1</schemaVersion>
+                    <displayName>Multi-Monitor</displayName>
+                  </metadata>
+                </dockingLayout>
+                """;
+
+        final PersistableLayout restored = new XmlLayoutCodec().decode(
+                new ByteArrayInputStream(
+                        versionOneLayout.getBytes(StandardCharsets.UTF_8)
+                )
+        );
+
+        assertThat(restored.displayName())
+                .describedAs("display name from a version 1 layout")
+                .isEqualTo("Multi-Monitor");
+        assertThat(restored.group())
+                .describedAs("group from a version 1 layout")
+                .isNull();
+        assertThat(restored.groups())
+                .describedAs("catalog from a version 1 layout")
+                .isEmpty();
+    }
+
     private static List<BentoState> createStates() throws Exception {
         return BentoStateMapper.fromDto(createDockingLayoutDto()).bentoStates();
     }

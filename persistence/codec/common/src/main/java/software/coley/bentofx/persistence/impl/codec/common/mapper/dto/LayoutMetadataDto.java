@@ -2,6 +2,9 @@ package software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Metadata about a persisted BentoFX docking layout.
  *
@@ -19,4 +22,15 @@ public class LayoutMetadataDto {
      * without one.
      */
     public @Nullable String displayName;
+
+    /**
+     * The group the layout belongs to, or {@code null} when it belongs to none.
+     */
+    public @Nullable String group;
+
+    /**
+     * The groups that exist, populated only on the reserved group catalog and
+     * empty on every other layout.
+     */
+    public List<String> groups = new ArrayList<>();
 }

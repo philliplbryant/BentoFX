@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.core.impl;
 
 import javafx.application.Platform;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -212,7 +213,8 @@ class LayoutSaverAutoSaveLifecycleFT {
     void closeDoesNotDeadlockAgainstFxThreadEnablingAutoSave() throws Exception {
         final Bento bento = new Bento("bento-lifecycle-deadlock");
         final CountDownLatch startLine = new CountDownLatch(1);
-        final AtomicReference<Throwable> failure = new AtomicReference<>();
+        final AtomicReference<@Nullable Throwable> failure =
+                new AtomicReference<>();
 
         try (DockingLayoutSaver saver = newSaver(new DefaultBentoProvider(bento))) {
 

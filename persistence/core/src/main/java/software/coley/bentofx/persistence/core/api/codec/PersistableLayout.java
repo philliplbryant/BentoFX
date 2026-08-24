@@ -26,20 +26,45 @@ import static java.util.Objects.requireNonNull;
  * has none.
  * @param bentoStates the state that makes up the layout. Copied on
  * construction, so this record does not share a list with its caller.
+ * @param group the group the layout belongs to, or {@code null} when it belongs
+ * to none.
+ * @param groups the groups that exist, which is empty on every layout but the
+ * group catalog - see
+ * {@link software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers#GROUP_CATALOG_LAYOUT_IDENTIFIER}.
+ * Copied on construction.
  *
  * @author Phil Bryant
  */
 public record PersistableLayout(
         @Nullable String displayName,
-        List<BentoState> bentoStates
+        List<BentoState> bentoStates,
+        @Nullable String group,
+        List<String> groups
 ) {
 
     /**
-     * Canonical constructor, copying the state list so the layout is immutable.
+     * Canonical constructor, copying both lists so the layout is immutable.
      */
     public PersistableLayout {
         requireNonNull(bentoStates, "bentoStates");
+        requireNonNull(groups, "groups");
         bentoStates = List.copyOf(bentoStates);
+        groups = List.copyOf(groups);
+    }
+
+    /**
+     * Constructs a layout that belongs to no group and declares none, which is
+     * every layout but one a user has grouped and the group catalog itself.
+     *
+     * @param displayName the layout's human-readable name, or {@code null} when
+     * it has none.
+     * @param bentoStates the state that makes up the layout.
+     */
+    public PersistableLayout(
+            final @Nullable String displayName,
+            final List<BentoState> bentoStates
+    ) {
+        this(displayName, bentoStates, null, List.of());
     }
 
     /**
@@ -53,9 +78,44 @@ public record PersistableLayout(
     }
 
     /**
+     * {@return a group catalog holding the supplied group names, which is a
+     * layout in name only: it carries no state and is never restored.}
+     *
+     * @param groups the groups that exist.
+     */
+    public static PersistableLayout ofGroups(final List<String> groups) {
+        return new PersistableLayout(null, List.of(), null, groups);
+    }
+
+    /**
+     * {@return this layout's state under a different name and group.}
+     *
+     * <p>What a rename and a move to another group both come down to. The state
+     * is carried over untouched, which is the point: the alternative is
+     * capturing the containers on screen, and those belong to whichever layout
+     * is showing rather than to the one being renamed.</p>
+     *
+     * @param displayName the name to store, or {@code null} to store none.
+     * @param group the group to store, or {@code null} for no group.
+     */
+    public PersistableLayout withNaming(
+            final @Nullable String displayName,
+            final @Nullable String group
+    ) {
+        return new PersistableLayout(displayName, bentoStates, group, groups);
+    }
+
+    /**
      * {@return the layout's display name, if it has one.}
      */
     public Optional<String> findDisplayName() {
         return Optional.ofNullable(displayName);
+    }
+
+    /**
+     * {@return the group the layout belongs to, if it belongs to one.}
+     */
+    public Optional<String> findGroup() {
+        return Optional.ofNullable(group);
     }
 }

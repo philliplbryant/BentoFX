@@ -76,6 +76,28 @@ class DockingLayoutPersistenceProviderTest {
             ) {
                 throw new UnsupportedOperationException();
             }
+
+            @Override
+            public boolean updateStoredLayoutNaming(
+                    final LayoutPersistenceProfile layoutPersistenceProfile
+            ) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<String> getStoredGroups(
+                    final LayoutPersistenceProfile layoutPersistenceProfile
+            ) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void setStoredGroups(
+                    final LayoutPersistenceProfile layoutPersistenceProfile,
+                    final List<String> groups
+            ) {
+                throw new UnsupportedOperationException();
+            }
         };
 
         provider.saveLayout(LAYOUT_IDENTIFIER, new DefaultBentoProvider());

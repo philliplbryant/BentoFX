@@ -73,6 +73,8 @@ dependencies {
 
     testImplementation testFixtures(projects.persistence.testFixtures)
 
+    testImplementation libs.junit.params
+
     functionalTestImplementation testFixtures(projects.persistence.testFixtures)
 
     functionalTestImplementation libs.junit.params

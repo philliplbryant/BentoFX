@@ -2,7 +2,13 @@ package software.coley.bentofx.persistence.core.ui;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -16,18 +22,29 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.util.WaitForAsyncUtils;
-import software.coley.bentofx.persistence.core.api.*;
+import software.coley.bentofx.persistence.core.api.BentoStateException;
+import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.core.api.provider.*;
+import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
+import software.coley.bentofx.persistence.core.api.LayoutRestorer;
+import software.coley.bentofx.persistence.core.api.LayoutSaver;
+import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
+import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 
 /**
  * Drives {@link LayoutsMenu} through its real menu items and the modal
@@ -60,14 +77,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LayoutsMenuFT {
 
     private static final String OTHER_LAYOUT_ID = "other-layout";
+    private static final String WIDE_LAYOUT_ID = "debugging-wide";
+    private static final String ALIGNED_LAYOUT_ID = "debugging-aligned";
+    private static final String GROUPED_ACTIVE_LAYOUT_ID = "debugging-active";
+    private static final String GROUPED_ACTIVE_DISPLAY_NAME = "Active Grouped";
+    private static final String GROUP_NAME = "Debugging";
+    private static final String OTHER_GROUP_NAME = "Presentation";
     private static final String ACTIVE_LAYOUT_ID = "active-layout";
+
+    /**
+     * Duplicated from {@code LayoutsMenu.properties} rather than read from it: a
+     * test that took the label from the same bundle the menu reads would pass
+     * whatever either said.
+     */
+    private static final String NO_GROUP_CHOICE = "(No Group)";
     private static final String ACTIVE_LAYOUT_DISPLAY_NAME = "Active Layout";
     private static final String NEW_LAYOUT_DISPLAY_NAME = "My New Layout";
     private static final String NEW_LAYOUT_IDENTIFIER = "my-new-layout";
 
+    /*
+     * Assigned by setUp, but inside the robot.interact() lambda that puts the
+     * work on the FX Application Thread, which NullAway cannot follow. Every
+     * @Test body runs after that lambda has completed.
+     */
+    @SuppressWarnings("NullAway.Init")
     private Stage owner;
+
     private RecordingPersistenceProvider persistenceProvider;
     private RecordingRestorable restorable;
+
+    @SuppressWarnings("NullAway.Init")
     private LayoutsMenu menu;
 
     @BeforeEach
@@ -145,6 +184,317 @@ class LayoutsMenuFT {
         assertThat(deleteMenu().getItems())
                 .describedAs("deleteMenu.getItems()")
                 .hasSize(2);
+    }
+
+    /**
+     * A layout's group comes from its own field, so the display name is only ever
+     * a name - including one holding the character that used to split the two.
+     */
+    @Test
+    void customMenuNestsGroupedLayoutsIntoASubmenuBeforeTheLooseOnes() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "TCP/IP Debug", GROUP_NAME);
+        storeLayout(ALIGNED_LAYOUT_ID, "Aligned", GROUP_NAME);
+        storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
+        repopulate();
+
+        assertThat(restoreMenu().getItems())
+                .describedAs("restoreMenu.getItems()")
+                .hasSize(2);
+
+        final MenuItem groupItem = restoreMenu().getItems().get(0);
+
+        assertThat(groupItem)
+                .describedAs("first restore item, the group")
+                .isInstanceOf(Menu.class);
+        assertThat(groupItem.getText())
+                .describedAs("group submenu text")
+                .isEqualTo(GROUP_NAME);
+        assertThat(((Menu) groupItem).getItems())
+                .describedAs("layouts within the group, whole names and all")
+                .extracting(MenuItem::getText)
+                .containsExactly("Aligned", "TCP/IP Debug");
+
+        assertThat(restoreMenu().getItems().get(1))
+                .describedAs("second restore item, in no group")
+                .isNotInstanceOf(Menu.class);
+        assertThat(restoreMenu().getItems().get(1).getText())
+                .describedAs("loose restore item text")
+                .isEqualTo("Zebra");
+    }
+
+    /**
+     * The group catalog is stored as an ordinary layout entry, so listing what a
+     * destination holds reports it like anything else. It holds no docking state
+     * and nothing could restore it, so it has to be filtered out of every list a
+     * user acts on.
+     */
+    @Test
+    void customMenuLeavesTheGroupCatalogOutOfEveryLayoutList() {
+        storeLayout(GROUP_CATALOG_LAYOUT_IDENTIFIER, null, null);
+        storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
+        repopulate();
+
+        assertThat(restoreMenu().getItems())
+                .describedAs("restoreMenu.getItems()")
+                .extracting(MenuItem::getText)
+                .containsExactly("Zebra");
+        assertThat(deleteMenu().getItems())
+                .describedAs("deleteMenu.getItems()")
+                .extracting(MenuItem::getText)
+                .containsExactly("Zebra");
+        assertThat(renameMenu().getItems())
+                .describedAs("renameMenu.getItems()")
+                .extracting(MenuItem::getText)
+                .containsExactly("Zebra");
+    }
+
+    /**
+     * A group a user created exists before there is a layout in it, which is the
+     * whole reason the catalog is stored apart from the layouts.
+     */
+    @Test
+    void customMenuShowsAGroupWithNoLayoutsInIt() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        repopulate();
+
+        final MenuItem groupItem = restoreMenu().getItems().get(0);
+
+        assertThat(groupItem.getText())
+                .describedAs("empty group submenu text")
+                .isEqualTo(GROUP_NAME);
+        assertThat(((Menu) groupItem).getItems())
+                .describedAs("items inside an empty group")
+                .hasSize(1);
+        assertThat(((Menu) groupItem).getItems().get(0).isDisable())
+                .describedAs("stand-in inside an empty group disabled")
+                .isTrue();
+    }
+
+    /**
+     * A group is marked when it holds the layout showing now, so that finding
+     * that layout does not mean opening every group in turn.
+     */
+    @Test
+    void customMenuMarksTheGroupHoldingTheActiveLayout() {
+        makeActiveGroupedLayout();
+        persistenceProvider.storedGroups.add(OTHER_GROUP_NAME);
+        storeLayout(OTHER_LAYOUT_ID, "Wide", OTHER_GROUP_NAME);
+        repopulate();
+
+        final Menu activeGroup = (Menu) restoreMenu().getItems().get(0);
+
+        assertThat(activeGroup.getText())
+                .describedAs("group holding the active layout")
+                .startsWith("✓")
+                .contains(GROUP_NAME);
+        assertThat(activeGroup.getItems().get(0).getText())
+                .describedAs("the active layout's own item")
+                .startsWith("✓")
+                .contains(GROUPED_ACTIVE_DISPLAY_NAME);
+
+        assertThat(restoreMenu().getItems().get(1).getText())
+                .describedAs("group holding no active layout")
+                .doesNotContain("✓")
+                .contains(OTHER_GROUP_NAME);
+    }
+
+    /**
+     * The delete menu groups the same way and marks nothing: a check mark there
+     * would read as naming the layout about to be deleted.
+     */
+    @Test
+    void deleteMenuGroupsTheSameWayWithoutMarkingTheActiveLayout() {
+        makeActiveGroupedLayout();
+        repopulate();
+
+        final MenuItem groupItem = deleteMenu().getItems().get(0);
+
+        assertThat(groupItem)
+                .describedAs("first delete item, the group")
+                .isInstanceOf(Menu.class);
+        assertThat(groupItem.getText())
+                .describedAs("delete group submenu text")
+                .isEqualTo(GROUP_NAME);
+        assertThat(((Menu) groupItem).getItems())
+                .describedAs("layouts within the delete group")
+                .extracting(MenuItem::getText)
+                .containsExactly(GROUPED_ACTIVE_DISPLAY_NAME);
+    }
+
+    @Test
+    void newGroupAddsToTheCatalogWithoutTouchingAnyLayout() {
+        repopulate();
+
+        fire(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.OK));
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .containsExactly(GROUP_NAME);
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("layouts rewritten by creating a group")
+                .isEmpty();
+    }
+
+    @Test
+    void newGroupDoesNothingWhenTheDialogIsCancelled() {
+        repopulate();
+
+        fire(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.CANCEL));
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .isEmpty();
+    }
+
+    @ParameterizedTest(name = "rejects \"{0}\"")
+    @ValueSource(strings = {"", "   "})
+    void newGroupShowsAProblemErrorForAnUnusableName(final String groupName) {
+        repopulate();
+
+        fire(
+                newGroupItem(),
+                typeAndDismiss(groupName, ButtonType.OK),
+                dismiss(ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .isEmpty();
+    }
+
+    @Test
+    void newGroupRefusesANameAlreadyTaken() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        repopulate();
+
+        fire(
+                newGroupItem(),
+                typeAndDismiss(GROUP_NAME.toUpperCase(Locale.ROOT), ButtonType.OK),
+                dismiss(ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .containsExactly(GROUP_NAME);
+    }
+
+    @Test
+    void renameGroupRenamesTheCatalogEntryAndEveryLayoutInIt() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
+        storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
+        repopulate();
+
+        fire(
+                renameGroupMenu().getItems().get(0),
+                typeAndDismiss(OTHER_GROUP_NAME, ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .containsExactly(OTHER_GROUP_NAME);
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly(OTHER_GROUP_NAME, null);
+    }
+
+    /**
+     * The layouts in the group are kept and end up in no group. Deleting a group
+     * that deleted layouts would be a data loss no confirmation makes acceptable.
+     */
+    @Test
+    void deleteGroupKeepsItsLayoutsAndTakesThemOutOfTheGroup() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
+        repopulate();
+
+        fire(deleteGroupMenu().getItems().get(0), dismiss(ButtonType.YES));
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .isEmpty();
+        assertThat(persistenceProvider.deletedProfiles)
+                .describedAs("layouts deleted along with the group")
+                .isEmpty();
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly((String) null);
+    }
+
+    @Test
+    void deleteGroupDoesNothingWhenTheUserDeclinesToConfirm() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
+        repopulate();
+
+        fire(deleteGroupMenu().getItems().get(0), dismiss(ButtonType.NO));
+
+        assertThat(persistenceProvider.storedGroups)
+                .describedAs("stored group catalog")
+                .containsExactly(GROUP_NAME);
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly(GROUP_NAME);
+    }
+
+    /**
+     * Moving needs a group to move into, and an item opening a picker with
+     * nothing in it is worse than one that says so.
+     */
+    @Test
+    void moveToGroupSaysSoWhenNoGroupExists() {
+        storeLayout(WIDE_LAYOUT_ID, "Wide", null);
+        repopulate();
+
+        assertThat(moveToGroupMenu().getItems())
+                .describedAs("moveToGroupMenu.getItems()")
+                .hasSize(1);
+        assertThat(moveToGroupMenu().getItems().get(0).isDisable())
+                .describedAs("no-groups stand-in disabled")
+                .isTrue();
+    }
+
+    @Test
+    void moveToGroupFilesTheLayoutWithoutRestoringIt() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", null);
+        repopulate();
+
+        // Groups come first, so the empty 'Debugging' submenu is item 0 and the
+        // ungrouped layout is item 1. Firing the submenu would open no dialog.
+        fire(
+                moveToGroupMenu().getItems().get(1),
+                selectChoiceAndDismiss(GROUP_NAME, ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly(GROUP_NAME);
+        assertThat(restorable.switchCalls)
+                .describedAs("layouts restored in order to move one")
+                .isEmpty();
+    }
+
+    @Test
+    void moveToGroupTakesALayoutOutOfItsGroup() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
+        repopulate();
+
+        fire(
+                ((Menu) moveToGroupMenu().getItems().get(0)).getItems().get(0),
+                selectChoiceAndDismiss(NO_GROUP_CHOICE, ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly((String) null);
     }
 
     @Test
@@ -334,10 +684,10 @@ class LayoutsMenuFT {
     void renameDoesNothingWhenTheDialogIsCancelled() {
         makeActiveLayout();
 
-        fire(renameItem(), dismiss(ButtonType.CANCEL));
+        fire(renameMenu().getItems().get(0), dismiss(ButtonType.CANCEL));
 
-        assertThat(persistenceProvider.savedProfiles)
-                .describedAs("persistenceProvider.savedProfiles")
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("persistenceProvider.renamedProfiles")
                 .isEmpty();
     }
 
@@ -346,31 +696,84 @@ class LayoutsMenuFT {
         makeActiveLayout();
 
         fire(
-                renameItem(),
+                renameMenu().getItems().get(0),
                 typeAndDismiss("   ", ButtonType.OK),
                 dismiss(ButtonType.OK)
         );
 
-        assertThat(persistenceProvider.savedProfiles)
-                .describedAs("persistenceProvider.savedProfiles")
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("persistenceProvider.renamedProfiles")
                 .isEmpty();
     }
 
+    /**
+     * A rename rewrites the name and nothing else. It used to be a save as well,
+     * which both restricted it to the layout on screen and stored whatever
+     * arrangement happened to be showing, so this asserts that no save happened.
+     */
     @Test
-    void renameWritesTheLayoutUnderTheSameIdentifierWithTheNewDisplayName() {
+    void renameRewritesOnlyTheDisplayNameUnderTheSameIdentifier() {
         makeActiveLayout();
 
-        fire(renameItem(), typeAndDismiss("Renamed Layout", ButtonType.OK));
+        fire(
+                renameMenu().getItems().get(0),
+                typeAndDismiss("Renamed Layout", ButtonType.OK)
+        );
 
-        assertThat(persistenceProvider.savedProfiles)
-                .describedAs("persistenceProvider.savedProfiles")
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("persistenceProvider.renamedProfiles")
                 .hasSize(1);
-        assertThat(persistenceProvider.savedProfiles.get(0).layoutIdentifier())
-                .describedAs("saved profile's identifier")
+        assertThat(persistenceProvider.renamedProfiles.get(0).layoutIdentifier())
+                .describedAs("renamed profile's identifier")
                 .isEqualTo(ACTIVE_LAYOUT_ID);
-        assertThat(persistenceProvider.savedProfiles.get(0).displayName())
-                .describedAs("saved profile's display name")
+        assertThat(persistenceProvider.renamedProfiles.get(0).displayName())
+                .describedAs("renamed profile's display name")
                 .isEqualTo("Renamed Layout");
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved by a rename")
+                .isEmpty();
+    }
+
+    /**
+     * Renaming used to be offered only for the layout on screen. It is now
+     * offered for any stored layout, which is the same capability group rename
+     * needs.
+     */
+    @Test
+    void renameIsOfferedForALayoutThatIsNotShowing() {
+        storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
+        repopulate();
+
+        fire(
+                renameMenu().getItems().get(0),
+                typeAndDismiss("Renamed Layout", ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("persistenceProvider.renamedProfiles")
+                .extracting(LayoutPersistenceProfile::layoutIdentifier)
+                .containsExactly(OTHER_LAYOUT_ID);
+    }
+
+    /**
+     * Renaming a layout does not move it, because the group travels with the
+     * layout rather than being read out of its name.
+     */
+    @Test
+    void renameLeavesTheLayoutInItsGroup() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
+        repopulate();
+
+        fire(
+                ((Menu) renameMenu().getItems().get(0)).getItems().get(0),
+                typeAndDismiss("Renamed Layout", ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.renamedProfiles)
+                .describedAs("persistenceProvider.renamedProfiles")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly(GROUP_NAME);
     }
 
     @Test
@@ -465,6 +868,47 @@ class LayoutsMenuFT {
         repopulate();
     }
 
+    /**
+     * Stores and then successfully restores a layout whose name puts it in a
+     * group, so that the menu's active layout is one nested in a submenu.
+     *
+     * <p>The counterpart to {@link #makeActiveLayout()}, and it fires from
+     * inside the group rather than from the restore menu directly: a group's
+     * submenu is what sits at the top of that menu, and firing a
+     * {@link Menu} restores nothing.</p>
+     */
+    private void makeActiveGroupedLayout() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(
+                GROUPED_ACTIVE_LAYOUT_ID,
+                GROUPED_ACTIVE_DISPLAY_NAME,
+                GROUP_NAME
+        );
+        persistenceProvider.storedIdentifiers.add(GROUPED_ACTIVE_LAYOUT_ID);
+        restorable.switchSucceeds = true;
+        repopulate();
+
+        fire(((Menu) restoreMenu().getItems().get(0)).getItems().get(0));
+        repopulate();
+    }
+
+    /**
+     * Puts one layout in storage under the supplied name and group.
+     *
+     * @param layoutIdentifier addresses the layout.
+     * @param displayName the name the menu labels it with.
+     * @param group the group it is in, or {@code null} for none.
+     */
+    private void storeLayout(
+            final String layoutIdentifier,
+            final @Nullable String displayName,
+            final @Nullable String group
+    ) {
+        persistenceProvider.storedLayouts.add(new LayoutPersistenceProfile(
+                layoutIdentifier, null, null, displayName, group
+        ));
+    }
+
     private List<MenuItem> topItems() {
         return menu.getItems();
     }
@@ -481,12 +925,32 @@ class LayoutsMenuFT {
         return customMenu().getItems().get(1);
     }
 
-    private MenuItem renameItem() {
-        return customMenu().getItems().get(2);
+    private Menu renameMenu() {
+        return (Menu) customMenu().getItems().get(2);
+    }
+
+    private Menu moveToGroupMenu() {
+        return (Menu) customMenu().getItems().get(3);
     }
 
     private Menu deleteMenu() {
-        return (Menu) customMenu().getItems().get(3);
+        return (Menu) customMenu().getItems().get(4);
+    }
+
+    private Menu groupsMenu() {
+        return (Menu) customMenu().getItems().get(5);
+    }
+
+    private MenuItem newGroupItem() {
+        return groupsMenu().getItems().get(0);
+    }
+
+    private Menu renameGroupMenu() {
+        return (Menu) groupsMenu().getItems().get(1);
+    }
+
+    private Menu deleteGroupMenu() {
+        return (Menu) groupsMenu().getItems().get(2);
     }
 
     private void repopulate() {
@@ -520,6 +984,34 @@ class LayoutsMenuFT {
         return () -> {
             final DialogPane pane = findShowingDialogPane();
             ((TextField) pane.lookup(".text-field")).setText(text);
+            fireDialogButton(pane, buttonType);
+        };
+    }
+
+    /**
+     * A step that picks a value in the currently-showing choice dialog, then
+     * dismisses it.
+     *
+     * <p>The selection goes through the {@link ComboBox} the dialog builds, which
+     * is what the dialog reads its result from - setting it is the same act as a
+     * user picking from the list.</p>
+     */
+    private static Runnable selectChoiceAndDismiss(
+            final String choice,
+            final ButtonType buttonType
+    ) {
+        return () -> {
+            final DialogPane pane = findShowingDialogPane();
+
+            @SuppressWarnings("unchecked")
+            final ComboBox<String> choices =
+                    (ComboBox<String>) pane.lookup(".combo-box");
+
+            assertThat(choices.getItems())
+                    .describedAs("choices offered by the dialog")
+                    .contains(choice);
+
+            choices.getSelectionModel().select(choice);
             fireDialogButton(pane, buttonType);
         };
     }
@@ -591,10 +1083,15 @@ class LayoutsMenuFT {
         private final Set<String> storedIdentifiers = new HashSet<>();
         private final List<LayoutPersistenceProfile> savedProfiles = new ArrayList<>();
         private final List<LayoutPersistenceProfile> deletedProfiles = new ArrayList<>();
+        private final List<LayoutPersistenceProfile> renamedProfiles = new ArrayList<>();
+        private final List<String> storedGroups = new ArrayList<>();
         private boolean listFails;
         private boolean isLayoutStoredFails;
         private boolean saveFails;
         private boolean deleteFails;
+        private boolean updateNamingFails;
+        private boolean listGroupsFails;
+        private boolean setGroupsFails;
 
         @Override
         public LayoutSaver getLayoutSaver(
@@ -662,6 +1159,57 @@ class LayoutsMenuFT {
             }
             deletedProfiles.add(layoutPersistenceProfile);
             return true;
+        }
+
+        /**
+         * Rewrites the naming of a layout in {@link #storedLayouts}, so that a
+         * test can assert on what the menu did by reading the list back the way
+         * a reopened menu would.
+         */
+        @Override
+        public boolean updateStoredLayoutNaming(
+                final LayoutPersistenceProfile layoutPersistenceProfile
+        ) throws BentoStateException {
+            if (updateNamingFails) {
+                throw new BentoStateException("updateStoredLayoutNaming failed");
+            }
+
+            renamedProfiles.add(layoutPersistenceProfile);
+
+            for (int index = 0; index < storedLayouts.size(); index++) {
+                final boolean isSameLayout = storedLayouts.get(index)
+                        .layoutIdentifier()
+                        .equals(layoutPersistenceProfile.layoutIdentifier());
+
+                if (isSameLayout) {
+                    storedLayouts.set(index, layoutPersistenceProfile);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public List<String> getStoredGroups(
+                final LayoutPersistenceProfile layoutPersistenceProfile
+        ) throws BentoStateException {
+            if (listGroupsFails) {
+                throw new BentoStateException("getStoredGroups failed");
+            }
+            return List.copyOf(storedGroups);
+        }
+
+        @Override
+        public void setStoredGroups(
+                final LayoutPersistenceProfile layoutPersistenceProfile,
+                final List<String> groups
+        ) throws BentoStateException {
+            if (setGroupsFails) {
+                throw new BentoStateException("setStoredGroups failed");
+            }
+            storedGroups.clear();
+            storedGroups.addAll(groups);
         }
     }
 }

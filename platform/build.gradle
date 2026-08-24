@@ -57,10 +57,5 @@ dependencies {
         api libs.bundles.javafx
         api libs.bundles.test.libraries
         api libs.bundles.annotations
-        api libs.bundles.test.runtime
-
-        api libs.junit.api
-        api libs.junit.engine
-        api libs.junit.params
     }
 }

@@ -62,10 +62,33 @@ metadata, and `getStoredLayouts` reads it back. The name is stored, never addres
 which layout a save or restore touches - which is why the same layout can be renamed without moving what holds it. A
 layout saved without a name, the session layout among them, has none, and `findDisplayName()` returns empty for it.
 
-Renaming a layout is a save under the same identifier with a different name, so it rewrites the layout as well as its
-label: `saveLayout` reads the live containers and there is no way to write only the metadata. An application can
-therefore rename only the layout that is on screen, and a rename stores the current arrangement whether or not the user
-thought of it as a save. The demo makes that limit visible by offering `Rename` only for the active layout.
+Renaming a layout writes its metadata and nothing else. `updateStoredLayoutNaming(profile)` decodes the stored layout,
+replaces the display name and the group the profile carries, and writes the docking state back untouched. It reads
+nothing from the scene graph, so the layout being renamed does not have to be the one on screen. This is what makes
+renaming a group possible, since a group of five layouts is five of these calls and re-saving four of them from
+whatever happened to be showing would overwrite four arrangements.
+
+Both values are written as given, so a `null` clears rather than leaving what is stored alone. Change one and pass the
+other through with `LayoutPersistenceProfile.withNaming(displayName, group)`.
+
+### Groups
+
+A layout also carries an optional group, the section a user filed it under. It is metadata of its own rather than
+something read out of the display name, so a layout called `TCP/IP Debug` is one layout whose name contains a slash and
+not a `TCP` group holding `IP Debug`. Users never have to know that a separator exists, because there is none.
+
+A group outlives its members: a user creates one before there is a layout to put in it, and it survives its last layout
+being moved out. The set of groups therefore cannot be read from the layouts alone, so it is kept in a **group catalog** -
+one more stored entry, under the reserved identifier `LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER`, holding nothing
+but the list of names. Because it is an ordinary layout entry, every storage implementation already holds it: a file
+beside the layouts, a row beside the rows, with nothing added to `LayoutStorage`.
+
+`getStoredGroups(profile)` reads the catalog and `setStoredGroups(profile, names)` replaces it. A caller listing groups
+for a user should show the catalog **together with** the groups the stored layouts themselves name. The union costs
+nothing and means a rename or a delete interrupted part way through cannot leave a layout inside a group that no longer
+appears, which would be a stored layout the user can neither see nor delete.
+
+Deleting a group does not delete the layouts in it. They are moved out and end up in no group.
 
 Deriving the identifier from the name is still the application's step; see "Deriving a layout identifier from a display
 name" under the capabilities below.

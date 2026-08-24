@@ -195,6 +195,33 @@ class LayoutIdentifiersTest {
                 .isFalse();
     }
 
+    /**
+     * The group catalog is stored as an ordinary layout entry, so it turns up in
+     * any listing of what a destination holds. Reserving its identifier is what
+     * keeps a caller from offering it as a layout to restore, and keeps a user
+     * from taking the name for one of their own.
+     */
+    @Test
+    void reportsTheGroupCatalogIdentifierAsReservedWhateverTheCase() {
+        assertThat(LayoutIdentifiers.isReserved(
+                LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER
+        ))
+                .describedAs("isReserved for the group catalog identifier")
+                .isTrue();
+        assertThat(LayoutIdentifiers.isReserved("GrOuPs"))
+                .describedAs("isReserved for the group catalog identifier in mixed case")
+                .isTrue();
+    }
+
+    @Test
+    void refusesAUserLayoutNamedAfterTheGroupCatalog() {
+        assertThat(LayoutIdentifiers.findUserLayoutProblem(
+                LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER
+        ))
+                .describedAs("findUserLayoutProblem for the group catalog identifier")
+                .isPresent();
+    }
+
     @Test
     void findProblemReportsNothingForAUsablePair() {
         assertThat(LayoutIdentifiers.findProblem(LAYOUT_IDENTIFIER, CODEC_IDENTIFIER))

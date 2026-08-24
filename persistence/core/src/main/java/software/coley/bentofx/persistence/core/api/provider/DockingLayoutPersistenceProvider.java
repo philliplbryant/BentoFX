@@ -233,4 +233,52 @@ public interface DockingLayoutPersistenceProvider {
 	boolean deleteLayout(
 			final LayoutPersistenceProfile layoutPersistenceProfile
 	) throws BentoStateException;
+
+	/**
+	 * Stores a different display name and group for a layout already in storage,
+	 * leaving the docking state it holds exactly as it is.
+	 *
+	 * @param layoutPersistenceProfile identifies the layout, and carries the
+	 * display name and group to store.
+	 *
+	 * @return {@code true} when a layout was rewritten; {@code false} when there
+	 * was nothing stored under that identifier, in which case nothing is
+	 * written.
+	 *
+	 * @throws BentoStateException when the codec or storage cannot be selected,
+	 * or the layout cannot be read or written.
+	 */
+	boolean updateStoredLayoutNaming(
+			final LayoutPersistenceProfile layoutPersistenceProfile
+	) throws BentoStateException;
+
+	/**
+	 * {@return the groups that exist, in the order they were stored.}
+	 *
+	 * <p>An empty list means no group has been created, or that the storage
+	 * implementation cannot enumerate.</p>
+	 *
+	 * @param layoutPersistenceProfile selects the codec and storage to ask; its
+	 * layout identifier is not used.
+	 *
+	 * @throws BentoStateException when the codec or storage cannot be selected,
+	 * or the catalog cannot be read.
+	 */
+	List<String> getStoredGroups(
+			final LayoutPersistenceProfile layoutPersistenceProfile
+	) throws BentoStateException;
+
+	/**
+	 * Replaces the stored group catalog with the supplied names.
+	 *
+	 * @param layoutPersistenceProfile selects the codec and storage to write to.
+	 * @param groups all groups that exist.
+	 *
+	 * @throws BentoStateException when the codec or storage cannot be selected,
+	 * or the catalog cannot be written.
+	 */
+	void setStoredGroups(
+			final LayoutPersistenceProfile layoutPersistenceProfile,
+			final List<String> groups
+	) throws BentoStateException;
 }

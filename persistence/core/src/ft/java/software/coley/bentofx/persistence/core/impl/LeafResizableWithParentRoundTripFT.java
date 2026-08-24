@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.core.impl;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Side.LEFT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -124,12 +126,18 @@ class LeafResizableWithParentRoundTripFT {
 
             restoredPinned.set(
                     SplitPane.isResizableWithParent(
-                            findLeaf(restoredRoot, PINNED_LEAF_ID)
+                            requireNonNull(
+                                    findLeaf(restoredRoot, PINNED_LEAF_ID),
+                                    PINNED_LEAF_ID
+                            )
                     )
             );
             restoredFlexible.set(
                     SplitPane.isResizableWithParent(
-                            findLeaf(restoredRoot, FLEXIBLE_LEAF_ID)
+                            requireNonNull(
+                                    findLeaf(restoredRoot, FLEXIBLE_LEAF_ID),
+                                    FLEXIBLE_LEAF_ID
+                            )
                     )
             );
         });
@@ -244,7 +252,7 @@ class LeafResizableWithParentRoundTripFT {
         return Optional.empty();
     }
 
-    private static DockContainerLeaf findLeaf(
+    private static @Nullable DockContainerLeaf findLeaf(
             final DockContainerBranch branch,
             final String leafIdentifier
     ) {

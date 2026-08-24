@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.LEFT;
@@ -311,17 +312,14 @@ class LayoutRoundTripFT {
 			final BentoState bentoState,
 			final String leafIdentifier
 	) {
-		final DockContainerLeafState leafState = findLeafState(
-				bentoState.getRootBranchStates().getFirst()
-						.getChildDockContainerStates(),
-				leafIdentifier
+		return requireNonNull(
+				findLeafState(
+						bentoState.getRootBranchStates().getFirst()
+								.getChildDockContainerStates(),
+						leafIdentifier
+				),
+				"captured leaf state " + leafIdentifier
 		);
-
-		assertThat(leafState)
-				.describedAs("captured leaf state " + leafIdentifier)
-				.isNotNull();
-
-		return leafState;
 	}
 
 	private static @Nullable DockContainerLeafState findLeafState(

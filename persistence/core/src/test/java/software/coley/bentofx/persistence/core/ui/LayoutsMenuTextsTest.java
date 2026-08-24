@@ -40,18 +40,32 @@ class LayoutsMenuTextsTest {
             "menu.layouts",
             "menu.custom",
             "menu.restore",
+            "menu.rename",
+            "menu.moveToGroup",
             "menu.delete",
+            "menu.groups",
+            "menu.renameGroup",
+            "menu.deleteGroup",
             "item.default",
             "item.saveAsNew",
             "item.saveChanges",
-            "item.rename",
+            "item.newGroup",
             "item.listFailed",
             "item.noLayouts",
+            "item.noGroups",
+            "choice.noGroup",
             "dialog.title",
             "dialog.saveAsNew.title",
             "dialog.saveAsNew.prompt",
+            "dialog.saveAsNew.groupPrompt",
             "dialog.rename.title",
             "dialog.rename.prompt",
+            "dialog.moveToGroup.title",
+            "dialog.moveToGroup.prompt",
+            "dialog.newGroup.title",
+            "dialog.newGroup.prompt",
+            "dialog.renameGroup.title",
+            "dialog.renameGroup.prompt",
             "error.restoreFailed.header",
             "error.restoreFailed.content",
             "error.saveFailed.header",
@@ -59,20 +73,44 @@ class LayoutsMenuTextsTest {
             "error.blankName.header",
             "error.blankName.content",
             "error.cannotSaveNamed.header",
+            "error.notStored.header",
+            "error.listGroupsFailed.header",
+            "error.groupFailed.header",
+            "error.renameGroupFailed.header",
+            "error.deleteGroupFailed.header",
+            "error.cannotNameGroup.header",
             "confirm.replace.header",
             "confirm.replace.content",
             "confirm.delete.header",
             "confirm.delete.content",
+            "confirm.deleteGroup.header",
+            "confirm.deleteGroup.content",
             "problem.blank",
             "problem.reserved",
-            "problem.deviceName"
+            "problem.deviceName",
+            "problem.blankGroup",
+            "problem.groupTooLong",
+            "problem.duplicateGroup"
+    );
+
+    /**
+     * The keys shown on a disabled item, which carries no mnemonic because
+     * nothing can navigate to it.
+     */
+    private static final List<String> STAND_IN_KEYS = List.of(
+            "item.listFailed",
+            "item.noLayouts",
+            "item.noGroups"
     );
 
     /** The keys whose values are read as {@link MessageFormat} patterns. */
     private static final List<String> PLACEHOLDER_KEYS = List.of(
             "error.cannotSaveNamed.header",
+            "error.cannotNameGroup.header",
             "confirm.replace.header",
-            "confirm.delete.header"
+            "confirm.delete.header",
+            "confirm.deleteGroup.header",
+            "problem.groupTooLong"
     );
 
     @Test
@@ -126,9 +164,9 @@ class LayoutsMenuTextsTest {
                 continue;
             }
 
-            // The two stand-ins are shown on disabled items that nothing can
-            // navigate to, so a mnemonic on either would go nowhere.
-            if (key.equals("item.listFailed") || key.equals("item.noLayouts")) {
+            // The stand-ins are shown on disabled items that nothing can
+            // navigate to, so a mnemonic on one would go nowhere.
+            if (STAND_IN_KEYS.contains(key)) {
                 continue;
             }
 

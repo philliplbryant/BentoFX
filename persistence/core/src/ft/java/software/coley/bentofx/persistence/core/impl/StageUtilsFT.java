@@ -16,6 +16,7 @@ import org.testfx.framework.junit5.Start;
 
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ApplicationExtension.class)
@@ -133,26 +134,14 @@ class StageUtilsFT {
     }
 
     private Stage getFirstStage() {
-        final Stage activeFirst = first;
-        assertThat(activeFirst)
-                .describedAs("first")
-                .isNotNull();
-        return activeFirst;
+        return requireNonNull(first, "first");
     }
 
     private Stage getSecondStage() {
-        final Stage activeSecond = second;
-        assertThat(activeSecond)
-                .describedAs("second")
-                .isNotNull();
-        return activeSecond;
+        return requireNonNull(second, "second");
     }
 
     private Popup getPopup() {
-        final Popup activePopup = popup;
-        assertThat(activePopup)
-                .describedAs("popup")
-                .isNotNull();
-        return activePopup;
+        return requireNonNull(popup, "popup");
     }
 }

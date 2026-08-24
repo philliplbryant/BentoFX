@@ -12,6 +12,9 @@ public final class ElementNames {
     public static final String METADATA_ELEMENT_NAME = "metadata";
     public static final String SCHEMA_VERSION_ELEMENT_NAME = "schemaVersion";
     public static final String DISPLAY_NAME_ELEMENT_NAME = "displayName";
+    public static final String GROUP_ELEMENT_NAME = "group";
+    public static final String GROUP_LIST_ELEMENT_NAME = "groups";
+    public static final String GROUP_NAME_ELEMENT_NAME = "groupName";
     public static final String BENTO_LIST_ELEMENT_NAME = "bentos";
     public static final String BENTO_ELEMENT_NAME = "bento";
     public static final String ROOT_BRANCH_LIST_ELEMENT_NAME = "rootBranches";

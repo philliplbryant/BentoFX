@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.core.impl.provider;
 
-import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
@@ -11,14 +10,17 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutCodecProvider;
 import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutStorageProvider;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@NullMarked
 class DefaultDockingLayoutPersistenceProviderTest {
 
     private static final String DEFAULT_LAYOUT_IDENTIFIER = "default";

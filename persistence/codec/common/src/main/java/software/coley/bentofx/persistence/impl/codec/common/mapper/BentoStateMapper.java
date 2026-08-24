@@ -64,7 +64,7 @@ public final class BentoStateMapper {
 		requireNonNull(layout, "layout");
 
 		final DockingLayoutDto dockingLayoutDto = new DockingLayoutDto();
-		dockingLayoutDto.metadata = createMetadata(layout.displayName());
+		dockingLayoutDto.metadata = createMetadata(layout);
 
 		for (final BentoState state : layout.bentoStates()) {
 			dockingLayoutDto.bentoStates.add(toDto(state));
@@ -76,16 +76,17 @@ public final class BentoStateMapper {
 	/**
 	 * Creates metadata for a persisted layout.
 	 *
-	 * @param displayName the layout's display name, or {@code null} when it has
-	 * none.
+	 * @param layout the layout whose metadata to write.
 	 * @return the metadata DTO.
 	 */
 	private static LayoutMetadataDto createMetadata(
-			final @Nullable String displayName
+			final PersistableLayout layout
 	) {
 		final LayoutMetadataDto metadata = new LayoutMetadataDto();
 		metadata.schemaVersion = DockingLayoutDto.getCurrentSchemaVersion();
-		metadata.displayName = displayName;
+		metadata.displayName = layout.displayName();
+		metadata.group = layout.group();
+		metadata.groups = new ArrayList<>(layout.groups());
 		return metadata;
 	}
 
@@ -367,7 +368,15 @@ public final class BentoStateMapper {
 			bentoStateList.add(fromDto(stateDto));
 		}
 
-		return new PersistableLayout(metadata.displayName, bentoStateList);
+		// The last two are optional in the stored form. Absent, they decode as no
+		// group and no catalog rather than as a fault, which is what keeps a
+		// layout saved without either one restorable.
+		return new PersistableLayout(
+				metadata.displayName,
+				bentoStateList,
+				metadata.group,
+				metadata.groups
+		);
 	}
 
 	/**

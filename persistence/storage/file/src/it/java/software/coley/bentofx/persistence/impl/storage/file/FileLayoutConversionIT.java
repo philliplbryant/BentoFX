@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
 /**
@@ -131,5 +132,132 @@ class FileLayoutConversionIT {
 				.describedAs("Bento states restored from converted layout")
 				.usingRecursiveComparison()
 				.isEqualTo(original);
+	}
+
+	/**
+	 * A layout's group is written and read back through a real file, and the
+	 * display name beside it is left alone even when it holds the character that
+	 * once separated the two.
+	 */
+	@ParameterizedTest
+	@MethodSource("bundledCodecs")
+	void aLayoutsGroupIsStoredAndReadBackApartFromItsName(
+			final LayoutCodec layoutCodec
+	) throws Exception {
+		final FileLayoutStorageProvider storageProvider =
+				new FileLayoutStorageProvider();
+
+		writeLayout(
+				storageProvider,
+				layoutCodec,
+				LAYOUT_IDENTIFIER,
+				new PersistableLayout(
+						"TCP/IP Debug",
+						createBentoStates(),
+						"Debugging",
+						List.of()
+				)
+		);
+
+		final PersistableLayout restored =
+				readLayout(storageProvider, layoutCodec, LAYOUT_IDENTIFIER);
+
+		assertThat(restored.displayName())
+				.describedAs("display name restored from a grouped layout")
+				.isEqualTo("TCP/IP Debug");
+		assertThat(restored.group())
+				.describedAs("group restored from a grouped layout")
+				.isEqualTo("Debugging");
+	}
+
+	/**
+	 * The group catalog is an ordinary layout entry under a reserved identifier,
+	 * which is what keeps it working on every storage implementation without one
+	 * of them adding anything. It holds no docking state.
+	 */
+	@ParameterizedTest
+	@MethodSource("bundledCodecs")
+	void theGroupCatalogIsStoredAsAnOrdinaryEntry(
+			final LayoutCodec layoutCodec
+	) throws Exception {
+		final FileLayoutStorageProvider storageProvider =
+				new FileLayoutStorageProvider();
+		final String codecIdentifier = layoutCodec.getIdentifier();
+
+		writeLayout(
+				storageProvider,
+				layoutCodec,
+				GROUP_CATALOG_LAYOUT_IDENTIFIER,
+				PersistableLayout.ofGroups(List.of("Debugging", "Presentation"))
+		);
+
+		assertThat(storageProvider.getLayoutIdentifiers(codecIdentifier))
+				.describedAs("layouts the destination reports")
+				.contains(GROUP_CATALOG_LAYOUT_IDENTIFIER);
+
+		final PersistableLayout restored = readLayout(
+				storageProvider,
+				layoutCodec,
+				GROUP_CATALOG_LAYOUT_IDENTIFIER
+		);
+
+		assertThat(restored.groups())
+				.describedAs("group catalog restored from a real file")
+				.containsExactly("Debugging", "Presentation");
+		assertThat(restored.bentoStates())
+				.describedAs("docking state in the group catalog")
+				.isEmpty();
+	}
+
+	/**
+	 * Writes a layout through real file storage.
+	 *
+	 * @param storageProvider the storage to write to.
+	 * @param layoutCodec the codec to write with.
+	 * @param layoutIdentifier addresses the layout.
+	 * @param layout what to write.
+	 */
+	private static void writeLayout(
+			final FileLayoutStorageProvider storageProvider,
+			final LayoutCodec layoutCodec,
+			final String layoutIdentifier,
+			final PersistableLayout layout
+	) throws Exception {
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								layoutIdentifier,
+								layoutCodec.getIdentifier()
+						);
+				final OutputStream outputStream =
+						layoutStorage.openOutputStream()
+		) {
+			layoutCodec.encode(layout, outputStream);
+		}
+	}
+
+	/**
+	 * {@return a layout read back through real file storage.}
+	 *
+	 * @param storageProvider the storage to read from.
+	 * @param layoutCodec the codec to read with.
+	 * @param layoutIdentifier addresses the layout.
+	 */
+	private static PersistableLayout readLayout(
+			final FileLayoutStorageProvider storageProvider,
+			final LayoutCodec layoutCodec,
+			final String layoutIdentifier
+	) throws Exception {
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								layoutIdentifier,
+								layoutCodec.getIdentifier()
+						);
+				final InputStream inputStream =
+						layoutStorage.openInputStream()
+		) {
+			return layoutCodec.decode(inputStream);
+		}
 	}
 }

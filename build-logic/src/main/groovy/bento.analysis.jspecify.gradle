@@ -1,4 +1,5 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+import static software.coley.gradle.lifecycle.TestLifecycle.CHECK_ALL_TASK_NAME
 
 plugins {
     id 'net.ltgt.errorprone'
@@ -24,10 +25,16 @@ nullaway {
     jspecifyMode = true
 }
 
-tasks.register('checkJSpecify') { checkTask ->
+def checkJSpecifyTask = tasks.register('checkJSpecify') { checkTask ->
     checkTask.group = VERIFICATION_GROUP
     checkTask.description = 'Runs JSpecify nullness analysis through Error Prone and NullAway.'
     checkTask.dependsOn(tasks.withType(JavaCompile))
+}
+
+plugins.withId('bento.test.test-lifecycle') {
+    tasks.named(CHECK_ALL_TASK_NAME).configure { checkAllTask ->
+        checkAllTask.dependsOn(checkJSpecifyTask)
+    }
 }
 
 tasks.withType(JavaCompile).configureEach { compileTask ->

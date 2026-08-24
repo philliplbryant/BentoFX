@@ -1,6 +1,5 @@
 package software.coley.bentofx.persistence.core.impl;
 
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
@@ -21,7 +20,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@NullMarked
 class LayoutStateWriterTest {
 
     private static final String CODEC_IDENTIFIER = "test";

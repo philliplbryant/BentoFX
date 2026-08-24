@@ -30,6 +30,9 @@ class DatabaseLayoutStorageTest {
             );
 
     @Test
+    // Suppress warnings for passing null argument to parameter annotated as
+    // non-null; that's what we're testing.
+    @SuppressWarnings("NullAway")
     void rejectsAMissingEntityManagerFactory() {
         assertThatThrownBy(() ->
                 new DatabaseLayoutStorage(null, LAYOUT_IDENTIFIER, CODEC_IDENTIFIER)
@@ -40,6 +43,9 @@ class DatabaseLayoutStorageTest {
     }
 
     @Test
+    // Suppress warnings for passing null argument to parameter annotated as
+    // non-null; that's what we're testing.
+    @SuppressWarnings("NullAway")
     void rejectsAMissingLayoutIdentifier() {
         assertThatThrownBy(() ->
                 new DatabaseLayoutStorage(UNUSED_ENTITY_MANAGER_FACTORY, null, CODEC_IDENTIFIER)
@@ -50,6 +56,9 @@ class DatabaseLayoutStorageTest {
     }
 
     @Test
+    // Suppress warnings for passing null argument to parameter annotated as
+    // non-null; that's what we're testing.
+    @SuppressWarnings("NullAway")
     void rejectsAMissingCodecIdentifier() {
         assertThatThrownBy(() ->
                 new DatabaseLayoutStorage(UNUSED_ENTITY_MANAGER_FACTORY, LAYOUT_IDENTIFIER, null)

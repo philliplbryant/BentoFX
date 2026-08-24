@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
 /**
@@ -147,5 +148,120 @@ class DatabaseLayoutConversionIT {
                 .describedAs("Bento states restored from converted layout")
                 .usingRecursiveComparison()
                 .isEqualTo(original);
+    }
+
+    /**
+     * A layout's group and its display name survive a real row, apart from each
+     * other, and the group needs no column of its own: it rides inside the
+     * payload the way the display name already does.
+     */
+    @ParameterizedTest
+    @MethodSource("bundledCodecs")
+    void aLayoutsGroupIsStoredAndReadBackApartFromItsName(
+            final LayoutCodec layoutCodec
+    ) throws Exception {
+        final String layoutIdentifier =
+                "grouped-" + layoutCodec.getIdentifier();
+
+        writeLayout(
+                layoutCodec,
+                layoutIdentifier,
+                new PersistableLayout(
+                        "TCP/IP Debug",
+                        createBentoStates(),
+                        "Debugging",
+                        List.of()
+                )
+        );
+
+        final PersistableLayout restored =
+                readLayout(layoutCodec, layoutIdentifier);
+
+        assertThat(restored.displayName())
+                .describedAs("display name restored from a grouped layout")
+                .isEqualTo("TCP/IP Debug");
+        assertThat(restored.group())
+                .describedAs("group restored from a grouped layout")
+                .isEqualTo("Debugging");
+    }
+
+    /**
+     * The group catalog is an ordinary row under a reserved identifier, so the
+     * schema is untouched by groups existing.
+     */
+    @ParameterizedTest
+    @MethodSource("bundledCodecs")
+    void theGroupCatalogIsStoredAsAnOrdinaryRow(
+            final LayoutCodec layoutCodec
+    ) throws Exception {
+        writeLayout(
+                layoutCodec,
+                GROUP_CATALOG_LAYOUT_IDENTIFIER,
+                PersistableLayout.ofGroups(List.of("Debugging", "Presentation"))
+        );
+
+        assertThat(storageProvider.getLayoutIdentifiers(
+                layoutCodec.getIdentifier()
+        ))
+                .describedAs("layouts the destination reports")
+                .contains(GROUP_CATALOG_LAYOUT_IDENTIFIER);
+
+        final PersistableLayout restored =
+                readLayout(layoutCodec, GROUP_CATALOG_LAYOUT_IDENTIFIER);
+
+        assertThat(restored.groups())
+                .describedAs("group catalog restored from a real row")
+                .containsExactly("Debugging", "Presentation");
+        assertThat(restored.bentoStates())
+                .describedAs("docking state in the group catalog")
+                .isEmpty();
+    }
+
+    /**
+     * Writes a layout through the real database storage.
+     *
+     * @param layoutCodec the codec to write with.
+     * @param layoutIdentifier addresses the layout.
+     * @param layout what to write.
+     */
+    private static void writeLayout(
+            final LayoutCodec layoutCodec,
+            final String layoutIdentifier,
+            final PersistableLayout layout
+    ) throws Exception {
+        try (
+                final LayoutStorage layoutStorage =
+                        storageProvider.getLayoutStorage(
+                                layoutIdentifier,
+                                layoutCodec.getIdentifier()
+                        );
+                final OutputStream outputStream =
+                        layoutStorage.openOutputStream()
+        ) {
+            layoutCodec.encode(layout, outputStream);
+        }
+    }
+
+    /**
+     * {@return a layout read back through the real database storage.}
+     *
+     * @param layoutCodec the codec to read with.
+     * @param layoutIdentifier addresses the layout.
+     */
+    private static PersistableLayout readLayout(
+            final LayoutCodec layoutCodec,
+            final String layoutIdentifier
+    ) throws Exception {
+        try (
+                final LayoutStorage layoutStorage =
+                        storageProvider.getLayoutStorage(
+                                layoutIdentifier,
+                                layoutCodec.getIdentifier()
+                        );
+                final InputStream inputStream =
+                        layoutStorage.openInputStream()
+        ) {
+            return layoutCodec.decode(inputStream);
+        }
     }
 }

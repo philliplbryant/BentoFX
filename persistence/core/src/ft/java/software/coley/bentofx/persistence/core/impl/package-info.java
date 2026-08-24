@@ -4,5 +4,8 @@
  * functional test plugin convention,
  * build-logic/src/main/groovy/bento.test.functional-test-suite.gradle,
  * for additional information.
+ *
+ * @author Phil Bryant
  */
+@org.jspecify.annotations.NullMarked
 package software.coley.bentofx.persistence.core.impl;

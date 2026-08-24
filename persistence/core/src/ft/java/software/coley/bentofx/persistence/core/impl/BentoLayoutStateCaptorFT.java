@@ -16,12 +16,17 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
-import software.coley.bentofx.persistence.core.api.state.*;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.RIGHT;
@@ -296,11 +301,7 @@ class BentoLayoutStateCaptorFT {
      * field.</p>
      */
     private Stage getStage() {
-        final Stage activeStage = stage;
-        assertThat(activeStage)
-                .describedAs("stage")
-                .isNotNull();
-        return activeStage;
+        return requireNonNull(stage, "stage");
     }
 
     /**

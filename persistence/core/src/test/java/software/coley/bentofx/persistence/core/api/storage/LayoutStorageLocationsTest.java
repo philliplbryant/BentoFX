@@ -194,6 +194,9 @@ class LayoutStorageLocationsTest {
     }
 
     @Test
+    // Suppress warnings for passing null argument to parameter annotated as
+    // non-null; that's what we're testing.
+    @SuppressWarnings("NullAway")
     void configureHomeAndConfigureNamespaceRejectNull() {
         assertThatThrownBy(() -> LayoutStorageLocations.configureHome(null))
                 .describedAs("configureHome(null)")

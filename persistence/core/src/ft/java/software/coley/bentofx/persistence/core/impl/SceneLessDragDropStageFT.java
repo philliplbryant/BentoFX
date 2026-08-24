@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.core.impl;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -75,44 +76,65 @@ class SceneLessDragDropStageFT {
                 new AtomicReference<>();
         final AtomicReference<Stage> hostStage = new AtomicReference<>();
 
-        robot.interact(() -> {
-            final Bento bento = new Bento(BENTO_ID);
-            final DockBuilding dockBuilding = bento.dockBuilding();
-
-            // A normal, capturable root branch on its own stage, so the test can
-            // show that the good content still gets captured.
-            final DockContainerRootBranch rootBranch =
-                    dockBuilding.root(ROOT_BRANCH_ID);
-            final DockContainerLeaf leaf = dockBuilding.leaf(LEAF_ID);
-            final Dockable dockable = dockBuilding.dockable(DOCKABLE_ID);
-            leaf.addDockable(dockable);
-            rootBranch.addContainer(leaf);
-
-            final Stage host = new Stage();
-            host.setScene(new Scene(rootBranch, 400, 300));
-            host.show();
-            hostStage.set(host);
-
-            // The hazard: a DragDropStage with no scene, shown so that it appears
-            // in Window.getWindows() and the captor actually walks it.
-            final DragDropStage stage = new DragDropStage(true);
-            stage.show();
-            sceneLessStage.set(stage);
-
-            // Give it a scene before this test ends, but AFTER the capture below.
-            // Core's own WINDOW_HIDDEN filter on DragDropStage dereferences the
-            // scene, so a scene-less stage left showing throws when anything -
-            // including the test framework's teardown - eventually hides it. That
-            // is a core defect, not this module's, but leaving the artifact behind
-            // would make an unrelated test fail later.
-
-            captured.set(
-                    new BentoLayoutStateCaptor(new DefaultBentoProvider(bento))
-                            .captureBentoStates()
-            );
-        });
-
         try {
+            robot.interact(() -> {
+                final Bento bento = new Bento(BENTO_ID);
+                final DockBuilding dockBuilding = bento.dockBuilding();
+
+                // A normal, capturable root branch on its own stage, so the test
+                // can show that the good content still gets captured.
+                final DockContainerRootBranch rootBranch =
+                        dockBuilding.root(ROOT_BRANCH_ID);
+                final DockContainerLeaf leaf = dockBuilding.leaf(LEAF_ID);
+                final Dockable dockable = dockBuilding.dockable(DOCKABLE_ID);
+                leaf.addDockable(dockable);
+                rootBranch.addContainer(leaf);
+
+                final Stage host = new Stage();
+                host.setScene(new Scene(rootBranch, 400, 300));
+                host.show();
+                hostStage.set(host);
+
+                // The hazard: a showing DragDropStage whose getScene() is null, so
+                // that it appears in Window.getWindows() and the captor walks it.
+                //
+                // Shown WITH a scene and detached immediately after, rather than
+                // shown scene-less. Both arrangements put the same stage in front
+                // of the captor - showing, getScene() null - but this one never
+                // asks the platform to map a window that has no view attached.
+                // Mapping a view-less window is toolkit-dependent, and a stall
+                // inside it wedges the run: FxRobot.interact waits on the FX
+                // thread with no timeout, so the test never fails, it hangs.
+                final DragDropStage stage = new DragDropStage(true);
+                stage.setScene(new Scene(new Region(), 100, 100));
+                stage.show();
+                stage.setScene(null);
+                sceneLessStage.set(stage);
+
+                // Give it a scene back before this test ends, but AFTER the
+                // capture below. Core's own WINDOW_HIDDEN filter on
+                // DragDropStage dereferences the scene, so a scene-less stage
+                // left showing throws when anything - including the test
+                // framework's teardown - eventually hides it. That is a core
+                // defect, not this module's, but leaving the artifact behind
+                // would make an unrelated test fail later.
+
+                // Without these two the test passes whether the guard exists or
+                // not: a stage the captor never walks cannot exercise it. They
+                // assert the arrangement, not the behaviour under test.
+                assertThat(Window.getWindows())
+                        .describedAs("windows the captor will walk")
+                        .contains(stage);
+                assertThat(stage.getScene())
+                        .describedAs("scene of the stage the captor will walk")
+                        .isNull();
+
+                captured.set(
+                        new BentoLayoutStateCaptor(new DefaultBentoProvider(bento))
+                                .captureBentoStates()
+                );
+            });
+
             assertThat(captured.get())
                     .describedAs("captured bento states")
                     .hasSize(1);
@@ -139,7 +161,10 @@ class SceneLessDragDropStageFT {
                     stage.close();
                 }
 
-                hostStage.get().close();
+                final Stage host = hostStage.get();
+                if (host != null) {
+                    host.close();
+                }
             });
         }
     }

@@ -522,17 +522,19 @@ for (final LayoutPersistenceProfile stored :
 
 [A Ready-Made Layouts Menu](#layouts-menu) below does all of this already. Reach for the calls above when you want a presentation of your own.
 
-Five things are worth knowing:
+Several things are worth knowing:
 
 * **`saveLayout` is not a `LayoutSaver`.** It writes once and returns; nothing is scheduled and no listener is registered. Keep `getLayoutSaver` for the layout that follows the session and use this for a layout a user asked to keep.
 * **A display name is stored, not addressed by.** `LayoutPersistenceProfile.named(identifier, displayName, codec, storage)` carries the name into the layout; the identifier still does the addressing. `getStoredLayoutIdentifiers` returns identifiers cheaply, while `getStoredLayouts` reads each layout to recover its name, so use the identifier listing when the names are not needed.
 * **The identifier is the application's to choose.** The framework validates one and stores a name, and will derive one for you: `LayoutNames.toIdentifier("Multi-Monitor")` returns `multi-monitor`, keeping only letters and digits so the result cannot be a path, hold a character a filesystem reserves, or end in a space or a period. `LayoutIdentifiers.findUserLayoutProblem(identifier, codec)` reports whether a chosen identifier is usable, including whether it collides with the reserved session name. Pass the identifier alone when the codec is the framework's own selection to make and the application has none to name: that overload applies every rule but the joined-length one, which needs both halves.
 * **Restoring a different layout while running is not the same as restoring one at startup.** The containers a restorer hands back are unattached, so the application replaces the scene root and re-shows any drag/drop stages itself, and the switch itself looks like a layout change to a running auto-save. Save the current layout first, or take auto-save down around the switch.
-* **Saving before a switch writes the layout the *saver* names, which is not the layout being left.** A `LayoutSaver` writes to the profile it was built for, and that is the session layout. So the arrangement on screen at the moment of a switch goes to the session layout, not to the named layout the user had been working in: whatever they changed since they last saved that layout stays out of it. An application offering named layouts therefore needs a "save changes" of its own, writing the live layout back under the name it came from with `saveLayout`. The same is true of a rename, which cannot write only the name - `saveLayout` captures the live containers, so renaming stores the current arrangement under the new name. That is why the persistence demo offers both only for the layout showing.
+* **Saving before a switch writes the layout the *saver* names, which is not the layout being left.** A `LayoutSaver` writes to the profile it was built for, and that is the session layout. So the arrangement on screen at the moment of a switch goes to the session layout, not to the named layout the user had been working in: whatever they changed since they last saved that layout stays out of it. An application offering named layouts therefore needs a "save changes" of its own, writing the live layout back under the name it came from with `saveLayout`. That is why the persistence demo offers `Save Changes` only for the layout showing.
+* **Renaming and grouping do not go through `saveLayout`.** `updateStoredLayoutNaming(profile)` rewrites a stored layout's display name and group and leaves its docking state alone, reading nothing from the scene graph. So a layout does not have to be restored to be renamed or filed, and renaming one never quietly stores the arrangement that happened to be showing. Both values are written as given - a `null` clears - so change one and pass the other through with `LayoutPersistenceProfile.withNaming(displayName, group)`.
+* **A group is a field, and it outlives its members.** A layout's group is its own metadata, not something read out of its name, so `TCP/IP Debug` is one layout with a slash in its name and users never learn of a separator. Because a group exists before anything is in it and survives its last layout leaving, the set of groups is kept in a **group catalog**: one stored entry under the reserved identifier `LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER`, read with `getStoredGroups` and replaced with `setStoredGroups`. Show it together with the groups the layouts themselves name - the union cannot hide a layout in a group the catalog has lost. Deleting a group keeps its layouts and leaves them in no group.
 
 A layout identifier becomes a file name in file-backed storage, so it has to be usable as one: no separators, nothing a filesystem reserves, and at most 255 characters shared with the codec identifier. A name a user types is not automatically usable, which is why an application either maps display names to identifiers or restricts what the user may type.
 
-The persistence demo does all of this, if you would rather read it working than described. `Window > Layouts` in `demos/persistence` saves the layout showing under a name, restores a stored one live, renames it, and deletes it; it reads its text from a `ResourceBundle` and derives identifiers with `LayoutNames.toIdentifier`.
+The persistence demo does all of this, if you would rather read it working than described. `Window > Layouts` in `demos/persistence` saves the layout showing under a name, restores a stored one live, renames it, files it in a group, and deletes it; it reads its text from a `ResourceBundle` and derives identifiers with `LayoutNames.toIdentifier`.
 
 For a dialog, ask instead of being refused. `LayoutIdentifiers.findUserLayoutProblem(...)` returns an empty `Optional` when the pair is usable, and otherwise names the rule that was broken, which identifier broke it, and a message ready to show:
 
@@ -559,6 +561,8 @@ windowMenu.getItems().add(new LayoutsMenu(stage, application));
 ```
 
 It offers the default layout, the layouts a user has saved, and saving, renaming, and deleting those. A check mark marks whichever is showing. The menu rebuilds itself each time it opens, so the list and the mark keep up with storage while the application runs.
+
+It also lets users organize their layouts into groups: `Groups > New Group...`, `Rename Group`, and `Delete Group`, with `Move to Group` on each saved layout. Groups appear as submenus wherever layouts are listed, ahead of the layouts in none, and a group holding the layout on screen is marked so finding it does not mean opening each one. A group created this way exists before anything is in it and survives its last layout being moved out; deleting one keeps its layouts and leaves them in no group. Nothing here asks a user to type a separator, because a layout's group is stored as a field of its own.
 
 The two arguments are the window its dialogs belong to, and the application. The application implements `DockingLayoutRestorable`:
 
@@ -655,6 +659,14 @@ For example, if an identifier changes from `workspace` to `projects`,
 the `DockableStateProvider` can continue accepting `workspace` and
 return the newer dockable state. This allows previously saved layouts
 to continue restoring successfully after an application upgrade.
+
+The stored format carries a schema version of its own, and the framework
+reads every version up to the one it writes. **The current version is 1**,
+and it is the only version there has been, so it covers everything the stored
+metadata holds, a layout's group and the group catalog included. A layout
+written by a newer framework is refused by an older one, with a message naming
+the version rather than a parse failure, so downgrading an application strands
+the layouts saved by the newer one.
 
 Providers are the primary mechanism for adapting persisted layouts to
 application changes until explicit layout migration support is added.

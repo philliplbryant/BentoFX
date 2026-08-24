@@ -6,6 +6,7 @@ import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.LayoutRestorer;
 import software.coley.bentofx.persistence.core.api.LayoutSaver;
 import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
+import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
@@ -21,11 +22,14 @@ import software.coley.bentofx.persistence.core.impl.DockingLayoutSaver;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
+
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 
 /**
  * {@code ServiceLoader} compatible Service Provider implementation for creating
@@ -220,15 +224,18 @@ public class DefaultDockingLayoutPersistenceProvider
         for (final String layoutIdentifier :
                 layoutStorageProvider.getLayoutIdentifiers(codecIdentifier)) {
 
+            final PersistableLayout storedLayout = readLayout(
+                    layoutStorageProvider,
+                    layoutCodec,
+                    layoutIdentifier
+            );
+
             layouts.add(new LayoutPersistenceProfile(
                     layoutIdentifier,
                     layoutPersistenceProfile.codecIdentifier(),
                     layoutPersistenceProfile.storageIdentifier(),
-                    readDisplayName(
-                            layoutStorageProvider,
-                            layoutCodec,
-                            layoutIdentifier
-                    )
+                    storedLayout.displayName(),
+                    storedLayout.group()
             ));
         }
 
@@ -236,18 +243,18 @@ public class DefaultDockingLayoutPersistenceProvider
     }
 
     /**
-     * {@return the display name stored with a layout, or {@code null} when it
-     * was saved without one.}
+     * {@return a layout read out of storage and decoded.}
      *
-     * <p>The display name lives inside the layout, so reading it means decoding
-     * the layout. This opens its storage, decodes, and closes.</p>
+     * <p>The display name and the group live inside the layout rather than in its
+     * identifier, so reading either means decoding the whole thing. This opens
+     * its storage, decodes, and closes.</p>
      *
      * @param layoutStorageProvider the storage the layout is held in.
      * @param layoutCodec the codec the layout was written with.
      * @param layoutIdentifier identifies the layout to read.
      * @throws BentoStateException when the layout cannot be read or decoded.
      */
-    private static @Nullable String readDisplayName(
+    private static PersistableLayout readLayout(
             final LayoutStorageProvider layoutStorageProvider,
             final LayoutCodec layoutCodec,
             final String layoutIdentifier
@@ -260,7 +267,7 @@ public class DefaultDockingLayoutPersistenceProvider
                      );
              final InputStream inputStream = layoutStorage.openInputStream()) {
 
-            return layoutCodec.decode(inputStream).displayName();
+            return layoutCodec.decode(inputStream);
         } catch (final IOException e) {
             throw new BentoStateException(
                     "Could not read the stored layout '"
@@ -268,6 +275,124 @@ public class DefaultDockingLayoutPersistenceProvider
                     e
             );
         }
+    }
+
+    /**
+     * Writes a layout to storage, replacing whatever was there.
+     *
+     * @param layoutStorageProvider the storage to write to.
+     * @param layoutCodec the codec to write with.
+     * @param layoutIdentifier identifies the layout to write.
+     * @param layout what to write.
+     * @throws BentoStateException when the layout cannot be written.
+     */
+    private static void writeLayout(
+            final LayoutStorageProvider layoutStorageProvider,
+            final LayoutCodec layoutCodec,
+            final String layoutIdentifier,
+            final PersistableLayout layout
+    ) throws BentoStateException {
+
+        try (final LayoutStorage layoutStorage =
+                     layoutStorageProvider.getLayoutStorage(
+                             layoutIdentifier,
+                             layoutCodec.getIdentifier()
+                     );
+             final OutputStream outputStream = layoutStorage.openOutputStream()) {
+
+            layoutCodec.encode(layout, outputStream);
+        } catch (final IOException e) {
+            throw new BentoStateException(
+                    "Could not write the stored layout '"
+                            + layoutIdentifier + "'.",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public boolean updateStoredLayoutNaming(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+        final LayoutStorageProvider layoutStorageProvider =
+                selectStorageProvider(layoutPersistenceProfile);
+        final String layoutIdentifier =
+                layoutPersistenceProfile.layoutIdentifier();
+
+        if (!layoutStorageProvider.isLayoutStored(
+                layoutIdentifier,
+                layoutCodec.getIdentifier()
+        )) {
+            return false;
+        }
+
+        // Read to completion and close before opening for write. Opening an
+        // output stream truncates what a file-backed layout is held in, so
+        // reading and writing through one open storage would empty the layout
+        // being renamed.
+        final PersistableLayout storedLayout = readLayout(
+                layoutStorageProvider,
+                layoutCodec,
+                layoutIdentifier
+        );
+
+        writeLayout(
+                layoutStorageProvider,
+                layoutCodec,
+                layoutIdentifier,
+                storedLayout.withNaming(
+                        layoutPersistenceProfile.displayName(),
+                        layoutPersistenceProfile.group()
+                )
+        );
+
+        return true;
+    }
+
+    @Override
+    public List<String> getStoredGroups(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+        final LayoutStorageProvider layoutStorageProvider =
+                selectStorageProvider(layoutPersistenceProfile);
+
+        if (!layoutStorageProvider.isLayoutStored(
+                GROUP_CATALOG_LAYOUT_IDENTIFIER,
+                layoutCodec.getIdentifier()
+        )) {
+            return List.of();
+        }
+
+        return readLayout(
+                layoutStorageProvider,
+                layoutCodec,
+                GROUP_CATALOG_LAYOUT_IDENTIFIER
+        ).groups();
+    }
+
+    @Override
+    public void setStoredGroups(
+            final LayoutPersistenceProfile layoutPersistenceProfile,
+            final List<String> groups
+    ) throws BentoStateException {
+
+        Objects.requireNonNull(groups, "groups");
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+
+        writeLayout(
+                selectStorageProvider(layoutPersistenceProfile),
+                layoutCodec,
+                GROUP_CATALOG_LAYOUT_IDENTIFIER,
+                PersistableLayout.ofGroups(groups)
+        );
     }
 
     @Override

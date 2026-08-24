@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Objects.requireNonNull;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Side.LEFT;
@@ -515,7 +516,7 @@ class DockingLayoutStateRestorerCollaboratorFT {
         assertThat(dockable.getTooltip())
                 .describedAs("dockable.getTooltip()")
                 .isInstanceOf(Tooltip.class);
-        assertThat(dockable.getTooltip().getText())
+        assertThat(requireNonNull(dockable.getTooltip()).getText())
                 .describedAs("dockable.getTooltip().getText()")
                 .isEqualTo(DOCKABLE_TOOLTIP_TEXT);
         assertThat(dockable.isClosable())
