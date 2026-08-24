@@ -72,6 +72,7 @@ class SceneLessDragDropStageFT {
     @Test
     void captureIgnoresSceneLessDragDropStage(final FxRobot robot) {
         final AtomicReference<List<BentoState>> captured = new AtomicReference<>();
+        final AtomicReference<Bento> capturedBento = new AtomicReference<>();
         final AtomicReference<DragDropStage> sceneLessStage =
                 new AtomicReference<>();
         final AtomicReference<Stage> hostStage = new AtomicReference<>();
@@ -89,6 +90,7 @@ class SceneLessDragDropStageFT {
                 final Dockable dockable = dockBuilding.dockable(DOCKABLE_ID);
                 leaf.addDockable(dockable);
                 rootBranch.addContainer(leaf);
+                capturedBento.set(bento);
 
                 final Stage host = new Stage();
                 host.setScene(new Scene(rootBranch, 400, 300));
@@ -98,26 +100,33 @@ class SceneLessDragDropStageFT {
                 // The hazard: a showing DragDropStage whose getScene() is null, so
                 // that it appears in Window.getWindows() and the captor walks it.
                 //
-                // Shown WITH a scene and detached immediately after, rather than
-                // shown scene-less. Both arrangements put the same stage in front
-                // of the captor - showing, getScene() null - but this one never
-                // asks the platform to map a window that has no view attached.
-                // Mapping a view-less window is toolkit-dependent, and a stall
-                // inside it wedges the run: FxRobot.interact waits on the FX
+                // Shown WITH a scene and detached in a later FX runnable, rather
+                // than shown scene-less. Both arrangements put the same stage in
+                // front of the captor - showing, getScene() null - but this one
+                // never asks the platform to map a window that has no view
+                // attached. Mapping a view-less window is toolkit-dependent, and a
+                // stall inside it wedges the run: FxRobot.interact waits on the FX
                 // thread with no timeout, so the test never fails, it hangs.
                 final DragDropStage stage = new DragDropStage(true);
                 stage.setScene(new Scene(new Region(), 100, 100));
                 stage.show();
-                stage.setScene(null);
                 sceneLessStage.set(stage);
+            });
 
-                // Give it a scene back before this test ends, but AFTER the
-                // capture below. Core's own WINDOW_HIDDEN filter on
-                // DragDropStage dereferences the scene, so a scene-less stage
-                // left showing throws when anything - including the test
-                // framework's teardown - eventually hides it. That is a core
-                // defect, not this module's, but leaving the artifact behind
-                // would make an unrelated test fail later.
+            // Every scene attach or detach on a showing stage gets its own
+            // robot.interact, so that FxRobot pumps a pulse in between and each
+            // scene renders once before the next change. Quantum sizes its render
+            // latch by the number of dirty scenes, so a scene made dirty by show()
+            // and then detached before it renders leaves a count that nothing will
+            // ever decrement. The FX thread then parks in
+            // PaintCollector.waitForRenderingToComplete on the next synchronous
+            // render - in this test or, because the damage outlives it, in any
+            // later one. Under Monocle (-Pheadless=true) that hung the build
+            // rather than failing it; the same code passes on a real display,
+            // which is why CI's xvfb run never saw it.
+            robot.interact(() -> {
+                final DragDropStage stage = sceneLessStage.get();
+                stage.setScene(null);
 
                 // Without these two the test passes whether the guard exists or
                 // not: a stage the captor never walks cannot exercise it. They
@@ -130,8 +139,9 @@ class SceneLessDragDropStageFT {
                         .isNull();
 
                 captured.set(
-                        new BentoLayoutStateCaptor(new DefaultBentoProvider(bento))
-                                .captureBentoStates()
+                        new BentoLayoutStateCaptor(
+                                new DefaultBentoProvider(capturedBento.get())
+                        ).captureBentoStates()
                 );
             });
 
@@ -154,10 +164,16 @@ class SceneLessDragDropStageFT {
                 // the test and throws during a later teardown, failing an
                 // unrelated test.
                 final DragDropStage stage = sceneLessStage.get();
+                if (stage != null && stage.getScene() == null) {
+                    stage.setScene(new Scene(new Region(), 100, 100));
+                }
+            });
+
+            // Separate runnable, for the same reason as the detach above: the
+            // scene just attached has to render before the window goes away.
+            robot.interact(() -> {
+                final DragDropStage stage = sceneLessStage.get();
                 if (stage != null) {
-                    if (stage.getScene() == null) {
-                        stage.setScene(new Scene(new Region(), 100, 100));
-                    }
                     stage.close();
                 }
 

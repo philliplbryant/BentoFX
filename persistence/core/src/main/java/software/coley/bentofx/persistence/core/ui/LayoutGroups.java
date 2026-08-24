@@ -232,7 +232,7 @@ final class LayoutGroups {
             return Optional.of(GroupNameProblem.TOO_LONG);
         }
 
-        if (renamedGroup != null && trimmedName.equalsIgnoreCase(renamedGroup)) {
+        if (trimmedName.equalsIgnoreCase(renamedGroup)) {
             return Optional.empty();
         }
 
