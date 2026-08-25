@@ -13,6 +13,12 @@ import java.util.Map;
  */
 public class DockContainerRootBranchState extends DockContainerBranchState {
 
+    // No equals or hashCode overrides, deliberately. This class adds no field
+    // to DockContainerBranchState, and IdentifiableState#equals(Object) compares
+    // exact runtime types, so a root branch state is already unequal to an
+    // ordinary branch state carrying the same values. That distinction matters,
+    // because the two restore differently.
+
     private DockContainerRootBranchState(
             final String identifier,
             final @Nullable Boolean pruneWhenEmpty,
@@ -63,7 +69,9 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
          * @param pruneWhenEmpty whether empty branches should be pruned,
          * {@code null} leaves prune-when-empty unspecified.
          */
-        public DockContainerRootBranchStateBuilder setPruneWhenEmpty(final @Nullable Boolean pruneWhenEmpty) {
+        public DockContainerRootBranchStateBuilder setPruneWhenEmpty(
+                final @Nullable Boolean pruneWhenEmpty
+        ) {
             branchStateBuilder.setPruneWhenEmpty(pruneWhenEmpty);
             return this;
         }
@@ -83,7 +91,8 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         /**
          * {@return this builder for chaining method calls.}
          * @param dividerIndex the index of the divider.
-         * @param dividerPosition the divider position, between 0.0 and 1.0 (inclusive).
+         * @param dividerPosition the divider position, between 0.0 and 1.0
+         * (inclusive).
          */
         public DockContainerRootBranchStateBuilder addDividerPosition(
                 final Integer dividerIndex,
@@ -105,12 +114,13 @@ public class DockContainerRootBranchState extends DockContainerBranchState {
         }
 
         /**
-         * {@return the {@link DockContainerRootBranchState} built from this builder.}
+         * {@return the {@link DockContainerRootBranchState} built from this
+         * builder.}
          */
         public DockContainerRootBranchState build() {
-            // Building the branch state first and copying across, so the collected
-            // values are read back through one set of accessors rather than by
-            // reaching into the delegate's fields.
+            // Building the branch state first and copying across, so the
+            // collected values are read back through one set of accessors
+            // rather than by reaching into the delegate's fields.
             final DockContainerBranchState branchState =
                     branchStateBuilder.build();
 

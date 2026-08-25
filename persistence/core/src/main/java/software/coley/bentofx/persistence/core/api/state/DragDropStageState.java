@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.core.api.state;
 import javafx.stage.Modality;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -202,6 +203,88 @@ public class DragDropStageState {
     }
 
     /**
+     * Compares this state to another by exact runtime type and by every
+     * persisted field, including the nested root branch state.
+     *
+     * <p>Two states are equal when they would restore the same stage and the
+     * same layout inside it, which makes this the check for "did the layout
+     * actually change" without encoding either side.</p>
+     *
+     * <p>Exact runtime type rather than {@code instanceof}, because this class
+     * is not {@code final} and comparing exact types keeps the relation
+     * symmetric and transitive against a subclass that adds fields.</p>
+     *
+     * <p>Callable from any thread: this state is immutable and holds no
+     * scene-graph reference.</p>
+     *
+     * @param o the object to compare against, may be {@code null}.
+     *
+     * @return {@code true} when {@code o} has exactly this runtime type and
+     * equal values for every persisted field.
+     */
+    // EqualsGetClass: deliberate, for the reason given above - this class is not
+    // final, and instanceof cannot keep the relation symmetric against a subclass
+    // that adds fields.
+    @SuppressWarnings("EqualsGetClass")
+    @Override
+    public boolean equals(final @Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final DragDropStageState that = (DragDropStageState) o;
+
+        return modality == that.modality
+                && isAutoClosedWhenEmpty.equals(that.isAutoClosedWhenEmpty)
+                && Objects.equals(title, that.title)
+                && Objects.equals(x, that.x)
+                && Objects.equals(y, that.y)
+                && Objects.equals(width, that.width)
+                && Objects.equals(height, that.height)
+                && Objects.equals(opacity, that.opacity)
+                && Objects.equals(isIconified, that.isIconified)
+                && Objects.equals(isFullScreen, that.isFullScreen)
+                && Objects.equals(isMaximized, that.isMaximized)
+                && Objects.equals(isAlwaysOnTop, that.isAlwaysOnTop)
+                && Objects.equals(isResizable, that.isResizable)
+                && Objects.equals(isShowing, that.isShowing)
+                && Objects.equals(isFocused, that.isFocused)
+                && Objects.equals(
+                        dockContainerRootBranchState,
+                        that.dockContainerRootBranchState
+                );
+    }
+
+    /**
+     * {@return a hash code consistent with {@link #equals(Object)}.}
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                title,
+                x,
+                y,
+                width,
+                height,
+                modality,
+                opacity,
+                isIconified,
+                isFullScreen,
+                isMaximized,
+                isAlwaysOnTop,
+                isResizable,
+                isShowing,
+                isFocused,
+                isAutoClosedWhenEmpty,
+                dockContainerRootBranchState
+        );
+    }
+
+    /**
      * Builds a {@link DragDropStageState}.
      */
     public static class DragDropStageStateBuilder {
@@ -262,7 +345,8 @@ public class DragDropStageState {
 
         /**
          * {@return this builder for chaining method calls.}
-         * @param x the value to persist, {@code null} leaves the x-coordinate unspecified.
+         * @param x the value to persist, {@code null} leaves the x-coordinate
+         * unspecified.
          */
         public DragDropStageStateBuilder setX(
                 final @Nullable Double x

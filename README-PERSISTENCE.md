@@ -105,6 +105,7 @@ For additional implementation details and diagrams, see:
 
 - [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md)
 - [Bento Layout Persistence Diagrams](docs/persistence/docking-layout-persistence-diagrams.md)
+- [Layout Undo/Redo Design Note](docs/persistence/layout-undo-redo.md)
 
 The persistence framework has two responsibilities:
 
@@ -347,7 +348,7 @@ Scheduling the same work with `Platform.runLater(...)` from a constructor also p
 
 Provider implementations are typically application singletons or long-lived services created during startup.
 
-Applications generally create providers before layout restoration and reuse them for the lifetime of the application. Providers should not assume that layout restoration occurs only once. A provider may be called repeatedly whenever layouts are restored, when a default layout is created, or when future application features allow users to switch layouts.
+Applications generally create providers before layout restoration and reuse them for the lifetime of the application. Providers should not assume that layout restoration occurs only once. A provider may be called repeatedly whenever layouts are restored, when a default layout is created, or when users to switch saved layouts.
 
 Providers should also avoid storing stale JavaFX objects when those objects are meant to be recreated. If a provider caches runtime content, the cache lifecycle should match the application lifecycle and JavaFX threading rules.
 

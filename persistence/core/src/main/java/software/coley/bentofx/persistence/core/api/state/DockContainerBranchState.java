@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -79,6 +80,51 @@ public non-sealed class DockContainerBranchState extends DockContainerState {
      */
     public List<DockContainerState> getChildDockContainerStates() {
         return childDockContainerStates;
+    }
+
+    /**
+     * Extends {@link DockContainerState#equals(Object)} with the orientation, the
+     * divider positions and the ordered child container states. See
+     * {@link IdentifiableState#equals(Object)} for the contract.
+     *
+     * <p>Child order is part of the comparison, because it is part of the layout:
+     * two branches holding the same containers left-to-right versus right-to-left
+     * are different layouts.</p>
+     *
+     * @param o the object to compare against, may be {@code null}.
+     *
+     * @return {@code true} when {@code o} has exactly this runtime type and equal
+     * values for every persisted field.
+     */
+    @Override
+    public boolean equals(final @Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        // The instanceof narrows the type for the compiler; super.equals settles the
+        // exact-runtime-type check documented on IdentifiableState.equals.
+        if (!(o instanceof final DockContainerBranchState that)
+                || !super.equals(o)) {
+            return false;
+        }
+
+        return orientation == that.orientation
+                && dividerPositions.equals(that.dividerPositions)
+                && childDockContainerStates.equals(that.childDockContainerStates);
+    }
+
+    /**
+     * {@return a hash code consistent with {@link #equals(Object)}.}
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                super.hashCode(),
+                orientation,
+                dividerPositions,
+                childDockContainerStates
+        );
     }
 
     /**

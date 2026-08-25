@@ -7,6 +7,7 @@ import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.dockable.DockableIconFactory;
 import software.coley.bentofx.dockable.DockableMenuFactory;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -128,6 +129,55 @@ public class DockableState extends IdentifiableState {
      */
     public Optional<Consumer<Dockable>> getDockableConsumer() {
         return Optional.ofNullable(dockableConsumer);
+    }
+
+    /**
+     * Extends {@link IdentifiableState#equals(Object)} with every field this class
+     * carries. See that method for the contract.
+     *
+     * @param o the object to compare against, may be {@code null}.
+     *
+     * @return {@code true} when {@code o} has exactly this runtime type and equal
+     * values for every persisted field.
+     */
+    @Override
+    public boolean equals(final @Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        // The instanceof narrows the type for the compiler; super.equals settles the
+        // exact-runtime-type check documented on IdentifiableState.equals.
+        if (!(o instanceof final DockableState that) || !super.equals(o)) {
+            return false;
+        }
+
+        return Objects.equals(dockableNode, that.dockableNode)
+                && Objects.equals(dockableIconFactory, that.dockableIconFactory)
+                && Objects.equals(dockableMenuFactory, that.dockableMenuFactory)
+                && Objects.equals(dockableConsumer, that.dockableConsumer)
+                && Objects.equals(title, that.title)
+                && Objects.equals(tooltip, that.tooltip)
+                && Objects.equals(dragGroupMask, that.dragGroupMask)
+                && Objects.equals(isClosable, that.isClosable);
+    }
+
+    /**
+     * {@return a hash code consistent with {@link #equals(Object)}.}
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                super.hashCode(),
+                dockableNode,
+                dockableIconFactory,
+                dockableMenuFactory,
+                dockableConsumer,
+                title,
+                tooltip,
+                dragGroupMask,
+                isClosable
+        );
     }
 
     /**

@@ -14,6 +14,7 @@ java-jdk = "21"
 assertj = "4.0.0-M1"
 byte-buddy = "1.18.11"
 errorprone = "2.50.0"
+equals-verifier = "4.5.1"
 h2 = "2.4.240"
 hibernate-orm = "7.4.5.Final"
 hibernate-validator = "9.1.3.Final"
@@ -50,6 +51,7 @@ dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.depe
 # noinspection UnusedVersionCatalogEntry
 errorprone = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 errorprone-gradlePlugin-dependency = { module = "net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin", version.ref = "errorprone-plugin" }
+equals-verifier = { module = "nl.jqno.equalsverifier:equalsverifier-nodep", version.ref = "equals-verifier"}
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 hibernate-bom = { module = "org.hibernate.orm:hibernate-platform", version.ref = "hibernate-orm" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core" }

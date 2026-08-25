@@ -21,7 +21,37 @@ class BentoStateTest {
     private static final String DOCKABLE_IDENTIFIER = "dockable:editor";
     private static final String STAGE_TITLE = "Floating tools";
 
-    private static final String STATE_GET_ROOTBRANCHSTATES_DESCRIPTION = "state.getRootBranchStates()";
+    private static final String STATE_GET_ROOT_BRANCH_STATES_DESCRIPTION = "state.getRootBranchStates()";
+
+    @Test
+    void bentoStateHonoursTheEqualsContract() {
+        StateVerifiers.configured()
+                .forClass(BentoState.class)
+                // List.copyOf in the constructor; there is no nullable field here.
+                .withNonnullFields(
+                        "identifier",
+                        "rootBranchStates",
+                        "dragDropStageStates"
+                )
+                .verify();
+    }
+
+    @Test
+    void bentoStateEqualityReachesTheWholeNestedLayout() {
+        final BentoState first = createBentoState(0.25);
+        final BentoState second = createBentoState(0.25);
+        final BentoState moved = createBentoState(0.75);
+
+        assertThat(first)
+                .describedAs("bento state built twice from the same nested values")
+                .isEqualTo(second)
+                .hasSameHashCodeAs(second);
+
+        // The only difference is a divider position three levels down.
+        assertThat(first)
+                .describedAs("bento state whose nested divider position moved")
+                .isNotEqualTo(moved);
+    }
 
     @Test
     void bentoStateCanRepresentNestedRootBranchesAndDetachedStages() {
@@ -73,7 +103,7 @@ class BentoStateTest {
                 .isEqualTo(BENTO_IDENTIFIER);
 
         assertThat(state.getRootBranchStates())
-                .describedAs(STATE_GET_ROOTBRANCHSTATES_DESCRIPTION)
+                .describedAs(STATE_GET_ROOT_BRANCH_STATES_DESCRIPTION)
                 .singleElement()
                 .satisfies(savedRoot -> {
 
@@ -143,8 +173,29 @@ class BentoStateTest {
         builder.addRootBranchState(secondRoot);
 
         assertThat(state.getRootBranchStates())
-                .describedAs(STATE_GET_ROOTBRANCHSTATES_DESCRIPTION)
+                .describedAs(STATE_GET_ROOT_BRANCH_STATES_DESCRIPTION)
                 .containsExactly(firstRoot);
     }
 
+    private static BentoState createBentoState(final double dividerPosition) {
+        final DockContainerBranchState nestedBranch =
+                new DockContainerBranchState.DockContainerBranchStateBuilder("branch:nested")
+                        .setOrientation(Orientation.VERTICAL)
+                        .addDividerPosition(0, dividerPosition)
+                        .addDockContainerState(
+                                new DockContainerLeafStateBuilder("leaf:editor")
+                                        .setSide(Side.TOP)
+                                        .build()
+                        )
+                        .build();
+
+        return new BentoStateBuilder(BENTO_IDENTIFIER)
+                .addRootBranchState(
+                        new DockContainerRootBranchStateBuilder(ROOT_BRANCH_IDENTIFIER)
+                                .setOrientation(Orientation.VERTICAL)
+                                .addDockContainerState(nestedBranch)
+                                .build()
+                )
+                .build();
+    }
 }
