@@ -23,12 +23,6 @@ plugins.withId('org.openjfx.javafxplugin') {
 group = versionCatalog.findVersion("maven-group").get().requiredVersion
 version = versionCatalog.findVersion("bentofx").get().requiredVersion
 
-/*
- * Hyphens rather than dots: ':persistence:codec:json' becomes
- * 'persistence-codec-json', which is what a Maven artifactId conventionally
- * looks like and what README already tells consumers to depend on. Dots read as
- * a groupId and are unusual in an artifactId.
- */
 def normalizedProjectName = providers.provider {
     project.path.substring(1).replace(':', '-')
 }

@@ -52,41 +52,6 @@ plugins.withId('com.autonomousapps.dependency-analysis') {
     }
 }
 
-/*
- * TODO BENTO-13: Drop onWindows condition once 'jreleaserConfig' can run on
- *  Windows.
- */
-def onWindows = providers.systemProperty('os.name')
-        .map { osName -> osName.toLowerCase(Locale.ROOT).contains('windows') }
-        .getOrElse(false)
-
-if (onWindows) {
-    /*
-     * Skipped rather than left out, so that asking for it by name reports why it
-     * did nothing instead of failing. The warning is raised from the predicate,
-     * which Gradle evaluates only when the task is actually about to run - a
-     * warning at configuration time would announce itself on every build, and
-     * would then go quiet as soon as a configuration cache entry was reused.
-     */
-    tasks.named('jreleaserConfig').configure { jreleaserConfigTask ->
-        jreleaserConfigTask.onlyIf(
-                'JReleaser cannot delete the trace.log it holds open on Windows'
-        ) { skippedTask ->
-            skippedTask.logger.warn(
-                    "Skipping ${skippedTask.path} on Windows: JReleaser fails to "
-                            + 'clear its own build/jreleaser directory there, '
-                            + 'because it still holds trace.log open. Run it '
-                            + 'from WSL, Linux or macOS instead.'
-            )
-            false
-        }
-    }
-} else {
-    checkAllTask.configure { checkAllLifecycleTask ->
-        checkAllLifecycleTask.dependsOn(tasks.named('jreleaserConfig'))
-    }
-}
-
 // JReleaser also requires defining the following system properties (can be
 // defined in [USER_HOME]/.jreleaser/config.properties):
 //    JRELEASER_GPG_PASSPHRASE=[passphrase]
