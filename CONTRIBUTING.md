@@ -8,7 +8,7 @@
   - [Unit Tests](#unit-tests)
   - [Integration Tests](#integration-tests)
   - [Parallel Integration Tests](#parallel-integration-tests)
-  - [Functional Tests](#functional-tests)
+  - [Graphical Integration Tests](#graphical-integration-tests)
 - [JSpecify Nullness Analysis](#jspecify-nullness-analysis)
 - [Code Coverage](#code-coverage)
 - [GitHub Workflows](#github-workflows)
@@ -92,19 +92,19 @@ Parallel integration tests:
 
 ---
 
-<h3 id="functional-tests">Functional Tests (FT)</h3>
+<h3 id="graphical-integration-tests">Graphical Integration Tests (ITG)</h3>
 
-Projects that apply the [functional test convention](./build-logic/src/main/groovy/bento.test.functional-test-suite.gradle) are enabled to run functional tests.  
-Functional test classes must have names ending with `FT` and be located in the `src/ft/java` directory. These tests are not run in parallel.
+Projects that apply the [graphical integration test convention](./build-logic/src/main/groovy/bento.test.integration-test-graphical-suite.gradle) are enabled to run graphical integration tests.  
+Graphical integration test classes must have names ending with `ITG` and be located in the `src/itg/java` directory. These tests are not run in parallel.
 
-Functional tests:
+Graphical integration tests:
 - Test user interface components, requiring a graphical environment to run.  
 - Often interact with UI components and <u>cannot</u> be run in parallel reliably.
 
 > 💡 **Tips for Execution**  
-> Functional tests are executed as part of the following tasks:  
-> - `gradlew functionalTest`  
-> - `gradlew checkFunctional`  
+> Graphical integration tests are executed as part of the following tasks:  
+> - `gradlew integrationTestGraphical`  
+> - `gradlew checkIntegration`  
 > - `gradlew checkAll`
 
 ---
@@ -134,8 +134,8 @@ Per-project coverage tasks are available when the matching test-suite convention
 
 - `gradlew jacocoTestReport` generates unit test coverage.
 - `gradlew jacocoIntegrationTestReport` generates integration test coverage when the integration test suite is applied.
+- `gradlew jacocoIntegrationTestGraphicalReport` generates graphical integration test coverage when the graphical integration test suite is applied.
 - `gradlew jacocoIntegrationTestParallelReport` generates parallel integration test coverage when the parallel integration test suite is applied.
-- `gradlew jacocoFunctionalTestReport` generates functional test coverage when the functional test suite is applied.
 
 For example:
 

@@ -123,7 +123,7 @@ collaborators:
 
 This split keeps the public saver/restorer API stable while making the persistence pipeline easier to test. Unit tests can
 cover storage/codec error handling through `LayoutStateReader` and `LayoutStateWriter` without creating JavaFX stages,
-and functional tests can continue to cover full end-to-end save and restore behavior.
+and graphical integration tests can continue to cover full end-to-end save and restore behavior.
 
 ## Application integration model
 

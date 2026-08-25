@@ -3,7 +3,6 @@ package software.coley.gradle.lifecycle
 @SuppressWarnings("unused")
 final class TestLifecycle {
     public static final String CHECK_INTEGRATION_TASK_NAME = 'checkIntegration'
-    public static final String CHECK_FUNCTIONAL_TASK_NAME = 'checkFunctional'
     public static final String CHECK_ALL_TASK_NAME = 'checkAll'
 
     public static final ENABLE_CSV_REPORT = false

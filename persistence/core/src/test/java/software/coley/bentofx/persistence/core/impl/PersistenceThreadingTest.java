@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Coverage for the paths through {@code PersistenceThreading} that neither
  * dispatch via {@link Platform#runLater(Runnable)} nor need an {@code
  * FxRobot}: the JavaFX toolkit never has to start for these, so they belong
- * here rather than in {@code PersistenceThreadingFT}.
+ * here rather than in {@code PersistenceThreadingITG}.
  */
 class PersistenceThreadingTest {
 

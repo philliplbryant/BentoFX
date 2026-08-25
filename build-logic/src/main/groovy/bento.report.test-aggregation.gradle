@@ -6,19 +6,18 @@ plugins {
 }
 
 def checkAllTask = tasks.named(CHECK_ALL_TASK_NAME)
-def checkFunctionalTask = tasks.named(CHECK_FUNCTIONAL_TASK_NAME)
 def checkIntegrationTask = tasks.named(CHECK_INTEGRATION_TASK_NAME)
 def checkTask = tasks.named('check')
 def testAggregateTestReportTask = tasks.named('testAggregateTestReport')
 def integrationTestAggregateTestReportTask = tasks.named('integrationTestAggregateTestReport')
+def integrationTestGraphicalAggregateTestReportTask = tasks.named('integrationTestGraphicalAggregateTestReport')
 def integrationTestParallelAggregateTestReportTask = tasks.named('integrationTestParallelAggregateTestReport')
-def functionalTestAggregateTestReportTask = tasks.named('functionalTestAggregateTestReport')
 
 def aggregateTestReportTasks = [
         testAggregateTestReportTask,
         integrationTestAggregateTestReportTask,
+        integrationTestGraphicalAggregateTestReportTask,
         integrationTestParallelAggregateTestReportTask,
-        functionalTestAggregateTestReportTask,
 ]
 
 aggregateTestReportTasks.each { reportTaskProvider ->
@@ -31,12 +30,9 @@ checkAllTask.configure {
     dependsOn(aggregateTestReportTasks)
 }
 
-checkFunctionalTask.configure {
-    dependsOn(functionalTestAggregateTestReportTask)
-}
-
 checkIntegrationTask.configure {
     dependsOn(integrationTestAggregateTestReportTask)
+    dependsOn(integrationTestGraphicalAggregateTestReportTask)
     dependsOn(integrationTestParallelAggregateTestReportTask)
 }
 
