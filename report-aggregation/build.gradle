@@ -9,12 +9,14 @@ plugins {
 
 description = 'Aggregated reports for BentoFX library modules.'
 
-def reportAggregationProjects = gradle.extensions
-        .getByName('reportAggregationProjects')
-        .projectPaths
+// Set by 'bento.report.aggregation-settings' once settings have been
+// evaluated, as an extra property on this project alone. Reading it from a
+// 'Gradle' extension instead would break Isolated Projects, which forbids a
+// project from reading shared build state.
+def reportAggregationProjects = project.reportAggregationProjects
 
 dependencies {
-    reportAggregationProjects.get().each { String projectPath ->
+    reportAggregationProjects.each { String projectPath ->
         def projectToReport = project(projectPath)
         jacocoAggregation(projectToReport)
         testReportAggregation(projectToReport)

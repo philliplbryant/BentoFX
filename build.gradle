@@ -58,7 +58,8 @@ plugins.withId('com.autonomousapps.dependency-analysis') {
 //    JRELEASER_GPG_SECRET_KEY=[key]
 //    JRELEASER_MAVENCENTRAL_USERNAME=[username]
 //    JRELEASER_MAVENCENTRAL_PASSWORD=[password]
-// And the following properties must be present to release snapshot versions
+// And the following properties must be present to release snapshot versions to
+// a Nexus repo
 //    NEXUS_USERNAME=[username]
 //    NEXUS_PASSWORD=[password]
 //    NEXUS_SNAPSHOT_REPO_URL=[url of the Nexus snapshot repository]
