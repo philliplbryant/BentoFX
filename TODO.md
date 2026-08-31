@@ -8,11 +8,16 @@
 
 # Remaining Tasks
 
-1. Revisit [LayoutMenu](./persistence/core/src/main/java/software/coley/bentofx/persistence/core/ui/LayoutsMenu.java)
-2. [Update JReleaser Gradle plugin](#once-the-jreleaser-gradle-plugin-update-is-published)
+1. Update the enhancement/issue-13 branch to branch from the original Gradle PR branch.
+   1. https://github.com/Col-E/BentoFX/pull/36 is the original pull request containing the Gradle changes.
+   2. These changes were reverted from master.
+   3. I have made additional Gradle changes since then. 
+   4. col-e wants me to "toss it up on a branch off of a prior commit for gradle changes" 
+2. Revisit [LayoutMenu](./persistence/core/src/main/java/software/coley/bentofx/persistence/core/ui/LayoutsMenu.java)
 3. Talk to Rich about comments recently added to JRE-17522 and make any required changes.
 4. Read and update all documentation - <u>***NOT USING AI***</u>
-5. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian
+5. Update the JReleaser Gradle plugin once it is released with the changes I requested.
+6. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian.
 
 # Once the JReleaser Gradle plugin update is published
 
@@ -21,10 +26,7 @@ and `report-aggregation` changes. Everything remaining depends on the JReleaser
 Gradle plugin fixes/updates. When the fix is released, do the following.
 
 1. In `gradle/libs.versions.toml`, bump `jreleaser` from `1.25.0` to the
-   released version. Confirm it resolves from Maven Central with no
-   `mavenLocal()` entry in play, then delete the locally built
-   `1.26.0-cc-SNAPSHOT` from the local Maven repository so no stale artifact can
-   be picked up by a later build.
+   released version. Confirm it resolves from Maven Central.
 2. Set `org.gradle.unsafe.isolated-projects=true` in `gradle.properties` and
    delete the `TODO BENTO-13` comment above it.
 3. Drop the configuration cache opt-out in `build.gradle`: the
@@ -39,3 +41,4 @@ Gradle plugin fixes/updates. When the fix is released, do the following.
    2. `./gradlew checkAll`
    3. `./gradlew jreleaserConfig`
    4. A full Gradle sync in IntelliJ.
+5. Run a Gradle scan on all JReleaser tasks that I can run without keys.
