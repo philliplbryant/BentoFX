@@ -24,7 +24,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutStorageL
  * replace with a temporary one. Everything the packaged unit decides: where the
  * database file goes, what credentials open it, how the table comes to exist.
  */
-class DatabaseLayoutStorageProviderIT {
+class DatabaseLayoutStorageProviderITP {
 
     private static final String LAYOUT_IDENTIFIER = "provider-layout";
     private static final String CODEC_IDENTIFIER = "json";

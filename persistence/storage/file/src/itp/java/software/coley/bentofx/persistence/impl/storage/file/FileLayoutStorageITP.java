@@ -4,14 +4,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FileLayoutStorageIT {
+class FileLayoutStorageITP {
 	private static final String TEST_FILE_NAME = "test-layout.bento";
 	private static final String TEST_FILE_CONTENT = "Test data for FileLayoutStorage integration test";
 	private static final String PREVIOUS_FILE_CONTENT = "A layout that was already saved";

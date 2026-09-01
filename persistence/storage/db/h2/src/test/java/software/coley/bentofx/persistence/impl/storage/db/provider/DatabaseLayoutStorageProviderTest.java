@@ -6,11 +6,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Coverage for the two {@code DatabaseLayoutStorageProviderIT} behaviors that
+ * Coverage for the two {@code DatabaseLayoutStorageProviderITP} behaviors that
  * never reach the lazily-created {@code EntityManagerFactory}: identifying
  * itself, and rejecting a device-named layout identifier before the factory
  * is ever asked for. Everything else that provider does needs the real
- * database {@code DatabaseLayoutStorageProviderIT} stands up.
+ * database {@code DatabaseLayoutStorageProviderITP} stands up.
  */
 class DatabaseLayoutStorageProviderTest {
 

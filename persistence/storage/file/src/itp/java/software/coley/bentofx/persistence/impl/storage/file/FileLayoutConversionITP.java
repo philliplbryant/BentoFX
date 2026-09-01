@@ -40,7 +40,7 @@ import static software.coley.bentofx.persistence.testfixtures.codec.state.Sample
  *
  * @author Phil Bryant
  */
-class FileLayoutConversionIT {
+class FileLayoutConversionITP {
 
 	private static final String LAYOUT_IDENTIFIER = "converted-layout";
 	private static final String DISPLAY_NAME = "Converted Layout";

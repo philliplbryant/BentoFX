@@ -1,7 +1,7 @@
 plugins {
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
-    id 'bento.test.integration-test-suite'
+    id 'bento.test.integration-test-parallel-suite'
 }
 
 description = "H2 Database Implementation of the Bento LayoutStorage interface"
@@ -28,27 +28,27 @@ dependencies {
     runtimeOnly libs.jakarta.xmlbinding.impl
 
     /**
-     * Both codecs, so {@link DatabaseLayoutConversionIT} can store a layout
-     * through either one. Integration-test scope only; this module's published
+     * Both codecs, so {@link DatabaseLayoutConversionITP} can store a layout
+     * through either one. Parallel integration-test scope only; this module's published
      * artifact stays codec-agnostic.
      */
-    integrationTestImplementation projects.persistence.codec.json
-    integrationTestImplementation projects.persistence.codec.xml
+    integrationTestParallelImplementation projects.persistence.codec.json
+    integrationTestParallelImplementation projects.persistence.codec.xml
 
-    integrationTestImplementation testFixtures(
+    integrationTestParallelImplementation testFixtures(
             projects.persistence.testFixtures
     )
 
     /**
-     * {@link DatabaseLayoutConversionIT} reads
+     * {@link DatabaseLayoutConversionITP} reads
      * {@link javafx.application.Platform} directly, to assert the JavaFX
      * runtime is not started while it stores a layout.
      */
-    integrationTestImplementation libs.javafx.graphics
+    integrationTestParallelImplementation libs.javafx.graphics
 
-    integrationTestImplementation libs.junit.params
+    integrationTestParallelImplementation libs.junit.params
 
-    integrationTestRuntimeOnly libs.slf4j.simple
+    integrationTestParallelRuntimeOnly libs.slf4j.simple
 }
 
 /**

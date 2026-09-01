@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests listing and deleting stored layouts against a real directory.
  */
-class FileLayoutStorageCatalogIT {
+class FileLayoutStorageCatalogITP {
 
 	private static final String CODEC_IDENTIFIER = "json";
 	private static final String OTHER_CODEC_IDENTIFIER = "xml";

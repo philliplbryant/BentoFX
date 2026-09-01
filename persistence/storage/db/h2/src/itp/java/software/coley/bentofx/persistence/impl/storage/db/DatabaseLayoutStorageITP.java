@@ -3,11 +3,19 @@ package software.coley.bentofx.persistence.impl.storage.db;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -16,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntityCompositeKey.MAX_COMPOSITE_KEY_LENGTH;
 
-class DatabaseLayoutStorageIT {
+class DatabaseLayoutStorageITP {
 
     private static final String ENTITY_MANAGER_FACTORY_IDENTIFIER = "bentoLayout";
     private static final String JDBC_URL_PROPERTY = "jakarta.persistence.jdbc.url";
