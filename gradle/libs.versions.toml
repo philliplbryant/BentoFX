@@ -41,7 +41,6 @@ jacoco = "0.8.15"
 javafx-plugin = "0.1.0"
 jreleaser = "1.26.0"
 nullaway-plugin = "3.1.0"
-sonarqube-plugin = "7.4.0.8496"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
@@ -108,4 +107,3 @@ javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 # noinspection UnusedVersionCatalogEntry
 nullaway = { id = "net.ltgt.nullaway", version.ref = "nullaway-plugin" }
-sonarqube = { id = "org.sonarqube", version.ref = "sonarqube-plugin" }

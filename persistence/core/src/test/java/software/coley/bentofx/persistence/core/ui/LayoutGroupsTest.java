@@ -259,9 +259,11 @@ class LayoutGroupsTest {
     @SuppressWarnings("NullAway")
     void refusesMissingArguments() {
         assertThatNullPointerException()
+                .describedAs("null catalog groups")
                 .isThrownBy(() -> LayoutGroups.mergeGroupNames(null, List.of()))
                 .withMessageContaining("catalogGroups");
         assertThatNullPointerException()
+                .describedAs("null group name")
                 .isThrownBy(() -> LayoutGroups.findGroupNameProblem(null, List.of()))
                 .withMessageContaining("groupName");
     }

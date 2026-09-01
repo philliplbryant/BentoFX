@@ -130,6 +130,7 @@ class BentoStateTest {
                 .satisfies(savedStage -> {
 
                     assertThat(savedStage.getTitle())
+                            .describedAs("savedStage.getTitle()")
                             .contains(STAGE_TITLE);
 
                     assertThat(savedStage.isAutoClosedWhenEmpty())

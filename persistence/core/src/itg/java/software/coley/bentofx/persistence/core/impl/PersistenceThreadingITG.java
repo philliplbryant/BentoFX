@@ -206,7 +206,9 @@ class PersistenceThreadingITG {
 							},
 							SHORT_TIMEOUT_MILLIS
 					)
-			).isInstanceOf(BentoStateTimeoutException.class);
+			)
+					.describedAs("task abandoned after the timeout elapsed")
+					.isInstanceOf(BentoStateTimeoutException.class);
 		} finally {
 			releaseFxThread.countDown();
 		}

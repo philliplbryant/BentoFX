@@ -5,7 +5,6 @@ plugins {
     // Apply the base plugin to add `clean` to the root project.
     id 'base'
     alias libs.plugins.jreleaser
-    alias libs.plugins.sonarqube
 }
 
 def versionCatalog = versionCatalogs.named('libs')
@@ -41,35 +40,6 @@ plugins.withId('com.autonomousapps.dependency-analysis') {
     }
 }
 
-// Replaces the standalone CLI scanner. The CLI scanner treats every file as
-// production source unless told otherwise, so it counted the test sources in the
-// coverage denominator and reported new-code coverage far below the real figure.
-// This plugin derives sources and tests from the Gradle source sets instead.
-//
-// Coverage still has to be pointed at the aggregated reports by hand, because it
-// is produced by ':report-aggregation' rather than by each project's own test
-// task, which is what the plugin would otherwise find.
-sonar {
-    properties {
-        property 'sonar.projectKey', 'philliplbryant_BentoFX'
-        property 'sonar.projectName', 'BentoFX'
-        property 'sonar.organization', 'philliplbryant'
-        property 'sonar.host.url', 'https://sonarcloud.io'
-
-        // All four are listed even though the 'it' suite currently has no
-        // producer, because a missing report is tolerated and a silently absent
-        // one is not worth the risk of forgetting to add it back.
-        property 'sonar.coverage.jacoco.xmlReportPaths', [
-                'testCodeCoverageReport',
-                'integrationTestCodeCoverageReport',
-                'integrationTestGraphicalCodeCoverageReport',
-                'integrationTestParallelCodeCoverageReport',
-        ].collect { report ->
-            "report-aggregation/build/reports/jacoco/$report/${report}.xml"
-        }.join(',')
-    }
-}
-
 // JReleaser also requires defining the following system properties (can be
 // defined in [USER_HOME]/.jreleaser/config.properties):
 //    JRELEASER_GPG_PASSPHRASE=[passphrase]
@@ -81,6 +51,23 @@ sonar {
 //    NEXUS_USERNAME=[username]
 //    NEXUS_PASSWORD=[password]
 //    NEXUS_SNAPSHOT_REPO_URL=[url of the Nexus snapshot repository]
+// The variables above are only visible in this file. These tasks contact a remote
+// or sign, so the requirement belongs in './gradlew tasks' output too.
+[
+        'jreleaserAnnounce',
+        'jreleaserDeploy',
+        'jreleaserFullRelease',
+        'jreleaserPublish',
+        'jreleaserRelease',
+        'jreleaserSign',
+].each { taskName ->
+    tasks.named(taskName).configure { task ->
+        task.description = "${task.description}. Requires JRELEASER_* " +
+                'credentials; see the comment above the `jreleaser` block in ' +
+                'the root build script.'
+    }
+}
+
 jreleaser {
     project {
         group = versionCatalog.findVersion("maven-group").get().requiredVersion

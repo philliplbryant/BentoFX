@@ -50,13 +50,14 @@ jobs:
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
+      # Runs after the build so the aggregated coverage reports it reads already
+      # exist. Source and test classification, coverage report paths, and the
+      # module exclusions all live in 'sonar-project.properties'.
       - name: SonarQube Scan
         if: github.repository == 'philliplbryant/BentoFX'
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: -Dsonar.coverage.jacoco.xmlReportPaths=report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestGraphicalCodeCoverageReport/integrationTestGraphicalCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
       # The scan above submits the analysis and returns without waiting for
       # results from the server, so on its own it gates nothing. This polls for
       # those results. 'continue-on-error' is what turns a slow or unreachable
