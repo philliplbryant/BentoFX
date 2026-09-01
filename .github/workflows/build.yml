@@ -38,7 +38,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew build checkAll
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
