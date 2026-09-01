@@ -36,6 +36,12 @@ dependencies {
 
     implementation libs.errorprone.gradlePlugin.dependency
     implementation libs.javafx.gradlePlugin.dependency
+    // Brings a transitive 'org.apache.tika:tika-core:2.9.4', which
+    // CVE-2025-66516 affects through 3.2.1. Build-time only, so it never reaches
+    // a published artifact, and nothing here parses untrusted XML. JReleaser
+    // 1.26.0 still pins 2.9.4.
+    // TODO BENTO-13: Re-check on the next JReleaser release and drop this.
+    //noinspection VulnerableLibrariesLocal
     implementation libs.jreleaser.gradlePlugin.dependency
     implementation libs.nullaway.gradlePlugin.dependency
 }

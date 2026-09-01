@@ -7,6 +7,17 @@ projectJDK: "21"
 profile:
   name: qodana.starter
 
+# Fails the build when the problem count exceeds this. Set to the count the
+# analysis reports today, so a new problem fails and the existing ones do not.
+# The two currently reported are one Critical "Vulnerable declared dependency"
+# and one High "Unstable API Usage".
+#
+# Careful: this is a count, not a baseline. Fixing one of the two leaves room
+# for a new problem to slip in unnoticed, so lower it as they are resolved.
+# TODO BENTO-13: Resolve both problems and set this to 0. A committed
+#  'qodana.sarif.json' baseline would be the better mechanism if the count grows.
+failThreshold: 2
+
 coverage:
   reportProblems: false
 

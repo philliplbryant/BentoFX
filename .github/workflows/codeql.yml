@@ -30,9 +30,38 @@ jobs:
       # Switch to build-mode manual with a real ./gradlew build if CodeQL starts
       # reporting extraction errors, which is where buildless usually gives out.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4.37.8
+        uses: github/codeql-action/init@v4.37.9
         with:
           languages: java-kotlin
           build-mode: none
       - name: Analyze
-        uses: github/codeql-action/analyze@v4.37.8
+        id: analyze
+        uses: github/codeql-action/analyze@v4.37.9
+      # 'analyze' uploads results and never fails on findings, and the ruleset
+      # rule for code scanning only gates pull requests into the default branch.
+      # This makes an alert fail the branch build too. The path filter matches the
+      # exclusions in 'sonar-project.properties' and 'qodana.yaml', so the three
+      # tools agree on what is in scope.
+      # TODO BENTO-13: Remove the path filter once those modules are clean.
+      - name: Fail on CodeQL alerts
+        if: always() && steps.analyze.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          alerts=$(gh api \
+            "repos/${{ github.repository }}/code-scanning/alerts?ref=${{ github.ref }}&state=open&tool_name=CodeQL&per_page=100" \
+            --jq '[.[]
+                   | select(((.most_recent_instance.location.path // "") | startswith("core/")) == false)
+                   | select(((.most_recent_instance.location.path // "") | startswith("demos/basic/")) == false)
+                   | select(.rule.severity == "error"
+                            or (.rule.security_severity_level // "") == "critical"
+                            or (.rule.security_severity_level // "") == "high")
+                   | "\(.rule.id) at \(.most_recent_instance.location.path):\(.most_recent_instance.location.start_line)"]')
+          count=$(printf '%s' "$alerts" | jq 'length')
+          if [ "$count" -gt 0 ]; then
+            echo "::error::CodeQL reported ${count} alert(s) at or above the threshold."
+            printf '%s' "$alerts" | jq -r '.[] | "  " + .'
+            exit 1
+          fi
+          echo "No CodeQL alerts at or above the threshold."

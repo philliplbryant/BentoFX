@@ -6,17 +6,22 @@
   ol li:before { content: counters(item, ".") ") "; counter-increment: item; }
 </style>
 
+# Status
+
+1. Published [snapshots](https://nexus.jre.saic.com/#browse/browse:jre-central-snapshots:software%2Fcoley%2Fbento-fx) of all BentoFX artifacts to JRE Nexus repo for others to use for testing persistence.  
+2. Pushed modifications to a branch off the original Gradle PR branch so:
+   1. Col-E can merge them to master
+   2. I can rebase my master branch to match his
+   3. I can more easily merge his changes from master to the enhancement/issue-13 branch
+
 # Remaining Tasks
 
-1. Update the enhancement/issue-13 branch to branch from the original Gradle PR branch.
-   1. https://github.com/Col-E/BentoFX/pull/36 is the original pull request containing the Gradle changes.
-   2. These changes were reverted from master.
-   3. I have made additional Gradle changes since then. 
-   4. col-e wants me to "toss it up on a branch off of a prior commit for gradle changes" 
-2. Revisit [LayoutMenu](./persistence/core/src/main/java/software/coley/bentofx/persistence/core/ui/LayoutsMenu.java)
-3. Talk to Rich about comments recently added to JRE-17522 and make any required changes.
-4. Read and update all documentation - <u>***NOT USING AI***</u>
-5. Update the JReleaser Gradle plugin once it is released with the changes I requested.
+1. Revisit [LayoutMenu](./persistence/core/src/main/java/software/coley/bentofx/persistence/core/ui/LayoutsMenu.java)
+2. Talk to Rich about comments recently added to JRE-17522 and make any required changes.
+3. Read and update all documentation - <u>***NOT USING AI***</u>
+4. Update the JReleaser Gradle plugin once it is released with the changes I requested. 
+   1. I submitted [Issue 2150](https://github.com/jreleaser/jreleaser/issues/2150) with an approach to fixing remaining issues.
+5. Submit a PR to Col-E for [Issue 43: Static Code Analysis and Quality Gates](https://github.com/Col-E/BentoFX/issues/43)
 6. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian.
 
 # Once the JReleaser Gradle plugin update is published

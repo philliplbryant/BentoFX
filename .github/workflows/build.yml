@@ -38,7 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -57,6 +57,44 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: -Dsonar.coverage.jacoco.xmlReportPaths=report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestGraphicalCodeCoverageReport/integrationTestGraphicalCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
+      # The scan above submits the analysis and returns without waiting for
+      # results from the server, so on its own it gates nothing. This polls for
+      # those results. 'continue-on-error' is what turns a slow or unreachable
+      # server into a warning instead of a failed build: the step below is what
+      # fails the build, and only on an explicit FAILED.
+      - name: Wait for the SonarQube quality gate
+        id: sonar-gate
+        if: github.repository == 'philliplbryant/BentoFX'
+        continue-on-error: true
+        timeout-minutes: 6
+        uses: SonarSource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa # v1.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          pollingTimeoutSec: '300'
+      - name: Fail on a failed SonarQube quality gate
+        if: github.repository == 'philliplbryant/BentoFX'
+        shell: bash
+        run: |
+          status='${{ steps.sonar-gate.outputs.quality-gate-status }}'
+          case "$status" in
+            PASSED)
+              echo "SonarQube quality gate passed."
+              ;;
+            WARN)
+              echo "::warning::SonarQube quality gate returned WARN."
+              ;;
+            FAILED)
+              echo "::error::SonarQube quality gate FAILED. See the analysis on SonarQube Cloud."
+              exit 1
+              ;;
+            *)
+              echo "::warning::No SonarQube quality gate verdict within the polling timeout. Not failing the build."
+              ;;
+          esac
+      # Not guarded by repository the way the SonarQube step above is: coverage
+      # reporting should run wherever this workflow runs. Requires CODECOV_TOKEN,
+      # and 'fail_ci_if_error' is deliberate - silent coverage loss is worse.
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
@@ -131,7 +169,7 @@ jobs:
         with:
           fetch-depth: 0 # Required depth for JReleaser
       - name: Setup Java JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -186,3 +224,31 @@ jobs:
           path: |
             build/jreleaser/trace.log
             build/jreleaser/output.properties
+
+  # Without this, GitHub's dependency graph for the repository contains only the
+  # Actions used by these workflows - no Gradle dependency appears in it, so
+  # Dependabot alerts cover none of them. This resolves the build and submits the
+  # full graph, transitive dependencies included.
+  #
+  # Runs on the default branch only, because the dependency graph is per
+  # repository and derived from that branch. Submitting from every feature branch
+  # would keep overwriting it. It needs 'contents: write', which is why this is a
+  # separate job rather than a step in 'test'.
+  dependency-submission:
+    name: Submit dependency graph
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          check-latest: true
+      - name: Submit dependency graph
+        uses: gradle/actions/dependency-submission@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
