@@ -16,13 +16,11 @@
 
 # Remaining Tasks
 
-1. Revisit [LayoutMenu](./persistence/core/src/main/java/software/coley/bentofx/persistence/core/ui/LayoutsMenu.java)
+1. Read and update all documentation - <u>***NOT USING AI***</u>
 2. Talk to Rich about comments recently added to JRE-17522 and make any required changes.
-3. Read and update all documentation - <u>***NOT USING AI***</u>
-4. Update the JReleaser Gradle plugin once it is released with the changes I requested. 
-   1. I submitted [Issue 2150](https://github.com/jreleaser/jreleaser/issues/2150) with an approach to fixing remaining issues.
-5. Submit a PR to Col-E for [Issue 43: Static Code Analysis and Quality Gates](https://github.com/Col-E/BentoFX/issues/43)
-6. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian.
+3. Create a code review with Todd, Rich, Bobby, Yongbo, and Ian.
+4. Submit a PR to Col-E for [Issue 43: Static Code Analysis and Quality Gates](https://github.com/Col-E/BentoFX/issues/43)
+5. Update the JReleaser Gradle plugin once it is released with the changes for [Issue 2150](https://github.com/jreleaser/jreleaser/issues/2150).
 
 # Once the JReleaser Gradle plugin update is published
 
