@@ -73,18 +73,23 @@ def count_source_lines(root: Path) -> int:
     return source_lines
 
 
-def find_jacoco_xml_reports(root: Path) -> list[Path]:
-    reports = []
-    for path in root.rglob("*.xml"):
-        if not path.is_file():
-            continue
+AGGREGATE_REPORT_DIR = Path("report-aggregation") / "build" / "reports" / "jacoco"
 
-        # ':report-aggregation' writes '<taskName>/<taskName>.xml'. Matching the
-        # stem against the parent directory selects those and skips both the
-        # per-report 'html' directory and any per-module report.
-        if "jacoco" in path.parts and "reports" in path.parts and path.stem == path.parent.name:
-            reports.append(path)
-    return sorted(reports)
+
+def find_jacoco_xml_reports(root: Path) -> list[Path]:
+    # Only ':report-aggregation' covers every module, so its reports are the ones
+    # worth summarizing. Per-module tasks use the same '<taskName>/<taskName>.xml'
+    # layout, so nothing about a path below 'jacoco' distinguishes them: the
+    # aggregate directory itself is the only reliable filter.
+    aggregate_dir = root / AGGREGATE_REPORT_DIR
+    if not aggregate_dir.is_dir():
+        return []
+
+    return sorted(
+        path
+        for path in aggregate_dir.glob("*/*.xml")
+        if path.is_file() and path.stem == path.parent.name
+    )
 
 
 def collect_report_counters(reports: list[Path]) -> dict[str, dict[str, tuple[int, int]]]:
