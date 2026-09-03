@@ -230,7 +230,7 @@ def append_summary(root: Path) -> None:
         lines_covered = union["lines_covered"]
         lines_total = union["lines_total"]
         summary.write(
-            f"| **Union of all suites**{FOOTNOTE_MARK} | **{lines_covered:,}** "
+            f"| **Union of all suites** {FOOTNOTE_MARK} | **{lines_covered:,}** "
             f"| **{lines_total - lines_covered:,}** "
             f"| **{percentage(lines_total - lines_covered, lines_covered)}** "
             f"| **{bounded_percentage(union['branch'])}** "
@@ -244,8 +244,8 @@ def append_summary(root: Path) -> None:
             "were covered on each line, not which ones, so the\n"
             "same branch covered twice cannot be distinguished from two "
             "different branches. The high end assumes no overlap. The \n"
-            "low end assumes maximum overlap, taking the best single suite for "
-            "each line. The number shown is the average of the two.\n"
+            "low end assumes maximum overlap, taking the best single suite for each "
+            "line. The branch and instruction numbers shown are the average of the two.\n"
             "\n"
         )
 
