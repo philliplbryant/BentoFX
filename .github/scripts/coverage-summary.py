@@ -244,8 +244,9 @@ def append_summary(root: Path) -> None:
             "were covered on each line, not which ones, so the\n"
             "same branch covered twice cannot be distinguished from two "
             "different branches. The high end assumes no overlap. The \n"
-            "low end assumes maximum overlap, taking the best single suite for each "
-            "line. The branch and instruction numbers shown are the average of the two.\n"
+            "low end assumes maximum overlap, taking the best single suite for "
+            "each line. The branch and instruction numbers shown \n"
+            "are the average of the two.\n"
             "\n"
         )
 
