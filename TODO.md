@@ -22,7 +22,23 @@
 4. Follow up with Col-E:
    1. Restore Gradle configurations - [enhancement/BENTO-35-update](https://github.com/philliplbryant/BentoFX/tree/enhancement/BENTO-35-update) 
    2. [Issue 43: Static Code Analysis and Quality Gates](https://github.com/Col-E/BentoFX/issues/43)
-5. Update the JReleaser Gradle plugin once it is released with the changes for [Issue 2150](https://github.com/jreleaser/jreleaser/issues/2150).
+5. Add a merged JaCoCo report to `bento.report.jacoco-aggregation.gradle`: one
+   `JacocoReport` task taking `executionData` from every suite's `.exec` files,
+   alongside the existing four. Upload only that one to Codecov.
+   1. `JacocoMerge` was removed in Gradle 7. Feeding one `JacocoReport` all the
+      exec files is the replacement, and JaCoCo unions the probe data itself.
+   2. Two payoffs: exact branch coverage rather than a bounded range, since
+      branch identity survives in the binary but not in the XML, and one file to
+      upload instead of four, which removes the `files:` parsing fragility that
+      silently dropped three of them.
+   3. Resolve the exec files through the `aggregateCodeCoverageReportResults`
+      configuration, not by reading sibling tasks at configuration time, or it
+      will break the configuration cache.
+   4. Keep the four per-suite reports. They are what showed
+      `integrationTestGraphical` carries most of the coverage.
+   5. Wait until Col-E answers on `enhancement/BENTO-35-update` and issue 43,
+      then do it as its own commit so that branch's diff stays clean.
+6. Update the JReleaser Gradle plugin once it is released with the changes for [Issue 2150](https://github.com/jreleaser/jreleaser/issues/2150).
 
 # Once the JReleaser Gradle plugin update is published
 
