@@ -96,16 +96,16 @@ jobs:
       # Not guarded by repository the way the SonarQube step above is: coverage
       # reporting should run wherever this workflow runs. Requires CODECOV_TOKEN,
       # and 'fail_ci_if_error' is deliberate - silent coverage loss is worse.
+      #
+      # 'files' has to stay on one line. The action splits it on commas without
+      # trimming, so a block scalar leaves a newline glued to every path after
+      # the first and only the first report uploads.
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           disable_search: true
           fail_ci_if_error: true
-          files: |
-            report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,
-            report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,
-            report-aggregation/build/reports/jacoco/integrationTestGraphicalCodeCoverageReport/integrationTestGraphicalCodeCoverageReport.xml,
-            report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
+          files: report-aggregation/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestCodeCoverageReport/integrationTestCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestGraphicalCodeCoverageReport/integrationTestGraphicalCodeCoverageReport.xml,report-aggregation/build/reports/jacoco/integrationTestParallelCodeCoverageReport/integrationTestParallelCodeCoverageReport.xml
           name: bentofx-aggregated
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload coverage reports

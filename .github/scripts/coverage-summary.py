@@ -79,35 +79,38 @@ def find_jacoco_xml_reports(root: Path) -> list[Path]:
         if not path.is_file():
             continue
 
-        if "jacoco" in path.parts and "reports" in path.parts:
+        # ':report-aggregation' writes '<taskName>/<taskName>.xml'. Matching the
+        # stem against the parent directory selects those and skips both the
+        # per-report 'html' directory and any per-module report.
+        if "jacoco" in path.parts and "reports" in path.parts and path.stem == path.parent.name:
             reports.append(path)
     return sorted(reports)
 
 
-def collect_jacoco_counters(reports: list[Path]) -> dict[str, tuple[int, int]]:
-    counters = {counter_type: (0, 0) for counter_type in JACOCO_COUNTER_TYPES}
+def collect_report_counters(reports: list[Path]) -> dict[str, dict[str, tuple[int, int]]]:
+    # Keyed by report rather than accumulated across them. Every aggregate report
+    # describes the same class set, so adding their counters together multiplies
+    # the denominator by the number of suites. Merging suites for real needs a
+    # union of covered lines, which counter arithmetic cannot express.
+    per_report: dict[str, dict[str, tuple[int, int]]] = {}
     for report in reports:
-        if not report.is_file():
-            continue
-
         try:
             root = ElementTree.parse(report).getroot()
         except (ElementTree.ParseError, OSError):
             continue
 
+        counters = {counter_type: (0, 0) for counter_type in JACOCO_COUNTER_TYPES}
         for counter in root.findall("counter"):
             counter_type = counter.get("type")
             if counter_type not in JACOCO_COUNTER_TYPES:
                 continue
 
-            missed = int(counter.get("missed", "0"))
-            covered = int(counter.get("covered", "0"))
-            existing_missed, existing_covered = counters[counter_type]
             counters[counter_type] = (
-                existing_missed + missed,
-                existing_covered + covered,
+                int(counter.get("missed", "0")),
+                int(counter.get("covered", "0")),
             )
-    return counters
+        per_report[report.parent.name] = counters
+    return per_report
 
 
 def percentage(missed: int, covered: int) -> str:
@@ -124,18 +127,22 @@ def append_summary(root: Path) -> None:
 
     source_lines = count_source_lines(root)
     reports = find_jacoco_xml_reports(root)
-    counters = collect_jacoco_counters(reports)
+    per_report = collect_report_counters(reports)
 
     with Path(summary_path).open("a", encoding="utf-8") as summary:
         summary.write("## BentoFX code statistics\n\n")
         summary.write(f"- Source lines of code: **{source_lines:,}**\n")
         summary.write(f"- JaCoCo XML reports found: **{len(reports)}**\n\n")
-        summary.write("| Metric | Covered | Missed | Coverage |\n")
-        summary.write("| --- | ---: | ---: | ---: |\n")
-        for counter_type in sorted(counters):
-            missed, covered = counters[counter_type]
+        summary.write("| Suite | Lines covered | Lines missed | Line | Branch | Instruction |\n")
+        summary.write("| --- | ---: | ---: | ---: | ---: | ---: |\n")
+        for name in sorted(per_report):
+            counters = per_report[name]
+            line_missed, line_covered = counters["LINE"]
             summary.write(
-                f"| {counter_type.title()} | {covered:,} | {missed:,} | {percentage(missed, covered)} |\n"
+                f"| {name} | {line_covered:,} | {line_missed:,} "
+                f"| {percentage(*counters['LINE'])} "
+                f"| {percentage(*counters['BRANCH'])} "
+                f"| {percentage(*counters['INSTRUCTION'])} |\n"
             )
         summary.write("\n")
 
