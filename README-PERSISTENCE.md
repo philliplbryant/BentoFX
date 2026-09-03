@@ -2,14 +2,13 @@
 
 [&larr; Back to the BentoFX README](README.md)
 
-The [persistence](./persistence) modules supplement the [core](README.md#core-framework) module by saving and restoring BentoFX docking layouts across application executions. The persistence framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. It does **not** serialize live JavaFX `Node`, `Stage`, `Menu`, or application-domain objects.
+The [persistence](./persistence) modules, collectively referred to as the "persistence framework", or just "framework", supplement the [core](README.md#core-framework) module by saving and restoring BentoFX docking layouts across application executions. The framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. They do **not** serialize live JavaFX `Node`, `Stage`, `Menu`, or application-domain objects.
 
-To further support persisting docking layouts, the framework offers a ready-to-use [`LayoutsMenu`](#layouts-menu) for applications to include in their own menu bars, allowing users to save, restore, and manage custom layouts. Menu text comes from a `ResourceBundle`, so applications can translate or otherwise replace wording to suit application specific requirements.
+To further support persisting docking layouts, the framework offers a ready-to-use [LayoutsMenu](#layouts-menu) for applications to include in their own menu bars, allowing users to save, restore, and manage custom layouts. Menu text comes from a `ResourceBundle`, so applications can translate or otherwise replace wording to suit application specific requirements.
 
 Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
 > <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. Applications can use multiple codecs and storage locations because the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. To offer users a list of saved layouts, see [Managing Several Layouts](#managing-several-layouts).
-
 
 ## Table of Contents
 
@@ -19,7 +18,7 @@ Application developers control the serialized format and storage destination by 
   - [Maven](#persistence-maven)
 - [Overview](#persistence-overview)
   - [Provider Interfaces](#provider-interfaces)
-  - [Application Responsibilities](#application-responsibilities)
+    - [Inline Creation Versus a Provider](#inline-vs-provider)
   - [Application Design for Persistence](#application-design-for-persistence)
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
   - [Provider Responsibilities](#provider-responsibilities)
@@ -46,9 +45,9 @@ In addition to the `core` module, applications using persistence need:
 * one codec implementation, such as `persistence-codec-json` or `persistence-codec-xml`
 * one storage implementation, such as `persistence-storage-file` or `persistence-storage-db-h2`
 
-For debugging purposes, applications can also enable logging in the persistence modules by adding an optional [SLF4J runtime dependency](https://www.slf4j.org/manual.html#swapping). Depending on the SLF4J dependency chosen, applications might also need to include a logging configuration file. See [logging.properties](./demos/persistence/src/main/resources/logging.properties) in the persistence demo project for an example Java Utils Logging (JUL) configuration file.
+For debugging purposes, applications can also enable logging in the persistence modules by adding an optional [SLF4J runtime dependency](https://www.slf4j.org/manual.html#swapping). Depending on which SLF4J implementation is used, applications might also need to include a logging configuration file. See [logging.properties](./demos/persistence/src/main/resources/logging.properties) in the persistence demo project for an example Java Utils Logging (JUL) configuration file.
 
-The codec and storage provider implementations are discovered at runtime using the Java [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html) and service provider compatible interfaces. When exactly one codec provider and one storage provider are available, the default persistence provider selects them automatically. When multiple providers are available, applications can select providers explicitly using `LayoutPersistenceProfile`; otherwise, the framework uses a single default provider when one is available or fails with a configuration error.
+The codec and storage provider implementations are discovered at runtime using the Java [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html) and Service Provider Interfaces (SPIs). When exactly one codec provider and one storage provider are available, the default persistence provider selects them automatically. When multiple providers are available, applications can select providers explicitly using `LayoutPersistenceProfile`; otherwise, the framework uses a single default provider when one is available or fails with a configuration error.
 
 <h4 id="persistence-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>
 
@@ -112,22 +111,102 @@ The persistence framework has two responsibilities:
 1. Save the current BentoFX container graph into serializable state.
 2. Restore that state into runtime BentoFX objects.
 
-The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockables through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
+The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockables through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
 
 <h4 id="provider-interfaces">Provider Interfaces</h4>
 
-As previously mentioned, to persist docking layouts, applications supply provider implementations that act as factories or lookup services for runtime objects that cannot be serialized directly.
+As previously mentioned, applications supply provider implementations to persist docking layouts. These providers act as factories or lookup services for runtime objects that cannot be serialized directly.
 
-| Provider | Purpose                                                                                                                 |
-|----------|-------------------------------------------------------------------------------------------------------------------------|
-| `BentoProvider` | Supplies the `Bento` instances whose layouts should be saved and restored.                                              |
-| `DockableStateProvider` | Resolves a persisted `Dockable` identifier to a `DockableState` that can be used to reconstruct the runtime `Dockable`. |
-| `DockableMenuFactoryProvider` | Supplies `DockableMenuFactory` instances when restored dockables need context menus.                                    |
-| `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus.                              |
-| `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages.                                                                     |
-| `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`.                                                     |
-| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier.             |
-| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier.  |
+> <span style="font-size: 1.5em;">💡</span>  `DockableStateProvider` is the only required provider interface for which the framework does not include a default implementation.
+
+`DockableStateProvider` has a single method: `Optional<DockableState> resolveDockableState(String id);`
+
+A persisted layout records *which* dockables were open, never what was inside them, so the restorer works through the saved identifiers and asks the application for each one in turn. An empty `Optional` means the identifier cannot be reconstructed, and the restorer continues without that dockable.
+
+The returned `DockableState` is not itself a `Dockable`. The framework builds the `Dockable` with `DockBuilding.dockable(identifier)` and applies values the state carries onto it, leaving the rest at their defaults. All eight are optional:
+
+| Carried value | Kind |
+|---------------|------|
+| `title`, `tooltip`, `dragGroupMask`, `isClosable` | Plain data, copied onto the dockable |
+| `dockableNode` | A live JavaFX `Node`, handed to the dockable and then owned by it |
+| `dockableIconFactory`, `dockableMenuFactory` | Live factories the dockable calls as needed |
+| `dockableConsumer` | A live `Consumer<Dockable>` applied to the finished dockable |
+
+Carrying a live node rather than instructions for building one has two consequences that shape how a provider is written:
+
+1. A state cannot be created before JavaFX is ready.
+2. A state instance can be used exactly once.
+
+Both are covered in additional detail below.
+
+<h5 id="inline-vs-provider">Inline Creation Versus a Provider</h5>
+
+The basic demo creates dockables inline and hands them straight to the layout:
+
+```java
+private Dockable buildDockable(DockBuilding builder, int s, int i, String title) {
+    Dockable dockable = builder.dockable();
+    dockable.setTitle(title);
+    dockable.setIconFactory(d -> makeIcon(s, i));
+    dockable.setNode(new Label("<" + title + ":" + i + ">"));
+    // ...
+    return dockable;
+}
+```
+
+It is called positionally, once per dockable, while the layout is assembled:
+
+```java
+buildDockable(builder, 1, 0, "Workspace"),
+buildDockable(builder, 1, 1, "Bookmarks"),
+buildDockable(builder, 1, 2, "Modifications")
+```
+
+That works because the application is the only thing that ever needs a dockable, and it needs each one exactly once. Identity is implied in the call site: nothing else ask for "the Workspace dockable", because nothing recorded its identity.
+
+The persistence demo inverts the direction. Instead of the application creating content and pushing it into a layout, the framework asks for content by identifier and the application answers:
+
+```java
+@Override
+public Optional<DockableState> resolveDockableState(String id) {
+    return DockableProperties.findByIdentifier(id)
+            .map(this::buildDockableState);
+}
+```
+
+Three consequences follow, and they are the substance of the difference:
+
+1. **Identity must be explicit and stable.** The identifier is the only thing that survives a save, so a dockable has to be restorable using its identifier rather than its position. See [Choosing Stable Identifiers](#choosing-stable-identifiers).
+2. **Construction must be deferred.** A provider is typically built during application startup, where the constructor may run on the JavaFX-Launcher thread and JavaFX components cannot be created. Build the state when `resolveDockableState` is called, not when the provider is constructed.
+3. **State must be built fresh on each call, not cached.** A `DockableState` carries one node instance, and a JavaFX node has one parent. Handing the same state to two restored components would move the node into the second layout and leave the first showing a blank panel. Nothing prevents a `Node` from being cached, but the `DocakableState` must be built fresh on each call.
+
+The demo's provider does all three: it looks the identifier up in `DockableProperties`, and builds a new `DockableState` per call through `DockableStateBuilder`.
+
+Applications are not obliged to abandon inline creation. A persistent application can still build its initial layout inline, as long as the same content is also reachable by identifier through a provider when a saved layout is restored later.
+
+The complete set of provider interfaces:
+
+| Provider | Purpose | Required | Framework implementation |
+|----------|---------|----------|--------------------------|
+| `BentoProvider` | Supplies the `Bento` instances whose layouts should be saved and restored. | Yes | `DefaultBentoProvider` in `persistence-core` |
+| `DockableStateProvider` | Resolves a persisted `Dockable` identifier to a `DockableState` that can be used to reconstruct the runtime `Dockable`. | Yes, to restore | None |
+| `DockableMenuFactoryProvider` | Supplies `DockableMenuFactory` instances when restored dockables need context menus. | Application-side only | None |
+| `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus. | Optional, nullable | None |
+| `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages. | Optional, nullable | None |
+| `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`. | Yes | `DefaultDockingLayoutPersistenceProvider` in `persistence-core` |
+| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier. | Yes, discovered | `JsonLayoutCodecProvider` in `persistence-codec-json`, `XmlLayoutCodecProvider` in `persistence-codec-xml` |
+| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier. | Yes, discovered | `FileLayoutStorageProvider` in `persistence-storage-file`, `DatabaseLayoutStorageProvider` in `persistence-storage-db-h2` |
+
+The `Required` column describes what `getLayoutSaver` and `getLayoutRestorer` expect:
+
+* **Yes** means the parameter is non-null. `BentoProvider` is required by both methods; `DockableStateProvider` is required by `getLayoutRestorer` and is not a parameter of `getLayoutSaver`, since saving needs no dockable resolution.
+* **Optional, nullable** means the parameter is annotated `@Nullable` and may be omitted. Pass `null` when restored leaves need no context menus, or when restored drag/drop stages need no icon.
+* **Yes, discovered** means the provider must be present but is not passed in. The codec and storage providers are selected from the runtime dependencies on the module path, so an application including exactly one of each need not name them. Name them explicitly with a `LayoutPersistenceProfile` when more than one is present.
+* **Application-side only** means the persistence framework never asks for it. `DockableMenuFactoryProvider` exists for the application's own use when building the `DockableState` values its `DockableStateProvider` returns, and it is nullable there. The persistence demo passes one into `BoxAppDockableStateProvider`.
+
+The four providers with no framework implementation are the ones only the application can answer, since they map persisted identifiers back onto the application's own runtime objects.
+
+`DefaultBentoProvider` collects `Bento` instances against their identifiers and holds them by weak reference. Instances can be passed to the constructor or added later with `addBento`.
 
 The primary interface for interacting with persistence framework is the `DockingLayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer`.
 
@@ -174,69 +253,14 @@ final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
 
 This makes simple dependency-only replacement possible while still allowing future application features to save and restore multiple layouts using different codec or storage providers.
 
-<h4 id="application-responsibilities">Application Responsibilities</h4>
-
-The persistence framework is responsible for restoring BentoFX layout
-structure and applying restored state to runtime BentoFX objects.
-
-Applications are responsible for supplying application-specific runtime
-objects that cannot be serialized directly.
-
-The persistence framework restores:
-
-- Bento layouts
-- Container hierarchies
-- Divider positions
-- Container collapsed state
-- Selected dockables
-- Drag/drop stages
-- Placement relationships between persisted objects
-
-Applications supply:
-
-- Dockable content
-- JavaFX `Node` instances
-- Tooltips
-- Context menu factories
-- Leaf menu factories
-- Stage icon factories
-- Application-specific state
-
-The framework obtains these application-specific objects through
-provider interfaces such as `DockableStateProvider`,
-`DockableMenuFactoryProvider`,
-`DockContainerLeafMenuFactoryProvider`, and
-`StageIconImageProvider`.
-
-For example, during restoration the framework recreates a
-`DockContainerLeaf`, asks the application for a menu factory through
-`DockContainerLeafMenuFactoryProvider`, and then applies that factory
-to the restored leaf. Likewise, the framework restores drag/drop
-stages and applies icons supplied by `StageIconImageProvider`.
-
-As a general rule, the framework restores structure and placement,
-while applications supply the runtime objects that populate that
-structure.
-
 <h4 id="application-design-for-persistence">Application Design for Persistence</h4>
-
-A non-persistent BentoFX application can construct the entire layout inline during startup. The basic demo does this by creating leaves and immediately adding newly-created dockables to those leaves:
-
-```java
-leafWorkspaceHeaders.addDockables(
-        buildDockable(builder, 0, 0, "Class 1"),
-        buildDockable(builder, 0, 1, "Class 2")
-);
-```
-
-That is enough for a one-time in-memory layout, but it does not provide a way to recreate those dockables during a later application execution.
 
 A persistent application should separate two concerns:
 
-* **dockable creation**: how to construct a runtime `Dockable` for a stable identifier
-* **dockable placement**: where that dockable appears in the current layout
+1. **dockable creation**: how to construct a runtime `Dockable` for a stable identifier
+2. **dockable placement**: where that dockable appears in the current layout
 
-The persistence demo shows this separation. It statically defines stable dockable identifiers in `DockableProperties` as `enum` values, resolves those identifiers through `BoxAppDockableStateProvider`, and then builds runtime `Dockable` instances from the resolved `DockableState`. 
+The persistence demo shows this separation. It statically defines stable dockable identifiers in `DockableProperties` as `enum` values, resolves those identifiers through `BoxAppDockableStateProvider`, and then builds runtime `Dockable` instances from the resolved `DockableState`.
 
 ```java
 dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
@@ -244,22 +268,7 @@ dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
                 container.addDockable(buildDockable(dockableState)));
 ```
 
-This is only one possible implementation strategy. Applications are free to resolve identifiers statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism that can consistently reconstruct the appropriate runtime objects from persisted identifiers.
-
-This same provider is also passed to the `LayoutRestorer` so the framework can resolve persisted dockable identifiers while restoring a saved layout.
-
-```java
-final LayoutRestorer layoutRestorer =
-        persistenceProvider.getLayoutRestorer(
-                DEFAULT_LAYOUT_IDENTIFIER,
-                bentoProvider,
-                dockableStateProvider,
-                stageIconImageProvider,
-                dockContainerLeafMenuFactoryProvider
-        );
-```
-
-In other words, the default layout and the restored layout should both use the same dockable resolution strategy. The default layout places dockables for the first run; the restored layout uses persisted placement and asks the same provider to recreate each dockable by identifier.
+That same provider is passed to the `LayoutRestorer`, so the default layout and the restored layout use one dockable resolution strategy between them. The default layout places dockables for the first run; the restored layout uses persisted placement and asks the same provider to recreate each dockable by identifier.
 
 ```text
 Default layout startup
@@ -274,15 +283,12 @@ Saved layout restore
     Persisted dockable identifier
         -> DockableStateProvider
             -> DockableState
-                -> DockingLayoutRestorer restores Dockable
+                -> LayoutRestorer restores Dockable
                     -> Dockable
                         -> Added to restored container
 ```
 
-This keeps the default-layout path and restore path aligned. Application code does not need one implementation for first-run dockables and another implementation for restored dockables. If a dockable can be created for the default layout, it can also be recreated when the persisted layout refers to the same identifier.
-
-When creating a persistent application, treat provider-backed reconstruction as part of the application architecture. Avoid hiding dockable construction in one-off startup code unless those dockables never need to be restored.
-
+Application code therefore needs no separate implementation for first-run dockables and restored ones. If a dockable can be created for the default layout, it can also be recreated when the persisted layout refers to the same identifier.
 
 <h4 id="choosing-stable-identifiers">Choosing Stable Identifiers</h4>
 
@@ -318,15 +324,7 @@ Applications should also consider how identifiers are resolved when the underlyi
 
 The persistence framework restores the BentoFX layout structure. Application providers restore application-specific runtime objects that cannot be serialized safely.
 
-| Provider | Application responsibility |
-|----------|----------------------------|
-| `BentoProvider` | Return the runtime `Bento` instances whose layouts can be saved or restored. |
-| `DockableStateProvider` | Resolve stable dockable identifiers to `DockableState` instances used to reconstruct dockables. |
-| `DockableMenuFactoryProvider` | Resolve dockable menu factories when restored dockables need context menus. |
-| `DockContainerLeafMenuFactoryProvider` | Resolve leaf menu factories when restored leaves need context menus. |
-| `StageIconImageProvider` | Return JavaFX `Image` instances for restored drag/drop stages. |
-
-Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored.
+Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored. Which providers exist, which are optional, and which already have framework implementations are listed under [Provider Interfaces](#provider-interfaces).
 
 When providers create JavaFX objects, they must follow JavaFX threading rules. The persistence demo's `DockableState` values contain JavaFX controls, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread, so the demo builds them on first use rather than during construction. Both callers of `resolveDockableState` - the application while it starts, and the restorer through the persistence framework - are already on the JavaFX Application Thread:
 
@@ -342,7 +340,6 @@ public Optional<DockableState> resolveDockableState(String id) {
 ```
 
 Scheduling the same work with `Platform.runLater(...)` from a constructor also puts it on the right thread, but it leaves the map empty until the queued task runs, so every lookup then depends on the order in which JavaFX drains its queue. Building on first use removes that question.
-
 
 <h4 id="provider-lifecycle">Provider Lifecycle</h4>
 

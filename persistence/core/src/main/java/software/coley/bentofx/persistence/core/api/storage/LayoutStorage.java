@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * The Application Programming Interface for interacting with a persisted
- * BentoFX layout.
+ * Opens the streams a persisted BentoFX docking layout is read from and written
+ * to, and reports whether one is already stored.
  * <p>
  * An instance is owned by whichever component it is handed to. The
  * {@link software.coley.bentofx.persistence.core.api.LayoutSaver} or

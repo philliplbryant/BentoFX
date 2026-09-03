@@ -5,7 +5,8 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import java.util.List;
 
 /**
- * Supplies the {@link LayoutStorage} that decides where a layout is written to.
+ * Supplies the {@link LayoutStorage} that decides where a docking layout is
+ * written to.
  *
  * <p>Discovered at runtime, so an application changes where layouts are kept by
  * changing which storage implementation it depends on - see

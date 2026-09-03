@@ -6,9 +6,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Identifies the layout to save or restore and, optionally, the codec and
- * storage provider implementations to use and the human-readable name to store
- * with it.
+ * Identifies the docking layout to save or restore and, optionally, the codec
+ * and storage provider implementations to use and the human-readable name to
+ * store with it.
  *
  * <p>A profile with only a layout identifier allows the persistence framework
  * to select codec and storage providers from the runtime dependencies.

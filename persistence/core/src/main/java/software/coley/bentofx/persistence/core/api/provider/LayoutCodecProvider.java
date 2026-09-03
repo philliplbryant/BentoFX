@@ -3,7 +3,8 @@ package software.coley.bentofx.persistence.core.api.provider;
 import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
 
 /**
- * Supplies the {@link LayoutCodec} that decides the format a layout is written in.
+ * Supplies the {@link LayoutCodec} that decides the format a docking layout is
+ * written in.
  *
  * <p>Discovered at runtime, so an application changes format by changing which
  * codec implementation it depends on - see

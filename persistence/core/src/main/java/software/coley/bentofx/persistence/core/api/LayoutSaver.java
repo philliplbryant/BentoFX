@@ -1,8 +1,7 @@
 package software.coley.bentofx.persistence.core.api;
 
 /**
- * The Application Programming Interface for outputting a BentoFX layout for
- * persistence.
+ * Outputs a BentoFX docking layout for persistence.
  *
  * @author Phil Bryant
  */

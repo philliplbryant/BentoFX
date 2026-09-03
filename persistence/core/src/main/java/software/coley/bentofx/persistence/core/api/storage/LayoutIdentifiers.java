@@ -12,9 +12,9 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem.Rule.*;
 
 /**
- * The rule for the two identifiers that name a stored layout, in one place
- * because a pair has to satisfy every {@link LayoutStorage} implementation at
- * once.
+ * The rule for the two identifiers that name a stored docking layout, in one
+ * place because a pair has to satisfy every {@link LayoutStorage}
+ * implementation at once.
  *
  * <p>A layout is addressed by a layout identifier and a codec identifier.
  * Database-backed storage keeps them in two columns; file-backed storage joins

@@ -13,6 +13,12 @@
    1. Col-E can merge them to master
    2. I can rebase my master branch to match his
    3. I can more easily merge his changes from master to the enhancement/issue-13 branch
+3. Created an issue and branch (not PR) for CI actions in my fork that aren't in Col-E's
+   1. He has zero tests or build infrastructure in place to run GUI based tests
+   2. He has zero static code analysis or quality gates in place
+   3. Offered for his use
+      1. Told him the Gradle and CI would remain in my fork either way
+      2. The Gradle and CI changes make merging his changes into my fork more costly
 
 # Remaining Tasks
 

@@ -3,7 +3,7 @@ package software.coley.bentofx.persistence.core.api;
 import java.util.function.Supplier;
 
 /**
- * The Application Programming Interface for restoring a persisted BentoFX layout.
+ * Restores a persisted BentoFX docking layout.
  *
  * @author Phil Bryant
  */

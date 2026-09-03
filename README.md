@@ -23,7 +23,7 @@ A docking system for JavaFX.
     - [Construct the Default Docking Layout](#construct-the-default-layout)
     - [Show the Layout](#show-it)
 - [Persistence Framework](README-PERSISTENCE.md)
-- [Next Steps](#next-steps)
+- [Miscellany](#miscellany)
     - [Contributing Guide](CONTRIBUTING.md)
     - [Maintainers Guide](MAINTAINERS.md)
 
@@ -215,7 +215,7 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 ## Persistence
 
-[Persistence](./persistence) modules are provided to supplement the [core](#core-framework) module by saving and restoring BentoFX docking layouts across application executions. They also provide a `Layouts` menu, allowing users to manage multiple named layouts of their own using a ready-made control.
+[Persistence](./persistence) modules are provided to supplement the [core](#core-framework) module by saving and restoring BentoFX docking layouts across application executions. And the [persistence/core module](./persistence/core) provides a customizable `Layouts` menu that allows users to manage multiple named layouts of their own using a ready-made control.
 
 **[Read the persistence guide &rarr;](README-PERSISTENCE.md)**
 
@@ -228,7 +228,7 @@ The persistence guide covers:
 * How to change text in the `Layouts` menu
 * How to add custom codec and storage implementations
 
-## Next Steps
+## Miscellany
 
 - The **[Contributing Guide](CONTRIBUTING.md)** explains how to build BentoFX, develop new features, and submit pull requests.
 - The **[Maintainers Guide](MAINTAINERS.md)** covers repository administration, project health, CI/CD, and releases.
