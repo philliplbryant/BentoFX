@@ -614,8 +614,8 @@ A substituted bundle replaces the framework's own rather than falling back to it
 
 Two things are worth knowing about the values:
 
-* **Three of them are `MessageFormat` patterns** - the ones holding `{0}`, which is the layout name. In those three only, a literal apostrophe has to be doubled and `{0}` must not be quoted, or the name is dropped. Everywhere else an apostrophe is just an apostrophe.
-* **Mnemonics live in the text.** An underscore marks the following letter, so a translation chooses its own, and has to keep them distinct within one menu. The items naming saved layouts carry none: a user names those, and mnemonic parsing is off on them so an underscore in a layout name shows as an underscore.
+1. **Three of them are `MessageFormat` patterns** - the ones holding `{0}`, which is the layout name. In those three only, a literal apostrophe has to be doubled and `{0}` must not be quoted, or the name is dropped. Everywhere else an apostrophe is just an apostrophe.
+2. **Mnemonics live in the text.** An underscore marks the following letter, so a translation chooses its own, and has to keep them distinct within one menu. The items naming saved layouts carry none: a user names those, and mnemonic parsing is off on them so an underscore in a layout name shows as an underscore.
 
 <h4 id="runtime-considerations">Runtime Considerations</h4>
 
@@ -732,12 +732,12 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 }
 ```
 
-Three conventions are worth following in a storage implementation, because the bundled implementations follow them and callers rely on them:
+Four conventions are worth following in a storage implementation, because the bundled implementations follow them and callers rely on them:
 
-* **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
-* **Override the catalog methods when the destination can answer them.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
-* **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
-* **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
+1. **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
+2. **Override the catalog methods when the destination can answer them.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
+3. **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
+4. **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
 
 The `LayoutStorageProvider` implementation is the type discovered by `ServiceLoader`. It must expose a stable identifier and be compatible with Java's Service Provider Interface (SPI) mechanism. In practice, the provider implementation should:
 
