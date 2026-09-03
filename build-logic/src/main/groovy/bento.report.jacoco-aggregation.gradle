@@ -25,6 +25,10 @@ aggregateCoverageReportTasks.each { reportTaskProvider ->
             html.required = ENABLE_HTML_REPORT
             xml.required = ENABLE_XML_REPORT
         }
+        // 'JacocoReport' skips itself when no execution data exists, so a suite with
+        // no sources yet yields no report rather than 0%. Must be 'setOnlyIf', which
+        // replaces that internal spec; 'onlyIf' adds to it and still skips.
+        reportTask.setOnlyIf { true }
     }
 }
 
