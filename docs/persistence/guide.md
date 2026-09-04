@@ -128,11 +128,6 @@ The basic demo focuses on container construction and docking behavior. The persi
 
 <h3 id="persistence-concepts">Concepts</h3>
 
-For additional implementation details and diagrams, see:
-
-- [Docking Layout Persistence Implementation](implementation.md)
-- [Bento Layout Persistence Diagrams](diagrams.md)
-
 The persistence framework has two responsibilities:
 
 1. Save the current BentoFX container graph into serializable state.
@@ -176,7 +171,7 @@ Persisted dockable identifier
 </pre></td></tr>
 </table>
 
-The middle of each flow is identical, and that is the whole point. Only where the identifier comes from, and who builds the `Dockable`, differ.
+The middle of each flow is the only difference, and that is the whole point. Where the identifier comes from, and who builds the `Dockable`, is the only thing that needs to change.
 
 Application code therefore needs no separate implementation for first-run dockables and restored ones. If a dockable can be created for the default layout, it can also be recreated when the persisted layout refers to the same identifier.
 

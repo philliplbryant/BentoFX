@@ -6,9 +6,6 @@ This document describes BentoFX layout persistence as implemented by
 [DockingLayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutSaver.java)
 and [DockingLayoutRestorer](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutRestorer.java).
 
-For the overarching design, [docking layout persistence diagrams](diagrams.md) are also
-available.
-
 ## Scope
 
 This document focuses on persistence orchestration and application integration. It does not describe rendering, docking
@@ -654,3 +651,8 @@ The comparison is case-insensitive, since a file name is case-insensitive on Win
 - Let an application rewrite a stored layout's display name without applying that layout first. A save reads the live
   containers, so renaming today means renaming the layout on screen - which is why the demo offers `Rename` only for the
   layout showing.
+
+## See also
+
+- [Diagrams](diagrams.md) - class and sequence diagrams for the design described here.
+- [BentoFX Persistence guide](guide.md) - the application-facing guide.
