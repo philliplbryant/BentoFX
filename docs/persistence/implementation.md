@@ -1,13 +1,12 @@
 # Docking Layout Persistence Implementation
 
-For a high-level architectural overview, see the [BentoFX Persistence guide](../../README-PERSISTENCE.md).
-
+For a high-level architectural overview, see the [BentoFX Persistence guide](guide.md).
 
 This document describes BentoFX layout persistence as implemented by
 [DockingLayoutSaver](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutSaver.java)
 and [DockingLayoutRestorer](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/DockingLayoutRestorer.java).
 
-For the overarching design, [docking layout persistence diagrams](docking-layout-persistence-diagrams.md) are also
+For the overarching design, [docking layout persistence diagrams](diagrams.md) are also
 available.
 
 ## Scope
@@ -40,7 +39,7 @@ Round-trip persistence is a multistep, pipelined process:
 
 1. The application adds one or more `LayoutCodecProvider` implementations to make persisted formats available.
 2. The application adds one or more `LayoutStorageProvider` implementations to make storage destinations available.
-3. The default persistence provider selects codec and storage providers by explicit `LayoutPersistenceProfile` 
+3. The default persistence provider selects codec and storage providers by explicit `LayoutPersistenceProfile`
    identifiers, by a single available provider, or by a single default provider.
 4. `LayoutSaver` walks the current BentoFX container graph through a `BentoProvider`.
 5. `LayoutSaver` builds serializable state, encodes it with `LayoutCodec`, and writes it with `LayoutStorage`.
@@ -48,8 +47,8 @@ Round-trip persistence is a multistep, pipelined process:
 7. The application applies the returned `DockingLayout` to its stages.
 
 This decoupling lets applications choose the persisted format, such as XML or JSON, and the storage location, such as a
-file or database, without changing the save/restore orchestration. In the simple case, changing providers requires only 
-a dependency change. When multiple providers are present, applications can select a specific codec or storage provider 
+file or database, without changing the save/restore orchestration. In the simple case, changing providers requires only
+a dependency change. When multiple providers are present, applications can select a specific codec or storage provider
 by identifier with `LayoutPersistenceProfile`.
 
 ### Display names
@@ -106,7 +105,6 @@ to work around: the session layout is meant to be whatever was last on screen, s
 does mean a named layout needs a save of its own, which is why `saveLayout` exists as a one-shot write next to
 `getLayoutSaver`, and why the demo has a `Save Changes` item that does nothing more than call it with the active
 profile.
-
 
 ## Internal orchestration collaborators
 
@@ -430,20 +428,19 @@ This matters because provider implementations commonly create JavaFX objects suc
 - `Image`
 - `Stage`
 
-The persistence demo's `BoxAppDockableStateProvider` builds its `DockableState` objects on first use, because they contain JavaFX controls and factories that create JavaFX objects, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread rather than the JavaFX Application Thread.
+The persistence demo's `BoxAppDockableStateProvider` builds each `DockableState` inside `resolveDockableState`, not in its constructor, because a state holds JavaFX controls and factories that create JavaFX objects, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread rather than the JavaFX Application Thread.
 
 ```java
 @Override
 public Optional<DockableState> resolveDockableState(String id) {
-    if (dockableStateMap.isEmpty()) {
-        putDockableStates();
-    }
-
-    return Optional.ofNullable(dockableStateMap.get(id));
+    return DockableProperties.findByIdentifier(id)
+            .map(this::buildDockableState);
 }
 ```
 
-Both callers of `resolveDockableState` are on the JavaFX Application Thread: the application while it builds the default layout, and `DockingLayoutStateRestorer` while it restores a saved one. Scheduling the same work from a constructor with `Platform.runLater(...)` also reaches the right thread, but leaves the map empty until the queued task runs, making each lookup depend on JavaFX queue ordering that no contract states.
+It also builds a fresh state on every call rather than caching one per identifier. A `DockableState` carries one `Node` instance and a JavaFX node has one parent, so handing the same state to two restores would move the node into the second layout and leave the first showing a blank panel.
+
+Both callers of `resolveDockableState` are on the JavaFX Application Thread: the application while it builds the default layout, and `DockingLayoutStateRestorer` while it restores a saved one. Scheduling the same work from a constructor with `Platform.runLater(...)` also reaches the right thread, but leaves nothing resolvable until the queued task runs, making each lookup depend on JavaFX queue ordering that no contract states.
 
 Applications may choose eager, lazy, static, dynamic, or dependency-injected providers, but providers that create JavaFX objects must ensure that creation happens on the JavaFX Application Thread.
 

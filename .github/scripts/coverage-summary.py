@@ -160,7 +160,7 @@ def collect_union(reports: list[Path]) -> dict[str, object]:
     # A line counts once however many suites report it, and counts as covered when
     # any suite covered an instruction on it, which is JaCoCo's own definition. An
     # exact branch figure would need the '.exec' binaries merged before reporting,
-    # where probe identity survives; see 'TODO BENTO-13' in TODO.md.
+    # where probe identity survives. TODO BENTO-13.
     covered_lines: set[str] = set()
     all_lines: set[str] = set()
     branch: dict[str, list[int]] = {}

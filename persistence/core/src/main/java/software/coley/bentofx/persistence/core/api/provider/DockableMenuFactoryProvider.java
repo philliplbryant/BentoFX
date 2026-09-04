@@ -9,23 +9,27 @@ import java.util.Optional;
  *
  * <p>Offered for applications to implement; nothing in the persistence framework
  * consumes it. Unlike its siblings here it is not even a parameter - no
- * {@link DockingLayoutPersistenceProvider} method accepts one. It exists so that a
- * {@link DockableStateProvider} implementation has a ready-made shape for looking
- * up the menu factory to attach to a {@code Dockable} it rebuilds. If the
- * application does not call it, nothing will.</p>
+ * {@link DockingLayoutPersistenceProvider} method accepts one. It exists only so
+ * that a {@link DockableStateProvider} implementation has somewhere to look up the
+ * menu factory it attaches to a {@code Dockable} it rebuilds. If the application
+ * does not call it, nothing will.</p>
+ *
+ * <p>A restored dockable takes its context menu from the factory carried on the
+ * {@link software.coley.bentofx.persistence.core.api.state.DockableState}, so an
+ * application is free to set that factory directly and never implement this
+ * interface at all.</p>
  *
  * @author Phil Bryant
  */
 public interface DockableMenuFactoryProvider {
 
 	/**
-     * {@return an {@link Optional<DockableMenuFactory>} with a
-     * {@link DockableMenuFactory} the given identifier.} Implementations should
-     * return an empty {@link Optional<DockableMenuFactory>} when no context
-     * menu factory is available for the identifier.
-     *
-     * @param identifier the identifier of the {@link DockableMenuFactory}
-     * to be returned.
+	 * {@return an {@code Optional} holding the {@link DockableMenuFactory} for the
+	 * given identifier.} Implementations should return an empty {@code Optional}
+	 * when no context menu factory is available for the identifier.
+	 *
+	 * @param identifier the identifier of the {@link DockableMenuFactory}
+	 * to be returned.
 	 */
 	Optional<DockableMenuFactory> getDockableMenuFactory(String identifier);
 }

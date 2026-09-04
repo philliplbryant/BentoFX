@@ -1,8 +1,8 @@
 # BentoFX Persistence
 
-[&larr; Back to the BentoFX README](README.md)
+[&larr; Back to the BentoFX README](../../README.md)
 
-The [persistence](./persistence) modules, collectively referred to as the "persistence framework", or just "framework", supplement the [core](README.md#core-framework) module by saving and restoring BentoFX docking layouts across application executions. The framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. They do **not** serialize live JavaFX `Node`, `Stage`, `Menu`, or application-domain objects.
+The [persistence](../../persistence) modules, herein referred to as the "persistence framework", or just "framework", supplements docking by saving and restoring BentoFX docking layouts across application executions. The framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. The framework does **not** serialize non-docking components such as JavaFX `Node`, `Stage`, and `Menu` nor does it serialize application-domain objects.
 
 To further support persisting docking layouts, the framework offers a ready-to-use [LayoutsMenu](#layouts-menu) for applications to include in their own menu bars, allowing users to save, restore, and manage custom layouts. Menu text comes from a `ResourceBundle`, so applications can translate or otherwise replace wording to suit application specific requirements.
 
@@ -16,26 +16,27 @@ Application developers control the serialized format and storage destination by 
   - [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
   - [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
   - [Maven](#persistence-maven)
-- [Overview](#persistence-overview)
+- [Quick Start](#persistence-quick-start)
+- [Concepts](#persistence-concepts)
   - [Provider Interfaces](#provider-interfaces)
     - [Inline Creation Versus a Provider](#inline-vs-provider)
   - [Application Design for Persistence](#application-design-for-persistence)
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
   - [Provider Responsibilities](#provider-responsibilities)
   - [Provider Lifecycle](#provider-lifecycle)
+- [Common Tasks](#common-tasks)
   - [Configuring Storage Location](#configuring-storage-location)
-  - [Recommended Application Startup Flow](#recommended-application-startup-flow)
-  - [Saving the Layout](#saving-the-layout)
   - [Restoring the Layout](#restoring-the-layout)
+  - [Saving the Layout](#saving-the-layout)
   - [Managing Several Layouts](#managing-several-layouts)
   - [A Ready-Made Layouts Menu](#layouts-menu)
     - [Changing the Text](#layouts-menu-text)
-  - [Runtime Considerations](#runtime-considerations)
-    - [JavaFX Application Thread](#javafx-application-thread)
-    - [Application Evolution](#application-evolution)
-  - [Basic Demo vs Persistence Demo](#basic-demo-vs-persistence-demo)
+- [Runtime Considerations](#runtime-considerations)
+  - [JavaFX Application Thread](#javafx-application-thread)
+  - [Application Evolution](#application-evolution)
 - [Extending Persistence](#extending-persistence)
-- [Persistence Example](#persistence-example)
+
+For internals and diagrams, see [Implementation](implementation.md), [Diagrams](diagrams.md), and the [Undo/Redo design note](undo-redo.md).
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -45,7 +46,7 @@ In addition to the `core` module, applications using persistence need:
 * one codec implementation, such as `persistence-codec-json` or `persistence-codec-xml`
 * one storage implementation, such as `persistence-storage-file` or `persistence-storage-db-h2`
 
-For debugging purposes, applications can also enable logging in the persistence modules by adding an optional [SLF4J runtime dependency](https://www.slf4j.org/manual.html#swapping). Depending on which SLF4J implementation is used, applications might also need to include a logging configuration file. See [logging.properties](./demos/persistence/src/main/resources/logging.properties) in the persistence demo project for an example Java Utils Logging (JUL) configuration file.
+For debugging purposes, applications can also enable logging in the persistence modules by adding an optional [SLF4J runtime dependency](https://www.slf4j.org/manual.html#swapping). Depending on which SLF4J implementation is used, applications might also need to include a logging configuration file. See [logging.properties](../../demos/persistence/src/main/resources/logging.properties) in the persistence demo project for an example Java Utils Logging (JUL) configuration file.
 
 The codec and storage provider implementations are discovered at runtime using the Java [ServiceLoader](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html) and Service Provider Interfaces (SPIs). When exactly one codec provider and one storage provider are available, the default persistence provider selects them automatically. When multiple providers are available, applications can select providers explicitly using `LayoutPersistenceProfile`; otherwise, the framework uses a single default provider when one is available or fails with a configuration error.
 
@@ -98,20 +99,44 @@ runtimeOnly("org.slf4j:slf4j-jdk14:${slf4j-version}")
 </dependency>
 ```
 
-<h3 id="persistence-overview">Overview</h3>
+<h3 id="persistence-quick-start">Quick Start</h3>
+
+A persistent application generally follows this startup flow:
+
+1. Create the application's `Bento` with a stable identifier.
+2. Register the `Bento` with a `BentoProvider`.
+3. Create provider implementations for dockable states, dockable menus, leaf menus, and stage icons as needed. Only [`DockableStateProvider`](#provider-interfaces) has no framework implementation, so it is the one an application must implement for itself.
+4. Build the application's default `DockingLayout` using the same providers that restoration will use.
+5. Ask [`LayoutRestorer`](#restoring-the-layout) to restore the last saved layout, passing the default layout supplier as the fallback when one does not exist or cannot be restored.
+6. Apply the returned `DockingLayout` to the JavaFX stage.
+7. Obtain a [`LayoutSaver`](#saving-the-layout) and keep it. The default `LayoutSaver` provided by the framework runs auto-save for the duration of the application execution. Accordingly, the LayoutSaver should be acquired/instantiated after the layout is applied, because a save reads the root branches that have a `Scene`.
+8. Save the layout and close the saver before windows are closed.
+
+An application that does not want layouts to be auto-saved skips steps 7 and 8, and calls `DockingLayoutPersistenceProvider.saveLayout(...)` instead, which saves once and holds nothing. See [Saving the Layout](#saving-the-layout).
+
+The [persistence demo](../../demos/persistence) follows exactly this pattern and is the fastest way to see it working:
+
+```bash
+./gradlew :demos:persistence:run
+```
+
+Its `BoxApp` is derived from the [basic demo](../../demos/basic/src/main/java/demo/BoxApp.java), so a diff between the two shows what persistence adds. `BoxApp.applyDockingLayout(DockingLayout)` and `BoxApp.saveDockingLayout(WindowEvent)` are the two methods worth reading first.
+
+The basic demo focuses on container construction and docking behavior. The persistence demo adds provider-backed reconstruction so layouts survive across executions, and deliberately introduces abstractions the core docking framework does not need, such as providers and state objects. For a row-by-row comparison, see [Basic demo vs persistence demo](implementation.md#basic-demo-vs-persistence-demo).
+
+<h3 id="persistence-concepts">Concepts</h3>
 
 For additional implementation details and diagrams, see:
 
-- [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md)
-- [Bento Layout Persistence Diagrams](docs/persistence/docking-layout-persistence-diagrams.md)
-- [Layout Undo/Redo Design Note](docs/persistence/layout-undo-redo.md)
+- [Docking Layout Persistence Implementation](implementation.md)
+- [Bento Layout Persistence Diagrams](diagrams.md)
 
 The persistence framework has two responsibilities:
 
 1. Save the current BentoFX container graph into serializable state.
 2. Restore that state into runtime BentoFX objects.
 
-The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockables through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
+The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockable states through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
 
 <h4 id="provider-interfaces">Provider Interfaces</h4>
 
@@ -132,7 +157,7 @@ The returned `DockableState` is not itself a `Dockable`. The framework builds th
 | `dockableIconFactory`, `dockableMenuFactory` | Live factories the dockable calls as needed |
 | `dockableConsumer` | A live `Consumer<Dockable>` applied to the finished dockable |
 
-Carrying a live node rather than instructions for building one has two consequences that shape how a provider is written:
+Carrying a live node rather than instructions for building one has two consequences that affect how a provider is written:
 
 1. A state cannot be created before JavaFX is ready.
 2. A state instance can be used exactly once.
@@ -154,15 +179,17 @@ private Dockable buildDockable(DockBuilding builder, int s, int i, String title)
 }
 ```
 
-It is called positionally, once per dockable, while the layout is assembled:
+`BoxApp.buildDockable` is called once per dockable and `Dockable`s are added to the layout in-line, according to their position:
 
 ```java
-buildDockable(builder, 1, 0, "Workspace"),
-buildDockable(builder, 1, 1, "Bookmarks"),
-buildDockable(builder, 1, 2, "Modifications")
+leafWorkspaceTools.addDockables(
+    buildDockable(builder, 1, 0, "Workspace"),
+    buildDockable(builder, 1, 1, "Bookmarks"),
+    buildDockable(builder, 1, 2, "Modifications")
+);
 ```
 
-That works because the application is the only thing that ever needs a dockable, and it needs each one exactly once. Identity is implied in the call site: nothing else ask for "the Workspace dockable", because nothing recorded its identity.
+This works because the application is the only thing that ever needs a dockable, and it needs each dockable exactly once. Identity is implied at the call site: nothing else ask for "the Workspace dockable", because nothing recorded its identity.
 
 The persistence demo inverts the direction. Instead of the application creating content and pushing it into a layout, the framework asks for content by identifier and the application answers:
 
@@ -186,25 +213,25 @@ Applications are not obliged to abandon inline creation. A persistent applicatio
 
 The complete set of provider interfaces:
 
-| Provider | Purpose | Required | Framework implementation |
-|----------|---------|----------|--------------------------|
-| `BentoProvider` | Supplies the `Bento` instances whose layouts should be saved and restored. | Yes | `DefaultBentoProvider` in `persistence-core` |
-| `DockableStateProvider` | Resolves a persisted `Dockable` identifier to a `DockableState` that can be used to reconstruct the runtime `Dockable`. | Yes, to restore | None |
-| `DockableMenuFactoryProvider` | Supplies `DockableMenuFactory` instances when restored dockables need context menus. | Application-side only | None |
-| `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus. | Optional, nullable | None |
-| `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages. | Optional, nullable | None |
-| `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`. | Yes | `DefaultDockingLayoutPersistenceProvider` in `persistence-core` |
-| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier. | Yes, discovered | `JsonLayoutCodecProvider` in `persistence-codec-json`, `XmlLayoutCodecProvider` in `persistence-codec-xml` |
-| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier. | Yes, discovered | `FileLayoutStorageProvider` in `persistence-storage-file`, `DatabaseLayoutStorageProvider` in `persistence-storage-db-h2` |
+| Provider | Purpose | Required                               | Framework implementation |
+|----------|---------|----------------------------------------|--------------------------|
+| `BentoProvider` | Supplies the `Bento` instances whose layouts should be saved and restored. | Yes                                    | `DefaultBentoProvider` in `persistence-core` |
+| `DockableStateProvider` | Resolves a persisted `Dockable` identifier to a `DockableState` that can be used to reconstruct the runtime `Dockable`. | Yes, to restore                        | None |
+| `DockableMenuFactoryProvider` | Looks up a `DockableMenuFactory` by identifier, for application code building a `DockableState`. | Optional, never called by the framework | None |
+| `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus. | Optional, nullable                     | None |
+| `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages. | Optional, nullable                     | None |
+| `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`. | Yes                                    | `DefaultDockingLayoutPersistenceProvider` in `persistence-core` |
+| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier. | Yes, discoverable                      | `JsonLayoutCodecProvider` in `persistence-codec-json`, `XmlLayoutCodecProvider` in `persistence-codec-xml` |
+| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier. | Yes, discoverable                      | `FileLayoutStorageProvider` in `persistence-storage-file`, `DatabaseLayoutStorageProvider` in `persistence-storage-db-h2` |
 
 The `Required` column describes what `getLayoutSaver` and `getLayoutRestorer` expect:
 
 * **Yes** means the parameter is non-null. `BentoProvider` is required by both methods; `DockableStateProvider` is required by `getLayoutRestorer` and is not a parameter of `getLayoutSaver`, since saving needs no dockable resolution.
 * **Optional, nullable** means the parameter is annotated `@Nullable` and may be omitted. Pass `null` when restored leaves need no context menus, or when restored drag/drop stages need no icon.
-* **Yes, discovered** means the provider must be present but is not passed in. The codec and storage providers are selected from the runtime dependencies on the module path, so an application including exactly one of each need not name them. Name them explicitly with a `LayoutPersistenceProfile` when more than one is present.
-* **Application-side only** means the persistence framework never asks for it. `DockableMenuFactoryProvider` exists for the application's own use when building the `DockableState` values its `DockableStateProvider` returns, and it is nullable there. The persistence demo passes one into `BoxAppDockableStateProvider`.
+* **Yes, discoverable** means the provider must be present but is not passed in. The codec and storage providers are selected from the runtime dependencies on the module path, so an application including exactly one of each need not name them. Name them explicitly with a `LayoutPersistenceProfile` when more than one is present.
+* **Optional, never called by the framework** applies to `DockableMenuFactoryProvider` alone, and means what it says: no persistence code calls it, and it is not a parameter of `getLayoutSaver` or `getLayoutRestorer`. A restored dockable gets its context menu from `DockableState.dockableMenuFactory`, which the application sets while building the state. The interface is offered because looking up a menu factory by identifier is a common thing to need at that point, but an application can set the factory directly and never implement it. The persistence demo does implement one, and passes it to `BoxAppDockableStateProvider` as a `@Nullable` constructor argument.
 
-The four providers with no framework implementation are the ones only the application can answer, since they map persisted identifiers back onto the application's own runtime objects.
+The four providers with no framework implementation are only answerable by the application, since they map persisted identifiers back onto the application's own runtime objects.
 
 `DefaultBentoProvider` collects `Bento` instances against their identifiers and holds them by weak reference. Instances can be passed to the constructor or added later with `addBento`.
 
@@ -241,8 +268,8 @@ Applications that include multiple codec or storage implementations can select s
 ```java
 final LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
         layoutIdentifier,
-        "json",
-        "file"
+        "json",            // codec identifier
+        "file"             // storage identifier
 );
 
 final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
@@ -270,23 +297,26 @@ dockableStateProvider.resolveDockableState(dockableProperties.getIdentifier())
 
 That same provider is passed to the `LayoutRestorer`, so the default layout and the restored layout use one dockable resolution strategy between them. The default layout places dockables for the first run; the restored layout uses persisted placement and asks the same provider to recreate each dockable by identifier.
 
-```text
-Default layout startup
-    Dockable identifier
-        -> DockableStateProvider
-            -> DockableState
-                -> BoxApp.buildDockable(DockableState)
-                    -> Dockable
-                        -> Added to default container
+<table>
+<tr><th align="left">Default layout startup</th><th align="left">Saved layout restore</th></tr>
+<tr valign="top"><td><pre>
+Dockable identifier
+    -> DockableStateProvider
+        -> DockableState
+            -> BoxApp.buildDockable(DockableState)
+                -> Dockable
+                    -> Added to default container
+</pre></td><td><pre>
+Persisted dockable identifier
+    -> DockableStateProvider
+        -> DockableState
+            -> LayoutRestorer builds the Dockable
+                -> Dockable
+                    -> Added to restored container
+</pre></td></tr>
+</table>
 
-Saved layout restore
-    Persisted dockable identifier
-        -> DockableStateProvider
-            -> DockableState
-                -> LayoutRestorer restores Dockable
-                    -> Dockable
-                        -> Added to restored container
-```
+The middle of each flow is identical, and that is the whole point. Only where the identifier comes from, and who builds the `Dockable`, differ.
 
 Application code therefore needs no separate implementation for first-run dockables and restored ones. If a dockable can be created for the default layout, it can also be recreated when the persisted layout refers to the same identifier.
 
@@ -349,6 +379,8 @@ Applications generally create providers before layout restoration and reuse them
 
 Providers should also avoid storing stale JavaFX objects when those objects are meant to be recreated. If a provider caches runtime content, the cache lifecycle should match the application lifecycle and JavaFX threading rules.
 
+<h3 id="common-tasks">Common Tasks</h3>
+
 <h4 id="configuring-storage-location">Configuring Storage Location</h4>
 
 By default, the included `persistence-storage-file` and `persistence-storage-db-h2` providers keep their data under `<user.home>/.bentofx`. Two situations call for changing that:
@@ -363,7 +395,7 @@ Both providers resolve their location through `software.coley.bentofx.persistenc
 | `bentofx.persistence.home` | `BENTOFX_PERSISTENCE_HOME` | Overrides the base directory, in place of `<user.home>/.bentofx`. |
 | `bentofx.persistence.namespace` | `BENTOFX_PERSISTENCE_NAMESPACE` | Names a subdirectory of the resolved home that is this application's own, so a different BentoFX-based application on the same machine does not share it. |
 
-The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/Runner.java) sets its namespace this way, in code, to show the alternative: `LayoutStorageLocations.configureNamespace("persistence-demo")`, along with `configureHome(Path)`, are typed alternatives to calling `System.setProperty` directly. Whichever way, this has to happen before the first save, restore, or catalog call - in practice, before `DockingLayoutPersistence.provider()` is first called - since that is when a storage provider actually reads the location:
+The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](../../demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/Runner.java) sets its namespace this way, in code, to show the alternative: `LayoutStorageLocations.configureNamespace("persistence-demo")`, along with `configureHome(Path)`, are typed alternatives to calling `System.setProperty` directly. Whichever way, this has to happen before the first save, restore, or catalog call - in practice, before `DockingLayoutPersistence.provider()` is first called - since that is when a storage provider actually reads the location:
 
 ```java
 LayoutStorageLocations.configureNamespace("my-app");
@@ -372,22 +404,34 @@ final DockingLayoutPersistenceProvider persistence =
         DockingLayoutPersistence.provider();
 ```
 
-<h4 id="recommended-application-startup-flow">Recommended Application Startup Flow</h4>
+<h4 id="restoring-the-layout">Restoring the Layout</h4>
 
-A persistent application should generally follow this startup flow:
+The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if decoding fails, the default layout supplier is used.
 
-1. Create the application's `Bento` with a stable identifier.
-2. Register the `Bento` with a `BentoProvider`.
-3. Create provider implementations for dockables, dockable menus, leaf menus, and stage icons as needed.
-4. Build the application's default `DockingLayout` using the same providers that restoration will use.
-5. Ask `LayoutRestorer` to restore the last saved layout, passing the default layout supplier as the fallback.
-6. Apply the returned `DockingLayout` to the JavaFX stage, falling back to the default layout when none could be applied.
-7. Obtain a `LayoutSaver` and keep it, so that auto-save runs for the session. Do this after the layout is applied, because a save reads the root branches that have a `Scene`.
-8. Save the layout, and close the saver, before windows are closed.
+A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterwards costs nothing:
 
-The persistence demo follows this pattern by creating a `DockingLayout`, applying the matching `BentoLayout` to the primary stage, and then showing any restored `DragDropStage` instances.
+```java
+private DockingLayout getDockingLayout() {
+    try (final LayoutRestorer layoutRestorer =
+                 persistenceProvider.getLayoutRestorer(
+                         DEFAULT_LAYOUT_IDENTIFIER,
+                         bentoProvider,
+                         dockableStateProvider,
+                         stageIconImageProvider,
+                         dockContainerLeafMenuFactoryProvider
+                 )) {
 
-Applying a layout can fail: a stored layout may hold a number of root branches the application does not know how to place. Report whether anything was applied, and fall back to the default layout when nothing was, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window hides cannot then be closed:
+        return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
+    } catch (BentoStateException e) {
+        logger.warn("Could not create the docking layout restorer.", e);
+        return getDefaultDockingLayout();
+    }
+}
+```
+
+Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
+
+Applying the returned layout can still fail. For example, a stored layout may hold root branches the application does not know how to place. In such instances, report whether anything was applied and fall back to the default layout, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window hides cannot then be closed:
 
 ```java
 DockingLayout dockingLayout = getDockingLayout();
@@ -404,6 +448,8 @@ if (!applyDockingLayout(dockingLayout)) {
 }
 ```
 
+`applyDockingLayout` above is not framework API. It is the application's own helper, and it returns whether it managed to apply anything, which is what makes the fallback decision above possible:
+
 ```java
 private boolean applyDockingLayout(final DockingLayout dockingLayout) {
     boolean isApplied = false;
@@ -417,6 +463,8 @@ private boolean applyDockingLayout(final DockingLayout dockingLayout) {
     return isApplied;
 }
 ```
+
+The persistence demo applies the matching `BentoLayout` to the primary stage this way, then shows any restored `DragDropStage` instances.
 
 <h4 id="saving-the-layout">Saving the Layout</h4>
 
@@ -450,33 +498,6 @@ private void saveDockingLayout(final WindowEvent windowEvent) {
 ```
 
 Saving explicitly before the close is deliberate: closing saves only when a `DockEvent` has arrived since the last save, and an application usually wants a layout written on exit either way.
-
-<h4 id="restoring-the-layout">Restoring the Layout</h4>
-
-The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if decoding fails, the default layout supplier is used.
-
-A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterwards costs nothing:
-
-```java
-private DockingLayout getDockingLayout() {
-    try (final LayoutRestorer layoutRestorer =
-                 persistenceProvider.getLayoutRestorer(
-                         DEFAULT_LAYOUT_IDENTIFIER,
-                         bentoProvider,
-                         dockableStateProvider,
-                         stageIconImageProvider,
-                         dockContainerLeafMenuFactoryProvider
-                 )) {
-
-        return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
-    } catch (BentoStateException e) {
-        logger.warn("Could not create the docking layout restorer.", e);
-        return getDefaultDockingLayout();
-    }
-}
-```
-
-Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
 
 <h4 id="managing-several-layouts">Managing Several Layouts</h4>
 
@@ -617,12 +638,12 @@ Two things are worth knowing about the values:
 1. **Three of them are `MessageFormat` patterns** - the ones holding `{0}`, which is the layout name. In those three only, a literal apostrophe has to be doubled and `{0}` must not be quoted, or the name is dropped. Everywhere else an apostrophe is just an apostrophe.
 2. **Mnemonics live in the text.** An underscore marks the following letter, so a translation chooses its own, and has to keep them distinct within one menu. The items naming saved layouts carry none: a user names those, and mnemonic parsing is off on them so an underscore in a layout name shows as an underscore.
 
-<h4 id="runtime-considerations">Runtime Considerations</h4>
+<h3 id="runtime-considerations">Runtime Considerations</h3>
 
 Applications should keep two runtime considerations in mind when using
 layout persistence.
 
-<h5 id="javafx-application-thread">JavaFX Application Thread</h5>
+<h4 id="javafx-application-thread">JavaFX Application Thread</h4>
 
 Restoration separates persistence operations from JavaFX object creation.
 Storage access and codec decoding can occur independently of the JavaFX
@@ -644,7 +665,7 @@ Applications using lazy loading, dependency injection, or other dynamic
 resolution strategies should apply the same principle whenever providers
 create JavaFX runtime objects.
 
-<h5 id="application-evolution">Application Evolution</h5>
+<h4 id="application-evolution">Application Evolution</h4>
 
 Persisted layouts may outlive individual software releases.
 
@@ -668,28 +689,6 @@ the layouts saved by the newer one.
 
 Providers are the primary mechanism for adapting persisted layouts to
 application changes until explicit layout migration support is added.
-
-<h4 id="basic-demo-vs-persistence-demo">Basic Demo vs Persistence Demo</h4>
-
-The BentoFX project includes both a basic demo and a persistence demo.
-
-The basic demo focuses on container construction and docking behavior. The persistence demo builds on the same concepts and demonstrates how applications can save and restore docking layouts across executions using provider-backed reconstruction.
-
-The persistence demo intentionally introduces additional abstractions such as providers and state objects. These abstractions are not required by the core docking framework itself, but become necessary when layouts must be persisted and later restored.
-
-| Concern | Basic demo | Persistence demo |
-|---------|------------|------------------|
-| Bento creation | Creates a default `Bento`. | Creates a `Bento` with a stable identifier. |
-| Dockable creation | Creates dockables inline with `buildDockable(...)`. | Resolves `DockableState` by identifier through `DockableStateProvider`, then builds dockables from that state. |
-| Source of truth for dockables | Startup code. | Provider implementations. |
-| Dockable placement | Places dockables directly in leaves during startup. | Places dockables in the default layout only; restored placement comes from persisted state. |
-| Menus | Sets sample menu factories directly on leaves/dockables. | Supplies menu factories through providers so restored objects can receive the same behavior. |
-| Stage setup | Creates a `Scene` directly from the root branch. | Restores or builds a `DockingLayout`, then applies the matching `BentoLayout` to the stage. |
-| Drag/drop stages | Not restored across application runs. | Restored from persisted `DragDropStageState` and shown after the primary layout is applied. |
-| Automatic saving | Not supported. | Obtains one saver while starting, so periodic saves run for the session and only write when docking events indicate a changed layout. |
-| JavaFX threading | Startup creates JavaFX objects directly. | Restore and provider code must create JavaFX objects on the JavaFX Application Thread. |
-| Provider implementations | Not required. | Required for application-specific objects that cannot be serialized. |
-| Shutdown | Exits when the stage is hidden. | Saves the docking layout on close request, then closes the saver, both while the stages still exist. |
 
 <h3 id="extending-persistence">Extending Persistence</h3>
 
@@ -765,29 +764,15 @@ Codecs are extended similarly by implementing `LayoutCodecProvider` and `LayoutC
 
 For complete examples, refer to these modules:
 
-- [JSON Codec](./persistence/codec/json)
-- [XML Codec](./persistence/codec/xml)
-- [H2 Database Storage](./persistence/storage/db/h2)
-- [File Storage](./persistence/storage/file)
+- [JSON Codec](../../persistence/codec/json)
+- [XML Codec](../../persistence/codec/xml)
+- [H2 Database Storage](../../persistence/storage/db/h2)
+- [File Storage](../../persistence/storage/file)
 
-Additional API and usage documentation can be found in [Docking Layout Persistence Implementation](docs/persistence/docking-layout-persistence.md) and [Bento layout persistence diagrams](docs/persistence/docking-layout-persistence-diagrams.md).
+Additional API and usage documentation can be found in [Docking Layout Persistence Implementation](implementation.md) and [Bento layout persistence diagrams](diagrams.md).
 
 The following are also provided for additional information on using `ServiceLoader`:
 
 * https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
 * https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html
 * https://www.baeldung.com/java-spi
-
-<h3 id="persistence-example">Persistence Example</h3>
-
-The [persistence demo](./demos/persistence) module contains an example application, derived from the [basic demo BoxApp application](./demos/basic/src/main/java/demo/BoxApp.java), that demonstrates using the [persistence](./persistence) framework to save and restore a BentoFX docking layout.
-
-To run the persistence demo:
-
-```bash
-./gradlew :demos:persistence:run
-```
-
-For details on applying a restored docking layout, refer to `BoxApp.applyDockingLayout(DockingLayout)` in the [persistence demo](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java).
-
-For details on saving the current docking layout, refer to `BoxApp.saveDockingLayout(WindowEvent)` in the [persistence demo](./demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java).

@@ -1,7 +1,6 @@
 # Bento layout persistence diagrams
 
-For implementation details and application integration guidance, see [Docking Layout Persistence Implementation](docking-layout-persistence.md). For a high-level overview, see the [BentoFX Persistence guide](../../README-PERSISTENCE.md).
-
+For implementation details and application integration guidance, see [Docking Layout Persistence Implementation](implementation.md). For a high-level overview, see the [BentoFX Persistence guide](guide.md).
 
 ## Components overview
 
@@ -19,7 +18,7 @@ classDiagram
     +restoreLayout(defaultDockingLayout)
     +close()
   }
-  
+
   class BentoProvider {
       +getAllBentos()
       +getBento(identifier)
@@ -90,15 +89,15 @@ classDiagram
     +getDockableNode()
     +getTitle()
   }
-  
+
   class StageIconImageProvider {
       +getStageIcons()
   }
-  
+
   class DockContainerLeafMenuFactoryProvider {
       +getDockContainerLeafMenuFactory(identifier)
   }
-  
+
   LayoutCodecProvider --|> LayoutPersistenceComponentProvider
   LayoutStorageProvider --|> LayoutPersistenceComponentProvider
 

@@ -21,8 +21,8 @@ A docking system for JavaFX.
     - [Dockables](#dockables)
   - [Basic Example](#basic-example)
     - [Construct the Default Docking Layout](#construct-the-default-layout)
-    - [Show the Layout](#show-it)
-- [Persistence Framework](README-PERSISTENCE.md)
+    - [Show It](#show-it)
+- [Persistence Framework](#persistence-framework)
 - [Miscellany](#miscellany)
     - [Contributing Guide](CONTRIBUTING.md)
     - [Maintainers Guide](MAINTAINERS.md)
@@ -34,7 +34,7 @@ A docking system for JavaFX.
 
 ## Core Framework
 
-The [core](./core) module is a framework of user interface controls that can be used to group, dock, and undock other user interface controls using drag and drop. 
+The [core](./core) module is a framework of user interface controls that can be used to group, dock, and undock other user interface controls using drag and drop.
 
 <h3 id="core-usage">Usage</h3>
 
@@ -120,6 +120,8 @@ reside in the middle and occupy the most space. The tool tabs are intended to be
 automatically scale when we resize the window since we want the primary content to take up all
 of the available space when possible.
 
+<h4 id="construct-the-default-layout">Construct the Default Docking Layout</h4>
+
 We'll first create a vertically split container and put tools like logging/terminal at the bottom.
 The bottom section will be set to not resize with the parent for the reason mentioned previously.
 
@@ -172,7 +174,7 @@ leafTools.setCanSplit(false);
 // Primary editor space should not prune when empty
 leafWorkspaceHeaders.setPruneWhenEmpty(false);
 
-// Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the 
+// Set intended sizes for tools (leaf does not need to be a direct child, just some level down in the
 branchRoot.setContainerSizePx(leafTools, 200);
 branchRoot.setContainerSizePx(leafWorkspaceTools, 300);
 
@@ -213,11 +215,9 @@ For a more real-world example you can check out [Recaf](https://github.com/Col-E
 
 ![containers](assets/example-recaf.png)
 
-## Persistence
+## Persistence Framework
 
-[Persistence](./persistence) modules are provided to supplement the [core](#core-framework) module by saving and restoring BentoFX docking layouts across application executions. And the [persistence/core module](./persistence/core) provides a customizable `Layouts` menu that allows users to manage multiple named layouts of their own using a ready-made control.
-
-**[Read the persistence guide &rarr;](README-PERSISTENCE.md)**
+The persistence framework consists of [persistence](./persistence) modules that supplement the [core](#core-framework) by saving and restoring BentoFX docking layouts across application executions. The [persistence/core module](./persistence/core) also provides a customizable `Layouts` menu that allows users to manage multiple named layouts of their own using a ready-made control.
 
 The persistence guide covers:
 * The modules to depend on
@@ -227,6 +227,8 @@ The persistence guide covers:
 * The ready-made `Layouts` menu
 * How to change text in the `Layouts` menu
 * How to add custom codec and storage implementations
+
+**[Read the persistence guide &rarr;](./docs/persistence/guide.md)**
 
 ## Miscellany
 
