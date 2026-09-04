@@ -171,7 +171,7 @@ For a restored layout, the restorer receives the same provider:
 ```java
 try (final LayoutRestorer layoutRestorer =
              persistenceProvider.getLayoutRestorer(
-                     DEFAULT_LAYOUT_IDENTIFIER,
+                     SESSION_LAYOUT_IDENTIFIER,
                      bentoProvider,
                      dockableStateProvider,
                      stageIconImageProvider,
@@ -385,7 +385,7 @@ During restore, the saved layout supplies the placement. The application supplie
 ```java
 try (final LayoutRestorer layoutRestorer =
              persistenceProvider.getLayoutRestorer(
-                     DEFAULT_LAYOUT_IDENTIFIER,
+                     SESSION_LAYOUT_IDENTIFIER,
                      bentoProvider,
                      dockableStateProvider,
                      stageIconImageProvider,

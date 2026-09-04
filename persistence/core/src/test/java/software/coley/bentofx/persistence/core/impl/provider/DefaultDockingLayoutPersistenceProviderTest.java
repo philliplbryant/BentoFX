@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class DefaultDockingLayoutPersistenceProviderTest {
 
-    private static final String DEFAULT_LAYOUT_IDENTIFIER = "default";
+    private static final String TEST_LAYOUT_IDENTIFIER = "test-layout";
     private static final String JSON_CODEC_IDENTIFIER = "json";
     private static final String XML_CODEC_IDENTIFIER = "xml";
     private static final String FILE_STORAGE_IDENTIFIER = "file";
@@ -59,7 +59,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         assertThat(provider.getStoredLayoutIdentifiers(
-                LayoutPersistenceProfile.of(DEFAULT_LAYOUT_IDENTIFIER)
+                LayoutPersistenceProfile.of(TEST_LAYOUT_IDENTIFIER)
         ))
                 .describedAs("layouts the selected storage provider holds")
                 .containsExactly("compact", "multi-monitor");
@@ -87,7 +87,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         final LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
-                DEFAULT_LAYOUT_IDENTIFIER,
+                TEST_LAYOUT_IDENTIFIER,
                 JSON_CODEC_IDENTIFIER,
                 FILE_STORAGE_IDENTIFIER
         );
@@ -157,7 +157,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         assertThat(provider.getStoredLayoutIdentifiers(new LayoutPersistenceProfile(
-                DEFAULT_LAYOUT_IDENTIFIER,
+                TEST_LAYOUT_IDENTIFIER,
                 JSON_CODEC_IDENTIFIER,
                 DATABASE_STORAGE_IDENTIFIER
         )))
@@ -179,14 +179,14 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(storageProvider)
                 );
 
-        provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
+        provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
 
         assertThat(codecProvider.getCreatedCodecCount())
                 .describedAs("codecProvider.getCreatedCodecCount()")
                 .isEqualTo(1);
         assertThat(storageProvider.getLayoutIdentifier())
                 .describedAs("storageProvider.getLayoutIdentifier()")
-                .isEqualTo(DEFAULT_LAYOUT_IDENTIFIER);
+                .isEqualTo(TEST_LAYOUT_IDENTIFIER);
         assertThat(storageProvider.getCodecIdentifier())
                 .describedAs("storageProvider.getCodecIdentifier()")
                 .isEqualTo(JSON_CODEC_IDENTIFIER);
@@ -206,7 +206,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         provider.getLayoutSaver(
-                new LayoutPersistenceProfile(DEFAULT_LAYOUT_IDENTIFIER, XML_CODEC_IDENTIFIER, DATABASE_STORAGE_IDENTIFIER),
+                new LayoutPersistenceProfile(TEST_LAYOUT_IDENTIFIER, XML_CODEC_IDENTIFIER, DATABASE_STORAGE_IDENTIFIER),
                 new DefaultBentoProvider()
         );
 
@@ -221,7 +221,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .isNull();
         assertThat(databaseProvider.getLayoutIdentifier())
                 .describedAs(DATABASE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
-                .isEqualTo(DEFAULT_LAYOUT_IDENTIFIER);
+                .isEqualTo(TEST_LAYOUT_IDENTIFIER);
         assertThat(databaseProvider.getCodecIdentifier())
                 .describedAs("databaseProvider.getCodecIdentifier()")
                 .isEqualTo(XML_CODEC_IDENTIFIER);
@@ -240,7 +240,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(fileProvider, databaseProvider)
                 );
 
-        provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
+        provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
 
         assertThat(jsonProvider.getCreatedCodecCount())
                 .describedAs(JSON_PROVIDER_GET_CREATED_CODEC_COUNT_DESCRIPTION)
@@ -250,7 +250,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .isEqualTo(1);
         assertThat(fileProvider.getLayoutIdentifier())
                 .describedAs(FILE_PROVIDER_GET_LAYOUT_IDENTIFIER_DESCRIPTION)
-                .isEqualTo(DEFAULT_LAYOUT_IDENTIFIER);
+                .isEqualTo(TEST_LAYOUT_IDENTIFIER);
         assertThat(fileProvider.getCodecIdentifier())
                 .describedAs("fileProvider.getCodecIdentifier()")
                 .isEqualTo(XML_CODEC_IDENTIFIER);
@@ -274,7 +274,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         final LayoutSaver layoutSaver =
-                provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
+                provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
         layoutSaver.close();
         layoutSaver.close();
 
@@ -300,7 +300,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         final LayoutRestorer layoutRestorer =
                 provider.getLayoutRestorer(
-                        DEFAULT_LAYOUT_IDENTIFIER,
+                        TEST_LAYOUT_IDENTIFIER,
                         new DefaultBentoProvider(),
                         actualId -> Optional.empty(),
                         null,
@@ -330,9 +330,9 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         final LayoutSaver layoutSaver =
-                provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
+                provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider());
         provider.getLayoutRestorer(
-                DEFAULT_LAYOUT_IDENTIFIER,
+                TEST_LAYOUT_IDENTIFIER,
                 new DefaultBentoProvider(),
                 actualId -> Optional.empty(),
                 null,
@@ -366,7 +366,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
-        assertThatThrownBy(() -> provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
+        assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
                 .describedAs(EXCEPTION_THROWN_BY_PROVIDER_GET_DESCRIPTION)
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("Multiple LayoutCodecProvider implementations")
@@ -383,7 +383,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(
-                new LayoutPersistenceProfile(DEFAULT_LAYOUT_IDENTIFIER, XML_CODEC_IDENTIFIER, FILE_STORAGE_IDENTIFIER),
+                new LayoutPersistenceProfile(TEST_LAYOUT_IDENTIFIER, XML_CODEC_IDENTIFIER, FILE_STORAGE_IDENTIFIER),
                 new DefaultBentoProvider()
         ))
                 .describedAs("exception thrown by () -> provider.getLayoutSaver( new LayoutPersistenceProfile(\"defaul...")
@@ -400,7 +400,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
-        assertThatThrownBy(() -> provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
+        assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
                 .describedAs(EXCEPTION_THROWN_BY_PROVIDER_GET_DESCRIPTION)
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("No LayoutCodecProvider implementation was found");
@@ -417,7 +417,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
-        assertThatThrownBy(() -> provider.getLayoutSaver(DEFAULT_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
+        assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
                 .describedAs(EXCEPTION_THROWN_BY_PROVIDER_GET_DESCRIPTION)
                 .isInstanceOf(BentoStateException.class)
                 .hasMessageContaining("Multiple default LayoutCodecProvider implementations")
@@ -457,7 +457,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         assertThatThrownBy(() -> provider.getStoredLayouts(
                 new LayoutPersistenceProfile(
-                        DEFAULT_LAYOUT_IDENTIFIER,
+                        TEST_LAYOUT_IDENTIFIER,
                         JSON_CODEC_IDENTIFIER,
                         FILE_STORAGE_IDENTIFIER
                 )

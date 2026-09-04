@@ -18,8 +18,6 @@ Application developers control the serialized format and storage destination by 
   - [Maven](#persistence-maven)
 - [Quick Start](#persistence-quick-start)
 - [Concepts](#persistence-concepts)
-  - [Provider Interfaces](#provider-interfaces)
-    - [Inline Creation Versus a Provider](#inline-vs-provider)
   - [Application Design for Persistence](#application-design-for-persistence)
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
   - [Provider Responsibilities](#provider-responsibilities)
@@ -31,11 +29,16 @@ Application developers control the serialized format and storage destination by 
 - [Runtime Considerations](#runtime-considerations)
   - [JavaFX Application Thread](#javafx-application-thread)
   - [Application Evolution](#application-evolution)
-- [Extending Persistence](#extending-persistence)
 
-To let users keep, name and switch between layouts of their own, see [Managing Layouts](layouts.md).
+### Companion documents
 
-For internals and diagrams, see [Implementation](implementation.md) and [Diagrams](diagrams.md).
+| Document | For |
+|----------|-----|
+| [Provider Interfaces](providers.md) | The eight provider interfaces, and why a provider is needed rather than inline creation. Start here to write a `DockableStateProvider`. |
+| [Managing Layouts](layouts.md) | Letting users keep, name, list, switch and delete layouts of their own. Optional. |
+| [Extending Persistence](extending.md) | Writing a new codec or storage implementation. |
+| [Implementation](implementation.md) | Internals: capture and restore algorithms, orchestration, error handling. |
+| [Diagrams](diagrams.md) | Class and sequence diagrams. |
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -104,7 +107,7 @@ A persistent application generally follows this startup flow:
 
 1. Create the application's `Bento` with a stable identifier.
 2. Register the `Bento` with a `BentoProvider`.
-3. Create provider implementations for dockable states, dockable menus, leaf menus, and stage icons as needed. Only [`DockableStateProvider`](#provider-interfaces) has no framework implementation, so it is the one an application must implement for itself.
+3. Create provider implementations for dockable states, dockable menus, leaf menus, and stage icons as needed. Only [`DockableStateProvider`](providers.md#provider-interfaces) has no framework implementation, so it is the one an application must implement for itself.
 4. Build the application's default `DockingLayout` using the same providers that restoration will use.
 5. Ask [`LayoutRestorer`](#restoring-the-layout) to restore the last saved layout, passing the default layout supplier as the fallback when one does not exist or cannot be restored.
 6. Apply the returned `DockingLayout` to the JavaFX stage.
@@ -136,148 +139,6 @@ The persistence framework has two responsibilities:
 2. Restore that state into runtime BentoFX objects.
 
 The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockable states through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
-
-<h4 id="provider-interfaces">Provider Interfaces</h4>
-
-As previously mentioned, applications supply provider implementations to persist docking layouts. These providers act as factories or lookup services for runtime objects that cannot be serialized directly.
-
-> <span style="font-size: 1.5em;">💡</span>  `DockableStateProvider` is the only required provider interface for which the framework does not include a default implementation.
-
-`DockableStateProvider` has a single method: `Optional<DockableState> resolveDockableState(String id);`
-
-A persisted layout records *which* dockables were open, never what was inside them, so the restorer works through the saved identifiers and asks the application for each one in turn. An empty `Optional` means the identifier cannot be reconstructed, and the restorer continues without that dockable.
-
-The returned `DockableState` is not itself a `Dockable`. The framework builds the `Dockable` with `DockBuilding.dockable(identifier)` and applies values the state carries onto it, leaving the rest at their defaults. All eight are optional:
-
-| Carried value | Kind |
-|---------------|------|
-| `title`, `tooltip`, `dragGroupMask`, `isClosable` | Plain data, copied onto the dockable |
-| `dockableNode` | A live JavaFX `Node`, handed to the dockable and then owned by it |
-| `dockableIconFactory`, `dockableMenuFactory` | Live factories the dockable calls as needed |
-| `dockableConsumer` | A live `Consumer<Dockable>` applied to the finished dockable |
-
-Carrying a live node rather than instructions for building one has two consequences that affect how a provider is written:
-
-1. A state cannot be created before JavaFX is ready.
-2. A state instance can be used exactly once.
-
-Both are covered in additional detail below.
-
-<h5 id="inline-vs-provider">Inline Creation Versus a Provider</h5>
-
-The basic demo creates dockables inline and hands them straight to the layout:
-
-```java
-private Dockable buildDockable(DockBuilding builder, int s, int i, String title) {
-    Dockable dockable = builder.dockable();
-    dockable.setTitle(title);
-    dockable.setIconFactory(d -> makeIcon(s, i));
-    dockable.setNode(new Label("<" + title + ":" + i + ">"));
-    // ...
-    return dockable;
-}
-```
-
-`BoxApp.buildDockable` is called once per dockable and `Dockable`s are added to the layout in-line, according to their position:
-
-```java
-leafWorkspaceTools.addDockables(
-    buildDockable(builder, 1, 0, "Workspace"),
-    buildDockable(builder, 1, 1, "Bookmarks"),
-    buildDockable(builder, 1, 2, "Modifications")
-);
-```
-
-This works because the application is the only thing that ever needs a dockable, and it needs each dockable exactly once. Identity is implied at the call site: nothing else ask for "the Workspace dockable", because nothing recorded its identity.
-
-The persistence demo inverts the direction. Instead of the application creating content and pushing it into a layout, the framework asks for content by identifier and the application answers:
-
-```java
-@Override
-public Optional<DockableState> resolveDockableState(String id) {
-    return DockableProperties.findByIdentifier(id)
-            .map(this::buildDockableState);
-}
-```
-
-Three consequences follow, and they are the substance of the difference:
-
-1. **Identity must be explicit and stable.** The identifier is the only thing that survives a save, so a dockable has to be restorable using its identifier rather than its position. See [Choosing Stable Identifiers](#choosing-stable-identifiers).
-2. **Construction must be deferred.** A provider is typically built during application startup, where the constructor may run on the JavaFX-Launcher thread and JavaFX components cannot be created. Build the state when `resolveDockableState` is called, not when the provider is constructed.
-3. **State must be built fresh on each call, not cached.** A `DockableState` carries one node instance, and a JavaFX node has one parent. Handing the same state to two restored components would move the node into the second layout and leave the first showing a blank panel. Nothing prevents a `Node` from being cached, but the `DocakableState` must be built fresh on each call.
-
-The demo's provider does all three: it looks the identifier up in `DockableProperties`, and builds a new `DockableState` per call through `DockableStateBuilder`.
-
-Applications are not obliged to abandon inline creation. A persistent application can still build its initial layout inline, as long as the same content is also reachable by identifier through a provider when a saved layout is restored later.
-
-The complete set of provider interfaces:
-
-| Provider | Purpose | Required                               | Framework implementation |
-|----------|---------|----------------------------------------|--------------------------|
-| `BentoProvider` | Supplies the `Bento` instances whose layouts should be saved and restored. | Yes                                    | `DefaultBentoProvider` in `persistence-core` |
-| `DockableStateProvider` | Resolves a persisted `Dockable` identifier to a `DockableState` that can be used to reconstruct the runtime `Dockable`. | Yes, to restore                        | None |
-| `DockableMenuFactoryProvider` | Looks up a `DockableMenuFactory` by identifier, for application code building a `DockableState`. | Optional, never called by the framework | None |
-| `DockContainerLeafMenuFactoryProvider` | Supplies `DockContainerLeafMenuFactory` instances when restored leaves need context menus. | Optional, nullable                     | None |
-| `StageIconImageProvider` | Supplies stage icons for restored drag/drop stages. | Optional, nullable                     | None |
-| `DockingLayoutPersistenceProvider` | Supplies the application-facing `LayoutSaver` and `LayoutRestorer`. | Yes                                    | `DefaultDockingLayoutPersistenceProvider` in `persistence-core` |
-| `LayoutCodecProvider` | Supplies the codec used to encode and decode persisted layout state and exposes a stable provider identifier. | Yes, discoverable                      | `JsonLayoutCodecProvider` in `persistence-codec-json`, `XmlLayoutCodecProvider` in `persistence-codec-xml` |
-| `LayoutStorageProvider` | Supplies the storage destination used to read and write persisted layout state and exposes a stable provider identifier. | Yes, discoverable                      | `FileLayoutStorageProvider` in `persistence-storage-file`, `DatabaseLayoutStorageProvider` in `persistence-storage-db-h2` |
-
-The `Required` column describes what `getLayoutSaver` and `getLayoutRestorer` expect:
-
-* **Yes** means the parameter is non-null. `BentoProvider` is required by both methods; `DockableStateProvider` is required by `getLayoutRestorer` and is not a parameter of `getLayoutSaver`, since saving needs no dockable resolution.
-* **Optional, nullable** means the parameter is annotated `@Nullable` and may be omitted. Pass `null` when restored leaves need no context menus, or when restored drag/drop stages need no icon.
-* **Yes, discoverable** means the provider must be present but is not passed in. The codec and storage providers are selected from the runtime dependencies on the module path, so an application including exactly one of each need not name them. Name them explicitly with a `LayoutPersistenceProfile` when more than one is present.
-* **Optional, never called by the framework** applies to `DockableMenuFactoryProvider` alone, and means what it says: no persistence code calls it, and it is not a parameter of `getLayoutSaver` or `getLayoutRestorer`. A restored dockable gets its context menu from `DockableState.dockableMenuFactory`, which the application sets while building the state. The interface is offered because looking up a menu factory by identifier is a common thing to need at that point, but an application can set the factory directly and never implement it. The persistence demo does implement one, and passes it to `BoxAppDockableStateProvider` as a `@Nullable` constructor argument.
-
-The four providers with no framework implementation are only answerable by the application, since they map persisted identifiers back onto the application's own runtime objects.
-
-`DefaultBentoProvider` collects `Bento` instances against their identifiers and holds them by weak reference. Instances can be passed to the constructor or added later with `addBento`.
-
-The primary interface for interacting with persistence framework is the `DockingLayoutPersistenceProvider`, which provides access to a `LayoutSaver` and `LayoutRestorer`.
-
-`DefaultDockingLayoutPersistenceProvider`, the default `DockingLayoutPersistenceProvider` implementation provided by the persistence framework, can be constructed directly:
-
-```java
-final DockingLayoutPersistenceProvider persistenceProvider =
-        new DefaultDockingLayoutPersistenceProvider();
-```
-
-The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to discover `LayoutCodecProvider` and `LayoutStorageProvider` implementations available on the runtime module path (or classpath for non-modularized applications). The provider is selected deterministically: an explicitly requested provider identifier wins, otherwise a single available provider is used, otherwise a single provider marked as default is used. Ambiguous configurations fail with a `BentoStateException` that lists the available provider identifiers.
-
-Once the `DockingLayoutPersistenceProvider` is acquired, it can be used to acquire `LayoutSaver` and `LayoutRestorer` implementations. The simplest form uses the codec and storage providers selected from runtime dependencies:
-
-```java
-final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
-        layoutIdentifier,
-        bentoProvider
-);
-
-final LayoutRestorer layoutRestorer = persistenceProvider.getLayoutRestorer(
-        layoutIdentifier,
-        bentoProvider,
-        dockableStateProvider,
-        stageIconImageProvider,               // Nullable
-        dockContainerLeafMenuFactoryProvider  // Nullable
-);
-```
-
-Applications that include multiple codec or storage implementations can select specific providers with a `LayoutPersistenceProfile`:
-
-```java
-final LayoutPersistenceProfile profile = new LayoutPersistenceProfile(
-        layoutIdentifier,
-        "json",            // codec identifier
-        "file"             // storage identifier
-);
-
-final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
-        profile,
-        bentoProvider
-);
-```
-
-This makes simple dependency-only replacement possible while still allowing future application features to save and restore multiple layouts using different codec or storage providers.
 
 <h4 id="application-design-for-persistence">Application Design for Persistence</h4>
 
@@ -353,7 +214,7 @@ Applications should also consider how identifiers are resolved when the underlyi
 
 The persistence framework restores the BentoFX layout structure. Application providers restore application-specific runtime objects that cannot be serialized safely.
 
-Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored. Which providers exist, which are optional, and which already have framework implementations are listed under [Provider Interfaces](#provider-interfaces).
+Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored. Which providers exist, which are optional, and which already have framework implementations are listed under [Provider Interfaces](providers.md#provider-interfaces).
 
 When providers create JavaFX objects, they must follow JavaFX threading rules. The persistence demo's `DockableState` values contain JavaFX controls, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread, so the demo builds them on first use rather than during construction. Both callers of `resolveDockableState` - the application while it starts, and the restorer through the persistence framework - are already on the JavaFX Application Thread:
 
@@ -413,7 +274,7 @@ A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as 
 private DockingLayout getDockingLayout() {
     try (final LayoutRestorer layoutRestorer =
                  persistenceProvider.getLayoutRestorer(
-                         DEFAULT_LAYOUT_IDENTIFIER,
+                         SESSION_LAYOUT_IDENTIFIER,
                          bentoProvider,
                          dockableStateProvider,
                          stageIconImageProvider,
@@ -549,90 +410,3 @@ the layouts saved by the newer one.
 
 Providers are the primary mechanism for adapting persisted layouts to
 application changes until explicit layout migration support is added.
-
-<h3 id="extending-persistence">Extending Persistence</h3>
-
-The `DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the runtime module path, or from the classpath for non-modularized applications. Provider identifiers allow applications to select a specific codec or storage implementation when more than one implementation is available.
-
-To add a storage destination:
-
-1. Implement the `LayoutStorage` interface:
-
-```java
-public class SystemLayoutStorage implements LayoutStorage {
-    @Override
-    public boolean exists() {
-        return false;
-    }
-
-    @Override
-    public OutputStream openOutputStream() {
-        return System.out;
-    }
-
-    @Override
-    public InputStream openInputStream() {
-        return System.in;
-    }
-}
-```
-
-2. Implement the `LayoutStorageProvider` service provider interface:
-
-```java
-public class SystemLayoutStorageProvider implements LayoutStorageProvider {
-    @Override
-    public LayoutStorage getLayoutStorage(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        return new SystemLayoutStorage();
-    }
-}
-```
-
-Four conventions are worth following in a storage implementation, because the bundled implementations follow them and callers rely on them:
-
-1. **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
-2. **Override the catalog methods when the destination can answer them.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
-3. **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
-4. **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
-
-The `LayoutStorageProvider` implementation is the type discovered by `ServiceLoader`. It must expose a stable identifier and be compatible with Java's Service Provider Interface (SPI) mechanism. In practice, the provider implementation should:
-
-* be a public concrete class
-* have a public no-argument constructor, or an implicit default constructor
-* return a stable provider identifier from `getIdentifier()`
-* optionally return `true` from `isDefault()` when it should be selected automatically from multiple providers
-* be registered with a `provides` clause in the module descriptor
-
-The `LayoutStorage` implementation itself is not discovered directly by `ServiceLoader`; it is created by the `LayoutStorageProvider`. This allows a storage implementation to use constructor arguments or other setup logic when the provider creates it.
-
-3. Register the provider implementation with the module descriptor:
-
-```java
-provides LayoutStorageProvider with SystemLayoutStorageProvider;
-```
-
-4. Add the module to the application's runtime module path:
-
-```kotlin
-runtimeOnly("software.coley.bento-fx:persistence-storage-system:${version}")
-```
-
-Codecs are extended similarly by implementing `LayoutCodecProvider` and `LayoutCodec`, registering the provider with the implementation module's descriptor, and adding the module to the application's runtime module path. The same SPI compatibility and identifier requirements apply to the `LayoutCodecProvider`; the `LayoutCodec` implementation is created by the provider and does not need to be directly discoverable by `ServiceLoader`.
-
-For complete examples, refer to these modules:
-
-- [JSON Codec](../../persistence/codec/json)
-- [XML Codec](../../persistence/codec/xml)
-- [H2 Database Storage](../../persistence/storage/db/h2)
-- [File Storage](../../persistence/storage/file)
-
-Additional API and usage documentation can be found in [Docking Layout Persistence Implementation](implementation.md) and [Bento layout persistence diagrams](diagrams.md).
-
-The following are also provided for additional information on using `ServiceLoader`:
-
-* https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
-* https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html
-* https://www.baeldung.com/java-spi
