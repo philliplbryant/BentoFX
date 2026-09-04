@@ -2,17 +2,101 @@
 
 [&larr; Back to the BentoFX Persistence guide](guide.md)
 
-Everything here is optional. An application that keeps one layout, restored at startup and saved on exit, needs none of it - see [Restoring the Layout](guide.md#restoring-the-layout) and [Saving the Layout](guide.md#saving-the-layout) instead.
+> <span style="font-size: 1.5em;">💡</span> Everything described here is optional. An application that keeps one layout, restored at startup and saved on exit, needs nothing described here - see [Restoring the Layout](guide.md#restoring-the-layout) and [Saving the Layout](guide.md#saving-the-layout) instead.
 
-To offer users layouts of their own, there are two routes. [A Ready-Made Layouts Menu](#layouts-menu) is a drop-in `Menu` that already does all of it. The calls in [Managing Several Layouts](#managing-several-layouts) are for building a presentation of your own.
+To offer users layouts of their own, there are two routes. [A Ready-Made Layouts Menu](#layouts-menu) is a drop-in `Menu` that already does all of it. It also allows application developers the ability to [change the text](#layouts-menu-text) to support specific application requirements.   
 
-- [Managing Several Layouts](#managing-several-layouts)
-- [A Ready-Made Layouts Menu](#layouts-menu)
-  - [Changing the Text](#layouts-menu-text)
+[Managing Multiple Layouts](#managing-several-layouts) describes layout naming restrictions, modifying the location where layouts are persisted, and separating layouts from different BentoFX persistence enabled applications running on the same machine. 
 
-<h2 id="managing-several-layouts">Managing Several Layouts</h2>
+And [Building a Custom Presentation for Managing Layouts](#custom-presentation) describes functions provided by the framework that can be used to build a presentation of your own.
 
-An application usually keeps one layout that follows the session, saved automatically and restored at startup. That one has a reserved identifier, `LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER`, so that an application does not spell the name out and a user cannot take it for a layout of their own:
+<h2 id="layouts-menu">A Ready-Made Layouts Menu</h2>
+
+To build a `Menu`, an application needs the ability to list, filter, and name layouts. The persistence module provides these capabilities. It also provides as the ready-made `LayoutsMenu` that can be used wherever a JavaFX `Menu` can be used - a `MenuBar`, a `Window` menu, or a context menu:
+
+```java
+windowMenu.getItems().add(new LayoutsMenu(owner, dockingLayoutRestorable));
+```
+
+where `owner` is the `Window` to which dialogs raised by `LayoutMenu` actions belong and `dockingLayoutRestorable` is usually the application, but can be any `DockingLayoutRestorable` implementation whose docking layout these
+`LayoutMenu` actions switch and whose providers can be used to read and write layouts.
+
+The `LayoutMenu` provides the ability to:
+
+* Restore the default layout
+* Restore layouts a user has saved
+* Save layouts
+* Rename layouts
+* Delete layouts
+* Group layouts
+* Manage layout groups.
+ 
+A check mark identifies whichever layout is showing. And the menu rebuilds itself each time it opens, so the list and the mark updates itself as the application runs.
+
+As indicated above, the `LayoutMenu` lets users organize their layouts into groups: `Groups > New Group...`, `Rename Group`, and `Delete Group`, with `Move to Group` on each saved layout. Groups appear as submenus wherever layouts are listed, and a group holding the layout on screen is marked so finding it does not require opening each one. 
+
+A group created this way must be created before any layouts can be added to it. And a group survives its last layout being moved out. Deleting a group keeps its layouts and leaves them in ungrouped. 
+
+<h3 id="docking-layout-restorable">The `DockingLayoutRestorable` Interface</h2>
+
+The second of the two arguments used to create a `LayoutMenu` is a `DockingLayoutRestorable` implementation, which is usually the application itself.
+
+```java
+public class MyApp extends Application implements DockingLayoutRestorable {
+
+    @Override
+    public DockingLayout getDefaultDockingLayout() { ... }
+
+    @Override
+    public DockingLayout getDockingLayout(
+            LayoutPersistenceProfile profile,
+            Supplier<DockingLayout> fallbackLayoutSupplier) { ... }
+
+    @Override
+    public boolean switchToLayout(
+            Supplier<DockingLayout> dockingLayoutSupplier) { ... }
+
+    @Override
+    public DockingLayoutPersistenceProvider getPersistenceProvider() {
+        return persistenceProvider;
+    }
+
+    @Override
+    public BentoProvider getBentoProvider() {
+        return bentoProvider;
+    }
+}
+```
+
+The two providers are on the interface rather than passed to the menu separately because an implementation cannot do without them anyway - reading a stored layout means calling `getLayoutRestorer` with a `BentoProvider`, thus anything able to implement `getDockingLayout` already holds both.
+
+`switchToLayout` takes a `Supplier` rather than a `DockingLayout` because reading the layout is part of the switch. An implementation has to stop whatever is saving the arrangement on screen before anything reads a replacement, so it is the implementation that decides when the supplier runs. It returns `false` when nothing was applied, and leaves reporting the result of the switch to the `LayoutMenu`.
+
+The persistence demo's `BoxApp` implements all five methods.
+
+<h3 id="layouts-menu-text">Changing the Text</h3>
+
+All `LayoutMenu` text comes from a `ResourceBundle` or names provided by the user when saving layouts and layout groups. To offer menu text in another language, add `LayoutsMenu_<language>.properties` beside [the existing properties file](../../persistence/core/src/main/resources/software/coley/bentofx/persistence/core/ui/LayoutsMenu.properties) in the `persistence-core` module's resource folder. Java reads these files as UTF-8, so write the target language directly.
+
+To supply text from the application instead, hand over a bundle:
+
+```java
+new LayoutsMenu(stage, application, ResourceBundle.getBundle(
+        "com.example.myapp.LayoutsMenuTexts", Locale.FRENCH));
+```
+
+That bundle needs its own base name, in the application's own package. A `LayoutsMenu_fr.properties` placed in the application's module will not be found: resources in a named module are not visible to another, so the framework's own `getBundle` call cannot see it. Loading it from a class in the module that holds it is what makes it reachable.
+
+A substituted bundle replaces the framework's own rather than falling back to it, so it has to carry every key. A missing one raises `MissingResourceException` the first time the menu opens.
+
+Two things are worth knowing about the values:
+
+1. **Three of them are `MessageFormat` patterns** - the ones holding `{0}`, which is the layout name. In those three only, a literal apostrophe has to be doubled and `{0}` must not be quoted, or the name is dropped. Everywhere else an apostrophe is just an apostrophe.
+2. **Mnemonics live in the text.** An underscore marks the following letter, so a translation chooses its own, and has to keep them distinct within one menu. The items naming saved layouts carry no mnemonics because the user names them, and mnemonics are not parsed parsed from user provided names. So, an underscore in a layout or layout group name shows as an underscore.
+
+<h2 id="managing-several-layouts">Managing Multiple Layouts</h2>
+
+An application usually keeps one layout that follows the session, saved automatically and restored at startup. This layout has a reserved identifier, `LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER`, so that an application does not spell the name out and a user cannot take it for a layout of their own:
 
 ```java
 final LayoutPersistenceProfile sessionProfile =
@@ -21,7 +105,7 @@ final LayoutPersistenceProfile sessionProfile =
 
 Reserved is not the same as invalid. Every operation accepts it, because saving to it, restoring it, and deleting it (a "reset to defaults") are all things an application legitimately does. What the reservation means is that `LayoutIdentifiers.isReserved(...)` refuses it where a user chose the name, and that a menu of layouts a user may restore leaves it out.
 
-Letting users keep layouts of their own means naming them, listing them, and removing them, and the persistence provider answers all three:
+Letting users keep layouts of their own means naming them, listing them, and removing them, and the persistence provider provides the ability to perform each of these tasks:
 
 ```java
 final LayoutPersistenceProfile profile = LayoutPersistenceProfile.of("review-layout");
@@ -33,12 +117,21 @@ persistenceProvider.saveLayout(profile, bentoProvider);
 final List<String> storedLayouts =
         persistenceProvider.getStoredLayoutIdentifiers(profile);
 
-// Warn before replacing, and remove on request.
+// Use these to warn before replacing, and remove on request.
 final boolean wouldReplace = persistenceProvider.isLayoutStored(profile);
 final boolean wasRemoved = persistenceProvider.deleteLayout(profile);
 ```
 
-To show users the names they chose rather than identifiers, list with `getStoredLayouts`, which returns a profile per stored layout carrying its display name:
+In addition to naming persisted layouts, application developers can change the save location and a workspace into which layouts are saved. Using a named workspace allows multiple applications using BentoFX persistence to run on the same machine and save layouts separately such that layouts from one application do not overlap with or overwrite layouts from another application.
+
+
+<h2 id="custom-presentation">Building a Custom Presentation for Managing Layouts</h2>
+
+[//]: # (TODO BENOT-13: Continue editing from here)
+
+The following describes functions provided by the framework that can be used to build your own presentation.
+
+To show the user provided names for layouts (rather than their identifiers), use `DockingLayoutPersistenceProvider.getStoredLayouts`, which returns a `LayoutPersistenceProfile` for each stored layout, with the `LayoutPersistenceProfile` containing the display name:
 
 ```java
 for (final LayoutPersistenceProfile stored :
@@ -49,8 +142,6 @@ for (final LayoutPersistenceProfile stored :
     }
 }
 ```
-
-[A Ready-Made Layouts Menu](#layouts-menu) below does all of this already. Reach for the calls above when you want a presentation of your own.
 
 Several things are worth knowing:
 
@@ -80,72 +171,4 @@ Switch on `problem.rule()` to phrase it in your own words or your own language, 
 
 Application state is not part of a layout. The framework persists structure - which containers exist, where they sit, which dockable is selected - and an application keeps its own state in its own store, under the same identifiers the framework hands back when it asks for a `DockableState`. That separation is deliberate: content state is usually per-document rather than per-layout, so a user with four saved layouts would otherwise carry four drifting copies of it.
 
-<h2 id="layouts-menu">A Ready-Made Layouts Menu</h2>
-
-The listing, filtering, and naming above is what an application needs if it builds its own menu. It does not have to: the persistence module provides that menu.
-
-`LayoutsMenu` is a `javafx.scene.control.Menu`, so it goes wherever a menu goes - a `MenuBar`, a `Window` menu, a context menu:
-
-```java
-windowMenu.getItems().add(new LayoutsMenu(stage, application));
-```
-
-It offers the default layout, the layouts a user has saved, and saving, renaming, and deleting those. A check mark marks whichever is showing. The menu rebuilds itself each time it opens, so the list and the mark keep up with storage while the application runs.
-
-It also lets users organize their layouts into groups: `Groups > New Group...`, `Rename Group`, and `Delete Group`, with `Move to Group` on each saved layout. Groups appear as submenus wherever layouts are listed, ahead of the layouts in none, and a group holding the layout on screen is marked so finding it does not mean opening each one. A group created this way exists before anything is in it and survives its last layout being moved out; deleting one keeps its layouts and leaves them in no group. Nothing here asks a user to type a separator, because a layout's group is stored as a field of its own.
-
-The two arguments are the window its dialogs belong to, and the application. The application implements `DockingLayoutRestorable`:
-
-```java
-public class MyApp extends Application implements DockingLayoutRestorable {
-
-    @Override
-    public DockingLayout getDefaultDockingLayout() { ... }
-
-    @Override
-    public DockingLayout getDockingLayout(
-            LayoutPersistenceProfile profile,
-            Supplier<DockingLayout> fallbackLayoutSupplier) { ... }
-
-    @Override
-    public boolean switchToLayout(
-            Supplier<DockingLayout> dockingLayoutSupplier) { ... }
-
-    @Override
-    public DockingLayoutPersistenceProvider getPersistenceProvider() {
-        return persistenceProvider;
-    }
-
-    @Override
-    public BentoProvider getBentoProvider() {
-        return bentoProvider;
-    }
-}
-```
-
-The two providers are on the interface rather than passed to the menu because an implementation cannot do without them anyway - reading a stored layout means calling `getLayoutRestorer` with a `BentoProvider`. Anything able to implement `getDockingLayout` already holds both.
-
-`switchToLayout` takes a `Supplier` rather than a `DockingLayout` because reading the layout is part of the switch. An implementation has to stop whatever is saving the arrangement on screen before anything reads a replacement, so it is the implementation that decides when the supplier runs. It returns `false` when nothing was applied, and leaves telling the user to the menu.
-
-The persistence demo's `BoxApp` is the worked version of all five methods.
-
-<h3 id="layouts-menu-text">Changing the Text</h3>
-
-Every word a user reads comes from a `ResourceBundle`. To offer another language, add `LayoutsMenu_<language>.properties` beside the one in this module. Java reads these files as UTF-8, so write the target language directly.
-
-To supply text from the application instead, hand over a bundle:
-
-```java
-new LayoutsMenu(stage, application, ResourceBundle.getBundle(
-        "com.example.myapp.LayoutsMenuTexts", Locale.FRENCH));
-```
-
-That bundle needs its own base name, in the application's own package. A `LayoutsMenu_fr.properties` placed in the application's module will not be found: resources in a named module are not visible to another, so the framework's own `getBundle` call cannot see it. Loading it from a class in the module that holds it is what makes it reachable.
-
-A substituted bundle replaces the framework's own rather than falling back to it, so it has to carry every key. A missing one raises `MissingResourceException` the first time the menu opens.
-
-Two things are worth knowing about the values:
-
-1. **Three of them are `MessageFormat` patterns** - the ones holding `{0}`, which is the layout name. In those three only, a literal apostrophe has to be doubled and `{0}` must not be quoted, or the name is dropped. Everywhere else an apostrophe is just an apostrophe.
-2. **Mnemonics live in the text.** An underscore marks the following letter, so a translation chooses its own, and has to keep them distinct within one menu. The items naming saved layouts carry none: a user names those, and mnemonic parsing is off on them so an underscore in a layout name shows as an underscore.
-
+The [Ready-Made Layouts Menu](#layouts-menu) described above does all of this already. 

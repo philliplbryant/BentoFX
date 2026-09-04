@@ -100,7 +100,7 @@ A persistent application generally follows this startup flow:
 
 1. Create the application's `Bento` with a stable identifier.
 2. Register the `Bento` with a `BentoProvider`.
-3. Create implementations for `DockableStateProvider`, `DockableMenuFactoryProvider`, `DockContainerLeafMenuFactoryProvider`, and `StageIconImageProvider` as needed. Only [`DockableStateProvider`](providers.md#provider-interfaces) has no framework implementation, so it is the only one an application must implement for itself.
+3. Create implementations for `DockableStateProvider`, `DockableMenuFactoryProvider`, `DockContainerLeafMenuFactoryProvider`, and `StageIconImageProvider` as needed. Only [`DockableStateProvider`](providers.md#dockablestateprovider) has no framework implementation, so it is the only one an application must implement for itself.
 4. Build the application's default `DockingLayout` using the same providers that restoration will use.
 5. Ask [`LayoutRestorer`](#restoring-the-layout) to restore the last saved layout, passing the default layout supplier as the fallback when one does not exist or cannot be restored.
 6. Apply the returned `DockingLayout` to the JavaFX stage.
