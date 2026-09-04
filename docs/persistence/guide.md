@@ -19,11 +19,6 @@ To further support persisting docking layouts, the framework also offers a ready
   - [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
   - [Maven](#persistence-maven)
 - [Quick Start](#persistence-quick-start)
-- [Providers](providers.md)
-  - [Provider Interfaces](providers.md#provider-interfaces)
-  - [Providers versus Inline Creation](providers.md#inline-vs-provider)
-  - [Provider Responsibilities](providers.md#provider-responsibilities)
-  - [Provider Lifecycle](providers.md#provider-lifecycle)
 - [Concepts](#persistence-concepts)
   - [Application Design for Persistence](#application-design-for-persistence)
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
@@ -31,13 +26,12 @@ To further support persisting docking layouts, the framework also offers a ready
   - [Configuring Storage Location](#configuring-storage-location)
   - [Restoring the Layout](#restoring-the-layout)
   - [Saving the Layout](#saving-the-layout)
-- [Managing Layouts](layouts.md)
-  - [Managing Several Layouts](layouts.md#managing-several-layouts)
-  - [A Ready-Made Layouts Menu](layouts.md#layouts-menu)
 - [Runtime Considerations](#runtime-considerations)
   - [JavaFX Application Thread](#javafx-application-thread)
   - [Application Evolution](#application-evolution)
-- [Extending Persistence](extending.md)
+- [Where to Go Next](#where-to-go-next)
+
+Five companion documents continue from here. [Where to Go Next](#where-to-go-next) at the end of this guide says which one answers what.
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -218,7 +212,7 @@ Both providers resolve their location through `software.coley.bentofx.persistenc
 | `bentofx.persistence.home` | `BENTOFX_PERSISTENCE_HOME` | Overrides the base directory, in place of `<user.home>/.bentofx`. |
 | `bentofx.persistence.namespace` | `BENTOFX_PERSISTENCE_NAMESPACE` | Names a subdirectory of the resolved home that is this application's own, so a different BentoFX-based application on the same machine does not share it. |
 
-The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](../../demos/persistence/src/main/java/software/coley/bentofx/demo/persistence/Runner.java) sets its namespace this way, in code, using `LayoutStorageLocations.configureNamespace("persistence-demo")`. 
+The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](../../demos/persistence/src/main/java/software/coley/bentofx/demo/persistence/Runner.java) sets its namespace this way, in code, using `LayoutStorageLocations.configureNamespace("persistence-demo")`.
 
 `LayoutStorageLocations.configureNamespace` and `configureHome(Path)` are typed alternatives to calling `System.setProperty` directly. Whichever way these options are set, the call has to happen before the first save, restore, or catalog call. In practice, this is before `DockingLayoutPersistence.provider()` is first called, since that is when a storage provider actually reads the location:
 
@@ -376,7 +370,12 @@ the layouts saved by the newer one.
 Providers are the primary mechanism for adapting persisted layouts to
 application changes until explicit layout migration support is added.
 
-## See Also
+<h2 id="where-to-go-next">Where to Go Next</h2>
 
-- [Implementation: capture and restore algorithms, orchestration and error handling](implementation.md)
-- [Diagrams: class and sequence diagrams](diagrams.md)
+Most applications need a [DockableStateProvider](providers.md) and nothing else on this list. The rest are for a specific need.
+
+[Write the one provider an application must implement (and understand why a provider is needed at all)](providers.md)  
+[Let users save, name, list, switch and delete layouts of their own](layouts.md)  
+[Write a codec or a storage destination of your own](extending.md)  
+[Follow what a save and a restore actually do, step by step](implementation.md)  
+[See the class and sequence diagrams](diagrams.md)  
