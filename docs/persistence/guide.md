@@ -194,7 +194,9 @@ Avoid identifiers based on:
 
 Changing an identifier effectively creates a new dockable from the perspective of the persistence framework and may prevent previously saved layouts from restoring correctly. If an application intentionally renames an identifier, the `DockableStateProvider` should consider mapping the old identifier to the new runtime object when backward compatibility is required.
 
-Applications should also consider how identifiers are resolved when the underlying object is no longer available. For example, a persisted identifier may refer to a document, record, or domain object that no longer exists when a layout is restored. In such cases, providers may choose to return an alternative dockable, a placeholder dockable, or no dockable at all, depending on the application's requirements.
+Applications should also consider how identifiers are resolved when the underlying object is no longer available. For example, a persisted identifier may refer to a document, record, or domain object that no longer exists when a layout is restored. In such cases, providers may choose to return an alternative dockable, a placeholder dockable, or no dockable at all, depending on the application's requirements. 
+
+> <span style="font-size: 1.5em;">💡</span>  An empty `Optional<DockableStateProvider>` means the identifier cannot be reconstructed, and the restorer continues without that dockable.
 
 <h3 id="common-tasks">Common Tasks</h3>
 
