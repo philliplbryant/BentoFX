@@ -113,15 +113,13 @@ A persistent application generally follows this startup flow:
 7. Obtain a [`LayoutSaver`](#saving-the-layout) and keep it. The default `LayoutSaver` provided by the framework runs auto-save for the duration of the application execution. Accordingly, the LayoutSaver should be acquired/instantiated after the layout is applied, because a save reads the root branches that have a `Scene`.
 8. Save the layout and close the saver before windows are closed.
 
-An application that does not want layouts to be auto-saved skips steps 7 and 8, and calls `DockingLayoutPersistenceProvider.saveLayout(...)` instead, which saves once and holds nothing (see [Saving the Layout](#saving-the-layout)).
-
-The [persistence demo](../../demos/persistence) follows this pattern exactly and is the fastest way to see persistence in action:
+An application that does not want layouts to be auto-saved skips steps 7 and 8, and calls `DockingLayoutPersistenceProvider.saveLayout(...)` instead, which saves once and holds nothing (see [Saving the Layout](#saving-the-layout)). The [persistence demo](../../demos/persistence) follows this pattern exactly and is the fastest way to see persistence in action:
 
 ```bash
 ./gradlew :demos:persistence:run
 ```
 
-`BoxApp` in the [persistence demo](../../demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java) is derived from `BoxApp` in the [basic demo](../../demos/basic/src/main/java/demo/BoxApp.java), so a diff between the two shows what persistence adds. `BoxApp.applyDockingLayout(DockingLayout)` and `BoxApp.saveDockingLayout(WindowEvent)` are the two methods worth reading first.
+`BoxApp` in the [persistence demo](../../demos/persistence/src/main/java/software/coley/bentofx/demo/persistence/BoxApp.java) is derived from `BoxApp` in the [basic demo](../../demos/basic/src/main/java/demo/BoxApp.java), so a diff between the two shows what persistence adds. `BoxApp.applyDockingLayout(DockingLayout)` and `BoxApp.saveDockingLayout(WindowEvent)` are the two methods worth reading first.
 
 The basic demo focuses on container construction and docking behavior. The persistence demo adds provider-backed reconstruction so layouts survive across executions, and deliberately introduces abstractions the core docking framework does not need, such as providers and state objects. For a row-by-row comparison, see [Basic demo vs persistence demo](implementation.md#basic-demo-vs-persistence-demo).
 
@@ -132,7 +130,7 @@ The persistence framework has two responsibilities:
 1. Save the current BentoFX container graph into serializable state.
 2. Restore that state into runtime BentoFX objects.
 
-The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockable states through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object, if one can be reconstructed.
+The framework can save and restore BentoFX layout structure, but the application must still know how to create its own runtime content. For that reason, persistent applications should construct dockable states through stable identifiers and providers rather than only creating dockables inline. Runtime content can be created statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism chosen by the application developer. During restoration, providers are given the identifier associated with a persisted object and are expected to return the corresponding runtime object - if one can be reconstructed.
 
 <h4 id="application-design-for-persistence">Application Design for Persistence</h4>
 
@@ -220,7 +218,9 @@ Both providers resolve their location through `software.coley.bentofx.persistenc
 | `bentofx.persistence.home` | `BENTOFX_PERSISTENCE_HOME` | Overrides the base directory, in place of `<user.home>/.bentofx`. |
 | `bentofx.persistence.namespace` | `BENTOFX_PERSISTENCE_NAMESPACE` | Names a subdirectory of the resolved home that is this application's own, so a different BentoFX-based application on the same machine does not share it. |
 
-The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](../../demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/Runner.java) sets its namespace this way, in code, to show the alternative: `LayoutStorageLocations.configureNamespace("persistence-demo")`, along with `configureHome(Path)`, are typed alternatives to calling `System.setProperty` directly. Whichever way, this has to happen before the first save, restore, or catalog call - in practice, before `DockingLayoutPersistence.provider()` is first called - since that is when a storage provider actually reads the location:
+The environment variable form needs no application code at all - set it before the process starts, the same way `JAVA_HOME` or `GRADLE_USER_HOME` work, and the next storage provider that resolves its location picks it up. The persistence demo's [Runner.java](../../demos/persistence/src/main/java/software/coley/bentofx/demo/persistence/Runner.java) sets its namespace this way, in code, using `LayoutStorageLocations.configureNamespace("persistence-demo")`. 
+
+`LayoutStorageLocations.configureNamespace` and `configureHome(Path)` are typed alternatives to calling `System.setProperty` directly. Whichever way these options are set, the call has to happen before the first save, restore, or catalog call. In practice, this is before `DockingLayoutPersistence.provider()` is first called, since that is when a storage provider actually reads the location:
 
 ```java
 LayoutStorageLocations.configureNamespace("my-app");
@@ -231,7 +231,7 @@ final DockingLayoutPersistenceProvider persistence =
 
 <h4 id="restoring-the-layout">Restoring the Layout</h4>
 
-The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if decoding fails, the default layout supplier is used.
+The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if deserialization fails, the default layout supplier is used.
 
 A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterwards costs nothing:
 
@@ -244,8 +244,8 @@ private DockingLayout getDockingLayout() {
                          dockableStateProvider,
                          stageIconImageProvider,
                          dockContainerLeafMenuFactoryProvider
-                 )) {
-
+                 )
+        ) {
         return layoutRestorer.restoreLayout(this::getDefaultDockingLayout);
     } catch (BentoStateException e) {
         logger.warn("Could not create the docking layout restorer.", e);
@@ -256,7 +256,7 @@ private DockingLayout getDockingLayout() {
 
 Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
 
-Applying the returned layout can still fail. For example, a stored layout may hold root branches the application does not know how to place. In such instances, report whether anything was applied and fall back to the default layout, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window hides cannot then be closed:
+Applying the returned layout can still fail. For example, a stored layout may hold root branches the application does not know how to place. In such instances, report whether anything was applied and fall back to the default layout, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window is never shown cannot then be closed:
 
 ```java
 DockingLayout dockingLayout = getDockingLayout();

@@ -8,4 +8,4 @@
  *
  * @author Phil Bryant
  */
-package software.coley.boxfx.demo.persistence.provider;
+package software.coley.bentofx.demo.persistence.provider;

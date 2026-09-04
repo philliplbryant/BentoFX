@@ -4,4 +4,4 @@
  *
  * @author Phil Bryant
  */
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.demo.persistence;

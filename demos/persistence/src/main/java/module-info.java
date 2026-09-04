@@ -21,7 +21,7 @@ module bento.fx.demo.persistence {
 
     // This must be exported for the JavaFX launcher to access the
     // application classes in them.
-    exports software.coley.boxfx.demo.persistence;
+    exports software.coley.bentofx.demo.persistence;
 
     // No 'uses' clause for the persistence provider: DockingLayoutPersistence
     // performs that lookup inside the persistence API module.

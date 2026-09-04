@@ -1,4 +1,4 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.demo.persistence;
 
 import javafx.application.Application;
 import javafx.event.Event;
@@ -21,6 +21,11 @@ import org.slf4j.LoggerFactory;
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.building.DockBuilding;
 import software.coley.bentofx.control.DragDropStage;
+import software.coley.bentofx.demo.persistence.provider.BoxAppDockContainerLeafMenuFactoryProvider;
+import software.coley.bentofx.demo.persistence.provider.BoxAppDockableMenuFactoryProvider;
+import software.coley.bentofx.demo.persistence.provider.BoxAppDockableStateProvider;
+import software.coley.bentofx.demo.persistence.provider.BoxAppStageIconImageProvider;
+import software.coley.bentofx.demo.persistence.provider.DockableProperties;
 import software.coley.bentofx.dockable.Dockable;
 import software.coley.bentofx.event.DockEvent;
 import software.coley.bentofx.layout.DockContainer;
@@ -43,18 +48,13 @@ import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersist
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.api.state.DockableState;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockContainerLeafMenuFactoryProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockableMenuFactoryProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppDockableStateProvider;
-import software.coley.boxfx.demo.persistence.provider.BoxAppStageIconImageProvider;
-import software.coley.boxfx.demo.persistence.provider.DockableProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static software.coley.bentofx.demo.persistence.provider.DockableProperties.*;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
-import static software.coley.boxfx.demo.persistence.provider.DockableProperties.*;
 
 /**
  * JavaFX application that demonstrates using the BentoFX docking and docking

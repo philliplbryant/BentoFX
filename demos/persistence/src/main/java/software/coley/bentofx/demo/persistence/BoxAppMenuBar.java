@@ -1,4 +1,4 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.demo.persistence;
 
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;

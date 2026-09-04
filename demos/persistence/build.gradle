@@ -9,7 +9,7 @@ description = 'BentoFX Persistence Demo'
 application {
     applicationName = description ?: name
     mainModule = 'bento.fx.demo.persistence'
-    mainClass = 'software.coley.boxfx.demo.persistence.Runner'
+    mainClass = 'software.coley.bentofx.demo.persistence.Runner'
     applicationDefaultJvmArgs = ['-Xms256m', '-Xmx1024m']
 }
 

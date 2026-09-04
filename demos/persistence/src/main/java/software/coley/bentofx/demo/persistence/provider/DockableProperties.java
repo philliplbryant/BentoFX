@@ -1,4 +1,4 @@
-package software.coley.boxfx.demo.persistence.provider;
+package software.coley.bentofx.demo.persistence.provider;
 
 import org.jspecify.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package software.coley.boxfx.demo.persistence;
+package software.coley.bentofx.demo.persistence;
 
 import javafx.application.Application;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
