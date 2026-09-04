@@ -4,9 +4,11 @@
 
 The [persistence](../../persistence) modules, herein referred to as the "persistence framework", or just "framework", supplements docking by saving and restoring BentoFX docking layouts across application executions. The framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. The framework does **not** serialize non-docking components such as JavaFX `Node`, `Stage`, and `Menu` nor does it serialize application-domain objects.
 
-To further support persisting docking layouts, the framework offers a ready-to-use [LayoutsMenu](layouts.md#layouts-menu) for applications to include in their own menu bars, allowing users to save, restore, and manage custom layouts. Menu text comes from a `ResourceBundle`, so applications can translate or otherwise replace wording to suit application specific requirements.
+Because a saved layout records only structure, restoring a layout requires turning a saved identifier back into a live object, which is what **providers** do. Providers are small interfaces the application implements so the framework can ask for the content it cannot serialize. A saved layout says "a dockable called `terminal` was open here"; the provider is what provides the actual terminal that goes there. The framework defines eight providers, most with one or more default implementations available. [Provider Interfaces](providers.md) describes them all.
 
 Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
+
+To further support persisting docking layouts, the framework also offers a ready-to-use [LayoutsMenu](layouts.md#layouts-menu) for applications to include in their own menu bars. The Layouts menu allows users to save, restore, and manage custom layouts. Because the menu text comes from a `ResourceBundle`, applications can translate or otherwise replace wording to suit application specific requirements.
 
 > <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. Applications can use multiple codecs and storage locations because the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. To offer users a list of saved layouts, see [Managing Several Layouts](layouts.md#managing-several-layouts).
 
@@ -17,28 +19,25 @@ Application developers control the serialized format and storage destination by 
   - [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)
   - [Maven](#persistence-maven)
 - [Quick Start](#persistence-quick-start)
+- [Providers](providers.md)
+  - [Provider Interfaces](providers.md#provider-interfaces)
+  - [Providers versus Inline Creation](providers.md#inline-vs-provider)
+  - [Provider Responsibilities](providers.md#provider-responsibilities)
+  - [Provider Lifecycle](providers.md#provider-lifecycle)
 - [Concepts](#persistence-concepts)
   - [Application Design for Persistence](#application-design-for-persistence)
   - [Choosing Stable Identifiers](#choosing-stable-identifiers)
-  - [Provider Responsibilities](#provider-responsibilities)
-  - [Provider Lifecycle](#provider-lifecycle)
 - [Common Tasks](#common-tasks)
   - [Configuring Storage Location](#configuring-storage-location)
   - [Restoring the Layout](#restoring-the-layout)
   - [Saving the Layout](#saving-the-layout)
+- [Managing Layouts](layouts.md)
+  - [Managing Several Layouts](layouts.md#managing-several-layouts)
+  - [A Ready-Made Layouts Menu](layouts.md#layouts-menu)
 - [Runtime Considerations](#runtime-considerations)
   - [JavaFX Application Thread](#javafx-application-thread)
   - [Application Evolution](#application-evolution)
-
-### Companion documents
-
-| Document | For |
-|----------|-----|
-| [Provider Interfaces](providers.md) | The eight provider interfaces, and why a provider is needed rather than inline creation. Start here to write a `DockableStateProvider`. |
-| [Managing Layouts](layouts.md) | Letting users keep, name, list, switch and delete layouts of their own. Optional. |
-| [Extending Persistence](extending.md) | Writing a new codec or storage implementation. |
-| [Implementation](implementation.md) | Internals: capture and restore algorithms, orchestration, error handling. |
-| [Diagrams](diagrams.md) | Class and sequence diagrams. |
+- [Extending Persistence](extending.md)
 
 <h3 id="persistence-usage">Usage</h3>
 
@@ -204,35 +203,6 @@ Avoid identifiers based on:
 Changing an identifier effectively creates a new dockable from the perspective of the persistence framework and may prevent previously saved layouts from restoring correctly. If an application intentionally renames an identifier, the `DockableStateProvider` should consider mapping the old identifier to the new runtime object when backward compatibility is required.
 
 Applications should also consider how identifiers are resolved when the underlying object is no longer available. For example, a persisted identifier may refer to a document, record, or domain object that no longer exists when a layout is restored. In such cases, providers may choose to return an alternative dockable, a placeholder dockable, or no dockable at all, depending on the application's requirements.
-
-<h4 id="provider-responsibilities">Provider Responsibilities</h4>
-
-The persistence framework restores the BentoFX layout structure. Application providers restore application-specific runtime objects that cannot be serialized safely.
-
-Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored. Which providers exist, which are optional, and which already have framework implementations are listed under [Provider Interfaces](providers.md#provider-interfaces).
-
-When providers create JavaFX objects, they must follow JavaFX threading rules. The persistence demo's `DockableState` values contain JavaFX controls, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread, so the demo builds them on first use rather than during construction. Both callers of `resolveDockableState` - the application while it starts, and the restorer through the persistence framework - are already on the JavaFX Application Thread:
-
-```java
-@Override
-public Optional<DockableState> resolveDockableState(String id) {
-    if (dockableStateMap.isEmpty()) {
-        putDockableStates();
-    }
-
-    return Optional.ofNullable(dockableStateMap.get(id));
-}
-```
-
-Scheduling the same work with `Platform.runLater(...)` from a constructor also puts it on the right thread, but it leaves the map empty until the queued task runs, so every lookup then depends on the order in which JavaFX drains its queue. Building on first use removes that question.
-
-<h4 id="provider-lifecycle">Provider Lifecycle</h4>
-
-Provider implementations are typically application singletons or long-lived services created during startup.
-
-Applications generally create providers before layout restoration and reuse them for the lifetime of the application. Providers should not assume that layout restoration occurs only once. A provider may be called repeatedly whenever layouts are restored, when a default layout is created, or when users to switch saved layouts.
-
-Providers should also avoid storing stale JavaFX objects when those objects are meant to be recreated. If a provider caches runtime content, the cache lifecycle should match the application lifecycle and JavaFX threading rules.
 
 <h3 id="common-tasks">Common Tasks</h3>
 
@@ -405,3 +375,8 @@ the layouts saved by the newer one.
 
 Providers are the primary mechanism for adapting persisted layouts to
 application changes until explicit layout migration support is added.
+
+## See Also
+
+- [Implementation: capture and restore algorithms, orchestration and error handling](implementation.md)
+- [Diagrams: class and sequence diagrams](diagrams.md)

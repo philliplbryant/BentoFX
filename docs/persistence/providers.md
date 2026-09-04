@@ -6,6 +6,8 @@ Applications supply provider implementations to persist docking layouts. These p
 
 - [The Provider Interfaces](#provider-interfaces)
 - [Inline Creation Versus a Provider](#inline-vs-provider)
+- [Provider Responsibilities](#provider-responsibilities)
+- [Provider Lifecycle](#provider-lifecycle)
 
 <h2 id="provider-interfaces">The Provider Interfaces</h2>
 
@@ -148,4 +150,33 @@ final LayoutSaver layoutSaver = persistenceProvider.getLayoutSaver(
 ```
 
 This makes simple dependency-only replacement possible while still allowing future application features to save and restore multiple layouts using different codec or storage providers.
+
+<h2 id="provider-responsibilities">Provider Responsibilities</h2>
+
+The persistence framework restores the BentoFX layout structure. Application providers restore application-specific runtime objects that cannot be serialized safely.
+
+Providers can create objects statically, dynamically, eagerly, lazily, through dependency injection, or by any other mechanism. The important requirement is that a persisted identifier must resolve to the same kind of runtime object whenever the layout is restored. Which providers exist, which are optional, and which already have framework implementations are listed under [Provider Interfaces](providers.md#provider-interfaces).
+
+When providers create JavaFX objects, they must follow JavaFX threading rules. The persistence demo's `DockableState` values contain JavaFX controls, and a JavaFX `Application` constructor runs on the JavaFX-Launcher thread, so the demo builds them on first use rather than during construction. Both callers of `resolveDockableState` - the application while it starts, and the restorer through the persistence framework - are already on the JavaFX Application Thread:
+
+```java
+@Override
+public Optional<DockableState> resolveDockableState(String id) {
+    if (dockableStateMap.isEmpty()) {
+        putDockableStates();
+    }
+
+    return Optional.ofNullable(dockableStateMap.get(id));
+}
+```
+
+Scheduling the same work with `Platform.runLater(...)` from a constructor also puts it on the right thread, but it leaves the map empty until the queued task runs, so every lookup then depends on the order in which JavaFX drains its queue. Building on first use removes that question.
+
+<h2 id="provider-lifecycle">Provider Lifecycle</h2>
+
+Provider implementations are typically application singletons or long-lived services created during startup.
+
+Applications generally create providers before layout restoration and reuse them for the lifetime of the application. Providers should not assume that layout restoration occurs only once. A provider may be called repeatedly whenever layouts are restored, when a default layout is created, or when users to switch saved layouts.
+
+Providers should also avoid storing stale JavaFX objects when those objects are meant to be recreated. If a provider caches runtime content, the cache lifecycle should match the application lifecycle and JavaFX threading rules.
 
