@@ -6,11 +6,11 @@ The [persistence](../../persistence) modules, herein referred to as the "persist
 
 Because a saved layout records only structure, restoring a layout requires turning a saved identifier back into a live object, which is what **providers** do. Providers are small interfaces the application implements so the framework can ask for the content it cannot serialize. A saved layout says "a dockable called `terminal` was open here"; the provider is what provides the actual terminal that goes there. The framework defines eight providers, most with one or more default implementations available. [Provider Interfaces](providers.md) describes them all.
 
-Application developers control the serialized format and storage destination by adding runtime dependencies for codec and storage provider implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
+Application developers control the serialized format and storage destination by adding runtime dependencies for `LayoutCodecProvider` and `LayoutStorageProvider` implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
 To further support persisting docking layouts, the framework also offers a ready-to-use [LayoutsMenu](layouts.md#layouts-menu) for applications to include in their own menu bars. The Layouts menu allows users to save, restore, and manage custom layouts. Because the menu text comes from a `ResourceBundle`, applications can translate or otherwise replace wording to suit application specific requirements.
 
-> <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format at one storage destination. Applications can use multiple codecs and storage locations because the codec and the storage destination are chosen per saver and per restorer with `LayoutPersistenceProfile`. To offer users a list of saved layouts, see [Managing Several Layouts](layouts.md#managing-several-layouts).
+> <span style="font-size: 1.5em;">💡</span> A saver and a restorer each work with one layout, named by a layout identifier, in one format, at one storage destination. Applications can use multiple codecs and storage locations because the codec and the storage destination are chosen per saver and per restorer using a `LayoutPersistenceProfile`. For additional information, see [Managing Several Layouts](layouts.md#managing-several-layouts).
 
 ## Table of Contents
 
@@ -106,22 +106,22 @@ A persistent application generally follows this startup flow:
 
 1. Create the application's `Bento` with a stable identifier.
 2. Register the `Bento` with a `BentoProvider`.
-3. Create provider implementations for dockable states, dockable menus, leaf menus, and stage icons as needed. Only [`DockableStateProvider`](providers.md#provider-interfaces) has no framework implementation, so it is the one an application must implement for itself.
+3. Create implementations for `DockableStateProvider`, `DockableMenuFactoryProvider`, `DockContainerLeafMenuFactoryProvider`, and `StageIconImageProvider` as needed. Only [`DockableStateProvider`](providers.md#provider-interfaces) has no framework implementation, so it is the only one an application must implement for itself.
 4. Build the application's default `DockingLayout` using the same providers that restoration will use.
 5. Ask [`LayoutRestorer`](#restoring-the-layout) to restore the last saved layout, passing the default layout supplier as the fallback when one does not exist or cannot be restored.
 6. Apply the returned `DockingLayout` to the JavaFX stage.
 7. Obtain a [`LayoutSaver`](#saving-the-layout) and keep it. The default `LayoutSaver` provided by the framework runs auto-save for the duration of the application execution. Accordingly, the LayoutSaver should be acquired/instantiated after the layout is applied, because a save reads the root branches that have a `Scene`.
 8. Save the layout and close the saver before windows are closed.
 
-An application that does not want layouts to be auto-saved skips steps 7 and 8, and calls `DockingLayoutPersistenceProvider.saveLayout(...)` instead, which saves once and holds nothing. See [Saving the Layout](#saving-the-layout).
+An application that does not want layouts to be auto-saved skips steps 7 and 8, and calls `DockingLayoutPersistenceProvider.saveLayout(...)` instead, which saves once and holds nothing (see [Saving the Layout](#saving-the-layout)).
 
-The [persistence demo](../../demos/persistence) follows exactly this pattern and is the fastest way to see it working:
+The [persistence demo](../../demos/persistence) follows this pattern exactly and is the fastest way to see persistence in action:
 
 ```bash
 ./gradlew :demos:persistence:run
 ```
 
-Its `BoxApp` is derived from the [basic demo](../../demos/basic/src/main/java/demo/BoxApp.java), so a diff between the two shows what persistence adds. `BoxApp.applyDockingLayout(DockingLayout)` and `BoxApp.saveDockingLayout(WindowEvent)` are the two methods worth reading first.
+`BoxApp` in the [persistence demo](../../demos/persistence/src/main/java/software/coley/boxfx/demo/persistence/BoxApp.java) is derived from `BoxApp` in the [basic demo](../../demos/basic/src/main/java/demo/BoxApp.java), so a diff between the two shows what persistence adds. `BoxApp.applyDockingLayout(DockingLayout)` and `BoxApp.saveDockingLayout(WindowEvent)` are the two methods worth reading first.
 
 The basic demo focuses on container construction and docking behavior. The persistence demo adds provider-backed reconstruction so layouts survive across executions, and deliberately introduces abstractions the core docking framework does not need, such as providers and state objects. For a row-by-row comparison, see [Basic demo vs persistence demo](implementation.md#basic-demo-vs-persistence-demo).
 
