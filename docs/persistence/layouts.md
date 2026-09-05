@@ -4,9 +4,9 @@
 
 > <span style="font-size: 1.5em;">💡</span> Everything described here is optional. An application that keeps one layout, restored at startup and saved on exit, needs nothing described here - see [Restoring the Layout](guide.md#restoring-the-layout) and [Saving the Layout](guide.md#saving-the-layout) instead.
 
-- [A Ready-Made Layouts Menu](#layouts-menu) is a drop-in `Menu` providing user facing functionality for managing persisted layouts. It also allows application developers the ability to [change the text](#layouts-menu-text) to support specific application requirements.   
+- [A Ready-Made Layouts Menu](#layouts-menu) is a drop-in `Menu` providing user facing functionality for managing persisted layouts. It also allows application developers the ability to [change the text](#layouts-menu-text) to support specific application requirements.
 
-- [Managing Multiple Layouts](#managing-several-layouts) describes layout naming restrictions, modifying the location where layouts are persisted, and separating layouts from different BentoFX persistence enabled applications running on the same machine. 
+- [Managing Multiple Layouts](#managing-several-layouts) describes layout naming restrictions, modifying the location where layouts are persisted, and separating layouts from different BentoFX persistence enabled applications running on the same machine.
 
 <h2 id="layouts-menu">A Ready-Made Layouts Menu</h2>
 
@@ -28,14 +28,14 @@ The `LayoutMenu` provides the ability to:
 * Delete layouts
 * Group layouts
 * Manage layout groups.
- 
+
 A check mark identifies whichever layout is showing. And the menu rebuilds itself each time it opens, so the list and the mark updates itself as the application runs.
 
-As indicated above, the `LayoutMenu` lets users organize their layouts into groups: `Groups > New Group...`, `Rename Group`, and `Delete Group`, with `Move to Group` on each saved layout. Groups appear as submenus wherever layouts are listed, and a group holding the layout on screen is marked so finding it does not require opening each one. 
+As indicated above, the `LayoutMenu` lets users organize their layouts into groups: `Groups > New Group...`, `Rename Group`, and `Delete Group`, with `Move to Group` on each saved layout. Groups appear as submenus wherever layouts are listed, and a group holding the layout on screen is marked so finding it does not require opening each one.
 
-A group created this way must be created before any layouts can be added to it. And a group survives its last layout being moved out. Deleting a group keeps its layouts and leaves them in ungrouped. 
+A group created this way must be created before any layouts can be added to it. And a group survives its last layout being moved out. Deleting a group keeps its layouts and leaves them in ungrouped.
 
-<h3 id="docking-layout-restorable">The `DockingLayoutRestorable` Interface</h2>
+<h3 id="docking-layout-restorable">The `DockingLayoutRestorable` Interface</h3>
 
 The second of the two arguments used to create a `LayoutMenu` is a `DockingLayoutRestorable` implementation, which is usually the application itself.
 
@@ -120,10 +120,28 @@ final boolean wouldReplace = persistenceProvider.isLayoutStored(profile);
 final boolean wasRemoved = persistenceProvider.deleteLayout(profile);
 ```
 
-[//]: # (TODO BENOT-13: Continue editing from here)
+<h3 id="where-layouts-are-stored">Where Layouts Are Stored</h3>
 
-In addition to naming persisted layouts, the save location and a workspace into which layouts are saved can be customized. Using a named workspace allows multiple applications using BentoFX persistence to run on the same machine and save layouts separately such that layouts from one application do not overlap with or overwrite layouts from another application.
+In addition to naming persisted layouts, both the location layout and a namespace within it can be customized. Giving an application its own namespace lets several BentoFX-based applications run on the same machine while separating layouts so one application's layouts neither collide with nor overwrite another's.
 
-By default, the framework saves persisted layout data under the user home directory at `~/.bentofx` this location can be modified ...
+By default, the bundled `persistence-storage-file` and `persistence-storage-db-h2` providers keep their data under `<user.home>/.bentofx`, with no namespace. Both resolve their location through `LayoutStorageLocations`, which reads two settings on every call. Either can be given as a `System` property or as an environment variable of the matching name, and the property takes precedence when both are set:
 
-To further separate persisted layout data, layouts can be grouped in a workspace ...
+| System property | Environment variable | Effect |
+|-----------------|----------------------|--------|
+| `bentofx.persistence.home` | `BENTOFX_PERSISTENCE_HOME` | Replaces the base directory `<user.home>/.bentofx`. |
+| `bentofx.persistence.namespace` | `BENTOFX_PERSISTENCE_NAMESPACE` | Creates a namespace within the resolved home for the application. |
+
+The environment variable form needs no application code: set it before the process starts, the way `JAVA_HOME` does, and the next storage provider to resolve its location picks it up. In code, `LayoutStorageLocations.configureHome(Path)` and `configureNamespace(String)` are typed alternatives to setting the properties directly:
+
+```java
+LayoutStorageLocations.configureNamespace("my-app");
+
+final DockingLayoutPersistenceProvider persistence =
+        DockingLayoutPersistence.provider();
+```
+
+Order matters. Whichever way these are set, it has to happen before the first save, restore, or query, because that's when a storage provider reads their values. In practice that means before `DockingLayoutPersistence.provider()` is first called. The persistence demo does exactly this in [Runner.java](../../demos/persistence/src/main/java/software/coley/bentofx/demo/persistence/Runner.java).
+
+A namespace separates one application's layouts from another's, not how a user's own layouts are separated from each other (which is referred to as a group). Layouts are distinguished by their identifiers, and grouped for display with [layout groups](#managing-several-layouts).
+
+See [Configuring Storage Location](guide.md#configuring-storage-location) in the guide for the reasons an application would change either setting.
