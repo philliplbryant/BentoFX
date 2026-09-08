@@ -18,7 +18,7 @@ import java.util.List;
  * @author Phil Bryant
  * @see InMemoryLayoutCodec} for encoding and decoding what was encoded
  */
-public record TestLayoutCodec(String identifier) implements LayoutCodec {
+public record DoNothingLayoutCodec(String identifier) implements LayoutCodec {
 
 	@Override
 	public String getIdentifier() {

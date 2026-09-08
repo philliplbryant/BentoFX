@@ -72,7 +72,7 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 }
 ```
 
-3. Register the provider so `ServiceLoader` can find it. Both declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
+3. Register the provider so `ServiceLoader` can find it. Both module and classpath declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
 
    a. For an application launched on the **module path**, declare it in `module-info.java`:
 
@@ -112,7 +112,7 @@ To ensure consistent behavior among storage implementations, the following conve
 
 <h2 id="adding-a-codec">Adding a Codec</h2>
 
-1. Implement `LayoutCodec`. The interface is three methods: `getIdentifier()`, `encode()`, and `decode()`.
+1. Implement three `LayoutCodec` methods:
 
 ```java
 public class YamlLayoutCodec implements LayoutCodec {
@@ -140,7 +140,7 @@ public class YamlLayoutCodec implements LayoutCodec {
 }
 ```
 
-2. Implement `LayoutCodecProvider`, which is the type `ServiceLoader` discovers. It adds one method, `getLayoutCodec()`, and inherits `getIdentifier()` from `LayoutPersistenceComponentProvider`.
+2. Implement `LayoutCodecProvider`, which is the type `ServiceLoader` discovers.
 
 ```java
 public class YamlLayoutCodecProvider implements LayoutCodecProvider {
@@ -157,7 +157,7 @@ public class YamlLayoutCodecProvider implements LayoutCodecProvider {
 }
 ```
 
-3. Register the provider so `ServiceLoader` can find it. Both declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
+3. Register the provider so `ServiceLoader` can find it. Both module and classpath declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
 
    a. For an application launched on the **module path**, declare it in `module-info.java`:
 
@@ -186,10 +186,11 @@ public class YamlLayoutCodecProvider implements LayoutCodecProvider {
 
    The JAR is discovered on either the module path or the class path depending on how the application is launched.
 
-Two things a codec has to get right:
+Additional considerations:
 
-1. **The codec identifier becomes part of how a layout is addressed.** File-backed storage joins it to the layout identifier to form a file name, so it must survive that: see [Choosing Stable Identifiers](guide.md#choosing-stable-identifiers). Changing it later orphans every layout already stored under the old one.
-2. **`decode` receives whatever was stored, including nothing useful.** A truncated or foreign payload must raise `BentoStateException` rather than returning a partly-populated `PersistableLayout`, because the restorer treats a thrown exception as "fall back to the default layout" and a returned value as "this is the layout".
+1. **The codec identifier becomes part of how a layout is addressed.** For example, file-backed storage may join it to the layout identifier to form a file name, so it must be compatible that: see [Choosing Stable Identifiers](guide.md#choosing-stable-identifiers). 
+2. **Changing codec identifier may orphan layouts** already stored under the old one.
+3. **`decode` receives whatever was stored, including nothing useful.** A truncated or invalid encoding must raise `BentoStateException` rather than returning a partly-populated `PersistableLayout`. An exception is treated as "fall back to the default layout" and an incomplete or empty value as "this is the layout".
 
 <h2 id="serviceloader-requirements">What ServiceLoader Requires of a Provider</h2>
 

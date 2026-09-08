@@ -2,7 +2,7 @@ package software.coley.bentofx.persistence.testfixtures.provider;
 
 import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
 import software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider;
-import software.coley.bentofx.persistence.testfixtures.codec.TestLayoutCodec;
+import software.coley.bentofx.persistence.testfixtures.codec.DoNothingLayoutCodec;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,7 +35,7 @@ public final class ConfigurableLayoutCodecProvider extends AbstractConfigurableL
     @Override
     public LayoutCodec getLayoutCodec() {
         createdCodecCount.incrementAndGet();
-        return new TestLayoutCodec(getIdentifier());
+        return new DoNothingLayoutCodec(getIdentifier());
     }
 
     /**
