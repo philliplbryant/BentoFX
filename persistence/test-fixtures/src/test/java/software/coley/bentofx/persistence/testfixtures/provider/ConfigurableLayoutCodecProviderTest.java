@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TestLayoutCodecProviderTest {
+class ConfigurableLayoutCodecProviderTest {
 
     private static final String JSON_CODEC_IDENTIFIER = "json";
 
     @Test
     void exposesIdentifierAndDefaultFlag() {
-        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, true);
+        final ConfigurableLayoutCodecProvider provider = new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, true);
 
         assertThat(provider.getIdentifier())
                 .describedAs("provider.getIdentifier()")
@@ -22,7 +22,7 @@ class TestLayoutCodecProviderTest {
 
     @Test
     void createsCodecWithMatchingIdentifierAndCountsCreations() {
-        final TestLayoutCodecProvider provider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider provider = new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
 
         assertThat(provider.getLayoutCodec().getIdentifier())
                 .describedAs("provider.getLayoutCodec().getIdentifier()")

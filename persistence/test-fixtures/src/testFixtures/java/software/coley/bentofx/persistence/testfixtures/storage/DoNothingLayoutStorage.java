@@ -19,7 +19,7 @@ import java.io.OutputStream;
  * @author Phil Bryant
  * @see InMemoryLayoutStorage to save and read back what was saved.
  */
-public final class TestLayoutStorage implements LayoutStorage {
+public final class DoNothingLayoutStorage implements LayoutStorage {
 
 	@Override
 	public boolean exists() {

@@ -10,17 +10,13 @@ import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvide
 import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
+import software.coley.bentofx.persistence.testfixtures.provider.InMemoryLayoutStorageProvider;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
@@ -31,11 +27,11 @@ import static software.coley.bentofx.persistence.testfixtures.codec.state.Sample
  * scene graph: rewriting what a layout is called, and the catalog of groups.
  *
  * <p>These need storage that keeps what was written to it, which
- * {@code TestLayoutStorageProvider} deliberately does not - it hands out a fresh,
- * empty storage per call so that a test can watch what a component asks for. The
- * double below keeps bytes per layout identifier instead, so a read after a write
- * returns what the write put there, which is the whole point of what is under
- * test.</p>
+ * {@code ConfigurableLayoutStorageProvider} deliberately does not - it hands out a fresh,
+ * empty storage per call so that a test can watch what a component asks for.
+ * {@link InMemoryLayoutStorageProvider} keeps bytes per layout identifier instead,
+ * so a read after a write returns what the write put there, which is the whole
+ * point of what is under test.</p>
  *
  * @author Phil Bryant
  */
@@ -46,16 +42,14 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void updateStoredLayoutNamingRewritesTheNamingAndKeepsTheState()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
         final List<BentoState> original = createBentoStates();
 
-        storageProvider.store(
-                LAYOUT_IDENTIFIER,
-                new PersistableLayout("Wide", original)
-        );
+        store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", original));
 
         final boolean rewritten = provider.updateStoredLayoutNaming(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -66,8 +60,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
                 .describedAs("updateStoredLayoutNaming for a stored layout")
                 .isTrue();
 
-        final PersistableLayout stored =
-                storageProvider.read(LAYOUT_IDENTIFIER);
+        final PersistableLayout stored = read(storage, codec, LAYOUT_IDENTIFIER);
 
         assertThat(stored.displayName())
                 .describedAs("display name after the rewrite")
@@ -93,23 +86,21 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void updateStoredLayoutNamingReadsBeforeItOpensAnythingForWriting()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final RecordingStorageProvider storage = new RecordingStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
 
-        storageProvider.store(
-                LAYOUT_IDENTIFIER,
-                new PersistableLayout("Wide", createBentoStates())
-        );
-        storageProvider.streamsOpened.clear();
+        store(storage, codec, LAYOUT_IDENTIFIER,
+                new PersistableLayout("Wide", createBentoStates()));
+        storage.streamsOpened().clear();
 
         provider.updateStoredLayoutNaming(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
                         .withNaming("Renamed", null)
         );
 
-        assertThat(storageProvider.streamsOpened)
+        assertThat(storage.streamsOpened())
                 .describedAs("streams opened while rewriting the naming")
                 .containsExactly(
                         "read:" + LAYOUT_IDENTIFIER,
@@ -124,27 +115,26 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void updateStoredLayoutNamingClearsAGroupWhenGivenNone()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
 
-        storageProvider.store(
-                LAYOUT_IDENTIFIER,
+        store(storage, codec, LAYOUT_IDENTIFIER,
                 new PersistableLayout(
                         "Wide",
                         createBentoStates(),
                         "Debugging",
                         List.of()
-                )
-        );
+                ));
 
         provider.updateStoredLayoutNaming(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
                         .withNaming("Wide", null)
         );
 
-        assertThat(storageProvider.read(LAYOUT_IDENTIFIER).group())
+        assertThat(read(storage, codec, LAYOUT_IDENTIFIER).group())
                 .describedAs("group after being cleared")
                 .isNull();
     }
@@ -156,10 +146,11 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void updateStoredLayoutNamingWritesNothingWhenNothingIsStored()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
 
         final boolean rewritten = provider.updateStoredLayoutNaming(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -169,7 +160,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
         assertThat(rewritten)
                 .describedAs("updateStoredLayoutNaming for a layout not stored")
                 .isFalse();
-        assertThat(storageProvider.storedIdentifiers())
+        assertThat(storage.getLayoutIdentifiers(codec.getIdentifier()))
                 .describedAs("layouts in storage afterwards")
                 .isEmpty();
     }
@@ -177,10 +168,11 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void groupCatalogRoundTripsThroughItsReservedEntry()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
         final LayoutPersistenceProfile profile =
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -189,7 +181,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
         assertThat(provider.getStoredGroups(profile))
                 .describedAs("group catalog read back")
                 .containsExactly("Debugging", "Presentation");
-        assertThat(storageProvider.storedIdentifiers())
+        assertThat(storage.getLayoutIdentifiers(codec.getIdentifier()))
                 .describedAs("what the catalog is stored under")
                 .containsExactly(GROUP_CATALOG_LAYOUT_IDENTIFIER);
     }
@@ -202,7 +194,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     void reportsNoGroupsWhenTheCatalogWasNeverWritten()
             throws BentoStateException {
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(new PersistingStorageProvider());
+                providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
 
         assertThat(provider.getStoredGroups(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -214,7 +206,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void emptyingTheCatalogLeavesNoGroups() throws BentoStateException {
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(new PersistingStorageProvider());
+                providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
         final LayoutPersistenceProfile profile =
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -233,20 +225,19 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     @Test
     void listingStoredLayoutsCarriesTheGroupOntoEachProfile()
             throws BentoStateException {
-        final PersistingStorageProvider storageProvider =
-                new PersistingStorageProvider();
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
         final DefaultDockingLayoutPersistenceProvider provider =
-                providerFor(storageProvider);
+                providerFor(storage, codec);
 
-        storageProvider.store(
-                LAYOUT_IDENTIFIER,
+        store(storage, codec, LAYOUT_IDENTIFIER,
                 new PersistableLayout(
                         "TCP/IP Debug",
                         createBentoStates(),
                         "Debugging",
                         List.of()
-                )
-        );
+                ));
 
         assertThat(provider.getStoredLayouts(
                 LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -264,103 +255,85 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
     }
 
     /**
-     * {@return a provider wired to the supplied storage and to one codec that
-     * keeps what it encoded.}
+     * {@return a provider wired to the supplied storage and to one codec that keeps
+     * what it encoded.}
      *
-     * @param storageProvider the storage to write through.
+     * @param storage the storage to write through.
+     * @param codec the codec whose output is stored.
      */
     private static DefaultDockingLayoutPersistenceProvider providerFor(
-            final PersistingStorageProvider storageProvider
+            final LayoutStorageProvider storage,
+            final LayoutCodec codec
     ) {
         return new DefaultDockingLayoutPersistenceProvider(
-                List.of(storageProvider.codecProvider),
-                List.of(storageProvider)
+                List.of(new SingleCodecProvider(codec)),
+                List.of(storage)
         );
     }
 
     /**
-     * A {@link LayoutStorageProvider} that keeps what was written to it, keyed by
-     * layout identifier.
-     *
-     * <p>Each call still hands out a fresh {@link LayoutStorage}, as the contract
-     * requires, but every one of them reads and writes the same map - which is
-     * what a real file or a real row does and what a read-after-write needs.</p>
+     * Encodes and writes a layout the way an earlier save would have left it, so a
+     * test can start from a stored layout.
      */
-    private static final class PersistingStorageProvider
-            implements LayoutStorageProvider {
+    private static void store(
+            final LayoutStorageProvider storage,
+            final LayoutCodec codec,
+            final String layoutIdentifier,
+            final PersistableLayout layout
+    ) throws BentoStateException {
+        try (final OutputStream outputStream =
+                     storage.getLayoutStorage(layoutIdentifier, codec.getIdentifier())
+                             .openOutputStream()) {
 
-        private final Map<String, byte[]> storedBytes = new LinkedHashMap<>();
-        private final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
-        private final LayoutCodecProvider codecProvider =
-                new SingleCodecProvider(codec);
+            codec.encode(layout, outputStream);
+        } catch (final IOException e) {
+            throw new BentoStateException("Could not store the layout.", e);
+        }
+    }
 
-        /**
-         * Every stream opened, in order, so that a test can assert a read
-         * happened before a write rather than only that both did.
-         */
+    /**
+     * {@return the stored layout, decoded.}
+     */
+    private static PersistableLayout read(
+            final LayoutStorageProvider storage,
+            final LayoutCodec codec,
+            final String layoutIdentifier
+    ) throws BentoStateException {
+        try (final InputStream inputStream =
+                     storage.getLayoutStorage(layoutIdentifier, codec.getIdentifier())
+                             .openInputStream()) {
+
+            return codec.decode(inputStream);
+        } catch (final IOException e) {
+            throw new BentoStateException("Could not read the layout.", e);
+        }
+    }
+
+    /**
+     * Wraps {@link InMemoryLayoutStorageProvider} to record the order in which
+     * streams are opened, so a test can assert a read happened before a write
+     * rather than only that both did. The recording is why this is not the general
+     * fixture: only the read-before-write test needs it.
+     */
+    private static final class RecordingStorageProvider implements LayoutStorageProvider {
+
+        private final InMemoryLayoutStorageProvider delegate =
+                new InMemoryLayoutStorageProvider();
         private final List<String> streamsOpened = new ArrayList<>();
 
         @Override
         public String getIdentifier() {
-            return "persisting";
+            return delegate.getIdentifier();
         }
 
         @Override
         public boolean isDefault() {
-            return true;
-        }
-
-        @Override
-        public LayoutStorage getLayoutStorage(
-                final String layoutIdentifier,
-                final String codecIdentifier
-        ) {
-            return new LayoutStorage() {
-
-                @Override
-                public boolean exists() {
-                    final byte[] bytes = storedBytes.get(layoutIdentifier);
-                    return bytes != null && bytes.length > 0;
-                }
-
-                @Override
-                public OutputStream openOutputStream() {
-                    streamsOpened.add("write:" + layoutIdentifier);
-
-                    final ByteArrayOutputStream buffer =
-                            new ByteArrayOutputStream();
-
-                    // Written back on close, so a stream opened and abandoned
-                    // leaves what was there alone.
-                    return new FilterOutputStream(buffer) {
-                        @Override
-                        public void close() throws IOException {
-                            super.close();
-                            storedBytes.put(
-                                    layoutIdentifier,
-                                    buffer.toByteArray()
-                            );
-                        }
-                    };
-                }
-
-                @Override
-                public InputStream openInputStream() {
-                    streamsOpened.add("read:" + layoutIdentifier);
-
-                    return new ByteArrayInputStream(
-                            storedBytes.getOrDefault(
-                                    layoutIdentifier,
-                                    new byte[0]
-                            )
-                    );
-                }
-            };
+            return delegate.isDefault();
         }
 
         @Override
         public List<String> getLayoutIdentifiers(final String codecIdentifier) {
-            return new ArrayList<>(storedBytes.keySet());
+            return delegate.getLayoutIdentifiers(codecIdentifier);
         }
 
         @Override
@@ -368,52 +341,47 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
                 final String layoutIdentifier,
                 final String codecIdentifier
         ) {
-            final byte[] bytes = storedBytes.get(layoutIdentifier);
-            return bytes != null && bytes.length > 0;
+            return delegate.isLayoutStored(layoutIdentifier, codecIdentifier);
         }
 
-        /**
-         * Puts a layout in storage the way an earlier save would have left it.
-         *
-         * @param layoutIdentifier addresses the layout.
-         * @param layout what to store.
-         */
-        private void store(
+        @Override
+        public boolean deleteLayout(
                 final String layoutIdentifier,
-                final PersistableLayout layout
-        ) throws BentoStateException {
-            try (final OutputStream outputStream =
-                         getLayoutStorage(layoutIdentifier, codec.getIdentifier())
-                                 .openOutputStream()) {
-
-                codec.encode(layout, outputStream);
-            } catch (final IOException e) {
-                throw new BentoStateException("Could not store the layout.", e);
-            }
+                final String codecIdentifier
+        ) {
+            return delegate.deleteLayout(layoutIdentifier, codecIdentifier);
         }
 
-        /**
-         * {@return the layout in storage, decoded.}
-         *
-         * @param layoutIdentifier addresses the layout.
-         */
-        private PersistableLayout read(final String layoutIdentifier)
-                throws BentoStateException {
-            try (final InputStream inputStream =
-                         getLayoutStorage(layoutIdentifier, codec.getIdentifier())
-                                 .openInputStream()) {
+        @Override
+        public LayoutStorage getLayoutStorage(
+                final String layoutIdentifier,
+                final String codecIdentifier
+        ) {
+            final LayoutStorage inner =
+                    delegate.getLayoutStorage(layoutIdentifier, codecIdentifier);
 
-                return codec.decode(inputStream);
-            } catch (final IOException e) {
-                throw new BentoStateException("Could not read the layout.", e);
-            }
+            return new LayoutStorage() {
+                @Override
+                public boolean exists() {
+                    return inner.exists();
+                }
+
+                @Override
+                public OutputStream openOutputStream() throws IOException {
+                    streamsOpened.add("write:" + layoutIdentifier);
+                    return inner.openOutputStream();
+                }
+
+                @Override
+                public InputStream openInputStream() throws IOException {
+                    streamsOpened.add("read:" + layoutIdentifier);
+                    return inner.openInputStream();
+                }
+            };
         }
 
-        /**
-         * {@return what storage holds, in the order it was written.}
-         */
-        private List<String> storedIdentifiers() {
-            return new ArrayList<>(storedBytes.keySet());
+        private List<String> streamsOpened() {
+            return streamsOpened;
         }
     }
 

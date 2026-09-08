@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Phil Bryant
  */
-public final class TestLayoutCodecProvider extends AbstractTestLayoutProvider implements LayoutCodecProvider {
+public final class ConfigurableLayoutCodecProvider extends AbstractConfigurableLayoutProvider implements LayoutCodecProvider {
 
     private final AtomicInteger createdCodecCount = new AtomicInteger();
 
@@ -25,7 +25,7 @@ public final class TestLayoutCodecProvider extends AbstractTestLayoutProvider im
      * @param identifier the identifier this provider answers to.
      * @param defaultProvider whether this provider is the default one.
      */
-    public TestLayoutCodecProvider(
+    public ConfigurableLayoutCodecProvider(
             final String identifier,
             final boolean defaultProvider
     ) {

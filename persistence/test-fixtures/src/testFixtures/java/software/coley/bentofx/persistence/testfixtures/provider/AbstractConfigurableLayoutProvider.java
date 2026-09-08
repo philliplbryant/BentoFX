@@ -11,7 +11,7 @@ import software.coley.bentofx.persistence.core.api.provider.LayoutPersistenceCom
  *
  * @author Phil Bryant
  */
-public abstract class AbstractTestLayoutProvider
+public abstract class AbstractConfigurableLayoutProvider
         implements LayoutPersistenceComponentProvider {
 
     private final String identifier;
@@ -23,7 +23,7 @@ public abstract class AbstractTestLayoutProvider
      * @param identifier the identifier this provider answers to.
      * @param defaultProvider whether this provider is the default one.
      */
-    protected AbstractTestLayoutProvider(
+    protected AbstractConfigurableLayoutProvider(
             final String identifier,
             final boolean defaultProvider
     ) {

@@ -14,15 +14,14 @@ import java.util.List;
  * type; the {@link LayoutStorage} it returns does not need to be discoverable
  * itself.</p>
  *
- * <p>Beyond handing out storage for one layout, a provider can answer what its
- * destination holds: {@link #getLayoutIdentifiers(String)},
- * {@link #isLayoutStored(String, String)} and
+ * <p>Beyond handing out storage for one layout, a provider answers what its
+ * destination holds: {@link #getLayoutIdentifiers(String)} and
  * {@link #deleteLayout(String, String)} are what an application needs to offer
- * users a list of saved layouts and let them remove one. All three have defaults,
- * so an implementation that cannot enumerate or delete stays valid, and
- * applications reach them through
- * {@link DockingLayoutPersistenceProvider} rather than selecting a storage
- * provider themselves.</p>
+ * users a list of saved layouts and let them remove one, so both are required of
+ * an implementation. {@link #isLayoutStored(String, String)} has a default that
+ * opens the storage and asks it, which every implementation can rely on.
+ * Applications reach all three through {@link DockingLayoutPersistenceProvider}
+ * rather than selecting a storage provider themselves.</p>
  *
  * @author Phil Bryant
  */
@@ -52,12 +51,7 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
      *
      * <p>A layout appears only when there is something to read: an entry with no
      * content is not a layout, which is the same rule {@link LayoutStorage#exists()}
-     * applies.</p>
-     *
-     * <p>The default returns an empty list, which is also what a destination with
-     * no layouts returns. An implementation that cannot enumerate is therefore
-     * indistinguishable from an empty one, and both are equally uninteresting to a
-     * caller building a menu. Implementations that can enumerate should.</p>
+     * applies. A destination holding no layouts returns an empty list.</p>
      *
      * <p>An unreachable destination throws an unchecked exception rather than
      * reporting no layouts, for the reason {@link LayoutStorage#exists()} gives:
@@ -66,9 +60,7 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
      *
      * @param codecIdentifier identifies the codec whose layouts are wanted.
      */
-    default List<String> getLayoutIdentifiers(final String codecIdentifier) {
-        return List.of();
-    }
+    List<String> getLayoutIdentifiers(final String codecIdentifier);
 
     /**
      * {@return {@code true} when this destination holds a layout for the supplied
@@ -97,13 +89,10 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
      * @param layoutIdentifier identifies the layout to remove.
      * @param codecIdentifier identifies the codec whose output is stored.
      * @return {@code true} when a layout was removed; {@code false} when there was
-     * nothing to remove, or when this implementation does not support removal,
-     * which is what the default reports.
+     * nothing to remove.
      */
-    default boolean deleteLayout(
+    boolean deleteLayout(
             final String layoutIdentifier,
             final String codecIdentifier
-    ) {
-        return false;
-    }
+    );
 }

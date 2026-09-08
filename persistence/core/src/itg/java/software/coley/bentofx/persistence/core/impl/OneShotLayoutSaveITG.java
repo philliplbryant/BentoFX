@@ -2,7 +2,7 @@ package software.coley.bentofx.persistence.core.impl;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -24,6 +24,7 @@ import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -44,193 +45,220 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class OneShotLayoutSaveITG {
 
-    private static final String LAYOUT_IDENTIFIER = "one-shot";
-    private static final String ENCODE_CALLS_DESCRIPTION = "codec.getEncodeCalls()";
+	private static final String LAYOUT_IDENTIFIER = "one-shot";
+	private static final String ENCODE_CALLS_DESCRIPTION = "codec.getEncodeCalls()";
 
-    @Test
-    void saveLayoutWritesTheLayoutExactlyOnce(FxRobot robot) throws BentoStateException {
-        final Bento bento = new Bento();
-        final DockBuilding dockBuilding = bento.dockBuilding();
-        final DockContainerRootBranch root = dockBuilding.root("root");
-        root.addContainer(dockBuilding.leaf("leaf"));
+	@Test
+	void saveLayoutWritesTheLayoutExactlyOnce(FxRobot robot) throws BentoStateException {
+		final Bento bento = new Bento();
+		final DockBuilding dockBuilding = bento.dockBuilding();
+		final DockContainerRootBranch root = dockBuilding.root("root");
+		root.addContainer(dockBuilding.leaf("leaf"));
 
-        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+		final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
 
-        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        bentoProvider.addBento(bento);
+		final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+		bentoProvider.addBento(bento);
 
-        final DockingLayoutPersistenceProvider persistenceProvider =
-                new DefaultDockingLayoutPersistenceProvider(
-                        List.of(codecProvider(codec)),
-                        List.of(storageProvider(storage))
-                );
+		final DockingLayoutPersistenceProvider persistenceProvider =
+				new DefaultDockingLayoutPersistenceProvider(
+						List.of(codecProvider(codec)),
+						List.of(storageProvider(storage))
+				);
 
-        // A capture only sees root branches that have a Scene, so the layout has to
-        // be showing before the save.
-        final AtomicReference<Stage> stageRef = new AtomicReference<>();
+		// A capture only sees root branches that have a Scene, so the layout has to
+		// be showing before the save.
+		final AtomicReference<@Nullable Stage> stageRef = new AtomicReference<>();
 
-        robot.interact(() -> {
-            final Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
-            stageRef.set(stage);
-        });
+		robot.interact(() -> {
+			final Stage stage = new Stage();
+			stage.setScene(new Scene(root));
+			stage.show();
+			stageRef.set(stage);
+		});
 
-        persistenceProvider.saveLayout(
-                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER),
-                bentoProvider
-        );
+		persistenceProvider.saveLayout(
+				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER),
+				bentoProvider
+		);
 
-        assertThat(storage.exists())
-                .describedAs("storage.exists() after a one-shot save")
-                .isTrue();
-        assertThat(storage.toByteArray())
-                .describedAs("storage.toByteArray() after a one-shot save")
-                .isNotEmpty();
-        assertThat(codec.getEncodeCalls())
-                .describedAs(ENCODE_CALLS_DESCRIPTION)
-                .hasSize(1);
+		assertThat(storage.exists())
+				.describedAs("storage.exists() after a one-shot save")
+				.isTrue();
+		assertThat(storage.toByteArray())
+				.describedAs("storage.toByteArray() after a one-shot save")
+				.isNotEmpty();
+		assertThat(codec.getEncodeCalls())
+				.describedAs(ENCODE_CALLS_DESCRIPTION)
+				.hasSize(1);
 
-        robot.interact(() -> stageRef.get().hide());
+		// Use Objects.requireNotNull instead of AssertJ because Nullaway
+		// doesn't recognize AssertJ assertions.
+		final Stage stage = Objects.requireNonNull(
+				stageRef.get(),
+				"stage is null"
+		);
 
-        assertThat(codec.getEncodeCalls())
-                .describedAs(ENCODE_CALLS_DESCRIPTION + " once the layout is taken down")
-                .hasSize(1);
-    }
+		robot.interact(stage::hide);
 
-    @Test
-    void saveLayoutWritesTheProfilesDisplayName(FxRobot robot)
-            throws BentoStateException {
+		assertThat(codec.getEncodeCalls())
+				.describedAs(ENCODE_CALLS_DESCRIPTION + " once the layout is taken down")
+				.hasSize(1);
+	}
 
-        final Bento bento = new Bento();
-        final DockBuilding dockBuilding = bento.dockBuilding();
-        final DockContainerRootBranch root = dockBuilding.root("root");
-        root.addContainer(dockBuilding.leaf("leaf"));
+	@Test
+	void saveLayoutWritesTheProfilesDisplayName(FxRobot robot)
+			throws BentoStateException {
 
-        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
-        final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+		final Bento bento = new Bento();
+		final DockBuilding dockBuilding = bento.dockBuilding();
+		final DockContainerRootBranch root = dockBuilding.root("root");
+		root.addContainer(dockBuilding.leaf("leaf"));
 
-        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        bentoProvider.addBento(bento);
+		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+		final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
 
-        final DockingLayoutPersistenceProvider persistenceProvider =
-                new DefaultDockingLayoutPersistenceProvider(
-                        List.of(codecProvider(codec)),
-                        List.of(storageProvider(storage))
-                );
+		final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+		bentoProvider.addBento(bento);
 
-        final AtomicReference<Stage> stageRef = new AtomicReference<>();
+		final DockingLayoutPersistenceProvider persistenceProvider =
+				new DefaultDockingLayoutPersistenceProvider(
+						List.of(codecProvider(codec)),
+						List.of(storageProvider(storage))
+				);
 
-        robot.interact(() -> {
-            final Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
-            stageRef.set(stage);
-        });
+		final AtomicReference<@Nullable Stage> stageRef = new AtomicReference<>();
 
-        persistenceProvider.saveLayout(
-                LayoutPersistenceProfile.named(
-                        LAYOUT_IDENTIFIER,
-                        "My Layout",
-                        null,
-                        null
-                ),
-                bentoProvider
-        );
+		robot.interact(() -> {
+			final Stage stage = new Stage();
+			stage.setScene(new Scene(root));
+			stage.show();
+			stageRef.set(stage);
+		});
 
-        assertThat(codec.getEncodedLayouts())
-                .describedAs("encoded layouts")
-                .singleElement()
-                .extracting(PersistableLayout::displayName)
-                .isEqualTo("My Layout");
+		persistenceProvider.saveLayout(
+				LayoutPersistenceProfile.named(
+						LAYOUT_IDENTIFIER,
+						"My Layout",
+						null,
+						null
+				),
+				bentoProvider
+		);
 
-        robot.interact(() -> stageRef.get().hide());
-    }
+		assertThat(codec.getEncodedLayouts())
+				.describedAs("encoded layouts")
+				.singleElement()
+				.extracting(PersistableLayout::displayName)
+				.isEqualTo("My Layout");
 
-    @Test
-    void saveLayoutLeavesAStoredLayoutAloneWhenNothingIsAttached() throws BentoStateException {
-        final Bento bento = new Bento();
-        bento.dockBuilding().root("root-never-attached");
+		// Use Objects.requireNotNull instead of AssertJ because Nullaway
+		// doesn't recognize AssertJ assertions.
+		final Stage stage = Objects.requireNonNull(
+				stageRef.get(),
+				"stage is null"
+		);
 
-        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
-        final InMemoryLayoutStorage storage =
-                new InMemoryLayoutStorage("a-good-layout".getBytes(UTF_8));
+		robot.interact(stage::hide);
+	}
 
-        final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        bentoProvider.addBento(bento);
+	@Test
+	void saveLayoutLeavesAStoredLayoutAloneWhenNothingIsAttached() throws BentoStateException {
+		final Bento bento = new Bento();
+		bento.dockBuilding().root("root-never-attached");
 
-        final DockingLayoutPersistenceProvider persistenceProvider =
-                new DefaultDockingLayoutPersistenceProvider(
-                        List.of(codecProvider(codec)),
-                        List.of(storageProvider(storage))
-                );
+		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+		final InMemoryLayoutStorage storage =
+				new InMemoryLayoutStorage("a-good-layout".getBytes(UTF_8));
 
-        persistenceProvider.saveLayout(
-                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER),
-                bentoProvider
-        );
+		final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+		bentoProvider.addBento(bento);
 
-        assertThat(codec.getEncodeCalls())
-                .describedAs(ENCODE_CALLS_DESCRIPTION + " with nothing attached")
-                .isEmpty();
-        assertThat(storage.toByteArray())
-                .describedAs("the previously stored layout")
-                .isEqualTo("a-good-layout".getBytes(UTF_8));
-    }
+		final DockingLayoutPersistenceProvider persistenceProvider =
+				new DefaultDockingLayoutPersistenceProvider(
+						List.of(codecProvider(codec)),
+						List.of(storageProvider(storage))
+				);
 
-    /**
-     * A provider yielding one specific codec, so that the test can read what was
-     * encoded.
-     *
-     * @param codec the codec to yield.
-     */
-    private static LayoutCodecProvider codecProvider(final LayoutCodec codec) {
-        return new LayoutCodecProvider() {
-            @Override
-            public String getIdentifier() {
-                return "memory";
-            }
+		persistenceProvider.saveLayout(
+				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER),
+				bentoProvider
+		);
 
-            @Override
-            public boolean isDefault() {
-                return true;
-            }
+		assertThat(codec.getEncodeCalls())
+				.describedAs(ENCODE_CALLS_DESCRIPTION + " with nothing attached")
+				.isEmpty();
+		assertThat(storage.toByteArray())
+				.describedAs("the previously stored layout")
+				.isEqualTo("a-good-layout".getBytes(UTF_8));
+	}
 
-            @Override
-            public LayoutCodec getLayoutCodec() {
-                return codec;
-            }
-        };
-    }
+	/**
+	 * A provider yielding one specific codec, so that the test can read what was
+	 * encoded.
+	 *
+	 * @param codec the codec to yield.
+	 */
+	private static LayoutCodecProvider codecProvider(final LayoutCodec codec) {
+		return new LayoutCodecProvider() {
+			@Override
+			public String getIdentifier() {
+				return "memory";
+			}
 
-    /**
-     * A provider yielding one specific storage, so that the test can read what was
-     * written.
-     *
-     * @param storage the storage to yield.
-     */
-    private static LayoutStorageProvider storageProvider(
-            final LayoutStorage storage
-    ) {
-        return new LayoutStorageProvider() {
-            @Override
-            public String getIdentifier() {
-                return "memory";
-            }
+			@Override
+			public boolean isDefault() {
+				return true;
+			}
 
-            @Override
-            public boolean isDefault() {
-                return true;
-            }
+			@Override
+			public LayoutCodec getLayoutCodec() {
+				return codec;
+			}
+		};
+	}
 
-            @Override
-            public LayoutStorage getLayoutStorage(
-                    final @NonNull String layoutIdentifier,
-                    final @NonNull String codecIdentifier
-            ) {
-                return storage;
-            }
-        };
-    }
+	/**
+	 * A provider yielding one specific storage, so that the test can read what was
+	 * written.
+	 *
+	 * @param storage the storage to yield.
+	 */
+	private static LayoutStorageProvider storageProvider(
+			final LayoutStorage storage
+	) {
+		return new LayoutStorageProvider() {
+			@Override
+			public String getIdentifier() {
+				return "memory";
+			}
+
+			@Override
+			public boolean isDefault() {
+				return true;
+			}
+
+			@Override
+			public LayoutStorage getLayoutStorage(
+					final String layoutIdentifier,
+					final String codecIdentifier
+			) {
+				return storage;
+			}
+
+			@Override
+			public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+				return List.of();
+			}
+
+			@Override
+			public boolean deleteLayout(
+					final String layoutIdentifier,
+					final String codecIdentifier
+			) {
+				return false;
+			}
+		};
+	}
 }

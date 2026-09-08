@@ -7,8 +7,8 @@ import software.coley.bentofx.persistence.core.api.LayoutRestorer;
 import software.coley.bentofx.persistence.core.api.LayoutSaver;
 import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutCodecProvider;
-import software.coley.bentofx.persistence.testfixtures.provider.TestLayoutStorageProvider;
+import software.coley.bentofx.persistence.testfixtures.provider.ConfigurableLayoutCodecProvider;
+import software.coley.bentofx.persistence.testfixtures.provider.ConfigurableLayoutStorageProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,10 +44,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void listsStoredLayoutsFromTheSelectedStorageProvider() throws BentoStateException {
-        final TestLayoutCodecProvider codecProvider =
-                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
-        final TestLayoutStorageProvider storageProvider =
-                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider codecProvider =
+                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider storageProvider =
+                new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
         storageProvider.setStoredLayoutIdentifiers(
                 List.of("compact", "multi-monitor")
         );
@@ -72,15 +72,15 @@ class DefaultDockingLayoutPersistenceProviderTest {
     void listsStoredLayoutsAsProfilesCarryingTheProfilesCodecAndStorage()
             throws BentoStateException {
 
-        final TestLayoutStorageProvider storageProvider =
-                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider storageProvider =
+                new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
         storageProvider.setStoredLayoutIdentifiers(
                 List.of("compact", "multi-monitor")
         );
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestLayoutCodecProvider(
+                        List.of(new ConfigurableLayoutCodecProvider(
                                 JSON_CODEC_IDENTIFIER, false
                         )),
                         List.of(storageProvider)
@@ -115,13 +115,13 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void reportsAndDeletesOneStoredLayout() throws BentoStateException {
-        final TestLayoutStorageProvider storageProvider =
-                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider storageProvider =
+                new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
         storageProvider.setStoredLayoutIdentifiers(List.of("compact"));
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
                         List.of(storageProvider)
                 );
 
@@ -144,15 +144,15 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void catalogHonorsTheProfilesStorageIdentifier() throws BentoStateException {
-        final TestLayoutStorageProvider fileProvider =
-                new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
-        final TestLayoutStorageProvider databaseProvider =
-                new TestLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider fileProvider =
+                new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider databaseProvider =
+                new ConfigurableLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
         databaseProvider.setStoredLayoutIdentifiers(List.of("in-the-database"));
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
                         List.of(fileProvider, databaseProvider)
                 );
 
@@ -170,8 +170,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void usesSingleCodecAndStorageProvidersWithoutExplicitSelection() throws BentoStateException {
-        final TestLayoutCodecProvider codecProvider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
-        final TestLayoutStorageProvider storageProvider = new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider codecProvider = new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider storageProvider = new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -194,10 +194,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void usesExplicitProviderIdentifiersWhenMultipleProvidersAreAvailable() throws BentoStateException {
-        final TestLayoutCodecProvider jsonProvider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
-        final TestLayoutCodecProvider xmlProvider = new TestLayoutCodecProvider(XML_CODEC_IDENTIFIER, false);
-        final TestLayoutStorageProvider fileProvider = new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
-        final TestLayoutStorageProvider databaseProvider = new TestLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider jsonProvider = new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider xmlProvider = new ConfigurableLayoutCodecProvider(XML_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider fileProvider = new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutStorageProvider databaseProvider = new ConfigurableLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -229,10 +229,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void usesSingleDefaultProviderWhenMultipleProvidersAreAvailableWithoutExplicitSelection() throws BentoStateException {
-        final TestLayoutCodecProvider jsonProvider = new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
-        final TestLayoutCodecProvider xmlProvider = new TestLayoutCodecProvider(XML_CODEC_IDENTIFIER, true);
-        final TestLayoutStorageProvider fileProvider = new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, true);
-        final TestLayoutStorageProvider databaseProvider = new TestLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider jsonProvider = new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider xmlProvider = new ConfigurableLayoutCodecProvider(XML_CODEC_IDENTIFIER, true);
+        final ConfigurableLayoutStorageProvider fileProvider = new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, true);
+        final ConfigurableLayoutStorageProvider databaseProvider = new ConfigurableLayoutStorageProvider(DATABASE_STORAGE_IDENTIFIER, false);
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
@@ -262,8 +262,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void providerCreatedSaverClosesLayoutStorage() throws BentoStateException {
-        final TestLayoutCodecProvider codecProvider =
-                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider codecProvider =
+                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
         final CloseTrackingLayoutStorageProvider storageProvider =
                 new CloseTrackingLayoutStorageProvider(FILE_STORAGE_IDENTIFIER);
 
@@ -287,8 +287,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void providerCreatedRestorerClosesLayoutStorage() throws BentoStateException {
-        final TestLayoutCodecProvider codecProvider =
-                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider codecProvider =
+                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
         final CloseTrackingLayoutStorageProvider storageProvider =
                 new CloseTrackingLayoutStorageProvider(FILE_STORAGE_IDENTIFIER);
 
@@ -318,8 +318,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
     @Test
     void closingAProviderCreatedSaverLeavesTheRestorersStorageOpen() throws BentoStateException {
-        final TestLayoutCodecProvider codecProvider =
-                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
+        final ConfigurableLayoutCodecProvider codecProvider =
+                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false);
         final CloseTrackingLayoutStorageProvider storageProvider =
                 new CloseTrackingLayoutStorageProvider(FILE_STORAGE_IDENTIFIER);
 
@@ -360,10 +360,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
                         List.of(
-                                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false),
-                                new TestLayoutCodecProvider(XML_CODEC_IDENTIFIER, false)
+                                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false),
+                                new ConfigurableLayoutCodecProvider(XML_CODEC_IDENTIFIER, false)
                         ),
-                        List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
+                        List.of(new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
@@ -378,8 +378,8 @@ class DefaultDockingLayoutPersistenceProviderTest {
     void failsWhenExplicitProviderIdentifierIsUnavailable() {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
-                        List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
+                        List.of(new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(
@@ -397,7 +397,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
                         List.of(),
-                        List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
+                        List.of(new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
@@ -411,10 +411,10 @@ class DefaultDockingLayoutPersistenceProviderTest {
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
                         List.of(
-                                new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, true),
-                                new TestLayoutCodecProvider(XML_CODEC_IDENTIFIER, true)
+                                new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, true),
+                                new ConfigurableLayoutCodecProvider(XML_CODEC_IDENTIFIER, true)
                         ),
-                        List.of(new TestLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
+                        List.of(new ConfigurableLayoutStorageProvider(FILE_STORAGE_IDENTIFIER, false))
                 );
 
         assertThatThrownBy(() -> provider.getLayoutSaver(TEST_LAYOUT_IDENTIFIER, new DefaultBentoProvider()))
@@ -451,7 +451,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
 
         final DefaultDockingLayoutPersistenceProvider provider =
                 new DefaultDockingLayoutPersistenceProvider(
-                        List.of(new TestLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
+                        List.of(new ConfigurableLayoutCodecProvider(JSON_CODEC_IDENTIFIER, false)),
                         List.of(storageProvider)
                 );
 
@@ -474,7 +474,7 @@ class DefaultDockingLayoutPersistenceProviderTest {
      * listed and being read.
      */
     private static final class FailingOpenLayoutStorageProvider
-            extends software.coley.bentofx.persistence.testfixtures.provider.AbstractTestLayoutProvider
+            extends software.coley.bentofx.persistence.testfixtures.provider.AbstractConfigurableLayoutProvider
             implements LayoutStorageProvider {
 
         private final String layoutIdentifier;
@@ -493,6 +493,14 @@ class DefaultDockingLayoutPersistenceProviderTest {
         @Override
         public List<String> getLayoutIdentifiers(final String codecIdentifier) {
             return List.of(layoutIdentifier);
+        }
+
+        @Override
+        public boolean deleteLayout(
+                final String layoutIdentifier,
+                final String codecIdentifier
+        ) {
+            return false;
         }
 
         @Override
@@ -548,6 +556,19 @@ class DefaultDockingLayoutPersistenceProviderTest {
                     new CloseTrackingLayoutStorage();
             createdLayoutStorages.add(layoutStorage);
             return layoutStorage;
+        }
+
+        @Override
+        public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+            return List.of();
+        }
+
+        @Override
+        public boolean deleteLayout(
+                final String layoutIdentifier,
+                final String codecIdentifier
+        ) {
+            return false;
         }
 
         private List<CloseTrackingLayoutStorage> getCreatedLayoutStorages() {

@@ -34,19 +34,19 @@ public class SystemLayoutStorage implements LayoutStorage {
     }
 
     @Override
-    public boolean exists() throws BentoStateException {
+    public boolean exists() {
         return Files.exists(path) && !isEmpty(path);
     }
 
     @Override
-    public OutputStream openOutputStream() throws BentoStateException {
+    public OutputStream openOutputStream() throws IOException {
         // Write to a temporary file and move it into place on close, so a
         // failed save leaves the previously stored layout intact.
         return newAtomicOutputStream(path);
     }
 
     @Override
-    public InputStream openInputStream() throws BentoStateException {
+    public InputStream openInputStream() throws IOException {
         return Files.newInputStream(path);
     }
 }
@@ -80,8 +80,8 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
    provides LayoutStorageProvider with SystemLayoutStorageProvider;
    ```
 
-   b. For an application launched on the **class path**, add a provider-configuration file, named after the service interface, containing the fully qualified name of the implementation: <br/><br/>   
-  
+   b. For an application launched on the **class path**, add a provider-configuration file, named after the service interface, containing the fully qualified name of the implementation: <br/><br/>
+
      File:
      ```text
      src/main/resources/META-INF/services/software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider
@@ -106,13 +106,13 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 To ensure consistent behavior among storage implementations, the following conventions are recommended, the implementations provided by the framework follow them, and callers rely on them:
 
 1. **Closing the output stream stores the layout.** Buffer what is written and publish it only when the stream closes cleanly. This ensures a save that fails part way through leaves the previously stored layout intact instead of replacing it with a partial layout.
-2. **Override default method implementations when subclasses can do so.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
-3. **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
-4. **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
+2. **Override default interface methods.** `isLayoutStored` has a default implementation that opens the storage and calls `exists()`, which works for any implementation. Override it when the storage implementation can answer more efficiently than opening a layout.
+3. **`exists()` should specify whether there is a layout to read**, not whether a layout location is present. Empty content is not a layout. If `exisits()` were to return true for an empty layout, the codec would likely attempt to decode it, resulting in an empty layout. As such, an empty layout then erroneously manifests as a decode failure when a failure indicating "nothing stored here" would have resulted in the default layout being used instead.
+4. **`close()` releases what the storage owns, and only that.** Whichever provider receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
 
 <h2 id="adding-a-codec">Adding a Codec</h2>
 
-A codec is the same three steps with a different pair of interfaces. `LayoutCodec` is three methods:
+1. Implement `LayoutCodec`. The interface is three methods: `getIdentifier()`, `encode()`, and `decode()`.
 
 ```java
 public class YamlLayoutCodec implements LayoutCodec {
@@ -127,27 +127,64 @@ public class YamlLayoutCodec implements LayoutCodec {
             final PersistableLayout layout,
             final OutputStream outputStream
     ) throws BentoStateException {
-        // Write layout to outputStream. Do not close it: whoever opened it owns it.
+        // Write layout to outputStream but DO NOT CLOSE IT.
+        // Whoever opened the stream owns it and should close it.
     }
 
     @Override
     public PersistableLayout decode(
             final InputStream inputStream
     ) throws BentoStateException {
-        // Read a PersistableLayout back, or throw BentoStateException.
+        // Either read a PersistableLayout back or throw BentoStateException.
     }
 }
 ```
 
-`LayoutCodecProvider` adds one method, `getLayoutCodec()`, and inherits its identifier contract from `LayoutPersistenceComponentProvider` exactly as the storage provider does. Register it both ways, for the same reason:
+2. Implement `LayoutCodecProvider`, which is the type `ServiceLoader` discovers. It adds one method, `getLayoutCodec()`, and inherits `getIdentifier()` from `LayoutPersistenceComponentProvider`.
 
 ```java
-provides LayoutCodecProvider with YamlLayoutCodecProvider;
+public class YamlLayoutCodecProvider implements LayoutCodecProvider {
+
+    @Override
+    public String getIdentifier() {
+        return "yaml";
+    }
+
+    @Override
+    public LayoutCodec getLayoutCodec() {
+        return new YamlLayoutCodec();
+    }
+}
 ```
 
-```text
-src/main/resources/META-INF/services/software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider
-```
+3. Register the provider so `ServiceLoader` can find it. Both declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
+
+   a. For an application launched on the **module path**, declare it in `module-info.java`:
+
+   ```java
+   provides LayoutCodecProvider with YamlLayoutCodecProvider;
+   ```
+
+   b. For an application launched on the **class path**, add a provider-configuration file, named after the service interface, containing the fully qualified name of the implementation:
+
+     File:
+     ```text
+     src/main/resources/META-INF/services/software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider
+     ```
+     Text:
+     ```text
+     software.coley.bentofx.persistence.impl.codec.yaml.provider.YamlLayoutCodecProvider
+     ```
+
+   Registering only the `provides` clause is the easier mistake to make, and it fails misleadingly: a class-path application finds no provider at all even though the dependency is present. Keep the two in sync. Renaming one implementation and not the other silently breaks the incorrectly named path.
+
+4. Add the module to the application's runtime dependencies.
+
+   ```kotlin
+   runtimeOnly("software.coley.bento-fx:persistence-codec-yaml:${version}")
+   ```
+
+   The JAR is discovered on either the module path or the class path depending on how the application is launched.
 
 Two things a codec has to get right:
 

@@ -3,7 +3,7 @@ package software.coley.bentofx.persistence.testfixtures.provider;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
-import software.coley.bentofx.persistence.testfixtures.storage.TestLayoutStorage;
+import software.coley.bentofx.persistence.testfixtures.storage.DoNothingLayoutStorage;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,8 +18,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author Phil Bryant
  */
-public final class TestLayoutStorageProvider
-        extends AbstractTestLayoutProvider
+public final class ConfigurableLayoutStorageProvider
+        extends AbstractConfigurableLayoutProvider
         implements LayoutStorageProvider {
 
     private final AtomicReference<@Nullable String> layoutIdentifier =
@@ -39,7 +39,7 @@ public final class TestLayoutStorageProvider
      * @param identifier the identifier this provider answers to.
      * @param defaultProvider whether this provider is the default one.
      */
-    public TestLayoutStorageProvider(
+    public ConfigurableLayoutStorageProvider(
             final String identifier,
             final boolean defaultProvider
     ) {
@@ -53,7 +53,7 @@ public final class TestLayoutStorageProvider
     ) {
         this.layoutIdentifier.set(layoutIdentifier);
         this.codecIdentifier.set(codecIdentifier);
-        return new TestLayoutStorage();
+        return new DoNothingLayoutStorage();
     }
 
     /**
