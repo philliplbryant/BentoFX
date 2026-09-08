@@ -42,7 +42,8 @@ public final class DockingLayoutPersistence {
      * this once during start-up and hold the result.</p>
      *
      * @throws IllegalStateException when no implementation can be found, which
-     * means no persistence implementation module is on the module path.
+     * means no persistence implementation is on the module path or the class
+     * path.
      */
     public static DockingLayoutPersistenceProvider provider() {
 
@@ -58,8 +59,8 @@ public final class DockingLayoutPersistence {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "No DockingLayoutPersistenceProvider implementation was " +
-                                "found. Add a persistence implementation module " +
-                                "to the module path."
+                                "found. Add a persistence implementation to the " +
+                                "module path or the class path."
                 ));
     }
 }

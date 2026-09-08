@@ -2,7 +2,7 @@
 
 [&larr; Back to the BentoFX Persistence guide](guide.md)
 
-For writing a new codec or storage implementation. Applications that use the bundled codecs and storage need nothing here - see [Usage](guide.md#persistence-usage) instead.
+This document describes writing new codecs and storage implementations. Applications that use the codec and storage implementations provided by the framework do not need anything described herein - see [Usage](guide.md#persistence-usage) instead.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ For writing a new codec or storage implementation. Applications that use the bun
 
 <h2 id="how-discovery-works">How Discovery Works</h2>
 
-`DefaultDockingLayoutPersistenceProvider` uses `ServiceLoader` to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the runtime module path, or from the classpath for a non-modularized application. Each provider exposes a stable identifier, which is how an application selects a specific codec or storage implementation when more than one is available.
+`DefaultDockingLayoutPersistenceProvider` uses [ServiceLoader](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html) to acquire `LayoutCodecProvider` and `LayoutStorageProvider` implementations from the runtime module path (or the classpath for non-modularized applications). Each provider exposes a stable identifier, which is how an application selects a specific codec or storage implementation when more than one is available.
 
 Only the *provider* is discovered. The `LayoutCodec` and `LayoutStorage` it returns are created by the provider, so an implementation is free to take constructor arguments or run setup logic that `ServiceLoader` could not supply.
 
@@ -72,24 +72,41 @@ public class SystemLayoutStorageProvider implements LayoutStorageProvider {
 }
 ```
 
-3. Register the provider in the module descriptor.
+3. Register the provider so `ServiceLoader` can find it. Both declarations are recommended. The JVM only honors one of them, and which one it honors depends on how the consuming application is launched.
 
-```java
-provides LayoutStorageProvider with SystemLayoutStorageProvider;
-```
+   a. For an application launched on the **module path**, declare it in `module-info.java`:
 
-4. Add the module to the application's runtime module path.
+   ```java
+   provides LayoutStorageProvider with SystemLayoutStorageProvider;
+   ```
 
-```kotlin
-runtimeOnly("software.coley.bento-fx:persistence-storage-system:${version}")
-```
+   b. For an application launched on the **class path**, add a provider-configuration file, named after the service interface, containing the fully qualified name of the implementation: <br/><br/>   
+  
+     File:
+     ```text
+     src/main/resources/META-INF/services/software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider
+     ```
+     Text:
+     ```text
+     software.coley.bentofx.persistence.impl.storage.system.provider.SystemLayoutStorageProvider
+     ```
+
+   All four bundled implementations carry both. Registering only the `provides` clause is the easier mistake to make, and it fails misleadingly: a class-path application finds no provider at all and reports `No LayoutStorageProvider implementation was found. Add a runtime dependency that provides one.` even though the dependency is present. Keep the two in sync. Renaming one implementation and not the other silenly breaks the incorrectly named path.
+
+4. Add the module to the application's runtime dependencies.
+
+   ```kotlin
+   runtimeOnly("software.coley.bento-fx:persistence-storage-system:${version}")
+   ```
+
+   The JAR is discovered on either the module path or the class path depending on how the application is launched.
 
 <h3 id="storage-implementation-conventions">Storage Implementation Conventions</h3>
 
-Four conventions are worth following, because the bundled implementations follow them and callers rely on them:
+To ensure consistent behavior among storage implementations, the following conventions are recommended, the implementations provided by the framework follow them, and callers rely on them:
 
-1. **Closing the output stream is what stores the layout.** Buffer or stage what is written and publish it only when the stream closes cleanly. A save that fails part way through then leaves the previously stored layout intact instead of replacing it with a fragment.
-2. **Override the catalog methods when the destination can answer them.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
+1. **Closing the output stream stores the layout.** Buffer what is written and publish it only when the stream closes cleanly. This ensures a save that fails part way through leaves the previously stored layout intact instead of replacing it with a partial layout.
+2. **Override default method implementations when subclasses can do so.** `LayoutStorageProvider.getLayoutIdentifiers`, `isLayoutStored` and `deleteLayout` all have defaults, so a storage implementation stays valid without them, but an application cannot offer users a list of saved layouts unless the storage it uses can enumerate. Both bundled implementations can: one file per layout, or one row per layout and codec.
 3. **`exists()` answers whether there is a layout to read**, not whether a location is present. Empty content is not a layout: a restorer told that a layout exists will try to decode it, and an empty or truncated payload becomes a decode failure where a clean "nothing stored yet" would have produced the default layout.
 4. **`close()` releases what the storage owns, and only that.** Whichever saver or restorer receives a `LayoutStorage` closes it, so a storage handed a resource it did not create should leave that resource alone.
 
@@ -122,10 +139,14 @@ public class YamlLayoutCodec implements LayoutCodec {
 }
 ```
 
-`LayoutCodecProvider` adds one method, `getLayoutCodec()`, and inherits its identifier contract from `LayoutPersistenceComponentProvider` exactly as the storage provider does. Register it the same way:
+`LayoutCodecProvider` adds one method, `getLayoutCodec()`, and inherits its identifier contract from `LayoutPersistenceComponentProvider` exactly as the storage provider does. Register it both ways, for the same reason:
 
 ```java
 provides LayoutCodecProvider with YamlLayoutCodecProvider;
+```
+
+```text
+src/main/resources/META-INF/services/software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider
 ```
 
 Two things a codec has to get right:
@@ -141,7 +162,7 @@ Both provider interfaces are discovered the same way, so both implementations mu
 * have a public no-argument constructor, or an implicit default constructor
 * return a stable identifier from `getIdentifier()`
 * optionally return `true` from `isDefault()` to be selected automatically when several providers are present
-* be registered with a `provides` clause in the module descriptor
+* be registered twice: with a `provides` clause in `module-info.java` for module-path launches, and with a `META-INF/services` file for class-path launches
 
 <h2 id="complete-examples">Complete Examples</h2>
 
