@@ -8,8 +8,7 @@ For a high-level architectural overview, see the [BentoFX Persistence guide](gui
 
 ## Scope
 
-This document focuses on persistence orchestration and application integration. It does not describe rendering, docking
-UX, or the full Gradle module dependency graph.
+This document covers the internal collaborators, the save and restore algorithms, and the sequence diagrams. For the application-facing API, see the [guide](guide.md) and [providers](providers.md).
 
 ## Key concepts
 
@@ -25,24 +24,20 @@ Persistence is expressed as immutable-ish *state* objects rather than direct ser
 - `DockableState` represents the information needed to reconstruct a runtime `Dockable`.
 - `DragDropStageState` represents secondary drag/drop stages and contains a root-branch state.
 
-An important distinction is that persisted state is not the same thing as live JavaFX nodes. The codec serializes state. The restorer uses that state, plus application-provided providers, to recreate runtime BentoFX objects.
-
 ### Storage and codec
 
 Round-trip persistence is a multistep, pipelined process:
 
-1. The application includes one or more `LayoutCodecProvider` implementations to make persisted formats available.
-2. The application includes one or more `LayoutStorageProvider` implementations to make storage destinations available.
-3. The default persistence provider selects codec and storage providers by explicit `LayoutPersistenceProfile` identifiers, by a single available provider, or by a single default provider.
+1. The application adds one or more `LayoutCodecProvider` implementations to make persisted formats available.
+2. The application adds one or more `LayoutStorageProvider` implementations to make storage destinations available.
+3. The default persistence provider selects codec and storage providers by explicit `LayoutPersistenceProfile`
+   identifiers, by a single available provider, or by a single default provider.
 4. `LayoutSaver` walks the current BentoFX container graph through a `BentoProvider`.
 5. `LayoutSaver` builds serializable state, encodes it with `LayoutCodec`, and writes it with `LayoutStorage`.
 6. `LayoutRestorer` reads state with `LayoutStorage`, decodes it with `LayoutCodec`, and rebuilds runtime layout objects.
 7. The application applies the returned `DockingLayout` to its stages.
 
-This decoupling lets applications choose the persisted format, such as XML or JSON, and the storage location, such as a file or database, without changing the save/restore process flow. In the simple case, changing providers requires only
-a dependency change. When multiple providers are present, applications can select a specific codec or storage provider by identifier with `LayoutPersistenceProfile`.
-
-## Internal process flow 
+## Internal process flow
 
 `DockingLayoutSaver` and `DockingLayoutRestorer` are intentionally thin. The JavaFX threading boundaries remain in these public entry points, while the detailed work is delegated to smaller package-private collaborators:
 
@@ -185,8 +180,7 @@ The default implementation:
    - applies persisted stage geometry and other stage properties
 6. Returns a `DockingLayout` containing the restored `BentoLayout` instances.
 
-The application is responsible for applying the returned `DockingLayout`. In the persistence demo, `BoxApp` selects the `BentoLayout` whose identifier matches its `Bento`, creates a scene including the restored root branch, and shows any restored
-drag/drop stages.
+The application is responsible for applying the returned `DockingLayout` (see [Restoring the Layout](guide.md#restoring-the-layout)).
 
 ### How dockables are restored
 
@@ -199,34 +193,11 @@ Restoration resolves dockables by identifier:
 5. The dockable is added to the restored leaf.
 6. Selected dockable identifiers are applied after dockables have been added.
 
-This means applications should keep dockable identifiers stable across versions. If an application intentionally removes or renames a dockable, the restorer can continue restoring the rest of the layout, but the missing dockable will be
-skipped.
-
-### Default layout fallback
-
-The default layout supplier is more than a convenience. It is the first-run layout and the recovery layout.
-
-It is used when:
-
-- no persisted layout exists
-- persisted layout storage cannot be read
-- persisted layout state cannot be decoded
-
-There is a fourth case the framework cannot detect - a layout that restores cleanly but that the application cannot apply, such as one holding a different number of root branches than the application knows how to place. An application should report whether it applied anything and fall back to the default layout when it did not.
-Otherwise a stage never receives a `Scene` and is never shown, and an application whose exit path runs when its window hides can never be closed either.
-
-The default layout should be built with the same identifiers and provider-backed dockable construction strategy used for restoration. That keeps first-run behavior and restored behavior consistent.
-
-### Error handling philosophy
-
-- If persisted layout cannot be found, the default layout supplier is used.
-- If persisted layout cannot be decoded, the default layout supplier is used.
-- If one dockable cannot be resolved, the restorer logs a warning and continues restoring the rest of the layout.
-- Layout restoration attempts to restore components independently where possible.
+Fallback behavior, error handling, and the application-facing restore lifecycle are covered under [Restoring the Layout](guide.md#restoring-the-layout).
 
 ### Applying a restored layout
 
-A `DockingLayout` holds one `BentoLayout` per persisted `Bento`, and the application decides what to do with each. Applying a restored layout fail. A stored layout may name a `Bento` the application does not have, or hold a number of root branches it does not know how to place. The application reports whether anything was applied and falls back to the default layout when nothing was applied because a `Stage` that never receives a `Scene` is never shown.
+The diagram below shows the fallback logic for applying a `DockingLayout`, including the per-`BentoLayout` matching and the default-layout recovery.
 
 ```mermaid
 sequenceDiagram
