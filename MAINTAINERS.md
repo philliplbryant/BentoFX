@@ -5,7 +5,7 @@
 - [Project Health](#project-health)
 - [GitHub Workflows](#github-workflows)
   - [Build](#build-workflow)
-  - [Qodana](#qodana-workflow)
+  - [Static Analysis and Coverage](#static-analysis-and-coverage)
 - [Releases](#releases)
 - [Repository Administration](#repository-administration)
 - [Credentials](#credentials)
@@ -30,11 +30,20 @@ release management, CI/CD maintenance, and other tasks requiring repository writ
 
 <h3 id="build-workflow">Build</h3>
 Ensure the Build workflow passes before merging pull requests.
+```terminal
+gradlew build checkAll
+```
 
-<h3 id="qodana-workflow">Qodana</h3>
-Review new findings and determine whether they should be fixed or intentionally accepted. There is
-no baseline: every finding Qodana reports is live, and anything to be permanently accepted belongs
-in `qodana.yaml` (an `exclude` entry or a profile change) where the decision is reviewable in a diff.
+<h3 id="static-analysis-and-coverage">Static Analysis and Coverage</h3>
+
+SonarQube, CodeQL, Qodana, and Codecov run on every push and pull request. See [CONTRIBUTING.md](CONTRIBUTING.md#static-analysis-and-coverage) for what each tool does, which can fail the build, and where to find results.
+
+Maintainer responsibilities:
+
+- Review new findings from each tool and determine whether they should be fixed or intentionally accepted.
+- For Qodana specifically: there is no committed baseline. Every finding Qodana reports is live, and anything to be permanently accepted belongs in `qodana.yaml` (an `exclude` entry or a profile change) where the decision is reviewable in a diff.
+- Monitor Codecov coverage trends for unexpected drops.
+- Review CodeQL alerts in the GitHub Security tab.
 
 ## Releases
 
@@ -70,10 +79,11 @@ Never commit credentials, personal access tokens, signing keys, passwords, or ID
 | Task / Workflow | Required Credentials | Typical Location |
 |-----------------|----------------------|------------------|
 | Run SonarCloud analysis | `SONAR_TOKEN` | **Both** |
-| Publish a release with JReleaser | `JRELEASER_GITHUB_TOKEN`, `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_PASSWORD`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
-| Publish signed artifacts to Maven Central | `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_PASSWORD`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
+| Publish a release with JReleaser | `JRELEASER_GITHUB_TOKEN`, `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_TOKEN`, `JRELEASER_GPG_PUBLIC_KEY`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
+| Publish signed artifacts to Maven Central | `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_TOKEN`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
 | Create GitHub releases | `JRELEASER_GITHUB_TOKEN` | **Both** |
 | Upload coverage to Codecov (if enabled) | `CODECOV_TOKEN` | **GitHub Actions** |
+| Run Qodana analysis (optional) | `QODANA_TOKEN` | **GitHub Actions** |
 | Local development and testing | None | **None** |
 
 The **Typical Location** column indicates where credentials are typically configured. **Both** indicates that the task may be run either in GitHub Actions using repository secrets or locally using environment variables or user configuration files.
