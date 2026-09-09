@@ -78,12 +78,10 @@ Never commit credentials, personal access tokens, signing keys, passwords, or ID
 
 | Task / Workflow | Required Credentials | Typical Location |
 |-----------------|----------------------|------------------|
-| Run SonarCloud analysis | `SONAR_TOKEN` | **Both** |
-| Publish a release with JReleaser | `JRELEASER_GITHUB_TOKEN`, `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_TOKEN`, `JRELEASER_GPG_PUBLIC_KEY`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
-| Publish signed artifacts to Maven Central | `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_TOKEN`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Both** |
-| Create GitHub releases | `JRELEASER_GITHUB_TOKEN` | **Both** |
+| Run SonarCloud analysis | `SONAR_TOKEN` | **Local**<br/>**GitHub Actions** |
+| Publish a release with JReleaser | `JRELEASER_GITHUB_TOKEN`, `JRELEASER_MAVENCENTRAL_USERNAME`,`JRELEASER_MAVENCENTRAL_TOKEN`,<br/>`JRELEASER_GPG_PUBLIC_KEY`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` | **Local**<br/>**GitHub Actions** |
+| Publish signed artifacts to Maven Central | `JRELEASER_MAVENCENTRAL_USERNAME`, `JRELEASER_MAVENCENTRAL_TOKEN`, `JRELEASER_GPG_SECRET_KEY`,<br/>`JRELEASER_GPG_PASSPHRASE` | **Local**<br/>**GitHub Actions** |
+| Create GitHub releases | `JRELEASER_GITHUB_TOKEN` | **Local**<br/>**GitHub Actions** |
 | Upload coverage to Codecov (if enabled) | `CODECOV_TOKEN` | **GitHub Actions** |
 | Run Qodana analysis (optional) | `QODANA_TOKEN` | **GitHub Actions** |
 | Local development and testing | None | **None** |
-
-The **Typical Location** column indicates where credentials are typically configured. **Both** indicates that the task may be run either in GitHub Actions using repository secrets or locally using environment variables or user configuration files.
