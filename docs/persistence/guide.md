@@ -379,5 +379,4 @@ Most applications need a [DockableStateProvider](providers.md) and nothing else 
 [Write the one provider an application must implement (and understand why a provider is needed at all)](providers.md)  
 [Let users save, name, list, switch and delete layouts of their own](layouts.md)  
 [Write a codec or a storage destination of your own](extending.md)  
-[Follow what a save and a restore actually do, step by step](implementation.md)  
-[See the class and sequence diagrams](diagrams.md)  
+[Follow what a save and a restore actually do, step by step, with sequence diagrams](implementation.md)  

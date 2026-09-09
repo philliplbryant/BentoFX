@@ -213,8 +213,7 @@ Four working implementations, two of each:
 
 <h2 id="see-also">See Also</h2>
 
-- [Implementation: How a save and a restore drive the codec and storage](implementation.md)
-- [Diagrams: Where the codec and storage sit in the class structure](diagrams.md)
+- [Implementation: How a save and a restore exercises codecs and storages, including sequence diagrams](implementation.md)
 - [ServiceLoader: The Java 21 API documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html)
 - [Introduction to the Service Provider Interface](https://docs.oracle.com/javase/tutorial/sound/SPI-intro.html)
 - [Java Service Provider Interface](https://www.baeldung.com/java-spi)
