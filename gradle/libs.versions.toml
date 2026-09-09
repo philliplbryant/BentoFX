@@ -23,7 +23,7 @@ testfx-monocle = "21.0.2"
 # Plugins
 ben-manes-versions-plugin = "0.56.0"
 buildconfig = "6.0.10"
-dependency-analysis-gradle-plugin = "3.17.0"
+dependency-analysis-gradle-plugin = "3.19.1"
 errorprone-plugin = "5.1.0"
 # noinspection UnusedVersionCatalogEntry
 jacoco = "0.8.15"
