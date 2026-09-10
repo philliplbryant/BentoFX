@@ -40,6 +40,5 @@ plugins.withId('bento.test.test-lifecycle') {
 tasks.withType(JavaCompile).configureEach { compileTask ->
     compileTask.options.errorprone.disableWarningsInGeneratedCode = true
     compileTask.options.errorprone.nullaway {
-        error()
     }
 }

@@ -4,12 +4,18 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 plugins {
     // Apply the base plugin to add `clean` to the root project.
     id 'base'
+    alias libs.plugins.benmanes.versions
     alias libs.plugins.jreleaser
 }
 
 def versionCatalog = versionCatalogs.named('libs')
 
 group = versionCatalog.findVersion("maven-group").get().requiredVersion
+
+// The root project publishes nothing, but the release workflow reads its version
+// with './gradlew properties' to derive the release tag. Without this it reports
+// 'unspecified'.
+version = versionCatalog.findVersion("bentofx").get().requiredVersion
 
 // Each published module writes to its own build/staging-deploy (see
 // bento.release.publish-convention.gradle); sharing one output directory

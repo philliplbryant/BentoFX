@@ -2,9 +2,7 @@ name: Build
 
 on:
   push:
-    # Every branch, but not tags: JReleaser pushes a tag as part of a release,
-    # and an unfiltered push trigger would fire on it and rebuild what was just
-    # released.
+    # Every branch, but not tags.
     branches:
       - '**'
   pull_request:
