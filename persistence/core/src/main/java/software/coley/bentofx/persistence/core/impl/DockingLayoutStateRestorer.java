@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import static software.coley.bentofx.persistence.core.impl.StageUtils.getXInScreenBounds;
 import static software.coley.bentofx.persistence.core.impl.StageUtils.getYInScreenBounds;
@@ -508,11 +507,21 @@ final class DockingLayoutStateRestorer {
             final String dockableIdentifier
     ) {
 
-        final Optional<DockableState> optionalDockableProvider =
-                dockableStateProvider.resolveDockableState(dockableIdentifier);
-
-        final DockableState dockableState =
-                optionalDockableProvider.orElse(null);
+        final DockableState dockableState;
+        try {
+            dockableState = Objects.requireNonNull(
+                    dockableStateProvider.resolveDockableState(dockableIdentifier),
+                    () ->
+                            "Could not resolve DockableState '" + dockableIdentifier + "'; skipping it."
+            ).orElse(null);
+        } catch (final RuntimeException e) {
+            logger.warn(
+                    "Could not resolve DockableState '{}'; skipping it.",
+                    dockableIdentifier,
+                    e
+            );
+            return null;
+        }
 
         Dockable dockable;
 

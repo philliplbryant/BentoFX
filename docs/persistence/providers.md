@@ -104,6 +104,8 @@ It is important to recognize that the returned `DockableState` is not itself a `
 | `dockableIconFactory`<br/>`dockableMenuFactory`      | Live factories the dockable calls as needed                       |
 | `dockableConsumer`                              | A live `Consumer<Dockable>` applied to the finished dockable      |
 
+As mentioned, every carried value is optional, **including the node**. A state with a title, tooltip and icon but no `dockableNode` produces a restored tab that shows those, with `placeholderBuilding()` supplying content that would have otherwise been occupied by the node. 
+
 Carrying a live node rather than instructions for building one has two consequences that affect how a provider is written:
 
 1. A state cannot be created before JavaFX is ready.

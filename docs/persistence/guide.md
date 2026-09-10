@@ -229,7 +229,7 @@ final DockingLayoutPersistenceProvider persistence =
 
 The `LayoutRestorer` restores the last saved layout when one exists. If no persisted layout exists, or if deserialization fails, the default layout supplier is used.
 
-A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterwards costs nothing:
+A restorer owns the `LayoutStorage` it was given and closes it, so obtain it as a resource. The layout it returns is fully built by the time `restoreLayout` returns, so closing the storage afterward costs nothing:
 
 ```java
 private DockingLayout getDockingLayout() {
@@ -251,6 +251,13 @@ private DockingLayout getDockingLayout() {
 ```
 
 Unlike a saver, a restorer holds no scheduler and no listeners, so building one per restore is inexpensive.
+
+An empty `Optional` from `resolveDockableState` is not an error. The restorer logs a warning naming the identifier, skips that one dockable, and restoration continues. The leaf is still created and added, and divider positions, collapsed state, sibling dockables and drag/drop stages all restore normally. 
+
+Two consequences follow:
+
+1. If the skipped dockable was the selected one, the leaf opens on whichever tab it defaults to instead.
+2. If every dockable in a leaf is skipped, the empty leaf is still added. Nothing prunes it, so the user sees the node from `placeholderBuilding()` where its content would have been. Restoration succeeds, minus the tab.
 
 Applying the returned layout can still fail. For example, a stored layout may hold root branches the application does not know how to place. In such instances, report whether anything was applied and fall back to the default layout, because a stage that never receives a `Scene` is never shown, and an application whose only exit path runs when its window is never shown cannot then be closed:
 
