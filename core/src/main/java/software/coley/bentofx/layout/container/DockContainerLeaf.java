@@ -328,7 +328,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 *
 	 * @return {@link #isCollapsed()} after toggling.
 	 */
-    @SuppressWarnings("NullAway") // FIXME
+    @SuppressWarnings("NullAway") // FIXME: Parent may be null
 	public boolean toggleCollapse(@Nullable Dockable selectedDockable) {
 		boolean result;
 		if (isCollapsed()) {

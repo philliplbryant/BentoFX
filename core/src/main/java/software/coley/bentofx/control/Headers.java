@@ -30,7 +30,7 @@ public class Headers extends LinearItemPane {
 	 * @param side
 	 * 		Side in the parent container where tabs are displayed.
 	 */
-    @SuppressWarnings("NullAway") // FIXME
+    @SuppressWarnings("NullAway") // FIXME: Container may be null
     public Headers(DockContainerLeaf container, Orientation orientation, Side side) {
 		super(orientation);
 

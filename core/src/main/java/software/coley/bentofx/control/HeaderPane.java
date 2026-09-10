@@ -107,7 +107,7 @@ public class HeaderPane extends BorderPane {
 			}
 		});
 		container.getDockables().addListener((ListChangeListener<Dockable>) c -> {
-            @SuppressWarnings("NullAway") // FIXME
+            @SuppressWarnings("NullAway") // FIXME: Headers may be null
 			ObservableList<Node> headerList = headers.getChildren();
 			while (c.next()) {
 				if (c.wasPermutated()) {
@@ -225,8 +225,7 @@ public class HeaderPane extends BorderPane {
 		return null;
 	}
 
-	// node can be null when calling node.getScene(), etc.
-	@SuppressWarnings("NullAway")
+	@SuppressWarnings("NullAway") // FIXME: node can be null
 	private boolean isFocusableContentNode(@Nullable Node node) {
 		// Sanity checks:
 		//  - Must be a content node (not a header)
@@ -353,7 +352,7 @@ public class HeaderPane extends BorderPane {
 	/**
 	 * @return New button that displays all dockables in this space.
 	 */
-    @SuppressWarnings("NullAway") // FIXME
+    @SuppressWarnings("NullAway") // FIXME: headers can be null
 	protected Button createDockableListButton() {
 		Button button = new Button("▼");
 		button.setEllipsisString("▼");
@@ -410,11 +409,9 @@ public class HeaderPane extends BorderPane {
 	public Header getHeader(@Nullable Dockable dockable) {
 		if (dockable == null)
 			return null;
-        if(headers != null) {
-            for (Node child : headers.getChildren())
-                if (child instanceof Header header && header.getDockable() == dockable)
-                    return header;
-        }
+		for (Node child : headers.getChildren())
+			if (child instanceof Header header && header.getDockable() == dockable)
+				return header;
 		return null;
 	}
 
