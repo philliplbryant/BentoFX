@@ -6,6 +6,7 @@ import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutSto
 
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LayoutStorageProviderTest {
@@ -61,7 +62,7 @@ class LayoutStorageProviderTest {
     @Test
     void isLayoutStoredDefaultReportsTrueWhenTheStorageHoldsALayout() {
         final LayoutStorageProvider provider =
-                providerOver(new InMemoryLayoutStorage("stored".getBytes()));
+                providerOver(new InMemoryLayoutStorage("stored".getBytes(UTF_8)));
 
         assertThat(provider.isLayoutStored(LAYOUT_IDENTIFIER, CODEC_IDENTIFIER))
                 .describedAs("isLayoutStored() over storage holding a layout")
