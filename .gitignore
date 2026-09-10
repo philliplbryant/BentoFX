@@ -40,3 +40,4 @@ build/
 
 ### Generated Content ###
 **/generated/**
+/.ignore/
