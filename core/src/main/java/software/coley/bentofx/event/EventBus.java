@@ -79,7 +79,7 @@ public class EventBus {
 	}
 
 	/**
-	 * @return Generic event listeners.
+	 * {@return generic event listeners}
 	 */
 	public List<DockEventListener> getEventListeners() {
 		return Collections.unmodifiableList(eventListeners);
@@ -102,7 +102,7 @@ public class EventBus {
 	}
 
 	/**
-	 * @return Dockable opening listeners.
+	 * {@return dockable opening listeners}
 	 */
 	public List<DockableOpenListener> getDockableOpenListener() {
 		return Collections.unmodifiableList(openListeners);
@@ -125,7 +125,7 @@ public class EventBus {
 	}
 
 	/**
-	 * @return Dockable moving listeners.
+	 * {@return dockable moving listeners}
 	 */
 	public List<DockableMoveListener> getDockableMoveListener() {
 		return Collections.unmodifiableList(moveListeners);
@@ -148,7 +148,7 @@ public class EventBus {
 	}
 
 	/**
-	 * @return Dockable closing listeners.
+	 * {@return dockable closing listeners}
 	 */
 	public List<DockableCloseListener> getDockableCloseListener() {
 		return Collections.unmodifiableList(closeListeners);
@@ -171,7 +171,7 @@ public class EventBus {
 	}
 
 	/**
-	 * @return Dockable selecting listeners.
+	 * {@return dockable selecting listeners}
 	 */
 	public List<DockableSelectListener> getDockableSelectListener() {
 		return Collections.unmodifiableList(selectListeners);

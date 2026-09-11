@@ -33,7 +33,7 @@ public class DockableVisitor implements SearchVisitor {
 	}
 
 	/**
-	 * @return Matched dockable if found.
+	 * {@return matched dockable if found}
 	 */
 	@Nullable
 	public Dockable getMatchedDockable() {

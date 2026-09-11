@@ -96,14 +96,14 @@ public sealed interface DockEvent {
 		}
 
 		/**
-		 * @return Dockable being closed.
+		 * {@return dockable being closed}
 		 */
 		public Dockable dockable() {
 			return dockable;
 		}
 
 		/**
-		 * @return Container the dockable belongs to.
+		 * {@return container the dockable belongs to}
 		 */
 		public DockContainerLeaf container() {
 			return container;
@@ -117,7 +117,7 @@ public sealed interface DockEvent {
 		}
 
 		/**
-		 * @return {@code true} when this closure has been cancelled.
+		 * {@return {@code true} when this closure has been cancelled}
 		 */
 		public boolean isCancelled() {
 			return cancelled;

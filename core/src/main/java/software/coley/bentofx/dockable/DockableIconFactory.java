@@ -11,10 +11,10 @@ import org.jspecify.annotations.Nullable;
  */
 public interface DockableIconFactory {
 	/**
+	 * {@return graphic for the dockable}
+	 *
 	 * @param dockable
 	 * 		Dockable to create a graphic for.
-	 *
-	 * @return Graphic for the dockable.
 	 */
 	@Nullable
 	Node build(Dockable dockable);

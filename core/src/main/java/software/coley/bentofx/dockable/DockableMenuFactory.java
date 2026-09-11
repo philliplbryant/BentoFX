@@ -10,10 +10,10 @@ import org.jspecify.annotations.Nullable;
  */
 public interface DockableMenuFactory {
 	/**
+	 * {@return context menu for the dockable}
+	 *
 	 * @param dockable
 	 * 		Dockable to create a context menu for.
-	 *
-	 * @return Context menu for the dockable.
 	 */
 	@Nullable
 	ContextMenu build(Dockable dockable);

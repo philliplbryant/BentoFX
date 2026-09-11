@@ -10,10 +10,10 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
  */
 public interface HeaderPaneFactory {
 	/**
+	 * {@return new header pane}
+	 *
 	 * @param container
 	 * 		Parent container.
-	 *
-	 * @return New header pane.
 	 */
 	HeaderPane newHeaderPane(DockContainerLeaf container);
 }

@@ -11,27 +11,30 @@ import java.util.Objects;
  */
 public interface ArgbSource {
 	/**
-	 * @return Image width.
+	 * {@return image width}
 	 */
 	int getWidth();
 
 	/**
-	 * @return Image height.
+	 * {@return image height}
 	 */
 	int getHeight();
 
 	/**
+	 * {@return ARGB {@code int} at coordinate, defaulting to {@code 0} for any coordinate out of
+	 * the image bounds}
+	 *
 	 * @param x
 	 * 		Image X coordinate.
 	 * @param y
 	 * 		Image X coordinate.
-	 *
-	 * @return ARGB {@code int} at coordinate.
-	 * Defaults to {@code 0} for any coordinate out of the image bounds.
 	 */
 	int getArgb(int x, int y);
 
 	/**
+	 * {@return ARGB {@code int[]} at coordinates for the given width/height, or
+	 * {@code null} when coordinates are out of the image bounds}
+	 *
 	 * @param x
 	 * 		Image X coordinate.
 	 * @param y
@@ -40,14 +43,11 @@ public interface ArgbSource {
 	 * 		Width of image section to grab.
 	 * @param height
 	 * 		Height of image section to grab.
-	 *
-	 * @return ARGB {@code int[]} at coordinates for the given width/height.
-	 * {@code null} when coordinates are out of the image bounds.
 	 */
 	int @Nullable [] getArgb(int x, int y, int width, int height);
 
 	/**
-	 * @return ARGB {@code int[]} for the full image.
+	 * {@return ARGB {@code int[]} for the full image}
 	 */
 	default int[] getArgb() {
 		return Objects.requireNonNull(getArgb(0, 0, getWidth(), getHeight()),

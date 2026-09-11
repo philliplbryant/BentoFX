@@ -11,12 +11,12 @@ import software.coley.bentofx.dockable.Dockable;
  */
 public interface HeaderFactory {
 	/**
+	 * {@return new header}
+	 *
 	 * @param dockable
 	 * 		Dockable to wrap.
 	 * @param parentPane
 	 * 		Parent header pane.
-	 *
-	 * @return New header.
 	 */
 	Header newHeader(Dockable dockable, HeaderPane parentPane);
 }

@@ -348,7 +348,7 @@ public class HeaderPane extends BorderPane {
 	}
 
 	/**
-	 * @return New button that displays all dockables in this space.
+	 * {@return new button that displays all dockables in this space}
 	 */
 	protected Button createDockableListButton() {
 		Button button = new Button("▼");
@@ -397,10 +397,10 @@ public class HeaderPane extends BorderPane {
 	}
 
 	/**
+	 * {@return associated header within this pane that represents the given dockable}
+	 *
 	 * @param dockable
 	 * 		Some dockable.
-	 *
-	 * @return Associated header within this pane that represents the given dockable.
 	 */
 	@Nullable
 	public Header getHeader(@Nullable Dockable dockable) {
@@ -413,21 +413,21 @@ public class HeaderPane extends BorderPane {
 	}
 
 	/**
-	 * @return Parent container.
+	 * {@return parent container}
 	 */
 	public DockContainerLeaf getContainer() {
 		return container;
 	}
 
 	/**
-	 * @return The border-pane that holds the currently selected {@link Dockable#getNode()}.
+	 * {@return the border-pane that holds the currently selected {@link Dockable#getNode()}}
 	 */
 	public ContentWrapper getContentWrapper() {
 		return contentWrapper;
 	}
 
 	/**
-	 * @return The linear-item-pane holding {@link Header} children.
+	 * {@return the linear-item-pane holding {@link Header} children}
 	 */
 	@Nullable
 	public Headers getHeaders() {

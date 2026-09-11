@@ -522,7 +522,7 @@ public class Header extends Region {
 	}
 
 	/**
-	 * @return Wrapped dockable.
+	 * {@return wrapped dockable}
 	 */
 	public Dockable getDockable() {
 		return dockable;

@@ -84,10 +84,10 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} if one or more of the containers were added}
+	 *
 	 * @param containers
 	 * 		Containers to add.
-	 *
-	 * @return {@code true} if one or more of the containers were added.
 	 */
 	public boolean addContainers(DockContainer... containers) {
 		boolean changed = false;
@@ -97,22 +97,22 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when added}
+	 *
 	 * @param container
 	 * 		Container to add.
-	 *
-	 * @return {@code true} when added.
 	 */
 	public boolean addContainer(DockContainer container) {
 		return addContainer(childContainers.size(), container);
 	}
 
 	/**
+	 * {@return {@code true} when added}
+	 *
 	 * @param index
 	 * 		Index to add the container at.
 	 * @param container
 	 * 		Container to add.
-	 *
-	 * @return {@code true} when added.
 	 */
 	public boolean addContainer(int index, DockContainer container) {
 		if (index < 0 || index > childContainers.size())
@@ -131,12 +131,12 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when replaced}
+	 *
 	 * @param child
 	 * 		A child container within this container.
 	 * @param replacement
 	 * 		A container to replace the existing child with.
-	 *
-	 * @return {@code true} when replaced.
 	 */
 	public boolean replaceContainer(DockContainer child, DockContainer replacement) {
 		if (childContainers.contains(child)) {
@@ -158,10 +158,10 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when removed}
+	 *
 	 * @param child
 	 * 		A child container within this container.
-	 *
-	 * @return {@code true} when removed.
 	 */
 	public boolean removeContainer(DockContainer child) {
 		if (childContainers.remove(child)) {
@@ -187,12 +187,12 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when updated}
+	 *
 	 * @param child
 	 * 		A child container within this container.
 	 * @param size
 	 * 		Size in pixels to set the child container width or height to <i>(Depending on {@link #getOrientation()})</i>
-	 *
-	 * @return {@code true} when updated.
 	 */
 	public boolean setContainerSizePx(DockContainer child, double size) {
 		return setContainerSizePx0(child, size, true);
@@ -252,12 +252,12 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when updated}
+	 *
 	 * @param child
 	 * 		A child container within this container.
 	 * @param percent
 	 * 		Size in percentage of the total width/height of this container to set the child container to <i>(Depending on {@link #getOrientation()})</i>
-	 *
-	 * @return {@code true} when updated.
 	 */
 	public boolean setContainerSizePercent(DockContainer child, double percent) {
 		// TODO: This does not need to be queued in the same way the SizePx does however...
@@ -283,10 +283,10 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} if the child is resizable}
+	 *
 	 * @param child
 	 * 		A child container within this container.
-	 *
-	 * @return {@code true} if the child is resizable.
 	 */
 	public boolean isContainerResizable(DockContainer child) {
 		// Get our direct children that are dividers.
@@ -313,12 +313,12 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} when updated}
+	 *
 	 * @param child
 	 * 		A child container within this container.
 	 * @param resizable
 	 * 		Resizable state to apply to the child.
-	 *
-	 * @return {@code true} when updated.
 	 */
 	public boolean setContainerResizable(DockContainer child, boolean resizable) {
 		// We rely on the split-pane skin having laid out the divders for this implementation, so we need to delegate
@@ -354,22 +354,22 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
+	 * {@return {@code true} if the child is collapsed}
+	 *
 	 * @param child
 	 * 		A child container within this container.
-	 *
-	 * @return {@code true} if the child is collapsed.
 	 */
 	public boolean isContainerCollapsed(DockContainer child) {
 		return child instanceof DockContainerLeaf leaf && leaf.isCollapsed();
 	}
 
 	/**
+	 * {@return {@code true} when updated}
+	 *
 	 * @param child
 	 * 		A child container within this container.
 	 * @param collapse
 	 * 		Collapsed state to apply to the child.
-	 *
-	 * @return {@code true} when updated.
 	 */
 	public boolean setContainerCollapsed(DockContainerLeaf child, boolean collapse) {
 		// Skip if there is nothing to branch between. If there is only one child collapsing makes no sense
@@ -421,7 +421,7 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	}
 
 	/**
-	 * @return Unmodifiable list of containers within this container.
+	 * {@return unmodifiable list of containers within this container}
 	 */
 	public ObservableList<DockContainer> getChildContainers() {
 		return childContainersView;

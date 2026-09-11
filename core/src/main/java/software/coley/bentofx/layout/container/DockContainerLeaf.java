@@ -123,10 +123,10 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * {@return {@code true} when updated}
+	 *
 	 * @param dockable
 	 * 		Dockable to mark as selected.
-	 *
-	 * @return {@code true} when updated.
 	 */
 	public boolean selectDockable(@Nullable Dockable dockable) {
 		// Special case for clearing selection
@@ -226,12 +226,12 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * {@return {@code true} when this container can receive the dockable}
+	 *
 	 * @param dockable
 	 * 		Some dockable.
 	 * @param receivedSide
 	 * 		The side the dockable will be dropped to as part of a DnD operation.
-	 *
-	 * @return {@code true} when this container can receive the dockable.
 	 */
 	public boolean canReceiveDockable(Dockable dockable, @Nullable Side receivedSide) {
 		// Must not already have the given dockable if not splitting.
@@ -310,14 +310,14 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Overlay canvas.
+	 * {@return overlay canvas}
 	 */
 	public PixelCanvas getCanvas() {
 		return canvas;
 	}
 
 	/**
-	 * @return {@code true} when collapsed.
+	 * {@return {@code true} when collapsed}
 	 */
 	public boolean isCollapsed() {
 		return getPseudoClassStates().contains(PSEUDO_COLLAPSED);
@@ -327,7 +327,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * @param selectedDockable
 	 * 		Dockable whose interaction is causing the collapsed state to toggle.
 	 *
-	 * @return {@link #isCollapsed()} after toggling.
+	 * {@return {@link #isCollapsed()} after toggling}
 	 */
 	public boolean toggleCollapse(@Nullable Dockable selectedDockable) {
 		boolean result;
@@ -386,7 +386,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Collapsed size of this container.
+	 * {@return collapsed size of this container}
 	 */
 	protected double getCollapsedSize() {
 		return switch (getSide()) {
@@ -397,7 +397,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Uncollapsed size of this container.
+	 * {@return uncollapsed size of this container}
 	 */
 	protected double getUncollapsedSize() {
 		return switch (getSide()) {
@@ -408,10 +408,10 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * {@return associated header within this container that represents the given dockable}
+	 *
 	 * @param dockable
 	 * 		Some dockable.
-	 *
-	 * @return Associated header within this container that represents the given dockable.
 	 */
 	@Nullable
 	public Header getHeader(Dockable dockable) {
@@ -419,8 +419,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Side of this container to place {@link Header} displays on.
-	 * {@code null} to not display any headers.
+	 * {@return side of this container to place {@link Header} displays on, or
+	 * {@code null} to not display any headers}
 	 */
 	@Nullable
 	public Side getSide() {
@@ -437,7 +437,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return {@link Header} display side property.
+	 * {@return {@link Header} display side property}
 	 */
 	public ObjectProperty<Side> sideProperty() {
 		return side;
@@ -466,14 +466,14 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Collapsed state property.
+	 * {@return collapsed state property}
 	 */
 	public BooleanProperty collapsedProperty() {
 		return collapsed;
 	}
 
 	/**
-	 * @return Context menu for this container.
+	 * {@return context menu for this container}
 	 */
 	@Nullable
 	public ContextMenu buildContextMenu() {
@@ -482,7 +482,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Menu factory for this container.
+	 * {@return menu factory for this container}
 	 */
 	@Nullable
 	public DockContainerLeafMenuFactory getMenuFactory() {
@@ -490,7 +490,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Menu factory property.
+	 * {@return menu factory property}
 	 */
 	public ObjectProperty<DockContainerLeafMenuFactory> menuFactoryProperty() {
 		return menuFactory;
@@ -505,7 +505,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return {@code true} if this leaf can be split via drag-n-drop operations.
+	 * {@return {@code true} if this leaf can be split via drag-n-drop operations}
 	 */
 	public boolean isCanSplit() {
 		if (parent == null) return false;
@@ -514,7 +514,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
-	 * @return Splittable property.
+	 * {@return splittable property}
 	 */
 	public BooleanProperty canSplitProperty() {
 		if (canSplit == null) canSplit = new SimpleBooleanProperty(true);

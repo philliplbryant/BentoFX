@@ -267,12 +267,12 @@ public interface PixelPainter<B extends Buffer> {
 	void clear();
 
 	/**
-	 * @return Backing buffer.
+	 * {@return backing buffer}
 	 */
 	B getBuffer();
 
 	/**
-	 * @return Pixel format for contents in this painter's buffer.
+	 * {@return pixel format for contents in this painter's buffer}
 	 */
 	PixelFormat<B> getPixelFormat();
 }

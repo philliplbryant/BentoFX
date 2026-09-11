@@ -10,10 +10,10 @@ import javafx.scene.Node;
  */
 public interface DockablePlaceholderFactory {
 	/**
+	 * {@return placeholder for the dockable}
+	 *
 	 * @param dockable
 	 * 		Dockable to create a placeholder display for.
-	 *
-	 * @return Placeholder for the dockable.
 	 */
 	Node build(Dockable dockable);
 }

@@ -354,10 +354,10 @@ public class PixelCanvas extends Region {
 	}
 
 	/**
+	 * {@return generated hash}
+	 *
 	 * @param values
 	 * 		Values to hash.
-	 *
-	 * @return Generated hash.
 	 */
 	protected static int hash(int... values) {
 		int hash = values[0];

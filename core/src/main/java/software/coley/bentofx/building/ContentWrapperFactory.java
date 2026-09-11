@@ -11,10 +11,10 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
  */
 public interface ContentWrapperFactory {
 	/**
+	 * {@return newly created content wrapper}
+	 *
 	 * @param container
 	 * 		Parent container.
-	 *
-	 * @return Newly created content wrapper.
 	 */
 	ContentWrapper newContentWrapper(DockContainerLeaf container);
 }

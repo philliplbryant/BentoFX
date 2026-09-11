@@ -7,7 +7,7 @@ package software.coley.bentofx;
  */
 public interface BentoBacked {
 	/**
-	 * @return Bento instance responsible for this object.
+	 * {@return Bento instance responsible for this object}
 	 */
 	Bento getBento();
 }

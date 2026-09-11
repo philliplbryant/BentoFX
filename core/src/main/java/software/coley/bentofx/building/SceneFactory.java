@@ -12,6 +12,8 @@ import software.coley.bentofx.control.DragDropStage;
  */
 public interface SceneFactory {
 	/**
+	 * {@return newly created scene}
+	 *
 	 * @param sourceScene
 	 * 		Original scene to copy state from.
 	 * @param content
@@ -20,8 +22,6 @@ public interface SceneFactory {
 	 * 		Content width.
 	 * @param height
 	 * 		Content height.
-	 *
-	 * @return Newly created scene.
 	 */
 	Scene newScene(@Nullable Scene sourceScene, Region content, double width, double height);
 }

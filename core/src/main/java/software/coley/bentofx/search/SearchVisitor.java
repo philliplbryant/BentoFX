@@ -12,30 +12,30 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
  */
 public interface SearchVisitor {
 	/**
+	 * {@return {@code true} to continue visitation}
+	 *
 	 * @param container
 	 * 		Container to visit.
-	 *
-	 * @return {@code true} to continue visitation.
 	 */
 	default boolean visitBranch(DockContainerBranch container) {
 		return true;
 	}
 
 	/**
+	 * {@return {@code true} to continue visitation}
+	 *
 	 * @param container
 	 * 		Container to visit.
-	 *
-	 * @return {@code true} to continue visitation.
 	 */
 	default boolean visitLeaf(DockContainerLeaf container) {
 		return true;
 	}
 
 	/**
+	 * {@return {@code true} to continue visitation}
+	 *
 	 * @param dockable
 	 * 		Dockable to visit.
-	 *
-	 * @return {@code true} to continue visitation.
 	 */
 	default boolean visitDockable(Dockable dockable) {
 		return true;

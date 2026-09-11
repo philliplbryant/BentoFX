@@ -13,14 +13,14 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
  */
 public interface HeadersFactory {
 	/**
+	 * {@return newly created headers}
+	 *
 	 * @param container
 	 * 		Associated container.
 	 * @param orientation
 	 * 		Orientation of the headers.
 	 * @param side
 	 * 		Side this headers bar will be located at.
-	 *
-	 * @return Newly created headers.
 	 */
 	Headers newHeaders(DockContainerLeaf container, Orientation orientation, Side side);
 }

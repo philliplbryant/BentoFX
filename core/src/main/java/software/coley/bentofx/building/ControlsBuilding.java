@@ -29,7 +29,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	private CanvasFactory canvasFactory = DEFAULT_CANVAS_FACTORY;
 
 	/**
-	 * @return Factory for creating {@link HeaderPane}.
+	 * {@return factory for creating {@link HeaderPane}}
 	 */
 	public HeaderPaneFactory getHeaderPaneFactory() {
 		return headerPaneFactory;
@@ -47,7 +47,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	}
 
 	/**
-	 * @return Factory for creating {@link Headers}.
+	 * {@return factory for creating {@link Headers}}
 	 */
 	public HeadersFactory getHeadersFactory() {
 		return headersFactory;
@@ -65,7 +65,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	}
 
 	/**
-	 * @return Factory for creating {@link Header}.
+	 * {@return factory for creating {@link Header}}
 	 */
 	public HeaderFactory getHeaderFactory() {
 		return headerFactory;
@@ -83,7 +83,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	}
 
 	/**
-	 * @return Factory for creating {@link ContentWrapper}.
+	 * {@return factory for creating {@link ContentWrapper}}
 	 */
 	public ContentWrapperFactory getContentWrapperFactory() {
 		return contentWrapperFactory;
@@ -101,7 +101,7 @@ public class ControlsBuilding implements HeaderPaneFactory, HeadersFactory, Head
 	}
 
 	/**
-	 * @return Factory for creating {@link PixelCanvas}.
+	 * {@return factory for creating {@link PixelCanvas}}
 	 */
 	public CanvasFactory getCanvasFactory() {
 		return canvasFactory;

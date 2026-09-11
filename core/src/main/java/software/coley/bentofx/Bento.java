@@ -66,56 +66,56 @@ public class Bento {
 	}
 
 	/**
-	 * @return Bus for handling event firing and event listeners.
+	 * {@return bus for handling event firing and event listeners}
 	 */
 	public EventBus events() {
 		return eventBus;
 	}
 
 	/**
-	 * @return Search operations.
+	 * {@return search operations}
 	 */
 	public SearchHandler search() {
 		return searchHandler;
 	}
 
 	/**
-	 * @return Builders for {@link DragDropStage}.
+	 * {@return builders for {@link DragDropStage}}
 	 */
 	public StageBuilding stageBuilding() {
 		return stageBuilding;
 	}
 
 	/**
-	 * @return Builders for various bento UI controls.
+	 * {@return builders for various bento UI controls}
 	 */
 	public ControlsBuilding controlsBuilding() {
 		return controlsBuilding;
 	}
 
 	/**
-	 * @return Builders for {@link DockContainer} and {@link Dockable}.
+	 * {@return builders for {@link DockContainer} and {@link Dockable}}
 	 */
 	public DockBuilding dockBuilding() {
 		return dockBuilding;
 	}
 
 	/**
-	 * @return Builders for placeholder content.
+	 * {@return builders for placeholder content}
 	 */
 	public PlaceholderBuilding placeholderBuilding() {
 		return placeholderBuilding;
 	}
 
 	/**
-	 * @return Behavior implementation for drag-drop operations.
+	 * {@return behavior implementation for drag-drop operations}
 	 */
 	public DockableDragDropBehavior getDragDropBehavior() {
 		return dragDropBehavior;
 	}
 
 	/**
-	 * @return Behavior implementation for click operations.
+	 * {@return behavior implementation for click operations}
 	 */
 	public DockableClickBehavior getClickBehavior() {
 		return clickBehavior;
@@ -132,10 +132,10 @@ public class Bento {
 	}
 
 	/**
+	 * {@return {@code true} when registered}
+	 *
 	 * @param container
 	 * 		Root container to register.
-	 *
-	 * @return {@code true} when registered.
 	 */
 	public boolean registerRoot(DockContainerRootBranch container) {
 		if (!rootContainers.contains(container)) {
@@ -147,10 +147,10 @@ public class Bento {
 	}
 
 	/**
+	 * {@return {@code true} when unregistered}
+	 *
 	 * @param container
 	 * 		Root container to unregister.
-	 *
-	 * @return {@code true} when unregistered.
 	 */
 	public boolean unregisterRoot(DockContainerRootBranch container) {
 		if (rootContainers.remove(container)) {

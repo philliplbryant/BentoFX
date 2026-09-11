@@ -10,10 +10,10 @@ import javafx.scene.Node;
  */
 public interface DockContainerLeafPlaceholderFactory {
 	/**
+	 * {@return placeholder for the container}
+	 *
 	 * @param container
 	 * 		Container to create a placeholder display for.
-	 *
-	 * @return Placeholder for the container.
 	 */
 	Node build(DockContainerLeaf container);
 }

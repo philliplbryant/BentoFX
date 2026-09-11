@@ -34,24 +34,24 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return {@code true} when replacement was completed}
+	 *
 	 * @param identifier
 	 * 		Some {@link DockContainer#getIdentifier()}.
 	 * @param replacement
 	 * 		Content to replace the matched container with.
-	 *
-	 * @return {@code true} when replacement was completed.
 	 */
 	public boolean replaceContainer(String identifier, DockContainer replacement) {
 		return replaceContainer(identifier, () -> replacement);
 	}
 
 	/**
+	 * {@return {@code true} when replacement was completed}
+	 *
 	 * @param identifier
 	 * 		Some {@link DockContainer#getIdentifier()}.
 	 * @param replacement
 	 * 		Supplier of content to replace the matched container with.
-	 *
-	 * @return {@code true} when replacement was completed.
 	 */
 	public boolean replaceContainer(String identifier, Supplier<DockContainer> replacement) {
 		DockContainerPath container = container(identifier);
@@ -67,10 +67,10 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return path to the matched container, if found}
+	 *
 	 * @param identifier
 	 * 		Some {@link DockContainer#getIdentifier()}.
-	 *
-	 * @return Path to the matched container, if found.
 	 */
 	@Nullable
 	public DockContainerPath container(String identifier) {
@@ -78,10 +78,10 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return path to the first matched container, if found}
+	 *
 	 * @param predicate
 	 * 		Predicate to match against some container.
-	 *
-	 * @return Path to the first matched container, if found.
 	 */
 	@Nullable
 	public DockContainerPath container(Predicate<DockContainer> predicate) {
@@ -95,10 +95,10 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return path to the associated {@link Dockable} if found}
+	 *
 	 * @param event
 	 * 		A drag event that may have a {@link Dockable} associated with it.
-	 *
-	 * @return Path to the associated {@link Dockable} if found.
 	 */
 	@Nullable
 	public DockablePath dockable(DragEvent event) {
@@ -107,10 +107,10 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return path to the matched container, if found}
+	 *
 	 * @param identifier
 	 * 		Some {@link Dockable#getIdentifier()}.
-	 *
-	 * @return Path to the matched container, if found.
 	 */
 	@Nullable
 	public DockablePath dockable(String identifier) {
@@ -118,10 +118,10 @@ public class SearchHandler {
 	}
 
 	/**
+	 * {@return path to the first matched dockable, if found}
+	 *
 	 * @param predicate
 	 * 		Predicate to match against some dockable.
-	 *
-	 * @return Path to the first matched dockable, if found.
 	 */
 	@Nullable
 	public DockablePath dockable(Predicate<Dockable> predicate) {
@@ -135,7 +135,7 @@ public class SearchHandler {
 	}
 
 	/**
-	 * @return All found dockable paths in the current bento instance.
+	 * {@return all found dockable paths in the current bento instance}
 	 */
 	public List<DockablePath> allDockables() {
 		List<DockablePath> paths = new ArrayList<>();

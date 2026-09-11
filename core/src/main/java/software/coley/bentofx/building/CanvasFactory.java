@@ -10,10 +10,10 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
  */
 public interface CanvasFactory {
 	/**
+	 * {@return new canvas}
+	 *
 	 * @param container
 	 * 		Parent container.
-	 *
-	 * @return New canvas.
 	 */
 	PixelCanvas newCanvas(DockContainerLeaf container);
 }

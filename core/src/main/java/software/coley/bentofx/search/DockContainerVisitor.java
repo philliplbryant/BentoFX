@@ -41,7 +41,7 @@ public class DockContainerVisitor implements SearchVisitor {
 
 
 	/**
-	 * @return Matched container if found.
+	 * {@return matched container if found}
 	 */
 	@Nullable
 	public DockContainer getMatchedContainer() {

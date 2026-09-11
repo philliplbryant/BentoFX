@@ -11,10 +11,10 @@ import software.coley.bentofx.control.DragDropStage;
  */
 public interface StageFactory {
 	/**
+	 * {@return newly created stage}
+	 *
 	 * @param sourceStage
 	 * 		Original stage to copy state from.
-	 *
-	 * @return Newly created stage.
 	 */
 	DragDropStage newStage(@Nullable Stage sourceStage);
 }

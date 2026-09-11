@@ -22,7 +22,7 @@ import java.util.List;
  */
 public sealed interface DockContainer extends BentoBacked, Identifiable permits DockContainerBranch, DockContainerLeaf {
 	/**
-	 * @return Path to this container from the root container that holds this container.
+	 * {@return path to this container from the root container that holds this container}
 	 */
 	default DockContainerPath getPath() {
 		DockContainer parent = getParentContainer();
@@ -32,7 +32,7 @@ public sealed interface DockContainer extends BentoBacked, Identifiable permits 
 	}
 
 	/**
-	 * @return Parent container that holds this container. {@code null} when this container is a root.
+	 * {@return parent container that holds this container, or {@code null} when this container is a root}
 	 */
 	@Nullable
 	DockContainerBranch getParentContainer();
@@ -56,23 +56,23 @@ public sealed interface DockContainer extends BentoBacked, Identifiable permits 
 	void removeAsParentContainer(DockContainerBranch parent);
 
 	/**
+	 * {@return {@code true} when the visit shall continue}
+	 *
 	 * @param visitor
 	 * 		Visitor to control continued traversal.
-	 *
-	 * @return {@code true} when the visit shall continue.
 	 */
 	boolean visit(SearchVisitor visitor);
 
 	/**
-	 * @return Unmodifiable list of dockables within this container.
+	 * {@return unmodifiable list of dockables within this container}
 	 */
 	List<Dockable> getDockables();
 
 	/**
+	 * {@return {@code true} if one or more of the dockables were added}
+	 *
 	 * @param dockables
 	 * 		Dockables to add.
-	 *
-	 * @return {@code true} if one or more of the dockables were added.
 	 */
 	default boolean addDockables(Dockable... dockables) {
 		boolean changed = false;
@@ -82,36 +82,36 @@ public sealed interface DockContainer extends BentoBacked, Identifiable permits 
 	}
 
 	/**
+	 * {@return {@code true} when added}
+	 *
 	 * @param dockable
 	 * 		Dockable to add.
-	 *
-	 * @return {@code true} when added.
 	 */
 	boolean addDockable(Dockable dockable);
 
 	/**
+	 * {@return {@code true} when added}
+	 *
 	 * @param dockable
 	 * 		Dockable to add.
 	 * @param index
 	 * 		Index to add the dockable at.
-	 *
-	 * @return {@code true} when added.
 	 */
 	boolean addDockable(int index, Dockable dockable);
 
 	/**
+	 * {@return {@code true} when removed}
+	 *
 	 * @param dockable
 	 * 		Dockable to remove.
-	 *
-	 * @return {@code true} when removed.
 	 */
 	boolean removeDockable(Dockable dockable);
 
 	/**
+	 * {@return {@code true} when removed}
+	 *
 	 * @param dockable
 	 * 		Dockable to close and then remove.
-	 *
-	 * @return {@code true} when removed.
 	 */
 	boolean closeDockable(Dockable dockable);
 
@@ -128,7 +128,7 @@ public sealed interface DockContainer extends BentoBacked, Identifiable permits 
 	}
 
 	/**
-	 * @return {@code true} to {@link #removeFromParent() prune} when this container has no remaining dockables.
+	 * {@return {@code true} to {@link #removeFromParent() prune} when this container has no remaining dockables}
 	 */
 	boolean doPruneWhenEmpty();
 
@@ -139,7 +139,7 @@ public sealed interface DockContainer extends BentoBacked, Identifiable permits 
 	void setPruneWhenEmpty(boolean pruneWhenEmpty);
 
 	/**
-	 * @return Self, cast to region.
+	 * {@return self, cast to region}
 	 */
 	default Region asRegion() {
 		return (Region) this;

@@ -15,10 +15,10 @@ import java.util.List;
  */
 public record DockContainerPath(List<DockContainer> containers) implements BentoPath {
 	/**
+	 * {@return new path with the given child at the end}
+	 *
 	 * @param child
 	 * 		Child to append to new path.
-	 *
-	 * @return New path with the given child at the end.
 	 */
 	public DockContainerPath withChild(DockContainer child) {
 		List<DockContainer> containersWithChild = new ArrayList<>(containers.size() + 1);
@@ -28,10 +28,10 @@ public record DockContainerPath(List<DockContainer> containers) implements Bento
 	}
 
 	/**
+	 * {@return new path with the given child at the end}
+	 *
 	 * @param child
 	 * 		Child to append to new path.
-	 *
-	 * @return New path with the given child at the end.
 	 */
 	public DockablePath withChild(Dockable child) {
 		return new DockablePath(containers, child);
@@ -44,7 +44,7 @@ public record DockContainerPath(List<DockContainer> containers) implements Bento
 	}
 
 	/**
-	 * @return Tail container in the path / intended target of the path.
+	 * {@return tail container in the path / intended target of the path}
 	 */
 	public DockContainer tailContainer() {
 		// There must always be at least one container since we must have a result for the path.

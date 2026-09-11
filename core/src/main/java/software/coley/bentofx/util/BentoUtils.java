@@ -26,10 +26,10 @@ import java.util.function.Consumer;
  */
 public class BentoUtils {
 	/**
+	 * {@return respective orientation if it were to be used for a {@link HeaderPane}}
+	 *
 	 * @param side
 	 * 		Some side.
-	 *
-	 * @return Respective orientation if it were to be used for a {@link HeaderPane}.
 	 */
 	public static Orientation sideToOrientation(@Nullable Side side) {
 		return switch (side) {
@@ -40,14 +40,14 @@ public class BentoUtils {
 	}
 
 	/**
+	 * {@return the closest side for the given target position in the given region}
+	 *
 	 * @param target
 	 * 		Some target to base calculations in.
 	 * @param x
 	 * 		Target x.
 	 * @param y
 	 * 		Target y.
-	 *
-	 * @return The closest side for the given target position in the given region.
 	 */
 	@Nullable
 	public static Side computeClosestSide(Region target, double x, double y) {

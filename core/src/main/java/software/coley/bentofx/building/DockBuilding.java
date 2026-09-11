@@ -27,17 +27,17 @@ public class DockBuilding {
 	}
 
 	/**
-	 * @return New dockable.
+	 * {@return new dockable}
 	 */
 	public Dockable dockable() {
 		return dockable(uid("dockable"));
 	}
 
 	/**
+	 * {@return new dockable}
+	 *
 	 * @param identifier
 	 * 		Identifier to assign to the created dockable.
-	 *
-	 * @return New dockable.
 	 */
 	public Dockable dockable(String identifier) {
 		return new Dockable(bento, identifier);
@@ -68,34 +68,34 @@ public class DockBuilding {
 	}
 
 	/**
-	 * @return New branch container.
+	 * {@return new branch container}
 	 */
 	public DockContainerBranch branch() {
 		return branch(uid("cbranch"));
 	}
 
 	/**
+	 * {@return new branch container}
+	 *
 	 * @param identifier
 	 * 		Identifier to assign to the created container.
-	 *
-	 * @return New branch container.
 	 */
 	public DockContainerBranch branch(String identifier) {
 		return new DockContainerBranch(bento, identifier);
 	}
 
 	/**
-	 * @return New leaf container.
+	 * {@return new leaf container}
 	 */
 	public DockContainerLeaf leaf() {
 		return leaf(uid("cleaf"));
 	}
 
 	/**
+	 * {@return new leaf container}
+	 *
 	 * @param identifier
 	 * 		Identifier to assign to the created container.
-	 *
-	 * @return New branch container.
 	 */
 	public DockContainerLeaf leaf(String identifier) {
 		return new DockContainerLeaf(bento, identifier);

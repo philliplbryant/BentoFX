@@ -21,7 +21,7 @@ public class PlaceholderBuilding implements DockablePlaceholderFactory, DockCont
 	private DockContainerLeafPlaceholderFactory containerPlaceholderFactory = container -> new Pane();
 
 	/**
-	 * @return Current placeholder factory for dockables with no content to show.
+	 * {@return current placeholder factory for dockables with no content to show}
 	 */
 	public DockablePlaceholderFactory getDockablePlaceholderFactory() {
 		return dockablePlaceholderFactory;
@@ -36,7 +36,7 @@ public class PlaceholderBuilding implements DockablePlaceholderFactory, DockCont
 	}
 
 	/**
-	 * @return Current placeholder factory for containers with no content to show.
+	 * {@return current placeholder factory for containers with no content to show}
 	 */
 	public DockContainerLeafPlaceholderFactory getContainerPlaceholderFactory() {
 		return containerPlaceholderFactory;

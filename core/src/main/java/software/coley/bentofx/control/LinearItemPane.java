@@ -44,22 +44,22 @@ public class LinearItemPane extends Pane {
 	}
 
 	/**
-	 * @return Orientation of this linear pane.
+	 * {@return orientation of this linear pane}
 	 */
 	public Orientation getOrientation() {
 		return orientation;
 	}
 
 	/**
-	 * @return {@code true} when children overflow beyond the visible bounds of this pane.
-	 * {@code false} when all children are visible in-bounds.
+	 * {@return {@code true} when children overflow beyond the visible bounds of this pane, or
+	 * {@code false} when all children are visible in-bounds}
 	 */
 	public BooleanProperty overflowingProperty() {
 		return overflowing;
 	}
 
 	/**
-	 * @return A child to keep in view.
+	 * {@return a child to keep in view}
 	 */
 	public ObjectProperty<Node> keepInViewProperty() {
 		return keepInView;

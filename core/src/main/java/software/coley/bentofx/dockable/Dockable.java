@@ -92,8 +92,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Path to this dockable in the current bento instance.
-	 * {@code null} if this dockable has no {@link #getContainer() parent container}.
+	 * {@return path to this dockable in the current bento instance, or
+	 * {@code null} if this dockable has no {@link #getContainer() parent container}}
 	 */
 	@Nullable
 	public DockablePath getPath() {
@@ -119,7 +119,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current title.
+	 * {@return current title}
 	 */
 	public String getTitle() {
 		if (title == null)
@@ -128,7 +128,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Title property.
+	 * {@return title property}
 	 */
 	public StringProperty titleProperty() {
 		if (title == null)
@@ -145,7 +145,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current tooltip.
+	 * {@return current tooltip}
 	 */
 	@Nullable
 	public Tooltip getTooltip() {
@@ -155,7 +155,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Tooltip property.
+	 * {@return tooltip property}
 	 */
 	public ObjectProperty<Tooltip> tooltipProperty() {
 		if (tooltip == null)
@@ -172,7 +172,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current icon factory.
+	 * {@return current icon factory}
 	 */
 	@Nullable
 	public DockableIconFactory getIconFactory() {
@@ -182,7 +182,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Icon factory property.
+	 * {@return icon factory property}
 	 */
 	public ObjectProperty<DockableIconFactory> iconFactoryProperty() {
 		if (iconFactory == null) iconFactory = new SimpleObjectProperty<>();
@@ -198,7 +198,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current context menu factory.
+	 * {@return current context menu factory}
 	 */
 	@Nullable
 	public DockableMenuFactory getContextMenuFactory() {
@@ -208,7 +208,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Context menu factory property.
+	 * {@return context menu factory property}
 	 */
 	public ObjectProperty<DockableMenuFactory> contextMenuFactoryProperty() {
 		if (contextMenuFactory == null)
@@ -225,7 +225,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current node to display when this dockable is selected.
+	 * {@return current node to display when this dockable is selected}
 	 */
 	@Nullable
 	public Node getNode() {
@@ -235,7 +235,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Node to display when this dockable is selected.
+	 * {@return node to display when this dockable is selected}
 	 */
 	public ObjectProperty<Node> nodeProperty() {
 		if (node == null)
@@ -252,7 +252,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current parent container.
+	 * {@return current parent container}
 	 */
 	@Nullable
 	public DockContainerLeaf getContainer() {
@@ -262,7 +262,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Parent container property.
+	 * {@return parent container property}
 	 */
 	public ObjectProperty<DockContainerLeaf> containerProperty() {
 		if (container == null)
@@ -281,7 +281,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Current drag group mask.
+	 * {@return current drag group mask}
 	 */
 	public int getDragGroupMask() {
 		if (dragGroupMask == null)
@@ -290,7 +290,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Drag group mask property.
+	 * {@return drag group mask property}
 	 */
 	public IntegerProperty dragGroupMaskProperty() {
 		if (dragGroupMask == null)
@@ -307,7 +307,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return {@code true} if this dockable is closable. {@code false} if not closable.
+	 * {@return {@code true} if this dockable is closable, {@code false} if not closable}
 	 */
 	public boolean isClosable() {
 		if (closable == null)
@@ -316,7 +316,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Closable property.
+	 * {@return closable property}
 	 */
 	public BooleanProperty closableProperty() {
 		if (closable == null)
@@ -333,7 +333,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return {@code true} if this dockable can be dragged. {@code false} if not draggable.
+	 * {@return {@code true} if this dockable can be dragged, {@code false} if not draggable}
 	 */
 	public boolean isCanBeDragged() {
 		if (canBeDragged == null)
@@ -342,7 +342,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Draggable property.
+	 * {@return draggable property}
 	 */
 	public BooleanProperty canBeDraggedProperty() {
 		if (canBeDragged == null)
@@ -359,7 +359,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return {@code true} if this dockable can be drag-dropped to a new window. {@code false} to limit to cross-container dragging.
+	 * {@return {@code true} if this dockable can be drag-dropped to a new window, {@code false} to limit to cross-container dragging}
 	 */
 	public boolean isCanBeDroppedToNewWindow() {
 		if (canBeDroppedToNewWindow == null)
@@ -368,7 +368,7 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
-	 * @return Window droppable property.
+	 * {@return window droppable property}
 	 */
 	public BooleanProperty canBeDroppedToNewWindowProperty() {
 		if (canBeDroppedToNewWindow == null)

@@ -9,7 +9,7 @@ import software.coley.bentofx.layout.DockContainer;
  */
 public sealed interface BentoPath permits DockContainerPath, DockablePath {
 	/**
-	 * @return Root container of the path.
+	 * {@return root container of the path}
 	 */
 	DockContainer rootContainer();
 }

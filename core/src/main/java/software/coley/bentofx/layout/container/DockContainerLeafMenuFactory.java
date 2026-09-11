@@ -10,10 +10,10 @@ import org.jspecify.annotations.Nullable;
  */
 public interface DockContainerLeafMenuFactory {
 	/**
+	 * {@return context menu for the container}
+	 *
 	 * @param container
 	 * 		Container to create a context menu for.
-	 *
-	 * @return Context menu for the container.
 	 */
 	@Nullable
 	ContextMenu build(DockContainerLeaf container);
