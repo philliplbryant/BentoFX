@@ -1,5 +1,6 @@
 package software.coley.gradle.lifecycle
 
+@SuppressWarnings("unused")
 final class BuildLifecycle {
     public static final String ALL_CLASSES_TASK_NAME = 'allClasses'
 

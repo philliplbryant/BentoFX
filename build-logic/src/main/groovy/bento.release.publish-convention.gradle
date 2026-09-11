@@ -1,51 +1,61 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
 plugins {
-    id 'java'
-    id 'bento.project.project-convention'
-    id 'maven-publish'
+    id 'bento.release.publish-metadata-convention'
 }
 
-def bentoConvention = extensions.getByName('bentoConvention')
+def bentoConvention = extensions.findByName('bentoConvention')
+def normalizedName = bentoConvention != null
+        ? bentoConvention.normalizedProjectName
+        : providers.provider { project.name }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = bentoConvention.normalizedProjectName.get()
+            artifactId = normalizedName.get()
 
-            from components['java']
+            from(components.findByName('java') ?: components.getByName('javaPlatform'))
 
             pom {
-                url.set( 'https://github.com/Col-E/BentoFX')
-                inceptionYear.set( '2025')
-
-                licenses {
-                    license {
-                        name.set( 'MIT')
-                        url.set( 'https://spdx.org/licenses/MIT.html')
-                    }
-                }
-                developers {
-                    developer {
-                        id =  'Col-E'
-                        name =  'Matt Coley'
-                    }
-                    developer {
-                        id.set( 'philliplbryant')
-                        name.set( 'Phil Bryant')
-                    }
-                }
-                scm {
-                    connection.set( 'scm:git:https://github.com/Col-E/BentoFX.git')
-                    developerConnection.set( 'scm:git:ssh://github.com/Col-E/BentoFX.git')
-                    url.set( 'https://github.com/Col-E/BentoFX')
-                }
+                name.set(normalizedName)
+                description.set(providers.provider { project.description })
             }
         }
     }
+}
 
-    repositories {
-        mavenLocal()
-        maven {
-            url = uri(layout.buildDirectory.dir( 'staging-deploy'))
+def pomTask =
+        tasks.named('generatePomFileForMavenJavaPublication', GenerateMavenPom)
+def generatedPom = objects.fileProperty()
+generatedPom.fileProvider(pomTask.map { it.destination })
+
+/**
+ * A version that resolves here can still be one Maven cannot resolve, and
+ * nothing else in a build reads the POM a consumer gets.
+ */
+def validatePomVersionsTask = tasks.register('validatePomVersions') {
+    description = 'Fails when the generated POM requests a dependency ' +
+            'version Maven cannot resolve.'
+    group = VERIFICATION_GROUP
+
+    inputs.file(generatedPom).withPropertyName('generatedPom')
+
+    doLast {
+        def pomFile = generatedPom.get().asFile
+        def malformedVersions = (pomFile.text =~ /<version>([^<]*)<\/version>/)
+                .collect { match -> match[1] }
+                .findAll { version -> !(version ==~ /[A-Za-z0-9][A-Za-z0-9._+-]*/) }
+                .unique()
+
+        if (malformedVersions) {
+            throw new GradleException(
+                    "$pomFile requests ${malformedVersions.size()} version(s) " +
+                            "that are not versions: ${malformedVersions.join(', ')}"
+            )
         }
     }
+}
+
+tasks.named('check') {
+    dependsOn(validatePomVersionsTask)
 }

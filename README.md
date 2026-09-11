@@ -1,3 +1,8 @@
+[![Build](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml/badge.svg)](https://github.com/philliplbryant/BentoFX/actions/workflows/build.yml)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=philliplbryant_BentoFX&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=philliplbryant_BentoFX)
+[![Codecov](https://codecov.io/gh/philliplbryant/BentoFX/graph/badge.svg)](https://codecov.io/gh/philliplbryant/BentoFX)
+[![Maven Central](https://img.shields.io/maven-central/v/software.coley.bento-fx/core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/software.coley.bento-fx/core)
+
 # BentoFX
 
 A docking system for JavaFX.

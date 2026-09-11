@@ -1,4 +1,7 @@
 pluginManagement {
+    // Runs before Gradle configures projects.
+    includeBuild('settings-logic')
+    // Runs after settings and is used to configure projects.
     includeBuild 'build-logic'
 
     repositories {
@@ -7,11 +10,16 @@ pluginManagement {
     }
 }
 
+plugins {
+    id 'bento.analysis.ben-manes-versions-settings'
+    id 'bento.analysis.dagp-settings'
+    id 'bento.report.aggregation-settings'
+}
+
 dependencyResolutionManagement {
     includeBuild 'build-logic'
 
     repositories {
-        mavenLocal()
         mavenCentral()
     }
 }
@@ -22,6 +30,8 @@ enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
 enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
 
 include 'platform'
+include 'report-aggregation'
 
 include 'core'
+
 include 'demos:basic'
