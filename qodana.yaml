@@ -21,3 +21,7 @@ exclude:
   - name: All
     paths:
       - build
+      # TODO BENTO-13: Enable analysis on these modules
+      - core
+      - demos/basic
+      - demos/persistence/src/main/resources

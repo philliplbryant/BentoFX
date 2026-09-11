@@ -1,0 +1,36 @@
+package software.coley.bentofx.persistence.impl.codec.common.mapper;
+
+/**
+ * The element names an encoded layout uses, shared by every codec that binds these
+ * DTOs so that one format's names cannot drift from another's.
+ *
+ * @author Phil Bryant
+ */
+public final class ElementNames {
+
+    public static final String DOCKING_LAYOUT_ROOT_ELEMENT_NAME = "dockingLayout";
+    public static final String METADATA_ELEMENT_NAME = "metadata";
+    public static final String SCHEMA_VERSION_ELEMENT_NAME = "schemaVersion";
+    public static final String DISPLAY_NAME_ELEMENT_NAME = "displayName";
+    public static final String GROUP_ELEMENT_NAME = "group";
+    public static final String GROUP_LIST_ELEMENT_NAME = "groups";
+    public static final String GROUP_NAME_ELEMENT_NAME = "groupName";
+    public static final String BENTO_LIST_ELEMENT_NAME = "bentos";
+    public static final String BENTO_ELEMENT_NAME = "bento";
+    public static final String ROOT_BRANCH_LIST_ELEMENT_NAME = "rootBranches";
+    public static final String ROOT_BRANCH_ELEMENT_NAME = "rootBranch";
+    public static final String DIVIDER_POSITION_LIST_ELEMENT_NAME = "dividerPositions";
+    public static final String DIVIDER_ELEMENT_NAME = "divider";
+    public static final String BRANCH_LIST_ELEMENT_NAME = "branches";
+    public static final String BRANCH_ELEMENT_NAME = "branch";
+    public static final String LEAF_ELEMENT_NAME = "leaf";
+    public static final String CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME = "childDockContainers";
+    public static final String DOCKABLE_LIST_ELEMENT_NAME = "dockables";
+    public static final String DOCKABLE_ELEMENT_NAME = "dockable";
+    public static final String DRAG_DROP_STAGE_LIST_ELEMENT_NAME = "dragDropStages";
+    public static final String DRAG_DROP_STAGE_ELEMENT_NAME = "dragDropStage";
+
+    private ElementNames() {
+        throw new IllegalStateException("Utility class");
+    }
+}

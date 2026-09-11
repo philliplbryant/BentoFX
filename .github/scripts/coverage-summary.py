@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
 
 SOURCE_EXTENSIONS = {
     ".groovy",
@@ -75,6 +77,9 @@ def count_source_lines(root: Path) -> int:
 
 AGGREGATE_REPORT_DIR = Path("report-aggregation") / "build" / "reports" / "jacoco"
 
+# Marks the union row and the note explaining it.
+FOOTNOTE_MARK = "†"
+
 
 def find_jacoco_xml_reports(root: Path) -> list[Path]:
     # Only ':report-aggregation' covers every module, so its reports are the ones
@@ -118,6 +123,77 @@ def collect_report_counters(reports: list[Path]) -> dict[str, dict[str, tuple[in
     return per_report
 
 
+def iter_report_lines(reports: list[Path]) -> Iterator[tuple[str, Element]]:
+    # Yields every line of every report keyed by package, source file and number.
+    # That key is the line's identity, which is what makes the union exact.
+    for report in reports:
+        try:
+            root = ElementTree.parse(report).getroot()
+        except (ElementTree.ParseError, OSError):
+            continue
+
+        for package in root.iter("package"):
+            for source_file in package.findall("sourcefile"):
+                for line in source_file.findall("line"):
+                    key = f"{package.get('name')}|{source_file.get('name')}|{line.get('nr')}"
+                    yield key, line
+
+
+def track_bounds(
+    bounds: dict[str, list[int]], key: str, line: Element, covered_attr: str, missed_attr: str
+) -> None:
+    # Records [total, best single suite, sum across suites] for one line, which is
+    # all the XML supports for branches and instructions: it says how many were
+    # covered, never which ones, so the same branch covered by two suites cannot be
+    # told from two different branches.
+    covered = int(line.get(covered_attr, "0"))
+    total = covered + int(line.get(missed_attr, "0"))
+    if total == 0:
+        return
+
+    entry = bounds.setdefault(key, [total, 0, 0])
+    entry[1] = max(entry[1], covered)
+    entry[2] += covered
+
+
+def collect_union(reports: list[Path]) -> dict[str, object]:
+    # A line counts once however many suites report it, and counts as covered when
+    # any suite covered an instruction on it, which is JaCoCo's own definition. An
+    # exact branch figure would need the '.exec' binaries merged before reporting,
+    # where probe identity survives. TODO BENTO-13.
+    covered_lines: set[str] = set()
+    all_lines: set[str] = set()
+    branch: dict[str, list[int]] = {}
+    instruction: dict[str, list[int]] = {}
+
+    for key, line in iter_report_lines(reports):
+        all_lines.add(key)
+        if int(line.get("ci", "0")) > 0:
+            covered_lines.add(key)
+        track_bounds(branch, key, line, "cb", "mb")
+        track_bounds(instruction, key, line, "ci", "mi")
+
+    return {
+        "lines_covered": len(covered_lines),
+        "lines_total": len(all_lines),
+        "branch": branch,
+        "instruction": instruction,
+    }
+
+
+def bounded_percentage(bounds: dict[str, list[int]]) -> str:
+    # The midpoint of the window, not a measurement: where the true figure falls
+    # depends on how far the suites overlap, which is what the XML omits. Reported
+    # as one number because the window is under a percentage point either way.
+    total = sum(entry[0] for entry in bounds.values())
+    if total == 0:
+        return "n/a"
+
+    lower = sum(entry[1] for entry in bounds.values())
+    upper = sum(min(entry[0], entry[2]) for entry in bounds.values())
+    return f"{(lower + upper) / 2 / total:.2%}"
+
+
 def percentage(missed: int, covered: int) -> str:
     total = missed + covered
     if total == 0:
@@ -133,6 +209,7 @@ def append_summary(root: Path) -> None:
     source_lines = count_source_lines(root)
     reports = find_jacoco_xml_reports(root)
     per_report = collect_report_counters(reports)
+    union = collect_union(reports)
 
     with Path(summary_path).open("a", encoding="utf-8") as summary:
         summary.write("## BentoFX code statistics\n\n")
@@ -150,6 +227,29 @@ def append_summary(root: Path) -> None:
                 f"| {percentage(*counters['INSTRUCTION'])} |\n"
             )
         summary.write("\n")
+
+        lines_covered = union["lines_covered"]
+        lines_total = union["lines_total"]
+        summary.write(
+            f"| **Union of all suites** {FOOTNOTE_MARK} | **{lines_covered:,}** "
+            f"| **{lines_total - lines_covered:,}** "
+            f"| **{percentage(lines_total - lines_covered, lines_covered)}** "
+            f"| **{bounded_percentage(union['branch'])}** "
+            f"| **{bounded_percentage(union['instruction'])}** |\n"
+        )
+        summary.write(f"\n{FOOTNOTE_MARK} ")
+        summary.write(
+            "A line counts once in the union however many suites cover it. "
+            "Branch and instruction coverage are the average of the\n"
+            "coverage range. JaCoCo XML reports how many branches/instructions "
+            "were covered on each line, not which ones, so the\n"
+            "same branch covered twice cannot be distinguished from two "
+            "different branches. The high end assumes no overlap. The \n"
+            "low end assumes maximum overlap, taking the best single suite for "
+            "each line. The branch and instruction numbers shown \n"
+            "are the average of the two.\n"
+            "\n"
+        )
 
 
 if __name__ == "__main__":

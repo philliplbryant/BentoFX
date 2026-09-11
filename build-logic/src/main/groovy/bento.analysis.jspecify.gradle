@@ -40,10 +40,5 @@ plugins.withId('bento.test.test-lifecycle') {
 tasks.withType(JavaCompile).configureEach { compileTask ->
     compileTask.options.errorprone.disableWarningsInGeneratedCode = true
     compileTask.options.errorprone.nullaway {
-        // TODO BENTO-43: Should be error(). NullAway reports 9 nullness defects
-        //  in ':core', so error() fails the build. Fixing them is a source
-        //  change that belongs in its own commit. Restore error() after that.
-        // error()
-        warn()
     }
 }
