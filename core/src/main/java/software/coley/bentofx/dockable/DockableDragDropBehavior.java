@@ -14,14 +14,14 @@ public interface DockableDragDropBehavior {
 	 * Determines if a given dockable can be placed into a container.
 	 * Generally this is used to control how the {@link Dockable#getDragGroupMask()} behaves.
 	 * You can override this method to support alternative grouping models.
-	 * <p/>
+	 * <p>
 	 * For example, the default implementation is a simple equality check.
 	 * Any dockable can be put into a container that has other dockables of the same mask.
 	 * <pre>{@code
 	 * return targetContainer.getDockables().stream()
 	 * 		.anyMatch(d -> d.getDragMask() == dockable.getDragMask());
 	 * }</pre>
-	 * <p/>
+	 * <p>
 	 * As an alternative, you can make the mask... more like a mask!
 	 * In this example, drag groups are specified as bit-masks, allowing more fine-control over
 	 * what can go where.
