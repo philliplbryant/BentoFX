@@ -17,7 +17,9 @@ javafx {
 
 javadoc {
     options {
-        addStringOption('Xdoclint:all,-missing', '-quiet')
+//        addBooleanOption('Xdoclint:all,-missing', true)
+        addStringOption('Xdoclint:none', '-quiet')
+        showFromPublic()
     }
 }
 
