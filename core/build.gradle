@@ -15,6 +15,12 @@ javafx {
     configurations = ['compileOnlyApi']
 }
 
+javadoc {
+    options {
+        addStringOption('Xdoclint:all,-missing', '-quiet')
+    }
+}
+
 buildConfig {
     useJavaOutput()
     className("BentoVersion")
