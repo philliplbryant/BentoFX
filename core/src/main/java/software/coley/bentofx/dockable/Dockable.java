@@ -1,13 +1,6 @@
 package software.coley.bentofx.dockable;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import org.jspecify.annotations.Nullable;
@@ -45,6 +38,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	private @Nullable List<DockableCloseListener> closeListeners;
 
 	/**
+	 * Creates a dockable.
+	 *
 	 * @param bento
 	 * 		Parent bento instance.
 	 * @param identifier
@@ -72,6 +67,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Runs the given action with this dockable's parent container, if one exists.
+	 *
 	 * @param consumer
 	 * 		Action to run in the parent container, if one exists.
 	 */
@@ -82,6 +79,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Runs the given action with this dockable and its parent container, if one exists.
+	 *
 	 * @param consumer
 	 * 		Action to run in the parent container, if one exists.
 	 */
@@ -137,6 +136,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the title.
+	 *
 	 * @param title
 	 * 		New title.
 	 */
@@ -164,6 +165,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the tooltip.
+	 *
 	 * @param tooltip
 	 * 		New tooltip.
 	 */
@@ -190,6 +193,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the icon factory.
+	 *
 	 * @param iconFactory
 	 * 		New icon factory.
 	 */
@@ -217,6 +222,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the context menu factory.
+	 *
 	 * @param contextMenuFactory
 	 * 		New context menu factory.
 	 */
@@ -244,6 +251,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the node to display when this dockable is selected.
+	 *
 	 * @param node
 	 * 		New node to display when this dockable is selected.
 	 */
@@ -271,6 +280,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the parent container.
+	 *
 	 * @param container
 	 * 		New parent container.
 	 */
@@ -299,6 +310,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets the drag group mask.
+	 *
 	 * @param dragGroupMask
 	 * 		New drag group mask.
 	 */
@@ -325,6 +338,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets whether this dockable is closable.
+	 *
 	 * @param closable
 	 *        {@code true} to make this dockable closable. {@code false} to disable closure.
 	 */
@@ -351,6 +366,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets whether this dockable can be dragged.
+	 *
 	 * @param canBeDragged
 	 *        {@code true} to make this dockable draggable. {@code false} to make it not draggable.
 	 */
@@ -377,6 +394,8 @@ public class Dockable implements BentoBacked, Identifiable {
 	}
 
 	/**
+	 * Sets whether this dockable can be drag-dropped to a new window.
+	 *
 	 * @param canBeDroppedToNewWindow
 	 *        {@code true} to allow this dockable to be drag-dropped to a new window. {@code false} to limit to cross-container dragging.
 	 */

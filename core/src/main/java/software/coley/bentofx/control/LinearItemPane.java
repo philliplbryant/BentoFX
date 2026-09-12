@@ -4,11 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Bounds;
-import javafx.geometry.HPos;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.VPos;
+import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.HBox;
@@ -30,6 +26,8 @@ public class LinearItemPane extends Pane {
 	private final ObjectProperty<Node> keepInView = new SimpleObjectProperty<>();
 
 	/**
+	 * Creates a linear item pane laid out along the given axis.
+	 *
 	 * @param orientation
 	 * 		Which axis to layout children on.
 	 */

@@ -25,6 +25,8 @@ public class DragDropStage extends Stage {
 	private WeakReference<Parent> content;
 
 	/**
+	 * Creates a drag-drop stage, wiring up close/hide/show handling for its content.
+	 *
 	 * @param autoCloseWhenEmpty
 	 * 		Flag to determine if this stage should auto-close if its sole content is removed.
 	 * 		See	{@link #isAutoCloseWhenEmpty()} for more details.
