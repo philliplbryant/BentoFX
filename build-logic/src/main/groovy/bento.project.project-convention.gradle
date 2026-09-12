@@ -86,12 +86,6 @@ java {
     withJavadocJar()
 }
 
-javadoc {
-    options {
-        addStringOption('Xdoclint:none', '-quiet')
-    }
-}
-
 testing {
     suites {
         configureEach { suite ->
