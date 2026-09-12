@@ -15,6 +15,14 @@ javafx {
     configurations = ['compileOnlyApi']
 }
 
+javadoc {
+    options {
+        // Only the public API exposed in module-info.java; configure Javadoc
+        // to match it.
+        showFromPublic()
+    }
+}
+
 buildConfig {
     useJavaOutput()
     className("BentoVersion")
