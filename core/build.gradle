@@ -15,10 +15,10 @@ javafx {
     configurations = ['compileOnlyApi']
 }
 
+// TODO BENTO-13: Add missing Javadoc comments and delete these options.
 javadoc {
     options {
         showFromPublic()
-// TODO BENTO-13: Add missing Javadoc comments and delete this option.
         addBooleanOption('Xdoclint:all,-missing', true)
     }
 }
