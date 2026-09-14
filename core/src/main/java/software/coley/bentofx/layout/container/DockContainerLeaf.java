@@ -55,6 +55,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	private boolean pruneWhenEmpty = true;
 
 	/**
+	 * Creates a leaf container.
+	 *
 	 * @param bento
 	 * 		Parent bento instance.
 	 * @param identifier
@@ -255,6 +257,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Draws a full-region overlay hint on this container's canvas.
+	 *
 	 * @param target
 	 * 		Region to draw as an overlay on this container's canvas.
 	 */
@@ -263,6 +267,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Draws an overlay hint on this container's canvas.
+	 *
 	 * @param target
 	 * 		Region to draw as an overlay on this container's canvas.
 	 * @param side
@@ -350,6 +356,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Updates the tracked size to apply once this container is uncollapsed.
+	 *
 	 * @param size
 	 * 		Uncollapsed size.
 	 */
@@ -362,6 +370,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Sets the collapsed pseudo-state, without adjusting layout.
+	 *
 	 * @param collapse
 	 * 		New collapsed state.
 	 */
@@ -428,6 +438,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Sets the side to place {@link Header} displays on.
+	 *
 	 * @param side
 	 * 		Side of this container to place {@link Header} displays on.
 	 *        {@code null} to not display any headers.
@@ -497,6 +509,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Sets the context menu factory for this container.
+	 *
 	 * @param menuFactory
 	 * 		Menu factory for this container.
 	 */
@@ -522,6 +536,8 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	}
 
 	/**
+	 * Sets whether this leaf can be split via drag-n-drop operations.
+	 *
 	 * @param canSplit
 	 *        {@code true} if this leaf can be split via drag-n-drop operations.
 	 */
