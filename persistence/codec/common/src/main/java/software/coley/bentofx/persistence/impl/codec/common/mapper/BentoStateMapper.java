@@ -498,6 +498,7 @@ public final class BentoStateMapper {
 	 *
 	 * @return the {@link DragDropStageState} mapped from the
 	 * {@link DragDropStageDto}.
+	 * @throws BentoStateException when the stage DTO carries no identifier.
 	 */
 	public static DragDropStageState fromDto(
 			final DragDropStageDto stageDto
