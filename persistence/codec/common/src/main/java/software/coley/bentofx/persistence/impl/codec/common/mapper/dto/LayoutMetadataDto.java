@@ -13,6 +13,11 @@ import java.util.List;
 public class LayoutMetadataDto {
 
     /**
+     * Creates an empty layout metadata DTO for a mapper to populate.
+     */
+    public LayoutMetadataDto() { }
+
+    /**
      * Version of the persisted layout schema.
      */
     public @Nullable Integer schemaVersion;

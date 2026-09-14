@@ -14,12 +14,29 @@ import java.util.List;
  */
 public class DockContainerRootBranchDto {
 
+    /**
+     * Creates an empty root branch DTO for a mapper to populate.
+     */
+    public DockContainerRootBranchDto() { }
+
+    /**
+     * The root branch's identifier.
+     */
     public @Nullable String identifier;
 
+    /**
+     * {@code true} when the root branch prunes itself once empty.
+     */
     public @Nullable Boolean pruneWhenEmpty;
 
+    /**
+     * The root branch's orientation.
+     */
     public @Nullable Orientation orientation;
 
+    /**
+     * The positions of the dividers between this root branch's child containers.
+     */
     public final List<DividerPositionDto> dividerPositions =
             new ArrayList<>();
 

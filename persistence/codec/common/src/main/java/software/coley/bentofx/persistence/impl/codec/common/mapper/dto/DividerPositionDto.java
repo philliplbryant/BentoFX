@@ -10,7 +10,19 @@ import org.jspecify.annotations.Nullable;
  */
 public class DividerPositionDto {
 
+    /**
+     * Creates an empty divider position DTO for a mapper to populate.
+     */
+    public DividerPositionDto() { }
+
+    /**
+     * Index of the divider within its container's list of dividers.
+     */
     public @Nullable Integer index;
 
+    /**
+     * The divider's position, as the fraction of the container's length that
+     * precedes it.
+     */
     public @Nullable Double position;
 }

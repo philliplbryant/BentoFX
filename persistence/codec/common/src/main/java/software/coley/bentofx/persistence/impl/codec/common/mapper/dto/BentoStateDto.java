@@ -12,11 +12,25 @@ import java.util.List;
  */
 public class BentoStateDto {
 
+    /**
+     * Creates an empty Bento state DTO for a mapper to populate.
+     */
+    public BentoStateDto() { }
+
+    /**
+     * The Bento instance's identifier.
+     */
     public @Nullable String identifier;
 
+    /**
+     * The root branches this Bento instance holds, in registration order.
+     */
     public final List<DockContainerRootBranchDto> rootBranches =
             new ArrayList<>();
 
+    /**
+     * The drag-drop stages this Bento instance holds, in registration order.
+     */
     public final List<DragDropStageDto> dragDropStages =
             new ArrayList<>();
 }

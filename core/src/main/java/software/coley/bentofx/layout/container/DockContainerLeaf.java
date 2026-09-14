@@ -412,7 +412,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 * counterpart to {@link #getUncollapsedSize()}, intended for restoring a size
 	 * that was recorded earlier - for instance by a layout persistence layer
 	 * re-applying a saved layout.
-	 * <p/>
+	 * <p>
 	 * While this container is uncollapsed the tracking properties are bound to its
 	 * live width and height, so a value set here would be overwritten immediately
 	 * and is ignored. Call this only while {@link #isCollapsed()} is {@code true},

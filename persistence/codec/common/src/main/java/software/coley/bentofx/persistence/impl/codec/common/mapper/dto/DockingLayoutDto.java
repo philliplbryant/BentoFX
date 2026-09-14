@@ -23,11 +23,25 @@ public class DockingLayoutDto {
      */
     private static final int CURRENT_SCHEMA_VERSION = 1;
 
+    /**
+     * Creates an empty docking layout DTO for a mapper to populate.
+     */
+    public DockingLayoutDto() { }
+
+    /**
+     * The layout's metadata.
+     */
     public @Nullable LayoutMetadataDto metadata;
 
+    /**
+     * The Bento states this layout holds, in registration order.
+     */
     public final List<BentoStateDto> bentoStates =
             new ArrayList<>();
 
+    /**
+     * {@return the schema version this framework writes}
+     */
     public static int getCurrentSchemaVersion() {
         return CURRENT_SCHEMA_VERSION;
     }
