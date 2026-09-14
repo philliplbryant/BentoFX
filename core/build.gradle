@@ -19,6 +19,8 @@ javafx {
 dependencies {
     compileOnly libs.jspecify
     testImplementation libs.bundles.javafx
+    testImplementation libs.testfx
+    testImplementation libs.testfx.core
 }
 
 // Suppress javadoc warnings for missing documentation only.
