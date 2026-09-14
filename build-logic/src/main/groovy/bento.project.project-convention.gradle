@@ -88,7 +88,7 @@ java {
 
 javadoc {
     options {
-        addBooleanOption('Xdoclint:all,-missing', true)
+        addBooleanOption('Xdoclint:all', true)
     }
 }
 

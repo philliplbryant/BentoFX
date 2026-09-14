@@ -17,9 +17,9 @@ javafx {
 
 javadoc {
     options {
-//        addBooleanOption('Xdoclint:all,-missing', true)
-        addStringOption('Xdoclint:none', '-quiet')
         showFromPublic()
+// TODO BENTO-13: Add missing Javadoc comments and delete this option.
+        addBooleanOption('Xdoclint:all,-missing', true)
     }
 }
 
