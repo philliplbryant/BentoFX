@@ -27,18 +27,41 @@ public class DockingLayoutEntityCompositeKey implements Serializable {
      */
     public static final int MAX_COMPOSITE_KEY_LENGTH = LayoutIdentifiers.MAX_JOINED_LENGTH;
 
+    /**
+     * The name of the column containing the unique identifier for each layout.
+     */
     public static final String LAYOUT_ID_COLUMN_NAME = "layout_id";
 
+    /**
+     * The name of the column containing the unique identifier for each layout
+     * codec.
+     */
     public static final String CODEC_ID_COLUMN_NAME = "codec_id";
 
+    /**
+     * The name of the unique identifier for a layout.
+     */
     @Column(name = LAYOUT_ID_COLUMN_NAME, nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String layoutIdentifier;
 
+    /**
+     * The name of the unique identifier for a layout's codec.
+     */
     @Column(name = CODEC_ID_COLUMN_NAME, nullable = false, length = MAX_COMPOSITE_KEY_LENGTH)
     public @Nullable String codecIdentifier;
 
+    /**
+     * Creates an uninitialized {@code DockingLayoutEntityCompositeKey}.
+     */
     public DockingLayoutEntityCompositeKey() {}
 
+    /**
+     * Creates a {@code DockingLayoutEntityCompositeKey}, with the layout and
+     * codec identifiers initialized.
+     * @param layoutIdentifier the name of the unique identifier for the layout.
+     * @param codecIdentifier the name of the unique identifier for the layout's
+     * codec.
+     */
     public DockingLayoutEntityCompositeKey(
             final String layoutIdentifier,
             final String codecIdentifier

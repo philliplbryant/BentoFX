@@ -21,9 +21,17 @@ import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMa
  */
 public final class JsonLayoutCodec implements LayoutCodec {
 
+    /**
+     * Uniquely identifies this {@link LayoutCodec} to distinguish it from other
+     * {@link LayoutCodec}.
+     */
     public static final String CODEC_IDENTIFIER = "json";
     private final ObjectMapper mapper;
 
+    /**
+     * Creates an {@code JsonLayoutCodec}, mapping mixins for reading and
+     * writing JSON.
+     */
     public JsonLayoutCodec() {
         this.mapper = new ObjectMapper().enable(INDENT_OUTPUT);
         mixinsByDto().forEach(mapper::addMixIn);

@@ -21,10 +21,18 @@ import java.io.OutputStream;
  */
 public final class XmlLayoutCodec implements LayoutCodec {
 
+    /**
+     * Uniquely identifies this {@link LayoutCodec} to distinguish it from other
+     * {@link LayoutCodec}.
+     */
     public static final String CODEC_IDENTIFIER = "xml";
 
     private final XmlMapper mapper;
 
+    /**
+     * Creates an {@code XmlLayoutCodec}, mapping mixins for reading and writing
+     * XML.
+     */
     public XmlLayoutCodec() {
         this.mapper = XmlMapper.builder()
                 .enable(SerializationFeature.INDENT_OUTPUT)

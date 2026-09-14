@@ -12,6 +12,11 @@ import software.coley.bentofx.persistence.impl.codec.json.JsonLayoutCodec;
  */
 public class JsonLayoutCodecProvider implements LayoutCodecProvider {
 
+    /**
+     * Creates a {@link LayoutCodecProvider} for JSON.
+     */
+    public JsonLayoutCodecProvider() {}
+
     @Override
     public String getIdentifier() {
         return JsonLayoutCodec.CODEC_IDENTIFIER;

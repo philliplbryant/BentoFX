@@ -40,6 +40,12 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
      */
     private static final String LAYOUTS_DIRECTORY_NAME = "layouts";
 
+    /**
+     * Creates a {@code FileLayoutStorageProvider} for persisting Bento layouts
+     * to a file
+     */
+    public FileLayoutStorageProvider() {}
+
     @Override
     public String getIdentifier() {
         return IDENTIFIER;

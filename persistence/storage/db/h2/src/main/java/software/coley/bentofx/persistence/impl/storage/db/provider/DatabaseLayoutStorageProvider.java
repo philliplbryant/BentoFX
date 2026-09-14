@@ -52,6 +52,12 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
     private @Nullable EntityManagerFactory entityManagerFactory;
 
+    /**
+     * Creates a {@code DatabaseLayoutStorageProvider} for persisting Bento
+     * layouts to an H2 database.
+     */
+    public DatabaseLayoutStorageProvider() {}
+
     @Override
     public String getIdentifier() {
         return IDENTIFIER;

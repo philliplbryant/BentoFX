@@ -12,6 +12,11 @@ import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
  */
 public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
+    /**
+     * Creates a {@link LayoutCodecProvider} for XML.
+     */
+    public XmlLayoutCodecProvider() {}
+
     @Override
     public String getIdentifier() {
         return XmlLayoutCodec.CODEC_IDENTIFIER;
