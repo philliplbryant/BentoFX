@@ -41,6 +41,7 @@ import software.coley.bentofx.util.DragDropTarget;
 import software.coley.bentofx.util.DragUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -172,7 +173,7 @@ public class Header extends Region {
 			if (cur) {
 				DockContainerLeaf container = parentPane.getContainer();
 				boolean headerOrigin = parentPane.isHeaderFocusOrigin();
-				if (container.getSelectedDockable() == dockable || headerOrigin) {
+				if (Objects.equals(container.getSelectedDockable(), dockable) || headerOrigin) {
 					container.selectDockable(dockable);
 				} else {
 					// Focus arriving from content is JavaFX's automatic fallback. Restore content focus
@@ -258,7 +259,7 @@ public class Header extends Region {
 						// Either the source is the same container as this header, or the target container can receive it.
 						Dockable dragSourceDockable = dragSourcePath.dockable();
 						DockContainerLeaf container = parentPane.getContainer();
-						if (dragSourcePath.leafContainer() == container
+						if (Objects.equals(dragSourcePath.leafContainer(), container)
 								|| container.canReceiveDockable(dragSourceDockable, getSide())) {
 							Header dragSourceHeader = dragSourcePath.leafContainer().getHeader(dragSourceDockable);
 							if (dragSourceHeader != null) {
@@ -328,7 +329,7 @@ public class Header extends Region {
 			// Check if our container can receive the dockable.
 			DockContainerLeaf sourceContainer = dragSourcePath.leafContainer();
 			Dockable sourceDockable = dragSourcePath.dockable();
-			boolean sameContainer = parentContainer == sourceContainer;
+			boolean sameContainer = parentContainer.equals(sourceContainer);
 			if (sameContainer || parentContainer.canReceiveDockable(sourceDockable, getSide())) {
 				// Move the header over to the target container and select it.
 				int targetIndex = parentContainer.getDockables().indexOf(dockable);
@@ -431,7 +432,7 @@ public class Header extends Region {
 	 * 		Some other header being dragged.
 	 */
 	private void enableInsertionIndicator(Header header, boolean after) {
-		boolean sourceChanged = insertionPreviewSource != header;
+		boolean sourceChanged = !Objects.equals(insertionPreviewSource, header);
 		boolean sideChanged = insertionAfter == null || insertionAfter != after;
 		if (!sourceChanged && !sideChanged)
 			return;

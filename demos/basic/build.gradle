@@ -22,3 +22,10 @@ dependencies {
 
     compileOnly libs.jspecify
 }
+
+// Suppress javadoc warnings for the demo.
+javadoc {
+    options {
+        addStringOption('Xdoclint:none', '-quiet')
+    }
+}

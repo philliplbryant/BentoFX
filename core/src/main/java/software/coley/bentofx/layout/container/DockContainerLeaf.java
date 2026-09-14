@@ -94,7 +94,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 
 	@Override
 	public void removeAsParentContainer(DockContainerBranch parent) {
-		if (this.parent == parent) {
+		if (Objects.equals(this.parent, parent)) {
 			DockContainerBranch priorParent = this.parent;
 			this.parent = null;
 			bento.events().fire(new DockEvent.ContainerParentChanged(this, priorParent, parent));
@@ -181,7 +181,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 
 		// Update dockable model
 		if (i >= 0) {
-			boolean wasSelected = getSelectedDockable() == dockable;
+			boolean wasSelected = Objects.equals(getSelectedDockable(), dockable);
 			dockables.remove(i);
 			dockable.setContainer(null);
 
@@ -273,7 +273,7 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		double ox = 0;
 		double oy = 0;
 		Parent parent = target.getParent();
-		while (parent != null && parent != this) {
+		while (parent != null && !parent.equals(this)) {
 			ox += parent.getLayoutX();
 			oy += parent.getLayoutY();
 			parent = parent.getParent();

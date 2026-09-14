@@ -23,6 +23,8 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.util.BentoUtils;
 
+import java.util.Objects;
+
 import static software.coley.bentofx.util.BentoStates.*;
 
 /**
@@ -230,7 +232,7 @@ public class HeaderPane extends BorderPane {
 		//  - Must be in the same scene as this pane
 		//  - Must be focus traversable, visible, and not disabled
 		if (!isContentNode(node)
-				|| node.getScene() != getScene()
+				|| !Objects.equals(node.getScene(), getScene())
 				|| !node.isFocusTraversable()
 				|| !node.isVisible()
 				|| node.isDisabled())
@@ -240,7 +242,7 @@ public class HeaderPane extends BorderPane {
 		for (Node current = node; current != null; current = current.getParent()) {
 			if (!current.isVisible() || current.isDisabled())
 				return false;
-			if (current == contentWrapper)
+			if (current.equals(contentWrapper))
 				return true;
 		}
 
@@ -257,7 +259,7 @@ public class HeaderPane extends BorderPane {
 		if (node == null)
 			return false;
 		for (Node current = node; current != null; current = current.getParent())
-			if (current == contentWrapper)
+			if (current.equals(contentWrapper))
 				return true;
 		return false;
 	}
@@ -328,7 +330,7 @@ public class HeaderPane extends BorderPane {
 		container.getDockables().stream()
 				.map(d -> {
 					Header header = createHeader(d);
-					if (container.getSelectedDockable() == d)
+					if (Objects.equals(container.getSelectedDockable(), d))
 						header.setSelected(true);
 					return header;
 				})
@@ -404,10 +406,11 @@ public class HeaderPane extends BorderPane {
 	 */
 	@Nullable
 	public Header getHeader(@Nullable Dockable dockable) {
-		if (dockable == null)
+		if (dockable == null || headers == null)
 			return null;
 		for (Node child : headers.getChildren())
-			if (child instanceof Header header && header.getDockable() == dockable)
+			if (child instanceof Header header &&
+					Objects.equals(header.getDockable(), dockable))
 				return header;
 		return null;
 	}

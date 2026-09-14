@@ -8,6 +8,7 @@ import software.coley.bentofx.control.DragDropStage;
 import software.coley.bentofx.path.DockContainerPath;
 
 import java.util.Collections;
+import java.util.Objects;
 
 import static software.coley.bentofx.util.BentoStates.PSEUDO_ROOT;
 
@@ -44,7 +45,7 @@ public class DockContainerRootBranch extends DockContainerBranch {
 		Region thisAsRegion = asRegion();
 		Scene scene = thisAsRegion.getScene();
 		if (scene != null
-				&& scene.getRoot() == thisAsRegion
+				&& Objects.equals(scene.getRoot(), thisAsRegion)
 				&& scene.getWindow() instanceof DragDropStage ddStage
 				&& ddStage.isAutoCloseWhenEmpty()) {
 			ddStage.close();

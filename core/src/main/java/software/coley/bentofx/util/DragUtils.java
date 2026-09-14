@@ -87,7 +87,7 @@ public class DragUtils {
 	public static String extractIdentifier(Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
-		String[] parts = dragboard.getString().split(";");
+		String[] parts = splitContent(dragboard.getString());
 		if (parts.length < 3)
 			return null;
 		return parts[2];
@@ -106,7 +106,7 @@ public class DragUtils {
 	public static Integer extractDragGroup(Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
-		String[] parts = dragboard.getString().split(";");
+		String[] parts = splitContent(dragboard.getString());
 		if (parts.length < 2)
 			return null;
 		try {
@@ -129,7 +129,7 @@ public class DragUtils {
 	public static DragDropTarget extractDropTargetType(Dragboard dragboard) {
 		if (!dragboard.hasString())
 			return null;
-		String[] parts = dragboard.getString().split(";");
+		String[] parts = splitContent(dragboard.getString());
 		if (parts.length < 4)
 			return null;
 		try {
@@ -138,6 +138,23 @@ public class DragUtils {
 			// Not a recognized target type.
 			return null;
 		}
+	}
+
+	/**
+	 * Splits an encoded drag-n-drop payload into its {@code ;}-separated fields.
+	 * <p>
+	 * Uses a negative limit so a trailing empty field - such as an empty
+	 * dockable identifier with no drop target appended - is preserved rather
+	 * than silently dropped, which is what {@link String#split(String)}'s
+	 * default limit of {@code 0} does.
+	 *
+	 * @param raw
+	 * 		Dragboard string content produced by {@link #content(Dockable, DragDropTarget)}.
+	 *
+	 * @return The {@code ;}-separated fields of {@code raw}.
+	 */
+	static String[] splitContent(String raw) {
+		return raw.split(";", -1);
 	}
 
 	/**

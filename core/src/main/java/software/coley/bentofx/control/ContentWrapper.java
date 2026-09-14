@@ -75,7 +75,8 @@ public class ContentWrapper extends BorderPane {
 			// This means there would be no change after the "move" and thus its wasted effort to do anything.
 			DockContainerLeaf sourceContainer = dragSourcePath.leafContainer();
 			Dockable sourceDockable = dragSourcePath.dockable();
-			if (container == sourceContainer && container.getDockables().size() == 1)
+			if (Objects.equals(container, sourceContainer) &&
+					container.getDockables().size() == 1)
 				return;
 
 			// If our container can receive the header, move it over.

@@ -21,6 +21,14 @@ dependencies {
     testImplementation libs.bundles.javafx
 }
 
+// Suppress javadoc warnings for missing documentation only.
+javadoc {
+    options {
+        showFromPublic()
+        addBooleanOption('Xdoclint:all,-missing', true)
+    }
+}
+
 buildConfig {
     useJavaOutput()
     className("BentoVersion")

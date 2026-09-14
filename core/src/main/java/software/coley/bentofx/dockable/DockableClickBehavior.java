@@ -3,9 +3,10 @@ package software.coley.bentofx.dockable;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import org.jspecify.annotations.NonNull;
 import software.coley.bentofx.control.Header;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
+
+import java.util.Objects;
 
 /**
  * Click operations.
@@ -31,9 +32,10 @@ public interface DockableClickBehavior {
 	                          MouseEvent e) {
 		// Primary click --> select dockable if not selected, otherwise toggle collapsed state.
 		if (e.getButton() == MouseButton.PRIMARY) {
-			if (container.getSelectedDockable() == dockable || container.isCollapsed()) {
+			if (Objects.equals(container.getSelectedDockable(), dockable) ||
+					container.isCollapsed()) {
 				container.toggleCollapse(dockable);
-			} else if (container.getSelectedDockable() != dockable) {
+			} else if (!Objects.equals(container.getSelectedDockable(), dockable)) {
 				container.selectDockable(dockable);
 				header.requestFocus();
 			}
