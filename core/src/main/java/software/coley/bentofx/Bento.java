@@ -24,8 +24,7 @@ import java.util.Objects;
  * @author Matt Coley
  */
 public class Bento implements Identifiable {
-
-    private final String identifier;
+	private final String identifier;
 	private final ObservableList<DockContainerRootBranch> rootContainers = FXCollections.observableArrayList();
 	private final ObservableList<DockContainerRootBranch> rootContainersView = FXCollections.unmodifiableObservableList(rootContainers);
 	private final EventBus eventBus = newEventBus();
@@ -38,19 +37,22 @@ public class Bento implements Identifiable {
 	private final DockableClickBehavior clickBehavior = newClickBehavior();
 
 	/**
-	 * Creates a {@code Bento} using the default `identifier`.
+	 * Creates a {@code Bento} with a generated identifier.
 	 */
-    public Bento() {
-        identifier = DockBuilding.uid("cbento");
-    }
+	public Bento() {
+		identifier = DockBuilding.uid("cbento");
+	}
 
 	/**
-	 * Creates a {@code Bento} using the specified `identifier`.
+	 * Creates a {@code Bento} with the given identifier.
+	 *
+	 * @param identifier
+	 * 		This bento's identifier.
 	 */
-    public Bento(final String identifier) {
-        Objects.requireNonNull(identifier);
-        this.identifier = identifier;
-    }
+	public Bento(final String identifier) {
+		Objects.requireNonNull(identifier, "identifier");
+		this.identifier = identifier;
+	}
 
 	protected EventBus newEventBus() {
 		return new EventBus();
@@ -84,17 +86,7 @@ public class Bento implements Identifiable {
 		return new DockableClickBehavior() {};
 	}
 
-    /**
-     * {@return the identifier specified when creating this {@code Bento}}
-     * <p>
-     * This identifier is not guaranteed to be unique.
-     */
-    @Override
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    /**
+	/**
 	 * @return Bus for handling event firing and event listeners.
 	 */
 	public EventBus events() {
@@ -187,5 +179,15 @@ public class Bento implements Identifiable {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * {@return the identifier specified when creating this {@code Bento}}
+	 * <p>
+	 * This identifier is not guaranteed to be unique.
+	 */
+	@Override
+	public String getIdentifier() {
+		return identifier;
 	}
 }
