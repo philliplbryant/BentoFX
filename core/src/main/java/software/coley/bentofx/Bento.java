@@ -37,10 +37,16 @@ public class Bento implements Identifiable {
 	private final DockableDragDropBehavior dragDropBehavior = newDragDropBehavior();
 	private final DockableClickBehavior clickBehavior = newClickBehavior();
 
+	/**
+	 * Creates a {@code Bento} using the default `identifier`.
+	 */
     public Bento() {
         identifier = DockBuilding.uid("cbento");
     }
 
+	/**
+	 * Creates a {@code Bento} using the specified `identifier`.
+	 */
     public Bento(final String identifier) {
         Objects.requireNonNull(identifier);
         this.identifier = identifier;
