@@ -12,10 +12,10 @@ java-jdk = "21"
 
 # Libraries
 assertj = "3.27.7"
-byte-buddy = "1.18.13"
+byte-buddy = "1.18.14"
 errorprone = "2.50.0"
-equals-verifier = "4.5.1"
-h2 = "2.4.240"
+equals-verifier = "4.5.2"
+h2 = "2.5.250"
 hibernate-orm = "7.4.5.Final"
 hibernate-validator = "9.1.3.Final"
 jackson = "2.22.2"
@@ -33,7 +33,7 @@ zaxxer-hikari-cp = "7.1.0"
 
 # Plugins
 ben-manes-versions-plugin = "0.56.0"
-buildconfig = "6.0.10"
+buildconfig = "6.1.0"
 dependency-analysis-gradle-plugin = "3.19.1"
 errorprone-plugin = "5.1.0"
 # noinspection UnusedVersionCatalogEntry
