@@ -19,12 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.ACTIVE_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
 
 /**
- * Coverage for the two operations that reach a stored layout without reading the
- * scene graph: rewriting what a layout is called, and the catalog of groups.
+ * Coverage for the operations that reach a stored layout without reading the
+ * scene graph: rewriting what a layout is called, the catalog of groups, and
+ * which layout is recorded as active.
  *
  * <p>These need storage that keeps what was written to it, which
  * {@code ConfigurableLayoutStorageProvider} deliberately does not - it hands out a fresh,
@@ -215,6 +217,62 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 
         assertThat(provider.getStoredGroups(profile))
                 .describedAs("group catalog after being emptied")
+                .isEmpty();
+    }
+
+    @Test
+    void activeLayoutRoundTripsThroughItsReservedEntry()
+            throws BentoStateException {
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final DefaultDockingLayoutPersistenceProvider provider =
+                providerFor(storage, codec);
+        final LayoutPersistenceProfile profile =
+                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
+
+        provider.setActiveLayoutIdentifier(profile, "compact-wide");
+
+        assertThat(provider.getActiveLayoutIdentifier(profile))
+                .describedAs("active layout identifier read back")
+                .contains("compact-wide");
+        assertThat(storage.getLayoutIdentifiers(codec.getIdentifier()))
+                .describedAs("what the active layout entry is stored under")
+                .containsExactly(ACTIVE_LAYOUT_IDENTIFIER);
+    }
+
+    /**
+     * No named layout has ever been made active is the ordinary starting
+     * state, so it has to be a real answer rather than a fault.
+     */
+    @Test
+    void reportsNoActiveLayoutWhenNeverWritten() throws BentoStateException {
+        final DefaultDockingLayoutPersistenceProvider provider =
+                providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+
+        assertThat(provider.getActiveLayoutIdentifier(
+                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
+        ))
+                .describedAs("active layout identifier that was never written")
+                .isEmpty();
+    }
+
+    /**
+     * Switching back to the default layout clears the recorded active one,
+     * which is what a {@code null} does here.
+     */
+    @Test
+    void clearingTheActiveLayoutLeavesNoneRecorded() throws BentoStateException {
+        final DefaultDockingLayoutPersistenceProvider provider =
+                providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+        final LayoutPersistenceProfile profile =
+                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
+
+        provider.setActiveLayoutIdentifier(profile, "compact-wide");
+        provider.setActiveLayoutIdentifier(profile, null);
+
+        assertThat(provider.getActiveLayoutIdentifier(profile))
+                .describedAs("active layout identifier after being cleared")
                 .isEmpty();
     }
 

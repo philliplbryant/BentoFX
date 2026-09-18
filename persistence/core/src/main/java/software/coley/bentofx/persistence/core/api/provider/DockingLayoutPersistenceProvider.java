@@ -251,34 +251,4 @@ public interface DockingLayoutPersistenceProvider {
 	boolean updateStoredLayoutNaming(
 			final LayoutPersistenceProfile layoutPersistenceProfile
 	) throws BentoStateException;
-
-	/**
-	 * {@return the groups that exist, in the order they were stored.}
-	 *
-	 * <p>An empty list means no group has been created, or that the storage
-	 * implementation cannot enumerate.</p>
-	 *
-	 * @param layoutPersistenceProfile selects the codec and storage to ask; its
-	 * layout identifier is not used.
-	 *
-	 * @throws BentoStateException when the codec or storage cannot be selected,
-	 * or the catalog cannot be read.
-	 */
-	List<String> getStoredGroups(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) throws BentoStateException;
-
-	/**
-	 * Replaces the stored group catalog with the supplied names.
-	 *
-	 * @param layoutPersistenceProfile selects the codec and storage to write to.
-	 * @param groups all groups that exist.
-	 *
-	 * @throws BentoStateException when the codec or storage cannot be selected,
-	 * or the catalog cannot be written.
-	 */
-	void setStoredGroups(
-			final LayoutPersistenceProfile layoutPersistenceProfile,
-			final List<String> groups
-	) throws BentoStateException;
 }

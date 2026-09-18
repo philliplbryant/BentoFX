@@ -31,6 +31,7 @@ import software.coley.bentofx.persistence.core.api.LayoutSaver;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -132,6 +134,104 @@ class LayoutsMenuITG {
         assertThat(topItems().get(0).getText())
                 .describedAs("defaultItem.getText()")
                 .startsWith("✓");
+    }
+
+    /**
+     * An application that restores the session layout at startup - which
+     * carries no memory of which named layout it mirrors - has this menu read
+     * the identifier back through {@link DockingLayoutOrganizationProvider} at
+     * construction instead. This is what lets {@code Custom} and the layout's
+     * own item show selected from the moment the menu opens, without a
+     * restore having gone through this menu at all. {@code Restore} itself
+     * stays unmarked - only {@code Custom}, a group (if any), and the layout
+     * item are.
+     */
+    @Test
+    void constructingWhenAnActiveLayoutIsRecordedMarksCustomAndTheLayoutItem(
+            final FxRobot robot
+    ) {
+        persistenceProvider.storedLayouts.add(
+                LayoutPersistenceProfile.named(
+                        ACTIVE_LAYOUT_ID, ACTIVE_LAYOUT_DISPLAY_NAME, null, null
+                )
+        );
+        persistenceProvider.storedIdentifiers.add(ACTIVE_LAYOUT_ID);
+        persistenceProvider.activeLayoutIdentifier = ACTIVE_LAYOUT_ID;
+
+        robot.interact(() -> menu = new LayoutsMenu(owner, restorable));
+        repopulate();
+
+        assertThat(topItems().get(0).getText())
+                .describedAs("defaultItem.getText()")
+                .doesNotStartWith("✓");
+        assertThat(customMenu().getText())
+                .describedAs("customMenu.getText()")
+                .startsWith("✓");
+        assertThat(restoreMenu().getText())
+                .describedAs("restoreMenu.getText()")
+                .doesNotStartWith("✓");
+        assertThat(restoreMenu().getItems().get(0).getText())
+                .describedAs("the active layout's own item text")
+                .startsWith("✓");
+    }
+
+    /**
+     * The counterpart to
+     * {@link #constructingWhenAnActiveLayoutIsRecordedMarksCustomAndTheLayoutItem}
+     * for a layout that belongs to a group: the group's own submenu is marked
+     * too, and {@code Restore} still is not.
+     */
+    @Test
+    void constructingWhenAnActiveLayoutInAGroupIsRecordedMarksTheGroup(
+            final FxRobot robot
+    ) {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(
+                GROUPED_ACTIVE_LAYOUT_ID, GROUPED_ACTIVE_DISPLAY_NAME, GROUP_NAME
+        );
+        persistenceProvider.storedIdentifiers.add(GROUPED_ACTIVE_LAYOUT_ID);
+        persistenceProvider.activeLayoutIdentifier = GROUPED_ACTIVE_LAYOUT_ID;
+
+        robot.interact(() -> menu = new LayoutsMenu(owner, restorable));
+        repopulate();
+
+        assertThat(restoreMenu().getText())
+                .describedAs("restoreMenu.getText()")
+                .doesNotStartWith("✓");
+        assertThat(((Menu) restoreMenu().getItems().get(0)).getText())
+                .describedAs("the layout's group submenu text")
+                .startsWith("✓");
+    }
+
+    /**
+     * {@link LayoutsMenu#setActiveCustomLayoutProfile} is the one place every
+     * change to the active layout goes through, so exercising it from two
+     * different call sites - a restore, and a return to {@code Default} - is
+     * representative of all of them.
+     */
+    @Test
+    void switchingLayoutsRecordsTheActiveLayoutEachTime() {
+        persistenceProvider.storedLayouts.add(
+                LayoutPersistenceProfile.named(
+                        ACTIVE_LAYOUT_ID, ACTIVE_LAYOUT_DISPLAY_NAME, null, null
+                )
+        );
+        persistenceProvider.storedIdentifiers.add(ACTIVE_LAYOUT_ID);
+        restorable.switchSucceeds = true;
+        repopulate();
+
+        fire(restoreMenu().getItems().get(0));
+
+        assertThat(persistenceProvider.activeLayoutIdentifier)
+                .describedAs("active layout identifier after a restore")
+                .isEqualTo(ACTIVE_LAYOUT_ID);
+
+        repopulate();
+        fire(topItems().get(0));
+
+        assertThat(persistenceProvider.activeLayoutIdentifier)
+                .describedAs("active layout identifier after restoring the default layout")
+                .isNull();
     }
 
     @Test
@@ -1077,7 +1177,9 @@ class LayoutsMenuITG {
     }
 
     /** {@link DockingLayoutPersistenceProvider} test double; only the members {@link LayoutsMenu} calls do anything. */
-    private static final class RecordingPersistenceProvider implements DockingLayoutPersistenceProvider {
+    private static final class RecordingPersistenceProvider
+            implements DockingLayoutPersistenceProvider,
+            DockingLayoutOrganizationProvider {
 
         private final List<LayoutPersistenceProfile> storedLayouts = new ArrayList<>();
         private final Set<String> storedIdentifiers = new HashSet<>();
@@ -1085,6 +1187,7 @@ class LayoutsMenuITG {
         private final List<LayoutPersistenceProfile> deletedProfiles = new ArrayList<>();
         private final List<LayoutPersistenceProfile> renamedProfiles = new ArrayList<>();
         private final List<String> storedGroups = new ArrayList<>();
+        private @Nullable String activeLayoutIdentifier;
         private boolean listFails;
         private boolean isLayoutStoredFails;
         private boolean saveFails;
@@ -1210,6 +1313,21 @@ class LayoutsMenuITG {
             }
             storedGroups.clear();
             storedGroups.addAll(groups);
+        }
+
+        @Override
+        public Optional<String> getActiveLayoutIdentifier(
+                final LayoutPersistenceProfile layoutPersistenceProfile
+        ) {
+            return Optional.ofNullable(activeLayoutIdentifier);
+        }
+
+        @Override
+        public void setActiveLayoutIdentifier(
+                final LayoutPersistenceProfile layoutPersistenceProfile,
+                final @Nullable String layoutIdentifier
+        ) {
+            activeLayoutIdentifier = layoutIdentifier;
         }
     }
 }

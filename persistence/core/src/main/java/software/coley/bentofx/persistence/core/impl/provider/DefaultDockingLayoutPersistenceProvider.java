@@ -10,6 +10,7 @@ import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutPersistenceComponentProvider;
@@ -26,9 +27,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.ACTIVE_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 
 /**
@@ -38,7 +41,8 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  * @author Phil Bryant
  */
 public class DefaultDockingLayoutPersistenceProvider
-        implements DockingLayoutPersistenceProvider {
+        implements DockingLayoutPersistenceProvider,
+        DockingLayoutOrganizationProvider {
 
     private final List<LayoutCodecProvider> layoutCodecProviders;
     private final List<LayoutStorageProvider> layoutStorageProviders;
@@ -392,6 +396,47 @@ public class DefaultDockingLayoutPersistenceProvider
                 layoutCodec,
                 GROUP_CATALOG_LAYOUT_IDENTIFIER,
                 PersistableLayout.ofGroups(groups)
+        );
+    }
+
+    @Override
+    public Optional<String> getActiveLayoutIdentifier(
+            final LayoutPersistenceProfile layoutPersistenceProfile
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+        final LayoutStorageProvider layoutStorageProvider =
+                selectStorageProvider(layoutPersistenceProfile);
+
+        if (!layoutStorageProvider.isLayoutStored(
+                ACTIVE_LAYOUT_IDENTIFIER,
+                layoutCodec.getIdentifier()
+        )) {
+            return Optional.empty();
+        }
+
+        return readLayout(
+                layoutStorageProvider,
+                layoutCodec,
+                ACTIVE_LAYOUT_IDENTIFIER
+        ).findDisplayName();
+    }
+
+    @Override
+    public void setActiveLayoutIdentifier(
+            final LayoutPersistenceProfile layoutPersistenceProfile,
+            final @Nullable String layoutIdentifier
+    ) throws BentoStateException {
+
+        final LayoutCodec layoutCodec =
+                selectCodec(layoutPersistenceProfile).getLayoutCodec();
+
+        writeLayout(
+                selectStorageProvider(layoutPersistenceProfile),
+                layoutCodec,
+                ACTIVE_LAYOUT_IDENTIFIER,
+                PersistableLayout.ofActiveLayout(layoutIdentifier)
         );
     }
 

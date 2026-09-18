@@ -15,6 +15,7 @@ import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
+import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
@@ -49,9 +50,11 @@ import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameP
  * windowMenu.getItems().add(new LayoutsMenu(application, stage));
  * }</pre>
  *
- * <p>This menu owns which named layout is showing, because its own items are
- * the only thing that changes it. An application that switches layouts by some
- * other route as well would need a say in that, which none does today.</p>
+ * <p>This menu owns which named layout is showing, reading and writing which
+ * one through its persistence provider's optional
+ * {@link DockingLayoutOrganizationProvider} support. A provider that does not
+ * implement it still restores and saves layouts normally, but this menu
+ * offers no group management and starts every launch on {@code Default}.</p>
  *
  * <p>Users organize their saved layouts into groups from this menu: create one,
  * rename one, move layouts in and out, and delete one without losing the layouts
@@ -146,6 +149,7 @@ public class LayoutsMenu extends Menu {
 		this.dockingLayoutRestorable = dockingLayoutRestorable;
 		this.owner = owner;
 		this.texts = texts;
+		this.activeCustomLayoutProfile = findActiveLayoutProfile();
 
 		// Rebuilt every time it opens, and once now so that it has something to
 		// open with - a menu with no items never opens, and so would never
@@ -472,16 +476,27 @@ public class LayoutsMenu extends Menu {
 	 * <p>The stored catalog together with the groups the layouts themselves name -
 	 * see {@link LayoutGroups#mergeGroupNames}. Callers that could not list the
 	 * layouts must not call this at all, because a catalog on its own would
-	 * report groups for a list of layouts the menu does not have.</p>
+	 * report groups for a list of layouts the menu does not have. A provider with
+	 * no {@link DockingLayoutOrganizationProvider} support has no catalog to read, so
+	 * this reports only the groups the layouts themselves name.</p>
 	 *
 	 * @param storedLayouts the layouts storage reported.
 	 */
 	private Optional<List<String>> findGroupNames(
 			final List<LayoutPersistenceProfile> storedLayouts
 	) {
+		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+				extendedPersistenceProvider();
+
+		if (extendedProvider.isEmpty()) {
+			return Optional.of(
+					LayoutGroups.mergeGroupNames(List.of(), storedLayouts)
+			);
+		}
+
 		try {
 			return Optional.of(LayoutGroups.mergeGroupNames(
-					persistenceProvider().getStoredGroups(
+					extendedProvider.get().getStoredGroups(
 							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
 					),
 					storedLayouts
@@ -513,7 +528,7 @@ public class LayoutsMenu extends Menu {
 		if (switchToLayout(
 				dockingLayoutRestorable::getDefaultDockingLayout
 		)) {
-			activeCustomLayoutProfile = null;
+			setActiveCustomLayoutProfile(null);
 		}
 	}
 
@@ -540,7 +555,7 @@ public class LayoutsMenu extends Menu {
 		);
 
 		if (isSwitched) {
-			activeCustomLayoutProfile = layoutPersistenceProfile;
+			setActiveCustomLayoutProfile(layoutPersistenceProfile);
 		}
 	}
 
@@ -991,7 +1006,8 @@ public class LayoutsMenu extends Menu {
 	 * Reads the group catalog, changes it, and writes it back.
 	 *
 	 * @param change what the catalog should become, given what it holds now.
-	 * @param errorHeader what to tell the user when it cannot be read or written.
+	 * @param errorHeader what to tell the user when it cannot be read or written,
+	 * or when the persistence provider has no catalog to write to.
 	 * @return {@code true} when the catalog was written; otherwise, {@code false},
 	 * the user having been told.
 	 */
@@ -999,15 +1015,22 @@ public class LayoutsMenu extends Menu {
 			final UnaryOperator<List<String>> change,
 			final String errorHeader
 	) {
+		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+				extendedPersistenceProvider();
+
+		if (extendedProvider.isEmpty()) {
+			showLayoutError(errorHeader, null);
+			return false;
+		}
+
+		final DockingLayoutOrganizationProvider provider = extendedProvider.get();
 		final LayoutPersistenceProfile storageProfile =
 				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER);
 
 		try {
-			persistenceProvider().setStoredGroups(
+			provider.setStoredGroups(
 					storageProfile,
-					change.apply(
-							persistenceProvider().getStoredGroups(storageProfile)
-					)
+					change.apply(provider.getStoredGroups(storageProfile))
 			);
 			return true;
 		} catch (final BentoStateException e) {
@@ -1120,7 +1143,7 @@ public class LayoutsMenu extends Menu {
 		}
 
 		if (isActiveLayout(layoutPersistenceProfile)) {
-			activeCustomLayoutProfile = null;
+			setActiveCustomLayoutProfile(null);
 		}
 	}
 
@@ -1140,7 +1163,7 @@ public class LayoutsMenu extends Menu {
 					layoutPersistenceProfile,
 					bentoProvider()
 			);
-			activeCustomLayoutProfile = layoutPersistenceProfile;
+			setActiveCustomLayoutProfile(layoutPersistenceProfile);
 		} catch (final BentoStateException e) {
 			logger.warn(
 					"Could not save the docking layout as '{}'.",
@@ -1204,6 +1227,94 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
+	 * Sets {@link #activeCustomLayoutProfile} and records it through
+	 * {@link DockingLayoutOrganizationProvider}, when the persistence provider
+	 * supports it.
+	 *
+	 * <p>The only way that field changes - every other assignment in this
+	 * class goes through here, so a restart never misses a change.</p>
+	 *
+	 * @param activeCustomLayoutProfile the layout to show as active, or
+	 * {@code null} for none.
+	 */
+	private void setActiveCustomLayoutProfile(
+			final @Nullable LayoutPersistenceProfile activeCustomLayoutProfile
+	) {
+		this.activeCustomLayoutProfile = activeCustomLayoutProfile;
+		rememberActiveLayout(activeCustomLayoutProfile);
+	}
+
+	/**
+	 * {@return the named layout to show as active from the moment this menu
+	 * opens, read through {@link DockingLayoutOrganizationProvider}, or
+	 * {@code null} when none is recorded, it no longer exists, or the
+	 * persistence provider does not support this.}
+	 *
+	 * <p>An application that restores the session layout at startup - which
+	 * mirrors whatever was last on screen, including the content of a named
+	 * layout that was switched to and then left there - has no other way to
+	 * know that happened. This is what lets this menu show that layout
+	 * selected again after a restart, rather than {@code Default}.</p>
+	 */
+	private @Nullable LayoutPersistenceProfile findActiveLayoutProfile() {
+		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+				extendedPersistenceProvider();
+
+		if (extendedProvider.isEmpty()) {
+			return null;
+		}
+
+		try {
+			final Optional<String> activeLayoutIdentifier =
+					extendedProvider.get().getActiveLayoutIdentifier(
+							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
+					);
+
+			if (activeLayoutIdentifier.isEmpty()) {
+				return null;
+			}
+
+			final LayoutPersistenceProfile activeLayoutProfile =
+					LayoutPersistenceProfile.of(activeLayoutIdentifier.get());
+
+			// Recorded once, but not necessarily still true: the layout may
+			// have been deleted since.
+			return persistenceProvider().isLayoutStored(activeLayoutProfile)
+					? activeLayoutProfile
+					: null;
+		} catch (final BentoStateException e) {
+			logger.warn("Could not read which named layout was active.", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Records which named layout is active through
+	 * {@link DockingLayoutOrganizationProvider}, so {@link #findActiveLayoutProfile()}
+	 * can read it back on the next launch. Does nothing when the persistence
+	 * provider does not support this.
+	 *
+	 * @param activeLayoutProfile the layout now active, or {@code null} when
+	 * the default layout is showing or the active layout was deleted.
+	 */
+	private void rememberActiveLayout(
+			final @Nullable LayoutPersistenceProfile activeLayoutProfile
+	) {
+		extendedPersistenceProvider().ifPresent(extendedProvider -> {
+			try {
+				extendedProvider.setActiveLayoutIdentifier(
+						LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER),
+						activeLayoutProfile == null
+								? null
+								: activeLayoutProfile.layoutIdentifier()
+				);
+			} catch (final BentoStateException e) {
+				logger.warn("Could not record which named layout is active.", e);
+			}
+		});
+	}
+
+	/**
 	 * {@return the provider layouts are read, written, and listed through.}
 	 *
 	 * <p>Asked of the application at each use rather than held here, so that
@@ -1211,6 +1322,17 @@ public class LayoutsMenu extends Menu {
 	 */
 	private DockingLayoutPersistenceProvider persistenceProvider() {
 		return dockingLayoutRestorable.getPersistenceProvider();
+	}
+
+	/**
+	 * {@return {@link #persistenceProvider()}, narrowed to
+	 * {@link DockingLayoutOrganizationProvider}, or an empty {@link Optional} when
+	 * it does not implement that too.}
+	 */
+	private Optional<DockingLayoutOrganizationProvider> extendedPersistenceProvider() {
+		return persistenceProvider() instanceof DockingLayoutOrganizationProvider extendedProvider
+				? Optional.of(extendedProvider)
+				: Optional.empty();
 	}
 
 	/**

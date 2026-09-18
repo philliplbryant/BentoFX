@@ -88,6 +88,23 @@ public record PersistableLayout(
     }
 
     /**
+     * {@return an entry recording which named layout is active, which is a
+     * layout in name only: it carries no state and is never restored.}
+     *
+     * <p>Reuses {@code displayName} to carry the active layout's identifier,
+     * the same way {@link #ofGroups} reuses {@code groups} for an unrelated
+     * catalog.</p>
+     *
+     * @param layoutIdentifier the active layout's identifier, or {@code null}
+     * when no named layout is active.
+     */
+    public static PersistableLayout ofActiveLayout(
+            final @Nullable String layoutIdentifier
+    ) {
+        return new PersistableLayout(layoutIdentifier, List.of());
+    }
+
+    /**
      * {@return this layout's state under a different name and group.}
      *
      * <p>What a rename and a move to another group both come down to. The state
