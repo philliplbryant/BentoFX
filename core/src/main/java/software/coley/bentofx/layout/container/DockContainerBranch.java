@@ -34,6 +34,8 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 	private boolean pruneWhenEmpty = true;
 
 	/**
+	 * Creates a branch container.
+	 *
 	 * @param bento
 	 * 		Parent bento instance.
 	 * @param identifier

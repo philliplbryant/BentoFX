@@ -26,6 +26,8 @@ public class DragDropStage extends Stage {
 	private @Nullable WeakReference<Parent> content;
 
 	/**
+	 * Creates a drag-drop stage, wiring up close/hide/show handling for its content.
+	 *
 	 * @param autoCloseWhenEmpty
 	 * 		Flag to determine if this stage should auto-close if its sole content is removed.
 	 * 		See	{@link #isAutoCloseWhenEmpty()} for more details.
@@ -72,11 +74,11 @@ public class DragDropStage extends Stage {
 
 	/**
 	 * <b>Context:</b>These stages are created when a user drags a {@link Header} into empty space.
-	 * <p/>
+	 * <p>
 	 * Most of the time, if a user drags the {@link Header} from this stage into some other place in another stage,
 	 * leaving this stage with nothing in {@link DockContainer} it would be ideal to automatically
 	 * close this window.
-	 * <p/>
+	 * <p>
 	 * When this is {@code true} we do just that.
 	 *
 	 * @return {@code true} when this stage should auto-close if its {@link DockContainer} is cleared/removed.

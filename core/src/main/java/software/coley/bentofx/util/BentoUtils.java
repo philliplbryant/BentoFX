@@ -79,7 +79,7 @@ public class BentoUtils {
 
 	/**
 	 * Find all children with the given type in the given parent.
-	 * <p/>
+	 * <p>
 	 * The search does not continue for children that match the type. For instance if you had five
 	 * {@link BorderPane} embedded in a row all, only the top-most {@link BorderPane} would be yielded here.
 	 *
@@ -97,7 +97,7 @@ public class BentoUtils {
 
 	/**
 	 * Find all children with the given type in the given parent.
-	 * <p/>
+	 * <p>
 	 * The search does not continue for children that match the type. For instance if you had five
 	 * {@link BorderPane} embedded in a row all, only the top-most {@link BorderPane} would be yielded here.
 	 *
@@ -116,7 +116,7 @@ public class BentoUtils {
 
 	/**
 	 * Find all children with the given CSS selector in the given parent.
-	 * <p/>
+	 * <p>
 	 * The search does not continue for children that match the selector. For instance if you had five
 	 * panes embedded in a row all with the same selector, only the top-most pane would be yielded here.
 	 *
