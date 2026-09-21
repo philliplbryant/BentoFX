@@ -15,9 +15,9 @@ import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
+import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
@@ -52,7 +52,7 @@ import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameP
  *
  * <p>This menu owns which named layout is showing, reading and writing which
  * one through its persistence provider's optional
- * {@link DockingLayoutOrganizationProvider} support. A provider that does not
+ * {@link PersistedDockingLayoutOrganizationProvider} support. A provider that does not
  * implement it still restores and saves layouts normally, but this menu
  * offers no group management and starts every launch on {@code Default}.</p>
  *
@@ -477,7 +477,7 @@ public class LayoutsMenu extends Menu {
 	 * see {@link LayoutGroups#mergeGroupNames}. Callers that could not list the
 	 * layouts must not call this at all, because a catalog on its own would
 	 * report groups for a list of layouts the menu does not have. A provider with
-	 * no {@link DockingLayoutOrganizationProvider} support has no catalog to read, so
+	 * no {@link PersistedDockingLayoutOrganizationProvider} support has no catalog to read, so
 	 * this reports only the groups the layouts themselves name.</p>
 	 *
 	 * @param storedLayouts the layouts storage reported.
@@ -485,7 +485,7 @@ public class LayoutsMenu extends Menu {
 	private Optional<List<String>> findGroupNames(
 			final List<LayoutPersistenceProfile> storedLayouts
 	) {
-		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
 				extendedPersistenceProvider();
 
 		if (extendedProvider.isEmpty()) {
@@ -1015,7 +1015,7 @@ public class LayoutsMenu extends Menu {
 			final UnaryOperator<List<String>> change,
 			final String errorHeader
 	) {
-		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
 				extendedPersistenceProvider();
 
 		if (extendedProvider.isEmpty()) {
@@ -1023,7 +1023,7 @@ public class LayoutsMenu extends Menu {
 			return false;
 		}
 
-		final DockingLayoutOrganizationProvider provider = extendedProvider.get();
+		final PersistedDockingLayoutOrganizationProvider provider = extendedProvider.get();
 		final LayoutPersistenceProfile storageProfile =
 				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER);
 
@@ -1228,7 +1228,7 @@ public class LayoutsMenu extends Menu {
 
 	/**
 	 * Sets {@link #activeCustomLayoutProfile} and records it through
-	 * {@link DockingLayoutOrganizationProvider}, when the persistence provider
+	 * {@link PersistedDockingLayoutOrganizationProvider}, when the persistence provider
 	 * supports it.
 	 *
 	 * <p>The only way that field changes - every other assignment in this
@@ -1246,7 +1246,7 @@ public class LayoutsMenu extends Menu {
 
 	/**
 	 * {@return the named layout to show as active from the moment this menu
-	 * opens, read through {@link DockingLayoutOrganizationProvider}, or
+	 * opens, read through {@link PersistedDockingLayoutOrganizationProvider}, or
 	 * {@code null} when none is recorded, it no longer exists, or the
 	 * persistence provider does not support this.}
 	 *
@@ -1257,7 +1257,7 @@ public class LayoutsMenu extends Menu {
 	 * selected again after a restart, rather than {@code Default}.</p>
 	 */
 	private @Nullable LayoutPersistenceProfile findActiveLayoutProfile() {
-		final Optional<DockingLayoutOrganizationProvider> extendedProvider =
+		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
 				extendedPersistenceProvider();
 
 		if (extendedProvider.isEmpty()) {
@@ -1290,7 +1290,7 @@ public class LayoutsMenu extends Menu {
 
 	/**
 	 * Records which named layout is active through
-	 * {@link DockingLayoutOrganizationProvider}, so {@link #findActiveLayoutProfile()}
+	 * {@link PersistedDockingLayoutOrganizationProvider}, so {@link #findActiveLayoutProfile()}
 	 * can read it back on the next launch. Does nothing when the persistence
 	 * provider does not support this.
 	 *
@@ -1326,11 +1326,11 @@ public class LayoutsMenu extends Menu {
 
 	/**
 	 * {@return {@link #persistenceProvider()}, narrowed to
-	 * {@link DockingLayoutOrganizationProvider}, or an empty {@link Optional} when
+	 * {@link PersistedDockingLayoutOrganizationProvider}, or an empty {@link Optional} when
 	 * it does not implement that too.}
 	 */
-	private Optional<DockingLayoutOrganizationProvider> extendedPersistenceProvider() {
-		return persistenceProvider() instanceof DockingLayoutOrganizationProvider extendedProvider
+	private Optional<PersistedDockingLayoutOrganizationProvider> extendedPersistenceProvider() {
+		return persistenceProvider() instanceof PersistedDockingLayoutOrganizationProvider extendedProvider
 				? Optional.of(extendedProvider)
 				: Optional.empty();
 	}

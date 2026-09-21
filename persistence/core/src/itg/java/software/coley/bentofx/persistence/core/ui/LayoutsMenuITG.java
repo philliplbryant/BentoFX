@@ -31,9 +31,9 @@ import software.coley.bentofx.persistence.core.api.LayoutSaver;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
+import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
@@ -139,7 +139,7 @@ class LayoutsMenuITG {
     /**
      * An application that restores the session layout at startup - which
      * carries no memory of which named layout it mirrors - has this menu read
-     * the identifier back through {@link DockingLayoutOrganizationProvider} at
+     * the identifier back through {@link PersistedDockingLayoutOrganizationProvider} at
      * construction instead. This is what lets {@code Custom} and the layout's
      * own item show selected from the moment the menu opens, without a
      * restore having gone through this menu at all. {@code Restore} itself
@@ -1179,7 +1179,7 @@ class LayoutsMenuITG {
     /** {@link DockingLayoutPersistenceProvider} test double; only the members {@link LayoutsMenu} calls do anything. */
     private static final class RecordingPersistenceProvider
             implements DockingLayoutPersistenceProvider,
-            DockingLayoutOrganizationProvider {
+            PersistedDockingLayoutOrganizationProvider {
 
         private final List<LayoutPersistenceProfile> storedLayouts = new ArrayList<>();
         private final Set<String> storedIdentifiers = new HashSet<>();

@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * @author Phil Bryant
  */
-public interface DockingLayoutOrganizationProvider {
+public interface PersistedDockingLayoutOrganizationProvider {
 
 	/**
 	 * {@return the groups that exist, in the order they were stored.}

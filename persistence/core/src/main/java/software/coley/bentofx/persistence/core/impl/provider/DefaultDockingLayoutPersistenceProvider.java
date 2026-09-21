@@ -10,11 +10,11 @@ import software.coley.bentofx.persistence.core.api.codec.PersistableLayout;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutCodecProvider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutPersistenceComponentProvider;
 import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
+import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.core.impl.AbstractAutoCloseableLayoutSaver;
@@ -42,7 +42,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  */
 public class DefaultDockingLayoutPersistenceProvider
         implements DockingLayoutPersistenceProvider,
-        DockingLayoutOrganizationProvider {
+        PersistedDockingLayoutOrganizationProvider {
 
     private final List<LayoutCodecProvider> layoutCodecProviders;
     private final List<LayoutStorageProvider> layoutStorageProviders;

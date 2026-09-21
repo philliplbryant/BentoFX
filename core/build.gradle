@@ -1,3 +1,5 @@
+import static net.ltgt.gradle.errorprone.CheckSeverity.OFF
+
 plugins {
     alias(libs.plugins.buildconfig)
     alias(libs.plugins.javafx)
@@ -20,6 +22,10 @@ javadoc {
         showFromPublic()
         addBooleanOption('Xdoclint:all,-missing', true)
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone.check('MissingSummary', OFF)
 }
 
 buildConfig {
