@@ -23,7 +23,11 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.util.BentoUtils;
 
-import static software.coley.bentofx.util.BentoStates.*;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_ACTIVE;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_BOTTOM;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_LEFT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_RIGHT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_TOP;
 
 /**
  * Basically just a re-implementation of a {@link TabPane} except for {@link Dockable}.
@@ -109,7 +113,6 @@ public class HeaderPane extends BorderPane {
 			}
 		});
 		container.getDockables().addListener((ListChangeListener<Dockable>) c -> {
-            @SuppressWarnings("NullAway") // FIXME: Headers may be null
 			ObservableList<Node> headerList = headers.getChildren();
 			while (c.next()) {
 				if (c.wasPermutated()) {
@@ -227,7 +230,6 @@ public class HeaderPane extends BorderPane {
 		return null;
 	}
 
-	@SuppressWarnings("NullAway") // FIXME: node can be null
 	private boolean isFocusableContentNode(@Nullable Node node) {
 		// Sanity checks:
 		//  - Must be a content node (not a header)
@@ -354,7 +356,6 @@ public class HeaderPane extends BorderPane {
 	/**
 	 * @return New button that displays all dockables in this space.
 	 */
-    @SuppressWarnings("NullAway") // FIXME: headers can be null
 	protected Button createDockableListButton() {
 		Button button = new Button("▼");
 		button.setEllipsisString("▼");

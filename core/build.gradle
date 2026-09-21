@@ -25,7 +25,11 @@ javadoc {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    options.errorprone.check('BadInstanceof', OFF)
     options.errorprone.check('MissingSummary', OFF)
+    options.errorprone.check('ReferenceEquality', OFF)
+    options.errorprone.check('StringSplitter', OFF)
+    options.errorprone.check('UnnecessaryParentheses', OFF)
 }
 
 buildConfig {
