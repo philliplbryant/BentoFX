@@ -107,7 +107,8 @@ public class LinearItemPane extends Pane {
 				Bounds childBounds = child.getBoundsInParent();
 				double childWidth = childBounds.getWidth();
 				offset += childWidth;
-				if (child.equals(viewTarget)) {
+				// `==` is intentionally used here, for efficiency.
+				if (child == viewTarget) {
 					if (offset > maxX)
 						x = (int) (maxX - offset);
 					break;
@@ -160,7 +161,8 @@ public class LinearItemPane extends Pane {
 				Bounds childBounds = child.getBoundsInParent();
 				double childHeight = childBounds.getHeight();
 				offset += childHeight;
-				if (child.equals(viewTarget)) {
+				// `==` is intentionally used here, for efficiency.
+				if (child == viewTarget) {
 					if (offset > maxY)
 						y = (int) (maxY - offset);
 					break;

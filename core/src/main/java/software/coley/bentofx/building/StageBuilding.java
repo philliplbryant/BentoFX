@@ -19,7 +19,6 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -150,8 +149,8 @@ public class StageBuilding {
 	                                         double width, double height,
 	                                         @Nullable Consumer<DockContainerLeaf> leafSetup) {
 		// Sanity check, leaf shouldn't have an existing parent.
-		if (!Objects.equals(leaf.getParentContainer(), root) &&
-				leaf.getParentContainer() != null)
+		// `!=` is intentionally used here, for efficiency.
+		if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
 			leaf.removeFromParent();
 
 		// Add the leaf to the given root, and the dockable to the leaf.

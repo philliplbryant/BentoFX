@@ -41,12 +41,21 @@ import software.coley.bentofx.util.DragDropTarget;
 import software.coley.bentofx.util.DragUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.scene.input.KeyCode.*;
-import static software.coley.bentofx.util.BentoStates.*;
+import static javafx.scene.input.KeyCode.DELETE;
+import static javafx.scene.input.KeyCode.DOWN;
+import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.KeyCode.LEFT;
+import static javafx.scene.input.KeyCode.RIGHT;
+import static javafx.scene.input.KeyCode.UP;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_HOVER;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SELECTED;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_BOTTOM;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_LEFT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_RIGHT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_TOP;
 
 /**
  * Visual model for a {@link Dockable}.
@@ -173,7 +182,8 @@ public class Header extends Region {
 			if (cur) {
 				DockContainerLeaf container = parentPane.getContainer();
 				boolean headerOrigin = parentPane.isHeaderFocusOrigin();
-				if (Objects.equals(container.getSelectedDockable(), dockable) || headerOrigin) {
+				// `==` is intentionally used here, for efficiency.
+				if (container.getSelectedDockable() == dockable || headerOrigin) {
 					container.selectDockable(dockable);
 				} else {
 					// Focus arriving from content is JavaFX's automatic fallback. Restore content focus
@@ -259,7 +269,8 @@ public class Header extends Region {
 						// Either the source is the same container as this header, or the target container can receive it.
 						Dockable dragSourceDockable = dragSourcePath.dockable();
 						DockContainerLeaf container = parentPane.getContainer();
-						if (Objects.equals(dragSourcePath.leafContainer(), container)
+						// `==` is intentionally used here, for efficiency.
+						if (dragSourcePath.leafContainer() == container
 								|| container.canReceiveDockable(dragSourceDockable, getSide())) {
 							Header dragSourceHeader = dragSourcePath.leafContainer().getHeader(dragSourceDockable);
 							if (dragSourceHeader != null) {
@@ -329,7 +340,8 @@ public class Header extends Region {
 			// Check if our container can receive the dockable.
 			DockContainerLeaf sourceContainer = dragSourcePath.leafContainer();
 			Dockable sourceDockable = dragSourcePath.dockable();
-			boolean sameContainer = parentContainer.equals(sourceContainer);
+			// `==` is intentionally used here, for efficiency.
+			boolean sameContainer = parentContainer == sourceContainer;
 			if (sameContainer || parentContainer.canReceiveDockable(sourceDockable, getSide())) {
 				// Move the header over to the target container and select it.
 				int targetIndex = parentContainer.getDockables().indexOf(dockable);
@@ -432,7 +444,8 @@ public class Header extends Region {
 	 * 		Some other header being dragged.
 	 */
 	private void enableInsertionIndicator(Header header, boolean after) {
-		boolean sourceChanged = !Objects.equals(insertionPreviewSource, header);
+		// `!=` is intentionally used here, for efficiency.
+		boolean sourceChanged = insertionPreviewSource != header;
 		boolean sideChanged = insertionAfter == null || insertionAfter != after;
 		if (!sourceChanged && !sideChanged)
 			return;

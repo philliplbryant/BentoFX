@@ -25,7 +25,11 @@ import software.coley.bentofx.util.BentoUtils;
 
 import java.util.Objects;
 
-import static software.coley.bentofx.util.BentoStates.*;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_ACTIVE;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_BOTTOM;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_LEFT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_RIGHT;
+import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_TOP;
 
 /**
  * Basically just a re-implementation of a {@link TabPane} except for {@link Dockable}.
@@ -232,7 +236,8 @@ public class HeaderPane extends BorderPane {
 		//  - Must be in the same scene as this pane
 		//  - Must be focus traversable, visible, and not disabled
 		if (!isContentNode(node)
-				|| !Objects.equals(node.getScene(), getScene())
+				// `!=` is intentionally used here, for efficiency.
+				|| node.getScene() != getScene()
 				|| !node.isFocusTraversable()
 				|| !node.isVisible()
 				|| node.isDisabled())
@@ -242,7 +247,8 @@ public class HeaderPane extends BorderPane {
 		for (Node current = node; current != null; current = current.getParent()) {
 			if (!current.isVisible() || current.isDisabled())
 				return false;
-			if (current.equals(contentWrapper))
+			// `==` is intentionally used here, for efficiency.
+			if (current == contentWrapper)
 				return true;
 		}
 
@@ -259,7 +265,8 @@ public class HeaderPane extends BorderPane {
 		if (node == null)
 			return false;
 		for (Node current = node; current != null; current = current.getParent())
-			if (current.equals(contentWrapper))
+			// `==` is intentionally used here, for efficiency.
+			if (current == contentWrapper)
 				return true;
 		return false;
 	}
@@ -330,7 +337,8 @@ public class HeaderPane extends BorderPane {
 		container.getDockables().stream()
 				.map(d -> {
 					Header header = createHeader(d);
-					if (Objects.equals(container.getSelectedDockable(), d))
+					// `==` is intentionally used here, for efficiency.
+					if (container.getSelectedDockable() == d)
 						header.setSelected(true);
 					return header;
 				})
