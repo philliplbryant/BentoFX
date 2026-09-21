@@ -1,10 +1,6 @@
 package software.coley.bentofx.event;
 
-import software.coley.bentofx.dockable.Dockable;
-import software.coley.bentofx.dockable.DockableCloseListener;
-import software.coley.bentofx.dockable.DockableMoveListener;
-import software.coley.bentofx.dockable.DockableOpenListener;
-import software.coley.bentofx.dockable.DockableSelectListener;
+import software.coley.bentofx.dockable.*;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.path.DockablePath;
 
@@ -26,6 +22,8 @@ public class EventBus {
 	private final List<DockableSelectListener> selectListeners = new CopyOnWriteArrayList<>();
 
 	/**
+	 * Fires the given event to generic and event-specific listeners.
+	 *
 	 * @param event
 	 * 		Event to fire.
 	 */
@@ -86,6 +84,8 @@ public class EventBus {
 	}
 
 	/**
+	 * Adds a generic event listener.
+	 *
 	 * @param listener
 	 * 		Generic event listener to add.
 	 */
@@ -94,6 +94,8 @@ public class EventBus {
 	}
 
 	/**
+	 * {@return {@code true} if the listener was removed}
+	 *
 	 * @param listener
 	 * 		Generic event listener to remove.
 	 */
@@ -109,6 +111,8 @@ public class EventBus {
 	}
 
 	/**
+	 * Adds a dockable opening listener.
+	 *
 	 * @param listener
 	 * 		Dockable opening listener to add.
 	 */
@@ -117,6 +121,8 @@ public class EventBus {
 	}
 
 	/**
+	 * {@return {@code true} if the listener was removed}
+	 *
 	 * @param listener
 	 * 		Dockable opening listener to remove.
 	 */
@@ -132,6 +138,8 @@ public class EventBus {
 	}
 
 	/**
+	 * Adds a dockable moving listener.
+	 *
 	 * @param listener
 	 * 		Dockable moving listener to add.
 	 */
@@ -140,6 +148,8 @@ public class EventBus {
 	}
 
 	/**
+	 * {@return {@code true} if the listener was removed}
+	 *
 	 * @param listener
 	 * 		Dockable moving listener to remove.
 	 */
@@ -155,6 +165,8 @@ public class EventBus {
 	}
 
 	/**
+	 * Adds a dockable closing listener.
+	 *
 	 * @param listener
 	 * 		Dockable closing listener to add.
 	 */
@@ -163,6 +175,8 @@ public class EventBus {
 	}
 
 	/**
+	 * {@return {@code true} if the listener was removed}
+	 *
 	 * @param listener
 	 * 		Dockable closing listener to remove.
 	 */
@@ -178,6 +192,8 @@ public class EventBus {
 	}
 
 	/**
+	 * Adds a dockable selecting listener.
+	 *
 	 * @param listener
 	 * 		Dockable selecting listener to add.
 	 */
@@ -186,6 +202,8 @@ public class EventBus {
 	}
 
 	/**
+	 * {@return {@code true} if the listener was removed}
+	 *
 	 * @param listener
 	 * 		Dockable selecting listener to remove.
 	 */

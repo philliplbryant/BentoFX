@@ -74,10 +74,6 @@ plugins.withId('com.autonomousapps.dependency-analysis') {
 }
 
 jreleaser {
-    project {
-        group = versionCatalog.findVersion("maven-group").get().requiredVersion
-        version = versionCatalog.findVersion("bentofx").get().requiredVersion
-    }
     signing {
         pgp {
             active = 'RELEASE'

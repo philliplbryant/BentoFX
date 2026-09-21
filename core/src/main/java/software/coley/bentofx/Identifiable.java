@@ -1,5 +1,7 @@
 package software.coley.bentofx;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Outline of an <i>(ideally uniquely)</i> identifiable object.
  *
@@ -13,10 +15,12 @@ public interface Identifiable {
 	String getIdentifier();
 
 	/**
-     * {@return {@code true} when the other object has the same identifier.}
-     * @param other another identifiable object.
+	 * {@return {@code true} when the other object has the same identifier.}
+	 *
+	 * @param other Another identifiable object.
 	 */
-	default boolean matchesIdentity(final Identifiable other) {
-		return this.getIdentifier().equals(other.getIdentifier());
+	default boolean matchesIdentity(final @Nullable Identifiable other) {
+		return other != null &&
+				this.getIdentifier().equals(other.getIdentifier());
 	}
 }

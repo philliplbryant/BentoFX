@@ -40,6 +40,8 @@ public class HeaderPane extends BorderPane {
 	private @Nullable Headers headers;
 
 	/**
+	 * Creates a header pane for the given container.
+	 *
 	 * @param container
 	 * 		Parent container.
 	 */

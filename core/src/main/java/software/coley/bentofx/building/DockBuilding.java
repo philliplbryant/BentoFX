@@ -19,6 +19,8 @@ public class DockBuilding {
 	private final Bento bento;
 
 	/**
+	 * Creates a builder for the given bento instance.
+	 *
 	 * @param bento
 	 * 		Parent bento instance.
 	 */

@@ -21,3 +21,10 @@ dependencies {
     implementation projects.core
 
 }
+
+// Demo code isn't public API.
+javadoc {
+    options {
+        addStringOption('Xdoclint:none', '-quiet')
+    }
+}

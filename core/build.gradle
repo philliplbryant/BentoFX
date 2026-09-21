@@ -15,7 +15,6 @@ javafx {
     configurations = ['compileOnlyApi']
 }
 
-// TODO BENTO-13: Add missing Javadoc comments and delete these options.
 javadoc {
     options {
         showFromPublic()
