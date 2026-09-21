@@ -24,9 +24,9 @@ javadoc {
 /**
  * Lints Javadoc that the published {@code javadoc} task cannot see.
  *
- * <p>The standard javadoc task only documents public/protected members by
- * default, so a broken {@link ... } in a package-private class passes javadoc
- * silently but fails javadocLint, which lints at PRIVATE member level.</p>
+ * <p>That task documents public and protected members only, so a malformed
+ * {@code @link} on a package-private class passes it silently. This task lints
+ * the same source at {@code PRIVATE} member level.</p>
  */
 def javadocLint = tasks.register('javadocLint', Javadoc) {
     description = 'Fails when any Javadoc in this module is malformed, including on non-public members.'
