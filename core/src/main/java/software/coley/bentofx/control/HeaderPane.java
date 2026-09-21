@@ -23,8 +23,6 @@ import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerLeafMenuFactory;
 import software.coley.bentofx.util.BentoUtils;
 
-import java.util.Objects;
-
 import static software.coley.bentofx.util.BentoStates.PSEUDO_ACTIVE;
 import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_BOTTOM;
 import static software.coley.bentofx.util.BentoStates.PSEUDO_SIDE_LEFT;
@@ -417,8 +415,8 @@ public class HeaderPane extends BorderPane {
 		if (dockable == null || headers == null)
 			return null;
 		for (Node child : headers.getChildren())
-			if (child instanceof Header header &&
-					Objects.equals(header.getDockable(), dockable))
+			// `==` is intentionally used here, for efficiency.
+			if (child instanceof Header header && header.getDockable() == dockable)
 				return header;
 		return null;
 	}
