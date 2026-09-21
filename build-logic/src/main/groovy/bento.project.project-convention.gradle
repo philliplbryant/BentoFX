@@ -86,12 +86,6 @@ java {
     withJavadocJar()
 }
 
-javadoc {
-    options {
-        addBooleanOption('Xdoclint:all', true)
-    }
-}
-
 testing {
     suites {
         configureEach { suite ->
