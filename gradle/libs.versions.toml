@@ -11,7 +11,7 @@ gradle-checksum = "acd53f1edaf02f1a8ff99879f8a34b302661a057d9b063ae9e35b552f804d
 java-jdk = "21"
 
 # Libraries
-assertj = "4.0.0-M1"
+assertj = "3.27.7"
 errorprone = "2.50.0"
 javafx = "21.0.12"
 jspecify = "1.0.1"
@@ -22,7 +22,7 @@ testfx-monocle = "21.0.2"
 
 # Plugins
 ben-manes-versions-plugin = "0.56.0"
-buildconfig = "6.0.10"
+buildconfig = "6.1.0"
 dependency-analysis-gradle-plugin = "3.19.1"
 errorprone-plugin = "5.1.0"
 # noinspection UnusedVersionCatalogEntry
