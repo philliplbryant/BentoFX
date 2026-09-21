@@ -17,7 +17,11 @@ public class DockContainerRootBranchDto {
     /**
      * Creates an empty root branch DTO for a mapper to populate.
      */
-    public DockContainerRootBranchDto() { }
+    public DockContainerRootBranchDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The root branch's identifier.

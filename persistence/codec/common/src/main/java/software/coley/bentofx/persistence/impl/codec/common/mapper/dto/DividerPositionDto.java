@@ -13,7 +13,11 @@ public class DividerPositionDto {
     /**
      * Creates an empty divider position DTO for a mapper to populate.
      */
-    public DividerPositionDto() { }
+    public DividerPositionDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * Index of the divider within its container's list of dividers.

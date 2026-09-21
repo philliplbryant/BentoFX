@@ -44,7 +44,11 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
      * Creates a {@code FileLayoutStorageProvider} for persisting Bento layouts
      * to a file
      */
-    public FileLayoutStorageProvider() {}
+    public FileLayoutStorageProvider() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     @Override
     public String getIdentifier() {

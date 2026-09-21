@@ -130,15 +130,13 @@ final class LayoutGroups {
         for (final LayoutPersistenceProfile storedLayout : storedLayouts) {
             final String groupName = storedLayout.group();
 
-            if (groupName == null) {
-                continue;
-            }
-
-            final String canonicalName = canonicalNames.get(groupName);
-
             // A group every layout was matched against came from those layouts,
-            // so a miss means the caller narrowed the group list. Skipping keeps
-            // the layout out of the wrong group; the caller lists it loose.
+            // so a miss - including a layout with no group at all - means the
+            // caller narrowed the group list. Skipping keeps the layout out of
+            // the wrong group; the caller lists it loose.
+            final String canonicalName =
+                    groupName == null ? null : canonicalNames.get(groupName);
+
             if (canonicalName == null) {
                 continue;
             }

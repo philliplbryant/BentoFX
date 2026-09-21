@@ -17,7 +17,11 @@ public final class DockContainerLeafDto extends DockContainerDto {
     /**
      * Creates an empty leaf container DTO for a mapper to populate.
      */
-    public DockContainerLeafDto() { }
+    public DockContainerLeafDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The dockables this leaf holds, in the order they are shown.

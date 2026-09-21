@@ -56,7 +56,11 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
      * Creates a {@code DatabaseLayoutStorageProvider} for persisting Bento
      * layouts to an H2 database.
      */
-    public DatabaseLayoutStorageProvider() {}
+    public DatabaseLayoutStorageProvider() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     @Override
     public String getIdentifier() {

@@ -15,7 +15,11 @@ public class BentoStateDto {
     /**
      * Creates an empty Bento state DTO for a mapper to populate.
      */
-    public BentoStateDto() { }
+    public BentoStateDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The Bento instance's identifier.

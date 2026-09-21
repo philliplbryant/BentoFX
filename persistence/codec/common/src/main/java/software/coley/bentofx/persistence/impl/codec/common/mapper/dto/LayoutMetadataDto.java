@@ -15,7 +15,11 @@ public class LayoutMetadataDto {
     /**
      * Creates an empty layout metadata DTO for a mapper to populate.
      */
-    public LayoutMetadataDto() { }
+    public LayoutMetadataDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * Version of the persisted layout schema.

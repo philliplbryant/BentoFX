@@ -15,7 +15,11 @@ public class JsonLayoutCodecProvider implements LayoutCodecProvider {
     /**
      * Creates a {@link LayoutCodecProvider} for JSON.
      */
-    public JsonLayoutCodecProvider() {}
+    public JsonLayoutCodecProvider() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     @Override
     public String getIdentifier() {

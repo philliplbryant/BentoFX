@@ -14,7 +14,11 @@ public class DragDropStageDto {
     /**
      * Creates an empty drag-drop stage DTO for a mapper to populate.
      */
-    public DragDropStageDto() { }
+    public DragDropStageDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The stage's title, or {@code null} when it was saved without one.

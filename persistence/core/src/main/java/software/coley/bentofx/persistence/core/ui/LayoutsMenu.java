@@ -34,6 +34,7 @@ import java.util.function.UnaryOperator;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in
@@ -93,7 +94,7 @@ public class LayoutsMenu extends Menu {
 	private final Window owner;
 
 	/** Every word a user reads from this menu. */
-	private final ResourceBundle texts;
+	private final ResourceBundle resourceBundle;
 
 	/**
 	 * The custom layout showing now, or {@code null} when the default layout
@@ -137,18 +138,18 @@ public class LayoutsMenu extends Menu {
 	 * @param owner the window the dialogs these items raise belong to.
 	 * @param dockingLayoutRestorable the application whose docking layout these
 	 * items switch, and whose providers they read and write it through.
-	 * @param texts every word a user reads from this menu.
+	 * @param resourceBundle every word a user reads from this menu.
 	 */
 	public LayoutsMenu(
 			final Window owner,
 			final DockingLayoutRestorable dockingLayoutRestorable,
-			final ResourceBundle texts
+			final ResourceBundle resourceBundle
 	) {
-		super(texts.getString("menu.layouts"));
+		super(resourceBundle.getString(LAYOUTS_MENU_KEY));
 
 		this.dockingLayoutRestorable = dockingLayoutRestorable;
 		this.owner = owner;
-		this.texts = texts;
+		this.resourceBundle = resourceBundle;
 		this.activeCustomLayoutProfile = findActiveLayoutProfile();
 
 		// Rebuilt every time it opens, and once now so that it has something to
@@ -170,7 +171,7 @@ public class LayoutsMenu extends Menu {
 		// remember which named layout it grew out of.
 		final MenuItem defaultItem = new MenuItem(
 				markedText(
-						text("item.default"),
+						getTextFromResourceBundle(DEFAULT_ITEM_KEY),
 						activeCustomLayoutProfile == null
 				)
 		);
@@ -178,14 +179,14 @@ public class LayoutsMenu extends Menu {
 
 		final Menu customMenu = new Menu(
 				markedText(
-						text("menu.custom"),
+						getTextFromResourceBundle(CUSTOM_MENU_KEY),
 						activeCustomLayoutProfile != null
 				)
 		);
 		populateCustomMenu(customMenu);
 
 		final MenuItem saveAsNewItem =
-				new MenuItem(text("item.saveAsNew"));
+				new MenuItem(getTextFromResourceBundle(SAVE_AS_NEW_ITEM_KEY));
 		saveAsNewItem.setOnAction(event -> saveCurrentLayoutAsNew());
 
 		getItems().setAll(defaultItem, customMenu, saveAsNewItem);
@@ -203,13 +204,13 @@ public class LayoutsMenu extends Menu {
 	 * @param customMenu the menu to fill.
 	 */
 	private void populateCustomMenu(final Menu customMenu) {
-		final Menu restoreMenu = new Menu(text("menu.restore"));
-		final Menu renameMenu = new Menu(text("menu.rename"));
-		final Menu moveToGroupMenu = new Menu(text("menu.moveToGroup"));
-		final Menu deleteMenu = new Menu(text("menu.delete"));
-		final Menu groupsMenu = new Menu(text("menu.groups"));
+		final Menu restoreMenu = new Menu(getTextFromResourceBundle(RESTORE_MENU_KEY));
+		final Menu renameMenu = new Menu(getTextFromResourceBundle(RENAME_MENU_KEY));
+		final Menu moveToGroupMenu = new Menu(getTextFromResourceBundle(MOVE_TO_GROUP_MENU_KEY));
+		final Menu deleteMenu = new Menu(getTextFromResourceBundle(DELETE_MENU_KEY));
+		final Menu groupsMenu = new Menu(getTextFromResourceBundle(GROUPS_MENU_KEY));
 
-		final MenuItem saveChangesItem = new MenuItem(text("item.saveChanges"));
+		final MenuItem saveChangesItem = new MenuItem(getTextFromResourceBundle(SAVE_CHANGES_ITEM_KEY));
 		saveChangesItem.setDisable(activeCustomLayoutProfile == null);
 		saveChangesItem.setOnAction(event -> saveChangesToActiveLayout());
 
@@ -228,9 +229,9 @@ public class LayoutsMenu extends Menu {
 
 		if (storedLayouts.isEmpty() || groupNames.isEmpty()) {
 			layoutMenus.forEach(
-					menu -> addDisabledItem(menu, text("item.listFailed"))
+					menu -> addDisabledItem(menu, getTextFromResourceBundle(LIST_FAILED_ITEM_KEY))
 			);
-			addDisabledItem(groupsMenu, text("item.listFailed"));
+			addDisabledItem(groupsMenu, getTextFromResourceBundle(LIST_FAILED_ITEM_KEY));
 		} else {
 			addLayoutItems(
 					restoreMenu,
@@ -258,7 +259,7 @@ public class LayoutsMenu extends Menu {
 			// that opens a dialog offering no choice is worse than one that says
 			// so.
 			if (groupNames.get().isEmpty()) {
-				addDisabledItem(moveToGroupMenu, text("item.noGroups"));
+				addDisabledItem(moveToGroupMenu, getTextFromResourceBundle(NO_GROUPS_ITEM_KEY));
 			} else {
 				addLayoutItems(
 						moveToGroupMenu,
@@ -297,15 +298,15 @@ public class LayoutsMenu extends Menu {
 			final List<LayoutPersistenceProfile> storedLayouts,
 			final List<String> groupNames
 	) {
-		final MenuItem newGroupItem = new MenuItem(text("item.newGroup"));
+		final MenuItem newGroupItem = new MenuItem(getTextFromResourceBundle(NEW_GROUP_ITEM_KEY));
 		newGroupItem.setOnAction(event -> createGroup(groupNames));
 
-		final Menu renameGroupMenu = new Menu(text("menu.renameGroup"));
-		final Menu deleteGroupMenu = new Menu(text("menu.deleteGroup"));
+		final Menu renameGroupMenu = new Menu(getTextFromResourceBundle(RENAME_GROUP_MENU_KEY));
+		final Menu deleteGroupMenu = new Menu(getTextFromResourceBundle(DELETE_GROUP_MENU_KEY));
 
 		if (groupNames.isEmpty()) {
-			addDisabledItem(renameGroupMenu, text("item.noGroups"));
-			addDisabledItem(deleteGroupMenu, text("item.noGroups"));
+			addDisabledItem(renameGroupMenu, getTextFromResourceBundle(NO_GROUPS_ITEM_KEY));
+			addDisabledItem(deleteGroupMenu, getTextFromResourceBundle(NO_GROUPS_ITEM_KEY));
 		} else {
 			for (final String groupName : groupNames) {
 				final MenuItem renameItem = layoutItem(groupName);
@@ -372,7 +373,7 @@ public class LayoutsMenu extends Menu {
 		// An empty menu opens as an empty popup, which reads as a fault rather
 		// than as an answer. Reached when nothing is stored and no group exists.
 		if (targetMenu.getItems().isEmpty()) {
-			addDisabledItem(targetMenu, text("item.noLayouts"));
+			addDisabledItem(targetMenu, getTextFromResourceBundle(NO_LAYOUTS_ITEM_KEY));
 		}
 	}
 
@@ -400,7 +401,7 @@ public class LayoutsMenu extends Menu {
 		groupMenu.setMnemonicParsing(false);
 
 		if (groupLayouts.isEmpty()) {
-			addDisabledItem(groupMenu, text("item.noLayouts"));
+			addDisabledItem(groupMenu, getTextFromResourceBundle(NO_LAYOUTS_ITEM_KEY));
 
 			return groupMenu;
 		}
@@ -574,8 +575,8 @@ public class LayoutsMenu extends Menu {
 		}
 
 		showLayoutError(
-				text("error.restoreFailed.header"),
-				text("error.restoreFailed.content")
+				getTextFromResourceBundle(HEADER_RESTORE_FAILED_ERROR_KEY),
+				getTextFromResourceBundle(CONTENT_RESTORE_FAILED_ERROR_KEY)
 		);
 		return false;
 	}
@@ -589,8 +590,8 @@ public class LayoutsMenu extends Menu {
 	 */
 	private void saveCurrentLayoutAsNew() {
 		final Optional<String> displayName = findLayoutName(
-				text("dialog.saveAsNew.title"),
-				text("dialog.saveAsNew.prompt"),
+				getTextFromResourceBundle(TITLE_SAVE_AS_NEW_DIALOG_KEY),
+				getTextFromResourceBundle(PROMPT_SAVE_AS_NEW_DIALOG_KEY),
 				""
 		);
 
@@ -609,7 +610,7 @@ public class LayoutsMenu extends Menu {
 
 		if (problem.isPresent()) {
 			showLayoutError(
-					text("error.cannotSaveNamed.header", displayName.get()),
+					getTextFromResourceBundle(HEADER_CANNOT_SAVE_NAMED_ERROR_KEY, displayName.get()),
 					problemText(problem.get())
 			);
 			return;
@@ -619,7 +620,7 @@ public class LayoutsMenu extends Menu {
 				findStoredCustomLayouts().flatMap(this::findGroupNames);
 
 		if (groupNames.isEmpty()) {
-			showLayoutError(text("error.listGroupsFailed.header"), null);
+			showLayoutError(getTextFromResourceBundle(HEADER_LIST_GROUPS_FAILED_ERROR_KEY), null);
 			return;
 		}
 
@@ -629,8 +630,8 @@ public class LayoutsMenu extends Menu {
 			group = null;
 		} else {
 			final Optional<String> choice = findGroupChoice(
-					text("dialog.saveAsNew.title"),
-					text("dialog.saveAsNew.groupPrompt"),
+					getTextFromResourceBundle(TITLE_SAVE_AS_NEW_DIALOG_KEY),
+					getTextFromResourceBundle(GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY),
 					null,
 					groupNames.get()
 			);
@@ -658,15 +659,15 @@ public class LayoutsMenu extends Menu {
 					layoutIdentifier,
 					e
 			);
-			showLayoutError(text("error.saveFailed.header"), e.getMessage());
+			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
 			return;
 		}
 
 		// Two names can derive one identifier, so this catches a collision the
 		// user cannot see coming as well as the same name typed twice.
 		if (isAlreadyStored && !confirmLayoutAction(
-				text("confirm.replace.header", layoutIdentifier),
-				text("confirm.replace.content")
+				getTextFromResourceBundle(HEADER_REPLACE_CONFIRM_KEY, layoutIdentifier),
+				getTextFromResourceBundle(CONTENT_REPLACE_CONFIRM_KEY)
 		)) {
 			return;
 		}
@@ -708,8 +709,8 @@ public class LayoutsMenu extends Menu {
 			final LayoutPersistenceProfile storedLayout
 	) {
 		final Optional<String> displayName = findLayoutName(
-				text("dialog.rename.title"),
-				text("dialog.rename.prompt"),
+				getTextFromResourceBundle(TITLE_RENAME_DIALOG_KEY),
+				getTextFromResourceBundle(PROMPT_RENAME_DIALOG_KEY),
 				getLayoutLabel(storedLayout)
 		);
 
@@ -719,8 +720,8 @@ public class LayoutsMenu extends Menu {
 
 		if (displayName.get().isBlank()) {
 			showLayoutError(
-					text("error.blankName.header"),
-					text("error.blankName.content")
+					getTextFromResourceBundle(HEADER_BLANK_NAME_ERROR_KEY),
+					getTextFromResourceBundle(CONTENT_BLANK_NAME_ERROR_KEY)
 			);
 			return;
 		}
@@ -748,13 +749,13 @@ public class LayoutsMenu extends Menu {
 				findStoredCustomLayouts().flatMap(this::findGroupNames);
 
 		if (groupNames.isEmpty()) {
-			showLayoutError(text("error.listGroupsFailed.header"), null);
+			showLayoutError(getTextFromResourceBundle(HEADER_LIST_GROUPS_FAILED_ERROR_KEY), null);
 			return;
 		}
 
 		final Optional<String> choice = findGroupChoice(
-				text("dialog.moveToGroup.title"),
-				text("dialog.moveToGroup.prompt"),
+				getTextFromResourceBundle(TITLE_MOVE_TO_GROUP_DIALOG_KEY),
+				getTextFromResourceBundle(PROMPT_MOVE_TO_GROUP_DIALOG_KEY),
 				storedLayout.group(),
 				groupNames.get()
 		);
@@ -797,7 +798,7 @@ public class LayoutsMenu extends Menu {
 			final @Nullable String currentGroup,
 			final List<String> groupNames
 	) {
-		final String noGroupChoice = text("choice.noGroup");
+		final String noGroupChoice = getTextFromResourceBundle(NO_GROUP_CHOICE_KEY);
 		final List<String> choices = new ArrayList<>();
 		choices.add(noGroupChoice);
 		choices.addAll(groupNames);
@@ -827,7 +828,7 @@ public class LayoutsMenu extends Menu {
 	 * @param choice the label {@link #findGroupChoice} returned.
 	 */
 	private @Nullable String chosenGroup(final String choice) {
-		return choice.equals(text("choice.noGroup")) ? null : choice;
+		return choice.equals(getTextFromResourceBundle(NO_GROUP_CHOICE_KEY)) ? null : choice;
 	}
 
 	/**
@@ -841,8 +842,8 @@ public class LayoutsMenu extends Menu {
 	 */
 	private void createGroup(final List<String> groupNames) {
 		final Optional<String> groupName = findLayoutName(
-				text("dialog.newGroup.title"),
-				text("dialog.newGroup.prompt"),
+				getTextFromResourceBundle(TITLE_NEW_GROUP_DIALOG_KEY),
+				getTextFromResourceBundle(PROMPT_NEW_GROUP_DIALOG_KEY),
 				""
 		);
 
@@ -861,7 +862,7 @@ public class LayoutsMenu extends Menu {
 			final List<String> updated = new ArrayList<>(catalog);
 			updated.add(groupName.get().trim());
 			return updated;
-		}, text("error.groupFailed.header"));
+		}, getTextFromResourceBundle(HEADER_GROUP_FAILED_ERROR_KEY));
 	}
 
 	/**
@@ -883,8 +884,8 @@ public class LayoutsMenu extends Menu {
 			final List<LayoutPersistenceProfile> storedLayouts
 	) {
 		final Optional<String> newGroupName = findLayoutName(
-				text("dialog.renameGroup.title"),
-				text("dialog.renameGroup.prompt"),
+				getTextFromResourceBundle(TITLE_RENAME_GROUP_DIALOG_KEY),
+				getTextFromResourceBundle(PROMPT_RENAME_GROUP_DIALOG_KEY),
 				groupName
 		);
 
@@ -904,7 +905,7 @@ public class LayoutsMenu extends Menu {
 								? trimmedName
 								: stored)
 						.toList(),
-				text("error.renameGroupFailed.header")
+				getTextFromResourceBundle(HEADER_RENAME_GROUP_FAILED_ERROR_KEY)
 		);
 
 		if (catalogWritten) {
@@ -912,7 +913,7 @@ public class LayoutsMenu extends Menu {
 					groupName,
 					trimmedName,
 					storedLayouts,
-					text("error.renameGroupFailed.header")
+					getTextFromResourceBundle(HEADER_RENAME_GROUP_FAILED_ERROR_KEY)
 			);
 		}
 	}
@@ -932,8 +933,8 @@ public class LayoutsMenu extends Menu {
 			final List<LayoutPersistenceProfile> storedLayouts
 	) {
 		if (!confirmLayoutAction(
-				text("confirm.deleteGroup.header", groupName),
-				text("confirm.deleteGroup.content")
+				getTextFromResourceBundle(HEADER_DELETE_GROUP_CONFIRM_KEY, groupName),
+				getTextFromResourceBundle(CONTENT_DELETE_GROUP_CONFIRM_KEY)
 		)) {
 			return;
 		}
@@ -942,7 +943,7 @@ public class LayoutsMenu extends Menu {
 				groupName,
 				null,
 				storedLayouts,
-				text("error.deleteGroupFailed.header")
+				getTextFromResourceBundle(HEADER_DELETE_GROUP_FAILED_ERROR_KEY)
 		);
 
 		if (membersMoved) {
@@ -950,7 +951,7 @@ public class LayoutsMenu extends Menu {
 					catalog -> catalog.stream()
 							.filter(stored -> !stored.equalsIgnoreCase(groupName))
 							.toList(),
-					text("error.deleteGroupFailed.header")
+					getTextFromResourceBundle(HEADER_DELETE_GROUP_FAILED_ERROR_KEY)
 			);
 		}
 	}
@@ -1058,7 +1059,7 @@ public class LayoutsMenu extends Menu {
 			)) {
 				// Deleted from under the menu, which is rebuilt each time it
 				// opens, so the next open shows the truth.
-				showLayoutError(text("error.notStored.header"), null);
+				showLayoutError(getTextFromResourceBundle(HEADER_NOT_STORED_ERROR_KEY), null);
 			}
 		} catch (final BentoStateException e) {
 			logger.warn(
@@ -1066,7 +1067,7 @@ public class LayoutsMenu extends Menu {
 					storedLayout.layoutIdentifier(),
 					e
 			);
-			showLayoutError(text("error.saveFailed.header"), e.getMessage());
+			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
 		}
 	}
 
@@ -1096,14 +1097,14 @@ public class LayoutsMenu extends Menu {
 		}
 
 		showLayoutError(
-				text("error.cannotNameGroup.header", groupName),
+				getTextFromResourceBundle(HEADER_CANNOT_NAME_GROUP_ERROR_KEY, groupName),
 				switch (problem.get()) {
-					case BLANK -> text("problem.blankGroup");
-					case TOO_LONG -> text(
-							"problem.groupTooLong",
+					case BLANK -> getTextFromResourceBundle(BLANK_GROUP_PROBLEM_KEY);
+					case TOO_LONG -> getTextFromResourceBundle(
+							GROUP_TOO_LONG_PROBLEM_KEY,
 							LayoutGroups.MAX_GROUP_NAME_LENGTH
 					);
-					case DUPLICATE -> text("problem.duplicateGroup");
+					case DUPLICATE -> getTextFromResourceBundle(DUPLICATE_GROUP_PROBLEM_KEY);
 				}
 		);
 
@@ -1124,8 +1125,8 @@ public class LayoutsMenu extends Menu {
 		final String layoutLabel = getLayoutLabel(layoutPersistenceProfile);
 
 		if (!confirmLayoutAction(
-				text("confirm.delete.header", layoutLabel),
-				text("confirm.delete.content")
+				getTextFromResourceBundle(HEADER_DELETE_CONFIRM_KEY, layoutLabel),
+				getTextFromResourceBundle(CONTENT_DELETE_CONFIRM_KEY)
 		)) {
 			return;
 		}
@@ -1138,7 +1139,7 @@ public class LayoutsMenu extends Menu {
 					layoutPersistenceProfile.layoutIdentifier(),
 					e
 			);
-			showLayoutError(text("error.deleteFailed.header"), e.getMessage());
+			showLayoutError(getTextFromResourceBundle(HEADER_DELETE_FAILED_ERROR_KEY), e.getMessage());
 			return;
 		}
 
@@ -1170,7 +1171,7 @@ public class LayoutsMenu extends Menu {
 					layoutPersistenceProfile.layoutIdentifier(),
 					e
 			);
-			showLayoutError(text("error.saveFailed.header"), e.getMessage());
+			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
 		}
 	}
 
@@ -1367,14 +1368,14 @@ public class LayoutsMenu extends Menu {
 	 *
 	 * @param key names the text in this menu's {@link ResourceBundle}.
 	 */
-	private String text(final String key) {
-		return texts.getString(key);
+	private String getTextFromResourceBundle(final String key) {
+		return resourceBundle.getString(key);
 	}
 
 	/**
 	 * {@return the text for a key, with its placeholder filled in.}
 	 *
-	 * <p>Separate from {@link #text(String)} so that only the values holding a
+	 * <p>Separate from {@link #getTextFromResourceBundle(String)} so that only the values holding a
 	 * placeholder go through {@link MessageFormat}. Running every value through
 	 * it would make a literal apostrophe an escape character in all of
 	 * them, and so make every translated sentence a place to get that
@@ -1383,8 +1384,8 @@ public class LayoutsMenu extends Menu {
 	 * @param key names the text in this menu's {@link ResourceBundle}.
 	 * @param argument what to put in place of <code>{0}</code>.
 	 */
-	private String text(final String key, final Object argument) {
-		return MessageFormat.format(texts.getString(key), argument);
+	private String getTextFromResourceBundle(final String key, final Object argument) {
+		return MessageFormat.format(resourceBundle.getString(key), argument);
 	}
 
 	/**
@@ -1403,9 +1404,9 @@ public class LayoutsMenu extends Menu {
 	 */
 	private String problemText(final LayoutIdentifierProblem problem) {
 		return switch (problem.rule()) {
-			case BLANK -> text("problem.blank");
-			case RESERVED -> text("problem.reserved");
-			case DEVICE_NAME -> text("problem.deviceName");
+			case BLANK -> getTextFromResourceBundle(BLANK_PROBLEM_KEY);
+			case RESERVED -> getTextFromResourceBundle(RESERVED_PROBLEM_KEY);
+			case DEVICE_NAME -> getTextFromResourceBundle(DEVICE_NAME_PROBLEM_KEY);
 			default -> problem.message();
 		};
 	}
@@ -1490,7 +1491,7 @@ public class LayoutsMenu extends Menu {
 		final Alert alert = new Alert(Alert.AlertType.ERROR);
 
 		alert.initOwner(owner);
-		alert.setTitle(text("dialog.title"));
+		alert.setTitle(getTextFromResourceBundle(TITLE_DIALOG_KEY));
 		alert.setHeaderText(header);
 		alert.setContentText(content);
 		alert.showAndWait();
@@ -1512,7 +1513,7 @@ public class LayoutsMenu extends Menu {
 		final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 
 		alert.initOwner(owner);
-		alert.setTitle(text("dialog.title"));
+		alert.setTitle(getTextFromResourceBundle(TITLE_DIALOG_KEY));
 		alert.setHeaderText(header);
 		alert.setContentText(content);
 		alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);

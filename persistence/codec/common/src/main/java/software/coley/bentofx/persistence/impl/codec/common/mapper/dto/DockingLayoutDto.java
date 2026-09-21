@@ -26,7 +26,11 @@ public class DockingLayoutDto {
     /**
      * Creates an empty docking layout DTO for a mapper to populate.
      */
-    public DockingLayoutDto() { }
+    public DockingLayoutDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The layout's metadata.

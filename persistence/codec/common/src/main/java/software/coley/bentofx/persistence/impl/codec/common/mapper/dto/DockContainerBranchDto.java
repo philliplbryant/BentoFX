@@ -17,7 +17,11 @@ public final class DockContainerBranchDto extends DockContainerDto {
     /**
      * Creates an empty branch container DTO for a mapper to populate.
      */
-    public DockContainerBranchDto() { }
+    public DockContainerBranchDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The positions of the dividers between this branch's child containers.

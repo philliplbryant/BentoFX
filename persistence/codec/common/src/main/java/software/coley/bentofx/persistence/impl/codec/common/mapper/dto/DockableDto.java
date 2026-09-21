@@ -13,7 +13,11 @@ public class DockableDto {
     /**
      * Creates an empty dockable DTO for a mapper to populate.
      */
-    public DockableDto() { }
+    public DockableDto() {
+        // This empty constructor exists merely to support Javadoc and its
+        // recommended practice for providing the comment for the default
+        // constructor.
+    }
 
     /**
      * The dockable's identifier.
