@@ -161,8 +161,15 @@ public final class LayoutIdentifiers {
             final @Nullable String layoutIdentifier,
             final @Nullable String codecIdentifier
     ) {
-        findProblem(layoutIdentifier, codecIdentifier)
-                .ifPresent(LayoutIdentifiers::throwFor);
+        // 'throw' at the call site rather than inside 'ifPresent', so that null
+        // analysis (Sonar's S2259) can see that neither identifier is null after
+        // this returns.
+        final Optional<LayoutIdentifierProblem> problem =
+                findProblem(layoutIdentifier, codecIdentifier);
+
+        if (problem.isPresent()) {
+            throw exceptionFor(problem.get());
+        }
     }
 
     /**
@@ -310,21 +317,19 @@ public final class LayoutIdentifiers {
     }
 
     /**
-     * Throws the exception a problem describes.
+     * {@return the exception a problem describes, for the caller to throw.}
      *
      * <p>A missing identifier is a {@link NullPointerException} naming the parameter,
      * because that is what a missing argument is; everything else is an
      * {@link IllegalArgumentException} carrying the problem's own message, so that
      * what is thrown and what {@link #findProblem} reports are the same sentence.</p>
      *
-     * @param problem the problem to throw for.
+     * @param problem the problem to describe.
      */
-    private static void throwFor(final LayoutIdentifierProblem problem) {
-        if (problem.rule() == MISSING) {
-            throw new NullPointerException(problem.message());
-        }
-
-        throw new IllegalArgumentException(problem.message());
+    private static RuntimeException exceptionFor(final LayoutIdentifierProblem problem) {
+        return problem.rule() == MISSING ?
+                new NullPointerException(problem.message()) :
+                new IllegalArgumentException(problem.message());
     }
 
     /**

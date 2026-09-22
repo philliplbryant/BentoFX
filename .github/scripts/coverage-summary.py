@@ -77,6 +77,12 @@ def count_source_lines(root: Path) -> int:
 
 AGGREGATE_REPORT_DIR = Path("report-aggregation") / "build" / "reports" / "jacoco"
 
+# The aggregate reports also carry ':core', which the persistence modules depend
+# on but which has no tests of its own. 'sonar.coverage.exclusions' leaves it out,
+# so this does too; otherwise its uncovered lines drag the figures well below
+# what SonarQube reports for the same run.
+REPORTED_PACKAGE_PREFIX = "software/coley/bentofx/persistence"
+
 # Marks the union row and the note explaining it.
 FOOTNOTE_MARK = "†"
 
@@ -97,28 +103,39 @@ def find_jacoco_xml_reports(root: Path) -> list[Path]:
     )
 
 
+def iter_reported_packages(report: Path) -> Iterator[Element]:
+    try:
+        root = ElementTree.parse(report).getroot()
+    except (ElementTree.ParseError, OSError):
+        return
+
+    for package in root.iter("package"):
+        name = package.get("name", "")
+        if name == REPORTED_PACKAGE_PREFIX or name.startswith(REPORTED_PACKAGE_PREFIX + "/"):
+            yield package
+
+
 def collect_report_counters(reports: list[Path]) -> dict[str, dict[str, tuple[int, int]]]:
     # Keyed by report rather than accumulated across them. Every aggregate report
     # describes the same class set, so adding their counters together multiplies
     # the denominator by the number of suites. Merging suites for real needs a
     # union of covered lines, which counter arithmetic cannot express.
     per_report: dict[str, dict[str, tuple[int, int]]] = {}
+    # Summed from the package counters, not read from the report's own totals,
+    # because those totals include the packages left out above.
     for report in reports:
-        try:
-            root = ElementTree.parse(report).getroot()
-        except (ElementTree.ParseError, OSError):
-            continue
-
         counters = {counter_type: (0, 0) for counter_type in JACOCO_COUNTER_TYPES}
-        for counter in root.findall("counter"):
-            counter_type = counter.get("type")
-            if counter_type not in JACOCO_COUNTER_TYPES:
-                continue
+        for package in iter_reported_packages(report):
+            for counter in package.findall("counter"):
+                counter_type = counter.get("type")
+                if counter_type not in JACOCO_COUNTER_TYPES:
+                    continue
 
-            counters[counter_type] = (
-                int(counter.get("missed", "0")),
-                int(counter.get("covered", "0")),
-            )
+                missed, covered = counters[counter_type]
+                counters[counter_type] = (
+                    missed + int(counter.get("missed", "0")),
+                    covered + int(counter.get("covered", "0")),
+                )
         per_report[report.parent.name] = counters
     return per_report
 
@@ -127,12 +144,7 @@ def iter_report_lines(reports: list[Path]) -> Iterator[tuple[str, Element]]:
     # Yields every line of every report keyed by package, source file and number.
     # That key is the line's identity, which is what makes the union exact.
     for report in reports:
-        try:
-            root = ElementTree.parse(report).getroot()
-        except (ElementTree.ParseError, OSError):
-            continue
-
-        for package in root.iter("package"):
+        for package in iter_reported_packages(report):
             for source_file in package.findall("sourcefile"):
                 for line in source_file.findall("line"):
                     key = f"{package.get('name')}|{source_file.get('name')}|{line.get('nr')}"
@@ -212,7 +224,7 @@ def append_summary(root: Path) -> None:
     union = collect_union(reports)
 
     with Path(summary_path).open("a", encoding="utf-8") as summary:
-        summary.write("## BentoFX code statistics\n\n")
+        summary.write("## BentoFX (persistence only) code statistics\n\n")
         summary.write(f"- Source lines of code: **{source_lines:,}**\n")
         summary.write(f"- JaCoCo XML reports found: **{len(reports)}**\n\n")
         summary.write("| Suite | Lines covered | Lines missed | Line | Branch | Instruction |\n")
