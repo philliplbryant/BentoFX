@@ -15,6 +15,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
  * Bento layouts to a file.
@@ -85,6 +87,8 @@ public class FileLayoutStorageProvider implements LayoutStorageProvider {
      */
     @Override
     public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+        requireNonNull(codecIdentifier, "codecIdentifier");
+
         final Path directory = getLayoutDirectory();
 
         if (!Files.isDirectory(directory)) {

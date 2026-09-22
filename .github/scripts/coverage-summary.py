@@ -226,7 +226,6 @@ def append_summary(root: Path) -> None:
                 f"| {percentage(*counters['BRANCH'])} "
                 f"| {percentage(*counters['INSTRUCTION'])} |\n"
             )
-        summary.write("\n")
 
         lines_covered = union["lines_covered"]
         lines_total = union["lines_total"]
