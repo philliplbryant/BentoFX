@@ -32,19 +32,19 @@ testfx-monocle = "21.0.2"
 zaxxer-hikari-cp = "7.1.0"
 
 # Plugins
-ben-manes-versions-plugin = "0.56.0"
+ben-manes-versions-plugin = "0.57.0"
 buildconfig = "6.1.1"
 dependency-analysis-gradle-plugin = "3.19.2"
-errorprone-plugin = "5.1.0"
+errorprone-plugin = "5.1.1"
 # noinspection UnusedVersionCatalogEntry
 jacoco = "0.8.15"
 javafx-plugin = "0.1.0"
 jreleaser = "1.26.0"
-nullaway-plugin = "3.1.0"
+nullaway-plugin = "3.2.0"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
-ben-manes-versions-gradlePlugin-dependency = { module = "com.github.ben-manes.versions:com.github.ben-manes.versions.gradle.plugin", version.ref = "ben-manes-versions-plugin" }
+ben-manes-versions-gradlePlugin-dependency = { module = "io.github.ben-manes.versions:io.github.ben-manes.versions.gradle.plugin", version.ref = "ben-manes-versions-plugin" }
 byte-buddy = { module = "net.bytebuddy:byte-buddy", version.ref = "byte-buddy" }
 dependencyAnalysis-buildHealth-gradlePlugin-dependency = { module = "com.autonomousapps.build-health:com.autonomousapps.build-health.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
 dependencyAnalysis-gradlePlugin-dependency = { module = "com.autonomousapps.dependency-analysis:com.autonomousapps.dependency-analysis.gradle.plugin", version.ref = "dependency-analysis-gradle-plugin" }
