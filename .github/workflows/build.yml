@@ -48,12 +48,29 @@ jobs:
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
+      # ':sonarClasspath' writes one list per module during the build. The
+      # scanner takes them as a single property, so they are joined here.
+      - name: Collect the Sonar Java classpath
+        if: github.repository == 'philliplbryant/BentoFX'
+        run: |
+          join() {
+            find . -path "*/build/sonar/$1" -exec cat {} \; -exec echo \; \
+              | grep -v '^$' | paste -sd, -
+          }
+          {
+            echo "SONAR_JAVA_LIBRARIES=$(join libraries.txt)"
+            echo "SONAR_JAVA_TEST_LIBRARIES=$(join test-libraries.txt)"
+          } >> "$GITHUB_ENV"
       # Runs after the build so the aggregated coverage reports it reads already
       # exist. Source and test classification, coverage report paths, and the
       # module exclusions all live in 'sonar-project.properties'.
       - name: SonarQube Scan
         if: github.repository == 'philliplbryant/BentoFX'
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        with:
+          args: >-
+            -Dsonar.java.libraries=${{ env.SONAR_JAVA_LIBRARIES }}
+            -Dsonar.java.test.libraries=${{ env.SONAR_JAVA_TEST_LIBRARIES }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       # The scan above submits the analysis and returns without waiting for

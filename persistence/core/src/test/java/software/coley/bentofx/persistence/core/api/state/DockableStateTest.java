@@ -56,9 +56,7 @@ class DockableStateTest {
         assertThat(first)
                 .describedAs("dockable states sharing one consumer instance")
                 .isEqualTo(sameConsumer)
-                .hasSameHashCodeAs(sameConsumer);
-
-        assertThat(first)
+                .hasSameHashCodeAs(sameConsumer)
                 .describedAs("dockable states with equivalent but distinct consumers")
                 .isNotEqualTo(equivalentButDistinctConsumer);
     }

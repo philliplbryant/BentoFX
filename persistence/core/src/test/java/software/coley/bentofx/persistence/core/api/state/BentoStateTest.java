@@ -45,10 +45,8 @@ class BentoStateTest {
         assertThat(first)
                 .describedAs("bento state built twice from the same nested values")
                 .isEqualTo(second)
-                .hasSameHashCodeAs(second);
-
-        // The only difference is a divider position three levels down.
-        assertThat(first)
+                .hasSameHashCodeAs(second)
+                // The only difference is a divider position three levels down.
                 .describedAs("bento state whose nested divider position moved")
                 .isNotEqualTo(moved);
     }

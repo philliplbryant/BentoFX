@@ -3,15 +3,7 @@ package software.coley.bentofx.persistence.core.ui;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -30,6 +22,9 @@ final class LayoutGroups {
      * reasonable name meets it.</p>
      */
     static final int MAX_GROUP_NAME_LENGTH = 64;
+
+    /** Parameter name reported when the stored layouts argument is null. */
+    private static final String STORED_LAYOUTS = "storedLayouts";
 
     /**
      * Why a name a user typed cannot be a group.
@@ -64,7 +59,7 @@ final class LayoutGroups {
             final Collection<LayoutPersistenceProfile> storedLayouts
     ) {
         requireNonNull(catalogGroups, "catalogGroups");
-        requireNonNull(storedLayouts, "storedLayouts");
+        requireNonNull(storedLayouts, STORED_LAYOUTS);
 
         // A TreeSet with this comparator keeps the entry it already holds when an
         // equal one is added, so first spelling in wins, and iterates sorted.
@@ -112,7 +107,7 @@ final class LayoutGroups {
             final Collection<LayoutPersistenceProfile> storedLayouts
     ) {
         requireNonNull(groupNames, "groupNames");
-        requireNonNull(storedLayouts, "storedLayouts");
+        requireNonNull(storedLayouts, STORED_LAYOUTS);
 
         // Keyed without regard to case so a layout finds its group whatever the
         // two were spelled as, but iterated in the order the groups were given so
@@ -164,7 +159,7 @@ final class LayoutGroups {
             final Collection<LayoutPersistenceProfile> storedLayouts
     ) {
         requireNonNull(groupNames, "groupNames");
-        requireNonNull(storedLayouts, "storedLayouts");
+        requireNonNull(storedLayouts, STORED_LAYOUTS);
 
         final Set<String> shownGroups = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         shownGroups.addAll(groupNames);

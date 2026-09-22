@@ -6,6 +6,7 @@
 - [GitHub Workflows](#github-workflows)
   - [Build](#build-workflow)
   - [Static Analysis and Coverage](#static-analysis-and-coverage)
+    - [Running SonarQube locally](#running-sonarqube-locally)
 - [Releases](#releases)
 - [Repository Administration](#repository-administration)
 - [Credentials](#credentials)
@@ -37,6 +38,29 @@ gradlew build checkAll
 <h3 id="static-analysis-and-coverage">Static Analysis and Coverage</h3>
 
 SonarQube, CodeQL, Qodana, and Codecov run on every push and pull request. See [CONTRIBUTING.md](CONTRIBUTING.md#static-analysis-and-coverage) for what each tool does, which can fail the build, and where to find results.
+
+<h4 id="running-sonarqube-locally">Running SonarQube locally</h4>
+
+A local scan publishes to the same SonarQube Cloud project, so name the branch and let the results land under it rather than the main branch. `SONAR_TOKEN` must be set.
+
+Analysis quality depends on the Java classpath. `sonar-project.properties` points `sonar.java.binaries` at the compiled classes, but the dependency jars live in the Gradle cache, so `check` runs `sonarClasspath` in each module to write `build/sonar/libraries.txt` and `build/sonar/test-libraries.txt`. Without them, the rules needing type resolution are skipped silently and a scan disagrees with what SonarQube for IDE reports on identical code.
+
+The lists are too long for a Windows command line, so join them into a settings file instead of passing them as arguments:
+
+```terminal
+gradlew build checkAll
+join() { find . -path "*/build/sonar/$1" -exec cat {} \; -exec echo \; | grep -v '^$' | paste -sd, -; }
+{ cat sonar-project.properties
+  echo "sonar.java.libraries=$(join libraries.txt)"
+  echo "sonar.java.test.libraries=$(join test-libraries.txt)"
+} > /tmp/sonar-local.properties
+sonar-scanner -Dproject.settings=/tmp/sonar-local.properties \
+  -Dsonar.host.url=https://sonarcloud.io \
+  -Dsonar.token="$SONAR_TOKEN" \
+  -Dsonar.branch.name="$(git branch --show-current)"
+```
+
+Coverage comes from the aggregated JaCoCo reports, so run the build first. A scan run against stale reports imports no coverage and replaces whatever the branch last reported.
 
 Maintainer responsibilities:
 
