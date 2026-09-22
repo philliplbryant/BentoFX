@@ -131,7 +131,7 @@ class LayoutsMenuITG {
 
     @Test
     void defaultItemIsCheckedWhenNoCustomLayoutIsActive() {
-        assertThat(topItems().get(0).getText())
+        assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText()")
                 .startsWith("✓");
     }
@@ -161,7 +161,7 @@ class LayoutsMenuITG {
         robot.interact(() -> menu = new LayoutsMenu(owner, restorable));
         repopulate();
 
-        assertThat(topItems().get(0).getText())
+        assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText()")
                 .doesNotStartWith("✓");
         assertThat(customMenu().getText())
@@ -170,7 +170,7 @@ class LayoutsMenuITG {
         assertThat(restoreMenu().getText())
                 .describedAs("restoreMenu.getText()")
                 .doesNotStartWith("✓");
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("the active layout's own item text")
                 .startsWith("✓");
     }
@@ -198,13 +198,13 @@ class LayoutsMenuITG {
         assertThat(restoreMenu().getText())
                 .describedAs("restoreMenu.getText()")
                 .doesNotStartWith("✓");
-        assertThat(((Menu) restoreMenu().getItems().get(0)).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("the layout's group submenu text")
                 .startsWith("✓");
     }
 
     /**
-     * {@link LayoutsMenu#setActiveCustomLayoutProfile} is the one place every
+     * {@code LayoutsMenu#setActiveCustomLayoutProfile} is the one place every
      * change to the active layout goes through, so exercising it from two
      * different call sites - a restore, and a return to {@code Default} - is
      * representative of all of them.
@@ -220,14 +220,14 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().get(0));
+        fire(restoreMenu().getItems().getFirst());
 
         assertThat(persistenceProvider.activeLayoutIdentifier)
                 .describedAs("active layout identifier after a restore")
                 .isEqualTo(ACTIVE_LAYOUT_ID);
 
         repopulate();
-        fire(topItems().get(0));
+        fire(topItems().getFirst());
 
         assertThat(persistenceProvider.activeLayoutIdentifier)
                 .describedAs("active layout identifier after restoring the default layout")
@@ -242,7 +242,7 @@ class LayoutsMenuITG {
         assertThat(restoreMenu().getItems())
                 .describedAs("restoreMenu.getItems()")
                 .hasSize(1);
-        assertThat(restoreMenu().getItems().get(0).isDisable())
+        assertThat(restoreMenu().getItems().getFirst().isDisable())
                 .describedAs("restoreMenu list-failed item disabled")
                 .isTrue();
         assertThat(deleteMenu().getItems())
@@ -257,7 +257,7 @@ class LayoutsMenuITG {
         assertThat(restoreMenu().getItems())
                 .describedAs("restoreMenu.getItems()")
                 .hasSize(1);
-        assertThat(restoreMenu().getItems().get(0).isDisable())
+        assertThat(restoreMenu().getItems().getFirst().isDisable())
                 .describedAs("restoreMenu no-layouts item disabled")
                 .isTrue();
     }
@@ -273,7 +273,7 @@ class LayoutsMenuITG {
         assertThat(restoreMenu().getItems())
                 .describedAs("restoreMenu.getItems()")
                 .hasSize(2);
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("first (sorted) restore item")
                 .startsWith("✓")
                 .contains(ACTIVE_LAYOUT_DISPLAY_NAME);
@@ -302,7 +302,7 @@ class LayoutsMenuITG {
                 .describedAs("restoreMenu.getItems()")
                 .hasSize(2);
 
-        final MenuItem groupItem = restoreMenu().getItems().get(0);
+        final MenuItem groupItem = restoreMenu().getItems().getFirst();
 
         assertThat(groupItem)
                 .describedAs("first restore item, the group")
@@ -358,7 +358,7 @@ class LayoutsMenuITG {
         persistenceProvider.storedGroups.add(GROUP_NAME);
         repopulate();
 
-        final MenuItem groupItem = restoreMenu().getItems().get(0);
+        final MenuItem groupItem = restoreMenu().getItems().getFirst();
 
         assertThat(groupItem.getText())
                 .describedAs("empty group submenu text")
@@ -366,7 +366,7 @@ class LayoutsMenuITG {
         assertThat(((Menu) groupItem).getItems())
                 .describedAs("items inside an empty group")
                 .hasSize(1);
-        assertThat(((Menu) groupItem).getItems().get(0).isDisable())
+        assertThat(((Menu) groupItem).getItems().getFirst().isDisable())
                 .describedAs("stand-in inside an empty group disabled")
                 .isTrue();
     }
@@ -382,13 +382,13 @@ class LayoutsMenuITG {
         storeLayout(OTHER_LAYOUT_ID, "Wide", OTHER_GROUP_NAME);
         repopulate();
 
-        final Menu activeGroup = (Menu) restoreMenu().getItems().get(0);
+        final Menu activeGroup = (Menu) restoreMenu().getItems().getFirst();
 
         assertThat(activeGroup.getText())
                 .describedAs("group holding the active layout")
                 .startsWith("✓")
                 .contains(GROUP_NAME);
-        assertThat(activeGroup.getItems().get(0).getText())
+        assertThat(activeGroup.getItems().getFirst().getText())
                 .describedAs("the active layout's own item")
                 .startsWith("✓")
                 .contains(GROUPED_ACTIVE_DISPLAY_NAME);
@@ -408,7 +408,7 @@ class LayoutsMenuITG {
         makeActiveGroupedLayout();
         repopulate();
 
-        final MenuItem groupItem = deleteMenu().getItems().get(0);
+        final MenuItem groupItem = deleteMenu().getItems().getFirst();
 
         assertThat(groupItem)
                 .describedAs("first delete item, the group")
@@ -487,7 +487,7 @@ class LayoutsMenuITG {
         repopulate();
 
         fire(
-                renameGroupMenu().getItems().get(0),
+                renameGroupMenu().getItems().getFirst(),
                 typeAndDismiss(OTHER_GROUP_NAME, ButtonType.OK)
         );
 
@@ -510,7 +510,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(deleteGroupMenu().getItems().get(0), dismiss(ButtonType.YES));
+        fire(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.YES));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -530,7 +530,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(deleteGroupMenu().getItems().get(0), dismiss(ButtonType.NO));
+        fire(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.NO));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -553,7 +553,7 @@ class LayoutsMenuITG {
         assertThat(moveToGroupMenu().getItems())
                 .describedAs("moveToGroupMenu.getItems()")
                 .hasSize(1);
-        assertThat(moveToGroupMenu().getItems().get(0).isDisable())
+        assertThat(moveToGroupMenu().getItems().getFirst().isDisable())
                 .describedAs("no-groups stand-in disabled")
                 .isTrue();
     }
@@ -568,7 +568,7 @@ class LayoutsMenuITG {
         // ungrouped layout is item 1. Firing the submenu would open no dialog.
         fire(
                 moveToGroupMenu().getItems().get(1),
-                selectChoiceAndDismiss(GROUP_NAME, ButtonType.OK)
+                selectChoiceAndDismiss(GROUP_NAME)
         );
 
         assertThat(persistenceProvider.storedLayouts)
@@ -587,8 +587,8 @@ class LayoutsMenuITG {
         repopulate();
 
         fire(
-                ((Menu) moveToGroupMenu().getItems().get(0)).getItems().get(0),
-                selectChoiceAndDismiss(NO_GROUP_CHOICE, ButtonType.OK)
+                ((Menu) moveToGroupMenu().getItems().getFirst()).getItems().getFirst(),
+                selectChoiceAndDismiss(NO_GROUP_CHOICE)
         );
 
         assertThat(persistenceProvider.storedLayouts)
@@ -602,10 +602,10 @@ class LayoutsMenuITG {
         makeActiveLayout();
         restorable.switchSucceeds = true;
 
-        fire(topItems().get(0));
+        fire(topItems().getFirst());
         repopulate();
 
-        assertThat(topItems().get(0).getText())
+        assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText() after restoring the default layout")
                 .startsWith("✓");
     }
@@ -615,13 +615,13 @@ class LayoutsMenuITG {
         makeActiveLayout();
         restorable.switchSucceeds = false;
 
-        fire(topItems().get(0), dismiss(ButtonType.OK));
+        fire(topItems().getFirst(), dismiss(ButtonType.OK));
         repopulate();
 
-        assertThat(topItems().get(0).getText())
+        assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText() after a failed default-layout restore")
                 .doesNotContain("✓");
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("active layout's restore item text after a failed default-layout restore")
                 .startsWith("✓");
     }
@@ -634,10 +634,10 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().get(0));
+        fire(restoreMenu().getItems().getFirst());
         repopulate();
 
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("restore item text after restoring a stored layout")
                 .startsWith("✓");
         assertThat(saveChangesItem().isDisable())
@@ -658,7 +658,7 @@ class LayoutsMenuITG {
         fire(restoreMenu().getItems().get(1), dismiss(ButtonType.OK));
         repopulate();
 
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("active layout's restore item text after a failed restore of another layout")
                 .startsWith("✓");
         assertThat(restoreMenu().getItems().get(1).getText())
@@ -784,7 +784,7 @@ class LayoutsMenuITG {
     void renameDoesNothingWhenTheDialogIsCancelled() {
         makeActiveLayout();
 
-        fire(renameMenu().getItems().get(0), dismiss(ButtonType.CANCEL));
+        fire(renameMenu().getItems().getFirst(), dismiss(ButtonType.CANCEL));
 
         assertThat(persistenceProvider.renamedProfiles)
                 .describedAs("persistenceProvider.renamedProfiles")
@@ -796,7 +796,7 @@ class LayoutsMenuITG {
         makeActiveLayout();
 
         fire(
-                renameMenu().getItems().get(0),
+                renameMenu().getItems().getFirst(),
                 typeAndDismiss("   ", ButtonType.OK),
                 dismiss(ButtonType.OK)
         );
@@ -816,17 +816,17 @@ class LayoutsMenuITG {
         makeActiveLayout();
 
         fire(
-                renameMenu().getItems().get(0),
+                renameMenu().getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
 
         assertThat(persistenceProvider.renamedProfiles)
                 .describedAs("persistenceProvider.renamedProfiles")
                 .hasSize(1);
-        assertThat(persistenceProvider.renamedProfiles.get(0).layoutIdentifier())
+        assertThat(persistenceProvider.renamedProfiles.getFirst().layoutIdentifier())
                 .describedAs("renamed profile's identifier")
                 .isEqualTo(ACTIVE_LAYOUT_ID);
-        assertThat(persistenceProvider.renamedProfiles.get(0).displayName())
+        assertThat(persistenceProvider.renamedProfiles.getFirst().displayName())
                 .describedAs("renamed profile's display name")
                 .isEqualTo("Renamed Layout");
         assertThat(persistenceProvider.savedProfiles)
@@ -845,7 +845,7 @@ class LayoutsMenuITG {
         repopulate();
 
         fire(
-                renameMenu().getItems().get(0),
+                renameMenu().getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
 
@@ -866,7 +866,7 @@ class LayoutsMenuITG {
         repopulate();
 
         fire(
-                ((Menu) renameMenu().getItems().get(0)).getItems().get(0),
+                ((Menu) renameMenu().getItems().getFirst()).getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
 
@@ -883,7 +883,7 @@ class LayoutsMenuITG {
         );
         repopulate();
 
-        fire(deleteMenu().getItems().get(0), dismiss(ButtonType.NO));
+        fire(deleteMenu().getItems().getFirst(), dismiss(ButtonType.NO));
 
         assertThat(persistenceProvider.deletedProfiles)
                 .describedAs("persistenceProvider.deletedProfiles")
@@ -894,14 +894,14 @@ class LayoutsMenuITG {
     void deleteClearsTheActiveProfileWhenTheDeletedLayoutWasActive() {
         makeActiveLayout();
 
-        fire(deleteMenu().getItems().get(0), dismiss(ButtonType.YES));
+        fire(deleteMenu().getItems().getFirst(), dismiss(ButtonType.YES));
         repopulate();
 
         assertThat(persistenceProvider.deletedProfiles)
                 .describedAs("persistenceProvider.deletedProfiles")
                 .extracting(LayoutPersistenceProfile::layoutIdentifier)
                 .containsExactly(ACTIVE_LAYOUT_ID);
-        assertThat(topItems().get(0).getText())
+        assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText() after deleting the active layout")
                 .startsWith("✓");
     }
@@ -922,7 +922,7 @@ class LayoutsMenuITG {
                 .describedAs("persistenceProvider.deletedProfiles")
                 .extracting(LayoutPersistenceProfile::layoutIdentifier)
                 .containsExactly(OTHER_LAYOUT_ID);
-        assertThat(restoreMenu().getItems().get(0).getText())
+        assertThat(restoreMenu().getItems().getFirst().getText())
                 .describedAs("active layout's restore item text after deleting an unrelated layout")
                 .startsWith("✓");
     }
@@ -936,7 +936,7 @@ class LayoutsMenuITG {
         repopulate();
 
         fire(
-                deleteMenu().getItems().get(0),
+                deleteMenu().getItems().getFirst(),
                 dismiss(ButtonType.YES),
                 dismiss(ButtonType.OK)
         );
@@ -964,7 +964,7 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().get(0));
+        fire(restoreMenu().getItems().getFirst());
         repopulate();
     }
 
@@ -988,7 +988,7 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(((Menu) restoreMenu().getItems().get(0)).getItems().get(0));
+        fire(((Menu) restoreMenu().getItems().getFirst()).getItems().getFirst());
         repopulate();
     }
 
@@ -1018,7 +1018,7 @@ class LayoutsMenuITG {
     }
 
     private Menu restoreMenu() {
-        return (Menu) customMenu().getItems().get(0);
+        return (Menu) customMenu().getItems().getFirst();
     }
 
     private MenuItem saveChangesItem() {
@@ -1042,7 +1042,7 @@ class LayoutsMenuITG {
     }
 
     private MenuItem newGroupItem() {
-        return groupsMenu().getItems().get(0);
+        return groupsMenu().getItems().getFirst();
     }
 
     private Menu renameGroupMenu() {
@@ -1097,8 +1097,7 @@ class LayoutsMenuITG {
      * user picking from the list.</p>
      */
     private static Runnable selectChoiceAndDismiss(
-            final String choice,
-            final ButtonType buttonType
+            final String choice
     ) {
         return () -> {
             final DialogPane pane = findShowingDialogPane();
@@ -1112,7 +1111,7 @@ class LayoutsMenuITG {
                     .contains(choice);
 
             choices.getSelectionModel().select(choice);
-            fireDialogButton(pane, buttonType);
+            fireDialogButton(pane, ButtonType.OK);
         };
     }
 
@@ -1192,9 +1191,6 @@ class LayoutsMenuITG {
         private boolean isLayoutStoredFails;
         private boolean saveFails;
         private boolean deleteFails;
-        private boolean updateNamingFails;
-        private boolean listGroupsFails;
-        private boolean setGroupsFails;
 
         @Override
         public LayoutSaver getLayoutSaver(
@@ -1272,11 +1268,7 @@ class LayoutsMenuITG {
         @Override
         public boolean updateStoredLayoutNaming(
                 final LayoutPersistenceProfile layoutPersistenceProfile
-        ) throws BentoStateException {
-            if (updateNamingFails) {
-                throw new BentoStateException("updateStoredLayoutNaming failed");
-            }
-
+        ) {
             renamedProfiles.add(layoutPersistenceProfile);
 
             for (int index = 0; index < storedLayouts.size(); index++) {
@@ -1296,10 +1288,7 @@ class LayoutsMenuITG {
         @Override
         public List<String> getStoredGroups(
                 final LayoutPersistenceProfile layoutPersistenceProfile
-        ) throws BentoStateException {
-            if (listGroupsFails) {
-                throw new BentoStateException("getStoredGroups failed");
-            }
+        ) {
             return List.copyOf(storedGroups);
         }
 
@@ -1307,10 +1296,7 @@ class LayoutsMenuITG {
         public void setStoredGroups(
                 final LayoutPersistenceProfile layoutPersistenceProfile,
                 final List<String> groups
-        ) throws BentoStateException {
-            if (setGroupsFails) {
-                throw new BentoStateException("setStoredGroups failed");
-            }
+        ) {
             storedGroups.clear();
             storedGroups.addAll(groups);
         }
