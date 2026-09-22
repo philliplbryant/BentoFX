@@ -18,6 +18,10 @@ permissions:
 jobs:
   qodana:
     name: Qodana JVM analysis
+    # The SARIF upload below is code scanning, which requires a GitHub Code
+    # Security license on a private repository. Gated by repository the way
+    # build.yml gates its SonarQube steps.
+    if: github.repository == 'philliplbryant/BentoFX'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

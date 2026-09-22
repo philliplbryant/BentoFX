@@ -91,14 +91,16 @@ jobs:
               echo "::warning::No SonarQube quality gate verdict within the polling timeout. Not failing the build."
               ;;
           esac
-      # Not guarded by repository the way the SonarQube step above is: coverage
-      # reporting should run wherever this workflow runs. Requires CODECOV_TOKEN,
-      # and 'fail_ci_if_error' is deliberate - silent coverage loss is worse.
+      # Guarded by repository the way the SonarQube steps above are: only this
+      # repository is registered with Codecov, and 'fail_ci_if_error' is
+      # deliberate - silent coverage loss is worse - so an unregistered fork
+      # without CODECOV_TOKEN would fail the build on every run.
       #
       # 'files' has to stay on one line. The action splits it on commas without
       # trimming, so a block scalar leaves a newline glued to every path after
       # the first and only the first report uploads.
       - name: Upload coverage to Codecov
+        if: github.repository == 'philliplbryant/BentoFX'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           disable_search: true
@@ -233,9 +235,12 @@ jobs:
   # repository and derived from that branch. Submitting from every feature branch
   # would keep overwriting it. It needs 'contents: write', which is why this is a
   # separate job rather than a step in 'test'.
+  #
+  # Gated by repository as well, the way the SonarQube and Codecov steps are: an
+  # unlicensed private fork has no dependency graph to submit to.
   dependency-submission:
     name: Submit dependency graph
-    if: github.ref == 'refs/heads/master'
+    if: github.repository == 'philliplbryant/BentoFX' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
