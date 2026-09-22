@@ -64,10 +64,8 @@ class DockingLayoutEntityCompositeKeyTest {
                 new DockingLayoutEntityCompositeKey(LAYOUT_IDENTIFIER, CODEC_IDENTIFIER);
 
         assertThat(first)
-                .describedAs("keys built from the same identifiers")
-                .isEqualTo(second);
-        assertThat(first)
-                .describedAs("hashCode of equal keys")
+                .describedAs("keys built from the same identifiers and has same hashCode of equal keys")
+                .isEqualTo(second)
                 .hasSameHashCodeAs(second);
     }
 
