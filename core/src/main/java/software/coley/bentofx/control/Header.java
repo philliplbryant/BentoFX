@@ -182,7 +182,6 @@ public class Header extends Region {
 			if (cur) {
 				DockContainerLeaf container = parentPane.getContainer();
 				boolean headerOrigin = parentPane.isHeaderFocusOrigin();
-				// `==` is intentionally used here, for efficiency.
 				if (container.getSelectedDockable() == dockable || headerOrigin) {
 					container.selectDockable(dockable);
 				} else {
@@ -269,7 +268,6 @@ public class Header extends Region {
 						// Either the source is the same container as this header, or the target container can receive it.
 						Dockable dragSourceDockable = dragSourcePath.dockable();
 						DockContainerLeaf container = parentPane.getContainer();
-						// `==` is intentionally used here, for efficiency.
 						if (dragSourcePath.leafContainer() == container
 								|| container.canReceiveDockable(dragSourceDockable, getSide())) {
 							Header dragSourceHeader = dragSourcePath.leafContainer().getHeader(dragSourceDockable);
@@ -340,7 +338,6 @@ public class Header extends Region {
 			// Check if our container can receive the dockable.
 			DockContainerLeaf sourceContainer = dragSourcePath.leafContainer();
 			Dockable sourceDockable = dragSourcePath.dockable();
-			// `==` is intentionally used here, for efficiency.
 			boolean sameContainer = parentContainer == sourceContainer;
 			if (sameContainer || parentContainer.canReceiveDockable(sourceDockable, getSide())) {
 				// Move the header over to the target container and select it.
@@ -444,7 +441,6 @@ public class Header extends Region {
 	 * 		Some other header being dragged.
 	 */
 	private void enableInsertionIndicator(Header header, boolean after) {
-		// `!=` is intentionally used here, for efficiency.
 		boolean sourceChanged = insertionPreviewSource != header;
 		boolean sideChanged = insertionAfter == null || insertionAfter != after;
 		if (!sourceChanged && !sideChanged)

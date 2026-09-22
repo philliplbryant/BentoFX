@@ -44,7 +44,6 @@ public class DockContainerRootBranch extends DockContainerBranch {
 		Region thisAsRegion = asRegion();
 		Scene scene = thisAsRegion.getScene();
 		if (scene != null
-				// `==` is intentionally used here, for efficiency.
 				&& scene.getRoot() == thisAsRegion
 				&& scene.getWindow() instanceof DragDropStage ddStage
 				&& ddStage.isAutoCloseWhenEmpty()) {

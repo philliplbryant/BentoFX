@@ -142,18 +142,13 @@ public class DragUtils {
 
 	/**
 	 * Splits an encoded drag-n-drop payload into its {@code ;}-separated fields.
-	 * <p>
-	 * Uses a negative limit so a trailing empty field - such as an empty
-	 * dockable identifier with no drop target appended - is preserved rather
-	 * than silently dropped, which is what {@link String#split(String)}'s
-	 * default limit of {@code 0} does.
 	 *
 	 * @param raw
 	 * 		Dragboard string content produced by {@link #content(Dockable, DragDropTarget)}.
 	 *
 	 * @return The {@code ;}-separated fields of {@code raw}.
 	 */
-	static String[] splitContent(String raw) {
+	private static String[] splitContent(String raw) {
 		return raw.split(";", -1);
 	}
 

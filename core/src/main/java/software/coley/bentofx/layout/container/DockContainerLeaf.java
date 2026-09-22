@@ -94,7 +94,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 
 	@Override
 	public void removeAsParentContainer(DockContainerBranch parent) {
-		// `==` is intentionally used here, for efficiency.
 		if (this.parent == parent) {
 			DockContainerBranch priorParent = this.parent;
 			this.parent = null;
@@ -182,7 +181,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 
 		// Update dockable model
 		if (i >= 0) {
-			// `==` is intentionally used here, for efficiency.
 			boolean wasSelected = getSelectedDockable() == dockable;
 			dockables.remove(i);
 			dockable.setContainer(null);
@@ -275,7 +273,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 		double ox = 0;
 		double oy = 0;
 		Parent parent = target.getParent();
-		// `!=` is intentionally used here, for efficiency.
 		while (parent != null && parent != this) {
 			ox += parent.getLayoutX();
 			oy += parent.getLayoutY();

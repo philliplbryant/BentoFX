@@ -30,11 +30,9 @@ public interface DockableClickBehavior {
 	                          MouseEvent e) {
 		// Primary click --> select dockable if not selected, otherwise toggle collapsed state.
 		if (e.getButton() == MouseButton.PRIMARY) {
-			// `==` is intentionally used here, for efficiency.
 			if (container.getSelectedDockable() == dockable || container.isCollapsed()) {
 				container.toggleCollapse(dockable);
 			}
-			// `!=` is intentionally used here, for efficiency.
 			else if (container.getSelectedDockable() != dockable) {
 				container.selectDockable(dockable);
 				header.requestFocus();

@@ -234,7 +234,6 @@ public class HeaderPane extends BorderPane {
 		//  - Must be in the same scene as this pane
 		//  - Must be focus traversable, visible, and not disabled
 		if (!isContentNode(node)
-				// `!=` is intentionally used here, for efficiency.
 				|| node.getScene() != getScene()
 				|| !node.isFocusTraversable()
 				|| !node.isVisible()
@@ -245,7 +244,6 @@ public class HeaderPane extends BorderPane {
 		for (Node current = node; current != null; current = current.getParent()) {
 			if (!current.isVisible() || current.isDisabled())
 				return false;
-			// `==` is intentionally used here, for efficiency.
 			if (current == contentWrapper)
 				return true;
 		}
@@ -263,7 +261,6 @@ public class HeaderPane extends BorderPane {
 		if (node == null)
 			return false;
 		for (Node current = node; current != null; current = current.getParent())
-			// `==` is intentionally used here, for efficiency.
 			if (current == contentWrapper)
 				return true;
 		return false;
@@ -335,7 +332,6 @@ public class HeaderPane extends BorderPane {
 		container.getDockables().stream()
 				.map(d -> {
 					Header header = createHeader(d);
-					// `==` is intentionally used here, for efficiency.
 					if (container.getSelectedDockable() == d)
 						header.setSelected(true);
 					return header;
@@ -415,7 +411,6 @@ public class HeaderPane extends BorderPane {
 		if (dockable == null || headers == null)
 			return null;
 		for (Node child : headers.getChildren())
-			// `==` is intentionally used here, for efficiency.
 			if (child instanceof Header header && header.getDockable() == dockable)
 				return header;
 		return null;

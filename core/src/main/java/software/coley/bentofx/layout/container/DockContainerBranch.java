@@ -18,7 +18,6 @@ import software.coley.bentofx.util.BentoUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A container that holds other containers as resizable children.
@@ -68,7 +67,7 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 
 	@Override
 	public void removeAsParentContainer(DockContainerBranch parent) {
-		if (Objects.equals(this.parent, parent)) {
+		if (this.parent == parent) {
 			DockContainerBranch priorParent = this.parent;
 			this.parent = null;
 			bento.events().fire(new DockEvent.ContainerParentChanged(this, priorParent, parent));
