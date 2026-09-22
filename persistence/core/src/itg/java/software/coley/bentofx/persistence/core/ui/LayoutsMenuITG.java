@@ -2,13 +2,7 @@ package software.coley.bentofx.persistence.core.ui;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -22,27 +16,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.util.WaitForAsyncUtils;
-import software.coley.bentofx.persistence.core.api.BentoStateException;
-import software.coley.bentofx.persistence.core.api.DockingLayout;
+import software.coley.bentofx.persistence.core.api.*;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
-import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.core.api.LayoutRestorer;
-import software.coley.bentofx.persistence.core.api.LayoutSaver;
-import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
-import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
-import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
-import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
+import software.coley.bentofx.persistence.core.api.provider.*;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,7 +42,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
  * or {@link javafx.scene.control.TextInputDialog} calls {@code showAndWait()},
  * which enters a nested JavaFX event loop that blocks the calling frame until
  * the dialog is dismissed. Firing such an item from inside a plain
- * {@code robot.interact(...)} would therefore never return. Instead, {@link #fire}
+ * {@code robot.interact(...)} would therefore never return. Instead, {@link #fireMenuAction}
  * queues each dialog's dismissal with {@link Platform#runLater} <em>before</em>
  * firing the item that opens the first one, all from a single outer task: a
  * dialog's nested loop still pumps the platform's task queue while it runs, so
@@ -220,14 +199,14 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().getFirst());
+        fireMenuAction(restoreMenu().getItems().getFirst());
 
         assertThat(persistenceProvider.activeLayoutIdentifier)
                 .describedAs("active layout identifier after a restore")
                 .isEqualTo(ACTIVE_LAYOUT_ID);
 
         repopulate();
-        fire(topItems().getFirst());
+        fireMenuAction(topItems().getFirst());
 
         assertThat(persistenceProvider.activeLayoutIdentifier)
                 .describedAs("active layout identifier after restoring the default layout")
@@ -426,7 +405,7 @@ class LayoutsMenuITG {
     void newGroupAddsToTheCatalogWithoutTouchingAnyLayout() {
         repopulate();
 
-        fire(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.OK));
+        fireMenuAction(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.OK));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -440,7 +419,7 @@ class LayoutsMenuITG {
     void newGroupDoesNothingWhenTheDialogIsCancelled() {
         repopulate();
 
-        fire(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.CANCEL));
+        fireMenuAction(newGroupItem(), typeAndDismiss(GROUP_NAME, ButtonType.CANCEL));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -452,7 +431,7 @@ class LayoutsMenuITG {
     void newGroupShowsAProblemErrorForAnUnusableName(final String groupName) {
         repopulate();
 
-        fire(
+        fireMenuAction(
                 newGroupItem(),
                 typeAndDismiss(groupName, ButtonType.OK),
                 dismiss(ButtonType.OK)
@@ -468,7 +447,7 @@ class LayoutsMenuITG {
         persistenceProvider.storedGroups.add(GROUP_NAME);
         repopulate();
 
-        fire(
+        fireMenuAction(
                 newGroupItem(),
                 typeAndDismiss(GROUP_NAME.toUpperCase(Locale.ROOT), ButtonType.OK),
                 dismiss(ButtonType.OK)
@@ -486,7 +465,7 @@ class LayoutsMenuITG {
         storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
         repopulate();
 
-        fire(
+        fireMenuAction(
                 renameGroupMenu().getItems().getFirst(),
                 typeAndDismiss(OTHER_GROUP_NAME, ButtonType.OK)
         );
@@ -510,7 +489,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.YES));
+        fireMenuAction(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.YES));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -530,7 +509,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.NO));
+        fireMenuAction(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.NO));
 
         assertThat(persistenceProvider.storedGroups)
                 .describedAs("stored group catalog")
@@ -566,7 +545,7 @@ class LayoutsMenuITG {
 
         // Groups come first, so the empty 'Debugging' submenu is item 0 and the
         // ungrouped layout is item 1. Firing the submenu would open no dialog.
-        fire(
+        fireMenuAction(
                 moveToGroupMenu().getItems().get(1),
                 selectChoiceAndDismiss(GROUP_NAME)
         );
@@ -586,7 +565,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(
+        fireMenuAction(
                 ((Menu) moveToGroupMenu().getItems().getFirst()).getItems().getFirst(),
                 selectChoiceAndDismiss(NO_GROUP_CHOICE)
         );
@@ -602,7 +581,7 @@ class LayoutsMenuITG {
         makeActiveLayout();
         restorable.switchSucceeds = true;
 
-        fire(topItems().getFirst());
+        fireMenuAction(topItems().getFirst());
         repopulate();
 
         assertThat(topItems().getFirst().getText())
@@ -615,7 +594,7 @@ class LayoutsMenuITG {
         makeActiveLayout();
         restorable.switchSucceeds = false;
 
-        fire(topItems().getFirst(), dismiss(ButtonType.OK));
+        fireMenuAction(topItems().getFirst(), dismiss(ButtonType.OK));
         repopulate();
 
         assertThat(topItems().getFirst().getText())
@@ -634,7 +613,7 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().getFirst());
+        fireMenuAction(restoreMenu().getItems().getFirst());
         repopulate();
 
         assertThat(restoreMenu().getItems().getFirst().getText())
@@ -655,7 +634,7 @@ class LayoutsMenuITG {
         repopulate();
 
         // Sorted by display name: "Active Layout" then "Other".
-        fire(restoreMenu().getItems().get(1), dismiss(ButtonType.OK));
+        fireMenuAction(restoreMenu().getItems().get(1), dismiss(ButtonType.OK));
         repopulate();
 
         assertThat(restoreMenu().getItems().getFirst().getText())
@@ -668,7 +647,7 @@ class LayoutsMenuITG {
 
     @Test
     void saveAsNewDoesNothingWhenTheDialogIsCancelled() {
-        fire(topItems().get(2), dismiss(ButtonType.CANCEL));
+        fireMenuAction(topItems().get(2), dismiss(ButtonType.CANCEL));
 
         assertThat(persistenceProvider.savedProfiles)
                 .describedAs("persistenceProvider.savedProfiles")
@@ -685,7 +664,7 @@ class LayoutsMenuITG {
     @ParameterizedTest(name = "rejects \"{0}\"")
     @ValueSource(strings = {"   ", "Session", "CON"})
     void saveAsNewShowsAProblemErrorForAnInvalidName(final String invalidName) {
-        fire(
+        fireMenuAction(
                 topItems().get(2),
                 typeAndDismiss(invalidName, ButtonType.OK),
                 dismiss(ButtonType.OK)
@@ -700,7 +679,7 @@ class LayoutsMenuITG {
     void saveAsNewShowsAnErrorWhenCheckingExistenceFails() {
         persistenceProvider.isLayoutStoredFails = true;
 
-        fire(
+        fireMenuAction(
                 topItems().get(2),
                 typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
                 dismiss(ButtonType.OK)
@@ -713,7 +692,7 @@ class LayoutsMenuITG {
 
     @Test
     void saveAsNewWritesTheLayoutWhenNothingIsStoredUnderTheDerivedIdentifier() {
-        fire(topItems().get(2), typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK));
+        fireMenuAction(topItems().get(2), typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK));
         repopulate();
 
         assertThat(persistenceProvider.savedProfiles)
@@ -729,7 +708,7 @@ class LayoutsMenuITG {
     void saveAsNewDoesNothingWhenAlreadyStoredAndTheUserDeclinesToReplace() {
         persistenceProvider.storedIdentifiers.add(NEW_LAYOUT_IDENTIFIER);
 
-        fire(
+        fireMenuAction(
                 topItems().get(2),
                 typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
                 dismiss(ButtonType.NO)
@@ -744,7 +723,7 @@ class LayoutsMenuITG {
     void saveAsNewWritesTheLayoutWhenAlreadyStoredAndTheUserConfirmsReplace() {
         persistenceProvider.storedIdentifiers.add(NEW_LAYOUT_IDENTIFIER);
 
-        fire(
+        fireMenuAction(
                 topItems().get(2),
                 typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
                 dismiss(ButtonType.YES)
@@ -756,11 +735,99 @@ class LayoutsMenuITG {
                 .containsExactly(NEW_LAYOUT_IDENTIFIER);
     }
 
+    /**
+     * The groups come from the catalog, which is read separately from the
+     * layouts, so listing them can fail on its own. Saving stops rather than
+     * filing the layout under no group, which would look like a deliberate
+     * choice the user did not make.
+     */
+    @Test
+    void saveAsNewShowsAnErrorWhenTheGroupsCannotBeListed() {
+        persistenceProvider.groupsFail = true;
+
+        fireMenuAction(
+                topItems().get(2),
+                typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
+                dismiss(ButtonType.OK)
+        );
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("persistenceProvider.savedProfiles")
+                .isEmpty();
+    }
+
+    /**
+     * The group picker only appears when a group exists, and backing out of it
+     * abandons the save rather than falling back to no group.
+     */
+    @Test
+    void saveAsNewDoesNothingWhenTheGroupChoiceIsCancelled() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+
+        fireMenuAction(
+                topItems().get(2),
+                typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
+                dismiss(ButtonType.CANCEL)
+        );
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("persistenceProvider.savedProfiles")
+                .isEmpty();
+    }
+
+    @Test
+    void saveAsNewFilesTheLayoutInTheChosenGroup() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+
+        fireMenuAction(
+                topItems().get(2),
+                typeAndDismiss(NEW_LAYOUT_DISPLAY_NAME, ButtonType.OK),
+                selectChoiceAndDismiss(GROUP_NAME)
+        );
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("persistenceProvider.savedProfiles")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly(GROUP_NAME);
+    }
+
+    @Test
+    void moveToGroupShowsAnErrorWhenTheGroupsCannotBeListed() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", null);
+        repopulate();
+
+        // Set after repopulate: building the menu lists the groups too, and a
+        // failure then would leave no move-to-group item to fire.
+        persistenceProvider.groupsFail = true;
+
+        fireMenuAction(moveToGroupMenu().getItems().get(1), dismiss(ButtonType.OK));
+
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly((String) null);
+    }
+
+    @Test
+    void moveToGroupDoesNothingWhenTheDialogIsCancelled() {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(WIDE_LAYOUT_ID, "Wide", null);
+        repopulate();
+
+        fireMenuAction(moveToGroupMenu().getItems().get(1), dismiss(ButtonType.CANCEL));
+
+        assertThat(persistenceProvider.storedLayouts)
+                .describedAs("groups the layouts record")
+                .extracting(LayoutPersistenceProfile::group)
+                .containsExactly((String) null);
+    }
+
     @Test
     void saveChangesWritesTheActiveLayout() {
         makeActiveLayout();
 
-        fire(saveChangesItem());
+        fireMenuAction(saveChangesItem());
 
         assertThat(persistenceProvider.savedProfiles)
                 .describedAs("persistenceProvider.savedProfiles")
@@ -773,7 +840,7 @@ class LayoutsMenuITG {
         makeActiveLayout();
         persistenceProvider.saveFails = true;
 
-        fire(saveChangesItem(), dismiss(ButtonType.OK));
+        fireMenuAction(saveChangesItem(), dismiss(ButtonType.OK));
 
         assertThat(persistenceProvider.savedProfiles)
                 .describedAs("persistenceProvider.savedProfiles")
@@ -784,7 +851,7 @@ class LayoutsMenuITG {
     void renameDoesNothingWhenTheDialogIsCancelled() {
         makeActiveLayout();
 
-        fire(renameMenu().getItems().getFirst(), dismiss(ButtonType.CANCEL));
+        fireMenuAction(renameMenu().getItems().getFirst(), dismiss(ButtonType.CANCEL));
 
         assertThat(persistenceProvider.renamedProfiles)
                 .describedAs("persistenceProvider.renamedProfiles")
@@ -795,7 +862,7 @@ class LayoutsMenuITG {
     void renameShowsAnErrorForABlankName() {
         makeActiveLayout();
 
-        fire(
+        fireMenuAction(
                 renameMenu().getItems().getFirst(),
                 typeAndDismiss("   ", ButtonType.OK),
                 dismiss(ButtonType.OK)
@@ -815,7 +882,7 @@ class LayoutsMenuITG {
     void renameRewritesOnlyTheDisplayNameUnderTheSameIdentifier() {
         makeActiveLayout();
 
-        fire(
+        fireMenuAction(
                 renameMenu().getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
@@ -844,7 +911,7 @@ class LayoutsMenuITG {
         storeLayout(OTHER_LAYOUT_ID, "Zebra", null);
         repopulate();
 
-        fire(
+        fireMenuAction(
                 renameMenu().getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
@@ -865,7 +932,7 @@ class LayoutsMenuITG {
         storeLayout(WIDE_LAYOUT_ID, "Wide", GROUP_NAME);
         repopulate();
 
-        fire(
+        fireMenuAction(
                 ((Menu) renameMenu().getItems().getFirst()).getItems().getFirst(),
                 typeAndDismiss("Renamed Layout", ButtonType.OK)
         );
@@ -883,7 +950,7 @@ class LayoutsMenuITG {
         );
         repopulate();
 
-        fire(deleteMenu().getItems().getFirst(), dismiss(ButtonType.NO));
+        fireMenuAction(deleteMenu().getItems().getFirst(), dismiss(ButtonType.NO));
 
         assertThat(persistenceProvider.deletedProfiles)
                 .describedAs("persistenceProvider.deletedProfiles")
@@ -894,7 +961,7 @@ class LayoutsMenuITG {
     void deleteClearsTheActiveProfileWhenTheDeletedLayoutWasActive() {
         makeActiveLayout();
 
-        fire(deleteMenu().getItems().getFirst(), dismiss(ButtonType.YES));
+        fireMenuAction(deleteMenu().getItems().getFirst(), dismiss(ButtonType.YES));
         repopulate();
 
         assertThat(persistenceProvider.deletedProfiles)
@@ -915,7 +982,7 @@ class LayoutsMenuITG {
         repopulate();
 
         // Sorted by display name: "Active Layout" then "Other".
-        fire(deleteMenu().getItems().get(1), dismiss(ButtonType.YES));
+        fireMenuAction(deleteMenu().getItems().get(1), dismiss(ButtonType.YES));
         repopulate();
 
         assertThat(persistenceProvider.deletedProfiles)
@@ -935,7 +1002,7 @@ class LayoutsMenuITG {
         persistenceProvider.deleteFails = true;
         repopulate();
 
-        fire(
+        fireMenuAction(
                 deleteMenu().getItems().getFirst(),
                 dismiss(ButtonType.YES),
                 dismiss(ButtonType.OK)
@@ -964,7 +1031,7 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(restoreMenu().getItems().getFirst());
+        fireMenuAction(restoreMenu().getItems().getFirst());
         repopulate();
     }
 
@@ -988,7 +1055,7 @@ class LayoutsMenuITG {
         restorable.switchSucceeds = true;
         repopulate();
 
-        fire(((Menu) restoreMenu().getItems().getFirst()).getItems().getFirst());
+        fireMenuAction(((Menu) restoreMenu().getItems().getFirst()).getItems().getFirst());
         repopulate();
     }
 
@@ -1064,7 +1131,7 @@ class LayoutsMenuITG {
      * the class documentation for why queuing them ahead of {@code item.fire()}
      * works.
      */
-    private static void fire(final MenuItem item, final Runnable... dialogSteps) {
+    private static void fireMenuAction(final MenuItem item, final Runnable... dialogSteps) {
         Platform.runLater(() -> {
             for (final Runnable step : dialogSteps) {
                 Platform.runLater(step);
@@ -1188,6 +1255,7 @@ class LayoutsMenuITG {
         private final List<String> storedGroups = new ArrayList<>();
         private @Nullable String activeLayoutIdentifier;
         private boolean listFails;
+        private boolean groupsFail;
         private boolean isLayoutStoredFails;
         private boolean saveFails;
         private boolean deleteFails;
@@ -1288,7 +1356,10 @@ class LayoutsMenuITG {
         @Override
         public List<String> getStoredGroups(
                 final LayoutPersistenceProfile layoutPersistenceProfile
-        ) {
+        ) throws BentoStateException {
+            if (groupsFail) {
+                throw new BentoStateException("groups failed");
+            }
             return List.copyOf(storedGroups);
         }
 
