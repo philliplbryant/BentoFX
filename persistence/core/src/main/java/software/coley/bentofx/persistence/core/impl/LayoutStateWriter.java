@@ -24,16 +24,19 @@ final class LayoutStateWriter implements AutoCloseable {
     private final LayoutCodec layoutCodec;
     private final LayoutStorage layoutStorage;
     private final @Nullable String displayName;
+    private final @Nullable String group;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     LayoutStateWriter(
             final @Nullable String displayName,
+            final @Nullable String group,
             final LayoutCodec layoutCodec,
             final LayoutStorage layoutStorage
     ) {
         this.layoutCodec = Objects.requireNonNull(layoutCodec);
         this.layoutStorage = Objects.requireNonNull(layoutStorage);
         this.displayName = displayName;
+        this.group = group;
     }
 
     /**
@@ -77,7 +80,8 @@ final class LayoutStateWriter implements AutoCloseable {
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         layoutCodec.encode(
-                new PersistableLayout(displayName, bentoStateList),
+                new PersistableLayout(displayName, bentoStateList)
+                        .withNaming(displayName, group),
                 buffer
         );
 

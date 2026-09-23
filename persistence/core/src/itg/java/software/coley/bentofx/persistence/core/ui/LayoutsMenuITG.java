@@ -155,6 +155,36 @@ class LayoutsMenuITG {
     }
 
     /**
+     * After a restart the active layout is known only by the identifier that
+     * was recorded, but saving changes to it must keep the name and group it
+     * was stored with.
+     */
+    @Test
+    void savingChangesAfterARestartKeepsTheLayoutsNameAndGroup(final FxRobot robot) {
+        persistenceProvider.storedGroups.add(GROUP_NAME);
+        storeLayout(GROUPED_ACTIVE_LAYOUT_ID, GROUPED_ACTIVE_DISPLAY_NAME, GROUP_NAME);
+        persistenceProvider.storedIdentifiers.add(GROUPED_ACTIVE_LAYOUT_ID);
+        persistenceProvider.activeLayoutIdentifier = GROUPED_ACTIVE_LAYOUT_ID;
+
+        robot.interact(() -> menu = new LayoutsMenu(owner, restorable));
+        repopulate();
+
+        fireMenuAction(saveChangesItem());
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved by Save changes after a restart")
+                .singleElement()
+                .satisfies(saved -> {
+                    assertThat(saved.findDisplayName())
+                            .describedAs("saved display name")
+                            .contains(GROUPED_ACTIVE_DISPLAY_NAME);
+                    assertThat(saved.group())
+                            .describedAs("saved group")
+                            .isEqualTo(GROUP_NAME);
+                });
+    }
+
+    /**
      * With no session layout saved, the application fell back to its default
      * layout, so the menu records what is showing as the default arrangement -
      * once the application has had a chance to attach it.

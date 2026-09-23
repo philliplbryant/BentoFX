@@ -163,6 +163,66 @@ class OneShotLayoutSaveITG {
 		robot.interact(stage::hide);
 	}
 
+	/**
+	 * A layout saved from a group, whether new or over one already in it, has to
+	 * stay in that group.
+	 */
+	@Test
+	void saveLayoutWritesTheProfilesGroup(FxRobot robot)
+			throws BentoStateException {
+
+		final Bento bento = new Bento();
+		final DockBuilding dockBuilding = bento.dockBuilding();
+		final DockContainerRootBranch root = dockBuilding.root("root");
+		root.addContainer(dockBuilding.leaf("leaf"));
+
+		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+		final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
+
+		final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
+		bentoProvider.addBento(bento);
+
+		final DockingLayoutPersistenceProvider persistenceProvider =
+				new DefaultDockingLayoutPersistenceProvider(
+						List.of(codecProvider(codec)),
+						List.of(storageProvider(storage))
+				);
+
+		final AtomicReference<@Nullable Stage> stageRef = new AtomicReference<>();
+
+		robot.interact(() -> {
+			final Stage stage = new Stage();
+			stage.setScene(new Scene(root));
+			stage.show();
+			stageRef.set(stage);
+		});
+
+		persistenceProvider.saveLayout(
+				LayoutPersistenceProfile.named(
+						LAYOUT_IDENTIFIER,
+						"My Layout",
+						null,
+						null
+				).withNaming("My Layout", "My Group"),
+				bentoProvider
+		);
+
+		assertThat(codec.getEncodedLayouts())
+				.describedAs("encoded layouts")
+				.singleElement()
+				.extracting(PersistableLayout::group)
+				.isEqualTo("My Group");
+
+		// Use Objects.requireNotNull instead of AssertJ because Nullaway
+		// doesn't recognize AssertJ assertions.
+		final Stage stage = Objects.requireNonNull(
+				stageRef.get(),
+				"stage is null"
+		);
+
+		robot.interact(stage::hide);
+	}
+
 	@Test
 	void saveLayoutLeavesAStoredLayoutAloneWhenNothingIsAttached() throws BentoStateException {
 		final Bento bento = new Bento();

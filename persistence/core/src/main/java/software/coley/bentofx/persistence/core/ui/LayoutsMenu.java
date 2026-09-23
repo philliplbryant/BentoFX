@@ -1391,14 +1391,18 @@ public class LayoutsMenu extends Menu {
 				return null;
 			}
 
-			final LayoutPersistenceProfile activeLayoutProfile =
-					LayoutPersistenceProfile.of(activeLayoutIdentifier.get());
-
-			// Recorded once, but not necessarily still true: the layout may
-			// have been deleted since.
-			return persistenceProvider().isLayoutStored(activeLayoutProfile)
-					? activeLayoutProfile
-					: null;
+			// Taken from the catalog rather than built from the identifier, so
+			// that it carries the stored display name and group: saving changes
+			// writes this profile's naming, and one without it would take the
+			// layout out of its group and drop its name. Recorded once, but not
+			// necessarily still true: the layout may have been deleted since.
+			return persistenceProvider()
+					.getStoredLayouts(LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER))
+					.stream()
+					.filter(storedLayout -> storedLayout.layoutIdentifier()
+							.equals(activeLayoutIdentifier.get()))
+					.findFirst()
+					.orElse(null);
 		} catch (final BentoStateException e) {
 			logger.warn("Could not read which named layout was active.", e);
 			return null;

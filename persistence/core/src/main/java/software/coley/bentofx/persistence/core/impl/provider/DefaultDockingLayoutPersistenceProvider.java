@@ -185,7 +185,8 @@ public class DefaultDockingLayoutPersistenceProvider
                 layoutCodec,
                 layoutStorage,
                 bentoProvider,
-                layoutPersistenceProfile.displayName()
+                layoutPersistenceProfile.displayName(),
+                layoutPersistenceProfile.group()
         )) {
             layoutSaver.saveLayout();
         }

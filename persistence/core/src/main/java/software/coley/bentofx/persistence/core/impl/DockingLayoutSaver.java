@@ -72,11 +72,42 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 			final BentoProvider bentoProvider,
 			final @Nullable String displayName
 	) {
+		this(layoutCodec, layoutStorage, bentoProvider, displayName, null);
+	}
+
+	/**
+	 * Creates a {@link DockingLayoutSaver} that writes the supplied display
+	 * name and group into the layout it saves.
+	 *
+	 * <p>Both are written on every save, so a layout saved over one that was
+	 * in a group has to be handed that group again to stay in it.</p>
+	 *
+	 * @param layoutCodec the {@link LayoutCodec} to use to encode the
+	 * persisted layout.
+	 * @param layoutStorage the {@link LayoutStorage} to use to write the
+	 * persisted layout. This saver takes ownership of it
+	 * and closes it from {@link #close()}.
+	 * @param bentoProvider the {@link BentoProvider} to use to get
+	 * {@link Bento} instances from their identifiers.
+	 * @param displayName the human-readable name to store with the layout,
+	 * or {@code null} for a layout saved without one,
+	 * such as the session layout.
+	 * @param group the group to store the layout in, or {@code null} for no
+	 * group.
+	 */
+	public DockingLayoutSaver(
+			final LayoutCodec layoutCodec,
+			final LayoutStorage layoutStorage,
+			final BentoProvider bentoProvider,
+			final @Nullable String displayName,
+			final @Nullable String group
+	) {
 		this(
 				bentoProvider,
 				new BentoLayoutStateCaptor(bentoProvider),
 				new LayoutStateWriter(
 						displayName,
+						group,
 						layoutCodec,
 						layoutStorage
 				)

@@ -9,11 +9,7 @@ import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -39,7 +35,7 @@ class LayoutStateWriterTest {
                 .build();
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
-            new LayoutStateWriter(null, codec, storage)
+            new LayoutStateWriter(null, null, codec, storage)
                     .writeLayout(List.of(bentoState));
 
             assertThat(codec.getEncodedBentoStates())
@@ -59,7 +55,7 @@ class LayoutStateWriterTest {
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(null, codec, storage)
+                    new LayoutStateWriter(null, null, codec, storage)
                     .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION)
@@ -74,7 +70,7 @@ class LayoutStateWriterTest {
 
         try (final InMemoryLayoutStorage storage = new InMemoryLayoutStorage()) {
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(null, codec, storage)
+                    new LayoutStateWriter(null, null, codec, storage)
                     .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when the codec fails")
@@ -97,7 +93,7 @@ class LayoutStateWriterTest {
             storage.setOpenOutputStreamException(expectedCause);
 
             assertThatThrownBy(() ->
-                    new LayoutStateWriter(null, codec, storage)
+                    new LayoutStateWriter(null, null, codec, storage)
                     .writeLayout(List.of())
             )
                     .describedAs(WRITE_EXCEPTION_DESCRIPTION + " when storage fails")
@@ -113,7 +109,7 @@ class LayoutStateWriterTest {
         final RecordingLayoutCodec codec = new RecordingLayoutCodec();
         final InMemoryLayoutStorage storage = new InMemoryLayoutStorage();
         final LayoutStateWriter writer =
-                new LayoutStateWriter(null, codec, storage);
+                new LayoutStateWriter(null, null, codec, storage);
 
         writer.close();
         writer.close();
