@@ -16,16 +16,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.util.WaitForAsyncUtils;
+import software.coley.bentofx.Bento;
+import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.core.api.*;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.provider.*;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.*;
 
 /**
  * Drives {@link LayoutsMenu} through its real menu items and the modal
@@ -113,6 +116,74 @@ class LayoutsMenuITG {
         assertThat(topItems().getFirst().getText())
                 .describedAs("defaultItem.getText()")
                 .startsWith("✓");
+    }
+
+    /**
+     * A restored session layout the user arranged without naming is not the
+     * default layout: {@code Custom} is checked, and nothing under it is,
+     * because no named layout is showing either.
+     */
+    @Test
+    void anUnnamedArrangementChecksCustomAndNothingUnderIt(final FxRobot robot) {
+        persistenceProvider.storedLayouts.add(
+                LayoutPersistenceProfile.named(OTHER_LAYOUT_ID, "Other", null, null)
+        );
+        // The default layout was recorded with nothing in it, so the root below
+        // is not the default layout.
+        persistenceProvider.defaultArrangement = List.of();
+
+        robot.interact(() -> {
+            final Bento bento = new Bento("menu-bento");
+            final DockContainerRootBranch root = bento.dockBuilding().root("root");
+            root.addContainer(bento.dockBuilding().leaf("leaf"));
+            // A root branch registers with its Bento once it is in a Scene.
+            new Scene(root);
+            restorable.bentoProvider = BentoProvider.of(bento);
+            menu = new LayoutsMenu(owner, restorable);
+        });
+        repopulate();
+
+        assertThat(topItems().getFirst().getText())
+                .describedAs("defaultItem.getText()")
+                .doesNotStartWith("✓");
+        assertThat(customMenu().getText())
+                .describedAs("customMenu.getText()")
+                .startsWith("✓");
+        assertThat(restoreMenu().getItems().getFirst().getText())
+                .describedAs("the stored layout's own item text")
+                .doesNotStartWith("✓");
+    }
+
+    /**
+     * With no session layout saved, the application fell back to its default
+     * layout, so the menu records what is showing as the default arrangement -
+     * once the application has had a chance to attach it.
+     */
+    @Test
+    void constructingWithNoSessionLayoutRecordsTheDefaultArrangement(final FxRobot robot) {
+        persistenceProvider.isSessionStored = false;
+
+        robot.interact(() -> menu = new LayoutsMenu(owner, restorable));
+        // Recording is deferred to the next pass of the event loop.
+        robot.interact(() -> { /* fence */ });
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved after constructing with no session layout")
+                .extracting(LayoutPersistenceProfile::layoutIdentifier)
+                .containsExactly(DEFAULT_LAYOUT_IDENTIFIER);
+    }
+
+    @Test
+    void restoringTheDefaultLayoutRecordsTheDefaultArrangement(final FxRobot robot) {
+        restorable.switchSucceeds = true;
+
+        fireMenuAction(topItems().getFirst());
+        robot.interact(() -> { /* fence */ });
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved after restoring the default layout")
+                .extracting(LayoutPersistenceProfile::layoutIdentifier)
+                .containsExactly(DEFAULT_LAYOUT_IDENTIFIER);
     }
 
     /**
@@ -1200,7 +1271,7 @@ class LayoutsMenuITG {
     private static final class RecordingRestorable implements DockingLayoutRestorable {
 
         private final DockingLayoutPersistenceProvider persistenceProvider;
-        private final BentoProvider bentoProvider = new DefaultBentoProvider();
+        private BentoProvider bentoProvider = new DefaultBentoProvider();
         private final List<Supplier<DockingLayout>> switchCalls = new ArrayList<>();
         private boolean switchSucceeds = true;
 
@@ -1254,6 +1325,8 @@ class LayoutsMenuITG {
         private final List<LayoutPersistenceProfile> renamedProfiles = new ArrayList<>();
         private final List<String> storedGroups = new ArrayList<>();
         private @Nullable String activeLayoutIdentifier;
+        private @Nullable List<BentoState> defaultArrangement;
+        private boolean isSessionStored = true;
         private boolean listFails;
         private boolean groupsFail;
         private boolean isLayoutStoredFails;
@@ -1313,6 +1386,9 @@ class LayoutsMenuITG {
         ) throws BentoStateException {
             if (isLayoutStoredFails) {
                 throw new BentoStateException("isLayoutStored failed");
+            }
+            if (SESSION_LAYOUT_IDENTIFIER.equals(layoutPersistenceProfile.layoutIdentifier())) {
+                return isSessionStored;
             }
             return storedIdentifiers.contains(layoutPersistenceProfile.layoutIdentifier());
         }
@@ -1385,6 +1461,13 @@ class LayoutsMenuITG {
                 final @Nullable String layoutIdentifier
         ) {
             activeLayoutIdentifier = layoutIdentifier;
+        }
+
+        @Override
+        public Optional<List<BentoState>> getStoredBentoStates(
+                final LayoutPersistenceProfile layoutPersistenceProfile
+        ) {
+            return Optional.ofNullable(defaultArrangement);
         }
     }
 }

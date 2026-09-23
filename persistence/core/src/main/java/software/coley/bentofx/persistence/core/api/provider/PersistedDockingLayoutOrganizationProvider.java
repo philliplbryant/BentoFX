@@ -3,6 +3,7 @@ package software.coley.bentofx.persistence.core.api.provider;
 import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
 
 import java.util.List;
@@ -89,4 +90,31 @@ public interface PersistedDockingLayoutOrganizationProvider {
 			final LayoutPersistenceProfile layoutPersistenceProfile,
 			final @Nullable String layoutIdentifier
 	) throws BentoStateException;
+
+	/**
+	 * {@return the state stored for the layout, or an empty {@link Optional}
+	 * when nothing is stored for it or this provider cannot read state back.}
+	 *
+	 * <p>Unlike a restore, this builds no containers, dockables or content
+	 * nodes, so it is cheap however heavy an application's content is.
+	 * {@link LayoutsMenu} reads the layout recorded under
+	 * {@link software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers#DEFAULT_LAYOUT_IDENTIFIER}
+	 * through this to tell whether the default layout is what is showing.</p>
+	 *
+	 * <p>Defaults to an empty {@link Optional}, so an existing implementation
+	 * keeps compiling; the menu then cannot tell the default layout from an
+	 * unnamed arrangement, and checks {@code Default} whenever no named layout
+	 * is active, as it did before this method existed.</p>
+	 *
+	 * @param layoutPersistenceProfile identifies the layout, and selects the
+	 * codec and storage to read it from.
+	 *
+	 * @throws BentoStateException when the codec or storage cannot be selected,
+	 * or the layout cannot be read.
+	 */
+	default Optional<List<BentoState>> getStoredBentoStates(
+			final LayoutPersistenceProfile layoutPersistenceProfile
+	) throws BentoStateException {
+		return Optional.empty();
+	}
 }

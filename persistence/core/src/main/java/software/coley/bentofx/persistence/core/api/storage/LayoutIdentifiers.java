@@ -75,6 +75,13 @@ public final class LayoutIdentifiers {
     public static final String ACTIVE_LAYOUT_IDENTIFIER = "activeLayout";
 
     /**
+     * The entry that records how the default layout was arranged when it was
+     * last applied, so an application can tell whether what is showing is
+     * still the default layout, including after a restart.
+     */
+    public static final String DEFAULT_LAYOUT_IDENTIFIER = "defaultLayout";
+
+    /**
      * Identifiers this framework has taken for itself.
      *
      * <p>Compared without case, because a file name is case-insensitive on
@@ -83,7 +90,8 @@ public final class LayoutIdentifiers {
     private static final Set<String> RESERVED_LAYOUT_IDENTIFIERS = Set.of(
             SESSION_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT),
             GROUP_CATALOG_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT),
-            ACTIVE_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT)
+            ACTIVE_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT),
+            DEFAULT_LAYOUT_IDENTIFIER.toUpperCase(Locale.ROOT)
     );
 
     /**

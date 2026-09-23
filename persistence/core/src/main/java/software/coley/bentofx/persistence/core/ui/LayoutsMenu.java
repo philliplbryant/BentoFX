@@ -1,11 +1,7 @@
 package software.coley.bentofx.persistence.core.ui;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
+import javafx.application.Platform;
+import javafx.scene.control.*;
 import javafx.stage.Window;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -18,20 +14,18 @@ import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.DEFAULT_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
@@ -55,7 +49,8 @@ import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
  * one through its persistence provider's optional
  * {@link PersistedDockingLayoutOrganizationProvider} support. A provider that does not
  * implement it still restores and saves layouts normally, but this menu
- * offers no group management and starts every launch on {@code Default}.</p>
+ * offers no group management and starts every launch with no named layout
+ * active.</p>
  *
  * <p>Users organize their saved layouts into groups from this menu: create one,
  * rename one, move layouts in and out, and delete one without losing the layouts
@@ -97,14 +92,26 @@ public class LayoutsMenu extends Menu {
 	private final ResourceBundle resourceBundle;
 
 	/**
-	 * The custom layout showing now, or {@code null} when the default layout
-	 * is showing.
+	 * The custom layout showing now, or {@code null} when no named layout is
+	 * active.
 	 *
 	 * <p>Saving changes and renaming both write the live containers, so both
 	 * are offered only for the layout on screen. This is what they write to,
 	 * and what the check mark in the menu marks.</p>
 	 */
 	private @Nullable LayoutPersistenceProfile activeCustomLayoutProfile;
+
+	/**
+	 * How the default layout was arranged when it was last applied, read from
+	 * storage, or {@code null} when none is recorded or it could not be read.
+	 *
+	 * <p>Read once and kept, because it changes only when this menu records it
+	 * again, which clears {@link #isDefaultArrangementRead}.</p>
+	 */
+	private @Nullable List<BentoState> defaultArrangement;
+
+	/** Whether {@link #defaultArrangement} has been read since it last changed. */
+	private boolean isDefaultArrangementRead;
 
 	/**
 	 * Builds a menu that reads the text this framework provides, in the
@@ -152,6 +159,12 @@ public class LayoutsMenu extends Menu {
 		this.resourceBundle = resourceBundle;
 		this.activeCustomLayoutProfile = findActiveLayoutProfile();
 
+		// With no session layout saved, a restore fell back to the default
+		// layout, so that is what the application is showing.
+		if (!isSessionLayoutStored()) {
+			recordDefaultArrangementLater();
+		}
+
 		// Rebuilt every time it opens, and once now so that it has something to
 		// open with - a menu with no items never opens, and so would never
 		// reach the handler that fills it. Rebuilding is what keeps the check
@@ -165,14 +178,18 @@ public class LayoutsMenu extends Menu {
 	 * Fills this menu from the layout showing now and what is in storage.
 	 */
 	private void populate() {
-		// Checked whenever no saved layout is the one showing, which includes
-		// the session layout the application starts with: that is the layout a
-		// user has been arranging without naming, and this menu does not
-		// remember which named layout it grew out of.
+		// Default is checked only when what is showing is arranged as the
+		// default layout. Anything else is custom: a named layout, whose own item
+		// is checked too, or an arrangement a user made without naming it, such
+		// as the session layout the application starts with, which checks
+		// Custom and nothing under it.
+		final boolean isDefaultShowing =
+				activeCustomLayoutProfile == null && isDefaultLayoutShowing();
+
 		final MenuItem defaultItem = new MenuItem(
 				markedText(
 						getTextFromResourceBundle(DEFAULT_ITEM_KEY),
-						activeCustomLayoutProfile == null
+						isDefaultShowing
 				)
 		);
 		defaultItem.setOnAction(event -> restoreDefaultLayout());
@@ -180,7 +197,7 @@ public class LayoutsMenu extends Menu {
 		final Menu customMenu = new Menu(
 				markedText(
 						getTextFromResourceBundle(CUSTOM_MENU_KEY),
-						activeCustomLayoutProfile != null
+						!isDefaultShowing
 				)
 		);
 		populateCustomMenu(customMenu);
@@ -530,6 +547,7 @@ public class LayoutsMenu extends Menu {
 				dockingLayoutRestorable::getDefaultDockingLayout
 		)) {
 			setActiveCustomLayoutProfile(null);
+			recordDefaultArrangementLater();
 		}
 	}
 
@@ -1210,6 +1228,104 @@ public class LayoutsMenu extends Menu {
 	) {
 		return layoutPersistenceProfile.findDisplayName()
 				.orElseGet(layoutPersistenceProfile::layoutIdentifier);
+	}
+
+	/**
+	 * {@return {@code true} when what is showing is arranged as the default
+	 * layout was when it was last applied; otherwise, {@code false}.}
+	 *
+	 * <p>Asked each time the menu is filled, so that rearranging the default
+	 * layout clears its check mark and arranging it back restores it. Compares
+	 * against the arrangement recorded by {@link #recordDefaultArrangement()}
+	 * rather than building the default layout, so asking costs a walk of the
+	 * containers on screen and never touches their content. See
+	 * {@link LayoutArrangements} for what counts as the arrangement.</p>
+	 *
+	 * <p>When nothing is recorded, or the persistence provider cannot read it
+	 * back, there is no way to tell, and this answers {@code true} - checking
+	 * {@code Default} whenever no named layout is active, as this menu did
+	 * before it could tell.</p>
+	 */
+	private boolean isDefaultLayoutShowing() {
+		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
+				extendedPersistenceProvider();
+
+		if (extendedProvider.isEmpty()) {
+			return true;
+		}
+
+		if (!isDefaultArrangementRead) {
+			try {
+				defaultArrangement = extendedProvider.get()
+						.getStoredBentoStates(
+								LayoutPersistenceProfile.of(DEFAULT_LAYOUT_IDENTIFIER)
+						)
+						.orElse(null);
+				isDefaultArrangementRead = true;
+			} catch (final BentoStateException e) {
+				logger.warn("Could not read how the default layout was arranged.", e);
+				return true;
+			}
+		}
+
+		final List<BentoState> arrangement = defaultArrangement;
+
+		return arrangement == null || LayoutArrangements.isShowing(
+				arrangement,
+				dockingLayoutRestorable.getBentoProvider()
+		);
+	}
+
+	/**
+	 * Records the arrangement showing now as the default layout's, once the
+	 * application has finished applying it.
+	 *
+	 * <p>Deferred to the next pass of the JavaFX event loop because an
+	 * application may still be attaching the layout when this is asked for -
+	 * at startup this menu is built before the layout it sits beside is on
+	 * screen. The user cannot rearrange anything before then, because input
+	 * queued behind this task is handled after it.</p>
+	 */
+	private void recordDefaultArrangementLater() {
+		// Only a provider that can read the arrangement back has a use for it.
+		if (extendedPersistenceProvider().isPresent()) {
+			Platform.runLater(this::recordDefaultArrangement);
+		}
+	}
+
+	/**
+	 * Records the arrangement showing now as the default layout's, under
+	 * {@link LayoutIdentifiers#DEFAULT_LAYOUT_IDENTIFIER}, so it survives a
+	 * restart. Must be called on the JavaFX Application Thread.
+	 */
+	private void recordDefaultArrangement() {
+		try {
+			persistenceProvider().saveLayout(
+					LayoutPersistenceProfile.of(DEFAULT_LAYOUT_IDENTIFIER),
+					dockingLayoutRestorable.getBentoProvider()
+			);
+			isDefaultArrangementRead = false;
+		} catch (final BentoStateException e) {
+			logger.warn("Could not record how the default layout is arranged.", e);
+		}
+	}
+
+	/**
+	 * {@return {@code true} when a session layout is stored, or when that
+	 * cannot be read; otherwise, {@code false}.}
+	 *
+	 * <p>An unreadable answer counts as stored, so that this menu does not
+	 * record whatever is showing as the default layout on a guess.</p>
+	 */
+	private boolean isSessionLayoutStored() {
+		try {
+			return persistenceProvider().isLayoutStored(
+					LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
+			);
+		} catch (final BentoStateException e) {
+			logger.warn("Could not tell whether a session layout is stored.", e);
+			return true;
+		}
 	}
 
 	/**
