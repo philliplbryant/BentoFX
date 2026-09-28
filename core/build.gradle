@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.javafx)
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
+    id 'bento.test.integration-test-graphical-suite'
 }
 
 description = 'A docking system for JavaFX'
@@ -14,7 +15,7 @@ javafx {
 
     // We don't want to include a specific version of JavaFX as a transitive
     // dependency for users of the library.
-    configurations = ['compileOnlyApi']
+    configurations = ['compileOnlyApi', 'integrationTestGraphicalImplementation']
 }
 
 javadoc {
