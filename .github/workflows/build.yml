@@ -253,8 +253,8 @@ jobs:
   # would keep overwriting it. It needs 'contents: write', which is why this is a
   # separate job rather than a step in 'test'.
   #
-  # Gated by repository as well, the way the SonarQube and Codecov steps are: an
-  # unlicensed private fork has no dependency graph to submit to.
+  # Gated by repository as well, the way the SonarQube and Codecov steps are, so
+  # it only ever submits this repository's graph.
   dependency-submission:
     name: Submit dependency graph
     if: github.repository == 'philliplbryant/BentoFX' && github.ref == 'refs/heads/master'
