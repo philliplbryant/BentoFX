@@ -29,28 +29,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # The Ultimate linter named in qodana.yaml needs a licensed token to run at
-      # all. A pull request from a fork gets no secrets, so the token is empty
-      # there and the analysis has to be the Community linter or nothing. The
-      # secrets context is not available to an `if:`, which is why this reads the
-      # token from the environment instead.
-      - name: Select linter
-        id: linter
-        shell: bash
-        run: |
-          if [ -n "$QODANA_TOKEN" ]; then
-            echo 'args=' >> "$GITHUB_OUTPUT"
-            echo "::notice::Running the Ultimate linter from qodana.yaml."
-          else
-            echo 'args=--linter qodana-jvm-community' >> "$GITHUB_OUTPUT"
-            echo "::notice::No QODANA_TOKEN available, so falling back to the Community linter."
-          fi
-
+      # The Community linter named in qodana.yaml needs no license, so it runs
+      # with or without QODANA_TOKEN. The token only uploads the report to
+      # Qodana Cloud; a pull request from a fork gets no secrets, so there the
+      # analysis still runs and the upload is skipped.
       - name: Run Qodana
         uses: JetBrains/qodana-action@10be11607eb323a180e2b76b26c9c5cdceac3e77 # v2026.2.1
         with:
           args: |
-            ${{ steps.linter.outputs.args }}
             --within-docker false
           upload-result: true
       - name: Upload Qodana SARIF
