@@ -1,6 +1,10 @@
 package software.coley.bentofx.event;
 
-import software.coley.bentofx.dockable.*;
+import software.coley.bentofx.dockable.Dockable;
+import software.coley.bentofx.dockable.DockableCloseListener;
+import software.coley.bentofx.dockable.DockableMoveListener;
+import software.coley.bentofx.dockable.DockableOpenListener;
+import software.coley.bentofx.dockable.DockableSelectListener;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.path.DockablePath;
 
