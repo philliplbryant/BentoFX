@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Phil Bryant
  */
-class DragUtilsITG {
+class DragUtilsTest {
 
 	private static final String IDENTIFIER = "dockable-1";
 	private static final int DRAG_GROUP = 3;

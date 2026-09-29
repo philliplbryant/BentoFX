@@ -5,17 +5,16 @@ plugins {
     alias(libs.plugins.javafx)
     id 'bento.project.project-convention'
     id 'bento.release.publish-convention'
-    id 'bento.test.integration-test-graphical-suite'
 }
 
 description = 'A docking system for JavaFX'
 
 javafx {
-    modules = ['javafx.controls']
+    modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
 
     // We don't want to include a specific version of JavaFX as a transitive
     // dependency for users of the library.
-    configurations = ['compileOnlyApi', 'integrationTestGraphicalImplementation']
+    configurations = ['compileOnlyApi', 'testRuntimeOnly']
 }
 
 javadoc {
@@ -28,7 +27,11 @@ javadoc {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    options.errorprone.check('BadInstanceof', OFF)
     options.errorprone.check('MissingSummary', OFF)
+    options.errorprone.check('ReferenceEquality', OFF)
+    options.errorprone.check('StringSplitter', OFF)
+    options.errorprone.check('UnnecessaryParentheses', OFF)
 }
 
 buildConfig {
