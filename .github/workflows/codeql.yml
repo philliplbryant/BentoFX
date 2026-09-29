@@ -18,6 +18,10 @@ permissions:
 jobs:
   analyze:
     name: CodeQL Java analysis
+    # Code scanning requires a GitHub Code Security license on a private
+    # repository, so every step here fails in the private review fork. Gated by
+    # repository the way build.yml gates its SonarQube steps.
+    if: github.repository == 'philliplbryant/BentoFX'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
