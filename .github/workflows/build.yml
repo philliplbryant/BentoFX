@@ -226,8 +226,8 @@ jobs:
   # cover no Gradle dependency. This submits the resolved graph, transitives
   # included. Default branch only: the graph is per repository and derived from
   # that branch, so other branches would overwrite it. Separate job because it
-  # needs 'contents: write'. Gated by repository too: a private fork without the
-  # dependency graph enabled rejects the submission.
+  # needs 'contents: write'. Gated by repository too, so it only ever submits
+  # this repository's graph.
   dependency-submission:
     name: Submit dependency graph
     if: github.repository == 'philliplbryant/BentoFX' && github.ref == 'refs/heads/master'
