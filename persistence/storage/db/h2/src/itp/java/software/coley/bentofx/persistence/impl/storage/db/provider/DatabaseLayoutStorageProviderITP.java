@@ -197,6 +197,35 @@ class DatabaseLayoutStorageProviderITP {
     }
 
     /**
+     * One provider instance follows a home directory changed after it was
+     * first used, as the file-backed provider does, rather than staying on the
+     * database it opened first.
+     */
+    @Test
+    void aProviderAlreadyInUseFollowsAChangedHome(
+            @TempDir final Path firstHome,
+            @TempDir final Path secondHome
+    ) throws IOException {
+        final DatabaseLayoutStorageProvider provider =
+                new DatabaseLayoutStorageProvider();
+
+        LayoutStorageLocations.configureHome(firstHome);
+        storeLayout(provider, "first-home-layout");
+
+        LayoutStorageLocations.configureHome(secondHome);
+
+        assertThat(provider.getLayoutIdentifiers(CODEC_IDENTIFIER))
+                .describedAs("layouts visible after the home changed")
+                .isEmpty();
+
+        LayoutStorageLocations.configureHome(firstHome);
+
+        assertThat(provider.getLayoutIdentifiers(CODEC_IDENTIFIER))
+                .describedAs("layouts visible after changing the home back")
+                .containsExactly("first-home-layout");
+    }
+
+    /**
      * The concrete "two applications on one machine" scenario:
      * {@value LayoutStorageLocations#NAMESPACE_PROPERTY} gives each one its
      * own database file under a shared home, so neither sees the other's

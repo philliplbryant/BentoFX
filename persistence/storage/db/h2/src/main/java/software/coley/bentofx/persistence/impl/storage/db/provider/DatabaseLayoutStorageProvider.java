@@ -2,7 +2,6 @@ package software.coley.bentofx.persistence.impl.storage.db.provider;
 
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
@@ -10,6 +9,7 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocation
 import software.coley.bentofx.persistence.impl.storage.db.DatabaseLayoutStorage;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,16 +17,19 @@ import java.util.Map;
  * Implementation of the {@link LayoutStorageProvider} interface for persisting
  * Bento layouts to H2 databases.
  *
- * <p>Every storage this hands out shares one {@link EntityManagerFactory},
+ * <p>Every storage for one database file shares one {@link EntityManagerFactory},
  * created when the first one is requested. A factory starts Hibernate and brings
  * a connection pool with it, while the layouts it serves are one file that a
  * single connection would satisfy; what a saver and a restorer each need of
- * their own is the {@link LayoutStorage}, which is still built per call.</p>
+ * their own is the {@link LayoutStorage}, which is still built per call. The
+ * database file is resolved on every call, so changing the home directory
+ * moves later storages to a new file (and factory) while storages already
+ * handed out keep theirs.</p>
  *
- * <p>Nothing closes the shared factory before the JVM exits, which is also when
- * the pool and the embedded database go. There is no earlier moment to close it
- * at: the storages are handed to components that outlive individual saves, and
- * {@link LayoutStorageProvider} has no shutdown of its own to hook into.</p>
+ * <p>Nothing closes the factories before the JVM exits, which is also when
+ * the pools and the embedded databases go. There is no earlier moment to close
+ * them at: the storages are handed to components that outlive individual saves,
+ * and {@link LayoutStorageProvider} has no shutdown of its own to hook into.</p>
  *
  * <p>The database file location is determined by
  * {@link LayoutStorageLocations#HOME_DIRECTORY_PROPERTY} and
@@ -50,7 +53,13 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
      */
     private static final String DATABASE_FILE_NAME = "layouts";
 
-    private @Nullable EntityManagerFactory entityManagerFactory;
+    /**
+     * One factory per database file, so storages already handed out keep the
+     * factory they were given when the home changes. Guarded by this
+     * provider's monitor.
+     */
+    private final Map<Path, EntityManagerFactory> entityManagerFactories =
+            new HashMap<>();
 
     /**
      * Creates a {@code DatabaseLayoutStorageProvider} for persisting Bento
@@ -110,8 +119,8 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
     }
 
     /**
-     * {@return the shared {@link EntityManagerFactory}, creating it when this is the
-     * first call to need it.}
+     * {@return the {@link EntityManagerFactory} for the database the current home
+     * resolves to, creating it when this is the first call to need it.}
      *
      * <p>Synchronized because the first caller is the one that creates it, and
      * nothing says a saver, a restorer and a catalog lookup happen on one
@@ -125,16 +134,43 @@ public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
      * uses.</p>
      */
     private synchronized EntityManagerFactory getEntityManagerFactory() {
-        if (entityManagerFactory == null) {
-            final Path databaseFile =
-                    LayoutStorageLocations.resolveBentoFxHome().resolve(DATABASE_FILE_NAME);
+        // Resolved on every call, as the file-backed provider does, so a home
+        // changed after this provider was first used takes effect here too.
+        final Path databaseFile =
+                LayoutStorageLocations.resolveBentoFxHome().resolve(DATABASE_FILE_NAME);
 
-            entityManagerFactory = Persistence.createEntityManagerFactory(
-                    PERSISTENCE_UNIT_NAME,
-                    Map.of(JDBC_URL_PROPERTY, "jdbc:h2:file:" + databaseFile)
+        return entityManagerFactories.computeIfAbsent(
+                databaseFile,
+                DatabaseLayoutStorageProvider::createEntityManagerFactory
+        );
+    }
+
+    /**
+     * {@return a new {@link EntityManagerFactory} for the database file.}
+     *
+     * @param databaseFile the database file, without H2's extension.
+     * @throws IllegalStateException when the path holds a {@code ;}, which H2
+     * would read as the start of its URL settings. H2 cannot escape one in a
+     * file path, so such a path would either fail to open or, worse, have part
+     * of it applied as settings.
+     */
+    private static EntityManagerFactory createEntityManagerFactory(
+            final Path databaseFile
+    ) {
+        final String path = databaseFile.toString();
+
+        if (path.indexOf(';') >= 0) {
+            throw new IllegalStateException(
+                    "The H2 layout database cannot be kept at '" + path + "': "
+                            + "H2 reads ';' in a database path as the start of its "
+                            + "settings. Choose a home directory without one ("
+                            + LayoutStorageLocations.HOME_DIRECTORY_PROPERTY + ")."
             );
         }
 
-        return entityManagerFactory;
+        return Persistence.createEntityManagerFactory(
+                PERSISTENCE_UNIT_NAME,
+                Map.of(JDBC_URL_PROPERTY, "jdbc:h2:file:" + path)
+        );
     }
 }

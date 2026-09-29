@@ -1,6 +1,9 @@
 package software.coley.bentofx.persistence.impl.storage.db.provider;
 
 import org.junit.jupiter.api.Test;
+import software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations;
+
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,5 +40,32 @@ class DatabaseLayoutStorageProviderTest {
                 .describedAs("layout identifier naming a device")
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("device");
+    }
+
+    /**
+     * H2 reads everything after a {@code ;} in its URL as settings, and has no
+     * way to escape one in a file path. A home directory containing one is
+     * refused by name rather than handed to H2 to misread.
+     */
+    @Test
+    void refusesAHomeDirectoryH2WouldMisreadAsSettings() {
+        final String previousHome =
+                System.getProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY);
+
+        try {
+            LayoutStorageLocations.configureHome(Path.of("layouts;INIT=nothing"));
+
+            assertThatThrownBy(() -> new DatabaseLayoutStorageProvider()
+                    .getLayoutStorage("layout", CODEC_IDENTIFIER))
+                    .describedAs("home directory containing ';'")
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining(";");
+        } finally {
+            if (previousHome == null) {
+                System.clearProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY);
+            } else {
+                System.setProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY, previousHome);
+            }
+        }
     }
 }

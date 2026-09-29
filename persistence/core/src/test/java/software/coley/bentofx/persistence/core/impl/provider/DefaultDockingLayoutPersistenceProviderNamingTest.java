@@ -11,14 +11,18 @@ import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.provider.InMemoryLayoutStorageProvider;
+import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.ACTIVE_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.GROUP_CATALOG_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.testfixtures.codec.state.SampleBentoStateFactory.createBentoStates;
@@ -74,6 +78,63 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
                 .describedAs("docking state after the rewrite")
                 .usingRecursiveComparison()
                 .isEqualTo(original);
+    }
+
+    /**
+     * One layout that cannot be read must not hide the others - a menu built
+     * from this listing would otherwise show nothing at all, including the
+     * broken layout the user might want to delete.
+     */
+    @Test
+    void getStoredLayoutsListsEveryLayoutWhenOneCannotBeRead()
+            throws BentoStateException {
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final DefaultDockingLayoutPersistenceProvider provider =
+                providerFor(storage, codec);
+
+        store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", createBentoStates()));
+        ((InMemoryLayoutStorage) storage.getLayoutStorage("broken", codec.getIdentifier()))
+                .write("not written by this codec".getBytes(StandardCharsets.UTF_8));
+
+        final List<LayoutPersistenceProfile> listed =
+                provider.getStoredLayouts(LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER));
+
+        assertThat(listed)
+                .describedAs("layouts listed with one unreadable")
+                .extracting(LayoutPersistenceProfile::layoutIdentifier, LayoutPersistenceProfile::displayName)
+                .containsExactlyInAnyOrder(
+                        tuple(LAYOUT_IDENTIFIER, "Wide"),
+                        tuple("broken", null)
+                );
+    }
+
+    /**
+     * A rewrite is encoded in full before storage is opened, so a codec that
+     * fails part way through leaves the stored layout as it was instead of
+     * committing what it had written so far.
+     */
+    @Test
+    void updateStoredLayoutNamingLeavesTheLayoutAloneWhenEncodingFails()
+            throws BentoStateException {
+        final InMemoryLayoutStorageProvider storage =
+                new InMemoryLayoutStorageProvider();
+        final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
+        final DefaultDockingLayoutPersistenceProvider provider =
+                providerFor(storage, new EncodeFailingCodec(codec));
+
+        store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", createBentoStates()));
+
+        assertThatThrownBy(() -> provider.updateStoredLayoutNaming(
+                LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER).withNaming("Renamed", null)
+        ))
+                .describedAs("updateStoredLayoutNaming with a codec that fails to encode")
+                .isInstanceOf(BentoStateException.class);
+
+        assertThat(read(storage, codec, LAYOUT_IDENTIFIER).displayName())
+                .describedAs("stored display name after a failed rewrite")
+                .isEqualTo("Wide");
     }
 
     /**
@@ -440,6 +501,37 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 
         private List<String> streamsOpened() {
             return streamsOpened;
+        }
+    }
+
+    /**
+     * Decodes through another codec, but writes part of a layout and then fails
+     * every encode - the way a codec that breaks mid-stream behaves.
+     */
+    private record EncodeFailingCodec(LayoutCodec delegate) implements LayoutCodec {
+
+        @Override
+        public String getIdentifier() {
+            return delegate.getIdentifier();
+        }
+
+        @Override
+        public void encode(
+                final PersistableLayout layout,
+                final OutputStream outputStream
+        ) throws BentoStateException {
+            try {
+                outputStream.write("partial".getBytes(StandardCharsets.UTF_8));
+            } catch (final IOException e) {
+                throw new BentoStateException("Could not write.", e);
+            }
+            throw new BentoStateException("Encoding failed part way through.");
+        }
+
+        @Override
+        public PersistableLayout decode(final InputStream inputStream)
+                throws BentoStateException {
+            return delegate.decode(inputStream);
         }
     }
 

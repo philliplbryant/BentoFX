@@ -29,7 +29,10 @@ module bento.fx.persistence.storage.db.h2Database {
     requires org.hibernate.validator;
     requires org.slf4j;
 
-    exports software.coley.bentofx.persistence.impl.storage.db;
+    // The storage and entity package is not exported: its classes are this
+    // provider's implementation, and the entity key must stay public for JPA,
+    // which would otherwise make it API. Hibernate reaches it through the opens
+    // below.
     exports software.coley.bentofx.persistence.impl.storage.db.provider;
 
     opens software.coley.bentofx.persistence.impl.storage.db to

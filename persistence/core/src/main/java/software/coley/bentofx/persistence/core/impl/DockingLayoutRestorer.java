@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.core.impl;
 
+import javafx.application.Platform;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,9 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -97,21 +101,21 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             final Supplier<DockingLayout> defaultLayoutSupplier
     ) {
 
-        if (!doesLayoutExist()) {
-            return getDefaultLayout(defaultLayoutSupplier);
-        }
-
         try {
-            final List<BentoState> bentoStateList =
-                    PersistenceThreading.callOffFxThread(
-                            layoutStateReader::readLayoutState
+            // The existence check is storage work too - a database query for
+            // some storages - so it goes off the JavaFX thread with the read.
+            final Optional<List<BentoState>> bentoStateList =
+                    PersistenceThreading.callOffFxThread(() ->
+                            layoutStateReader.layoutExists()
+                                    ? Optional.of(layoutStateReader.readLayoutState())
+                                    : Optional.empty()
                     );
 
-            return PersistenceThreading.callOnFxThread(() ->
-                    dockingLayoutStateRestorer.restoreDockingLayout(
-                            bentoStateList
-                    )
-            );
+            if (bentoStateList.isEmpty()) {
+                return getDefaultLayout(defaultLayoutSupplier);
+            }
+
+            return restoreOnFxThread(bentoStateList.get());
 
         } catch (final BentoStateTimeoutException e) {
             // Deliberately not handled like the failure below. A timeout means
@@ -131,6 +135,53 @@ public class DockingLayoutRestorer implements LayoutRestorer {
             );
 
             return getDefaultLayout(defaultLayoutSupplier);
+        }
+    }
+
+    /**
+     * Builds the decoded layout on the JavaFX application thread.
+     *
+     * <p>A restore can outlive the caller's wait: once it is running on the
+     * JavaFX thread a timeout cannot stop it, and it goes on to register its
+     * drag/drop stage roots for a layout nobody will apply. Whichever runs
+     * second - the restore finishing, or the cleanup queued when the wait gave
+     * up - discards it. Both run on the JavaFX thread, so they cannot
+     * interleave, and {@code unclaimed} hands the layout to exactly one of
+     * them.</p>
+     *
+     * @param bentoStateList the decoded states.
+     * @return the restored layout.
+     * @throws BentoStateException when the restore fails or times out.
+     */
+    private DockingLayout restoreOnFxThread(
+            final List<BentoState> bentoStateList
+    ) throws BentoStateException {
+        final AtomicBoolean abandoned = new AtomicBoolean();
+        final AtomicReference<@Nullable DockingLayout> unclaimed =
+                new AtomicReference<>();
+
+        try {
+            return PersistenceThreading.callOnFxThread(() -> {
+                final DockingLayout dockingLayout =
+                        dockingLayoutStateRestorer.restoreDockingLayout(bentoStateList);
+
+                if (abandoned.get()) {
+                    DockingLayoutStateRestorer.discard(dockingLayout);
+                } else {
+                    unclaimed.set(dockingLayout);
+                }
+
+                return dockingLayout;
+            });
+        } catch (final BentoStateTimeoutException e) {
+            abandoned.set(true);
+            Platform.runLater(() -> {
+                final DockingLayout lateLayout = unclaimed.getAndSet(null);
+                if (lateLayout != null) {
+                    DockingLayoutStateRestorer.discard(lateLayout);
+                }
+            });
+            throw e;
         }
     }
 

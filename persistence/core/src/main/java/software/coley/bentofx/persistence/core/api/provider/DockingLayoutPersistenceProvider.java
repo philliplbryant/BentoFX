@@ -197,10 +197,13 @@ public interface DockingLayoutPersistenceProvider {
 	 * {@link #getLayoutRestorer} or {@link #deleteLayout}. The session layout is
 	 * included, as it is in the identifier listing.</p>
 	 *
+	 * <p>A stored layout that cannot be read is still listed, with no display
+	 * name and no group, so that one damaged layout neither hides the others
+	 * nor becomes impossible to delete.</p>
+	 *
 	 * @param layoutPersistenceProfile selects the codec and storage to ask.
 	 *
-	 * @throws BentoStateException when the codec or storage cannot be selected,
-	 * or a stored layout cannot be read.
+	 * @throws BentoStateException when the codec or storage cannot be selected.
 	 */
 	List<LayoutPersistenceProfile> getStoredLayouts(
 			final LayoutPersistenceProfile layoutPersistenceProfile

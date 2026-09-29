@@ -44,9 +44,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link #disableAutoSave()} and {@link #close()} may be called from any thread
  * and are mutually exclusive; the auto-save lifecycle state they share is guarded
  * by a private lock. {@link #close()} is idempotent. What is <em>not</em>
- * serialized is saving itself: {@link #close()} deliberately performs its final
- * save before taking that lock, because a save waits on the JavaFX application
- * thread and that thread may itself be calling in here. A subclass overriding
+ * serialized is saving itself: {@link #close()} stops the timer under that lock
+ * but deliberately performs its final save outside it, because a save waits on
+ * the JavaFX application thread and that thread may itself be calling in here. A subclass overriding
  * {@link #saveLayout()} or {@link #saveLayoutForShutdown()} must therefore assume
  * it can be entered from the scheduler thread and from a caller of
  * {@link #close()}, and make its own state safe accordingly.</p>
@@ -244,7 +244,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * between disabling and re-arming - a gap in which another thread could
      * observe auto-save as neither on nor off, or interleave its own teardown.</p>
      */
-    private void disableAutoSaveInternal() {
+    private @Nullable ScheduledExecutorService disableAutoSaveInternal() {
 
         this.isAutoSaveEnabled = false;
 
@@ -263,6 +263,49 @@ public abstract class AbstractAutoCloseableLayoutSaver
         }
 
         removeListeners();
+
+        return currentScheduler;
+    }
+
+    /**
+     * Waits, briefly, for a scheduler just shut down to finish the save it may
+     * have been running.
+     *
+     * <p>Called without holding {@link #autoSaveLock}: the save being waited on
+     * never takes that lock, but it may be waiting on the JavaFX application
+     * thread, which may itself be waiting for the lock. Shutting the scheduler
+     * down interrupted that save, so the wait is normally short; the bound is
+     * {@link PersistenceThreading#FX_CLOSE_TIMEOUT_MILLIS}, the budget closing
+     * already allows itself.</p>
+     *
+     * @param stoppedScheduler the scheduler that was shut down, or {@code null}
+     * when auto-save was not running.
+     */
+    private static void awaitScheduledSave(
+            final @Nullable ScheduledExecutorService stoppedScheduler
+    ) {
+        if (stoppedScheduler == null) {
+            return;
+        }
+
+        try {
+            if (!stoppedScheduler.awaitTermination(
+                    PersistenceThreading.FX_CLOSE_TIMEOUT_MILLIS,
+                    TimeUnit.MILLISECONDS
+            )) {
+                logger.warn(
+                        "A scheduled save was still running when the saver " +
+                                "closed; the final save may miss its changes."
+                );
+            }
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn(
+                    "Interrupted waiting for a scheduled save to finish; " +
+                            "the final save may miss its changes.",
+                    e
+            );
+        }
     }
 
     /**
@@ -284,6 +327,16 @@ public abstract class AbstractAutoCloseableLayoutSaver
         if (!closed.compareAndSet(false, true)) {
             return;
         }
+
+        // Stop the timer first, and wait for a scheduled save already under way.
+        // Such a save has already cleared the "changed" flag; stopping it
+        // interrupts it, its failure puts the flag back, and only then is the
+        // flag a true answer to whether the final save below has work to do.
+        final ScheduledExecutorService stoppedScheduler;
+        synchronized (autoSaveLock) {
+            stoppedScheduler = disableAutoSaveInternal();
+        }
+        awaitScheduledSave(stoppedScheduler);
 
         try {
             // Deliberately not gated on isAutoSaveEnabled. Saving on close and
@@ -333,26 +386,31 @@ public abstract class AbstractAutoCloseableLayoutSaver
      * budget can apply while the application is exiting.
      */
     private void autoSave(final boolean isShuttingDown) {
+        if (!wasDockEventReceived.getAndSet(false)) {
+            logger.debug(
+                    "No dock events have been received; " +
+                            "will not attempt to save layout."
+            );
+            return;
+        }
+
+        logger.debug(
+                "Dock events have been received; " +
+                        "attempting to save layout."
+        );
+
         try {
-            if (wasDockEventReceived.getAndSet(false)) {
-                logger.debug(
-                        "Dock events have been received; " +
-                                "attempting to save layout."
-                );
-
-                if (isShuttingDown) {
-                    saveLayoutForShutdown();
-                } else {
-                    saveLayout();
-                }
+            if (isShuttingDown) {
+                saveLayoutForShutdown();
             } else {
-                logger.debug(
-                        "No dock events have been received; " +
-                                "will not attempt to save layout."
-                );
+                saveLayout();
             }
-
         } catch (final BentoStateException | RuntimeException e) {
+            // The change was not saved, so it is still pending: the next
+            // scheduled save, or close(), has to try again. Leaving the flag
+            // cleared would treat an unsaved layout as saved.
+            wasDockEventReceived.set(true);
+
             logger.error(
                     "Could not auto-save docking layout",
                     e

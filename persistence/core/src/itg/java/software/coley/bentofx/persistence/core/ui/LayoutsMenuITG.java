@@ -1003,6 +1003,48 @@ class LayoutsMenuITG {
     }
 
     /**
+     * Saving changes writes the active layout's name, so a rename of the active
+     * layout has to reach what the next save writes, or the save undoes it.
+     */
+    @Test
+    void savingChangesAfterRenamingTheActiveLayoutKeepsTheNewName() {
+        makeActiveLayout();
+
+        fireMenuAction(
+                renameMenu().getItems().getFirst(),
+                typeAndDismiss("Renamed Layout", ButtonType.OK)
+        );
+        repopulate();
+        fireMenuAction(saveChangesItem());
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved by Save changes after a rename")
+                .singleElement()
+                .extracting(LayoutPersistenceProfile::displayName)
+                .isEqualTo("Renamed Layout");
+    }
+
+    /**
+     * Deleting a group takes its layouts out of it. Saving changes to one of them
+     * afterwards must not put it back in the group, which would also bring the
+     * deleted group back.
+     */
+    @Test
+    void savingChangesAfterDeletingTheActiveLayoutsGroupKeepsItOutOfTheGroup() {
+        makeActiveGroupedLayout();
+
+        fireMenuAction(deleteGroupMenu().getItems().getFirst(), dismiss(ButtonType.YES));
+        repopulate();
+        fireMenuAction(saveChangesItem());
+
+        assertThat(persistenceProvider.savedProfiles)
+                .describedAs("layouts saved by Save changes after deleting their group")
+                .singleElement()
+                .extracting(LayoutPersistenceProfile::group)
+                .isNull();
+    }
+
+    /**
      * Renaming used to be offered only for the layout on screen. It is now
      * offered for any stored layout, which is the same capability group rename
      * needs.

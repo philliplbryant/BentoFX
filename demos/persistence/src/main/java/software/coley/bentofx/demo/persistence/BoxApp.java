@@ -49,7 +49,6 @@ import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestora
 import software.coley.bentofx.persistence.core.api.provider.StageIconImageProvider;
 import software.coley.bentofx.persistence.core.api.state.DockableState;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -70,19 +69,6 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 			LoggerFactory.getLogger(BoxApp.class);
 
 	private final Bento bento = new Bento("box-app-bento");
-
-	/**
-	 * The root branches of the layout this demo builds for itself, which is what
-	 * {@link #getDefaultDockingLayout()} hands to the restorer for when there is
-	 * nothing to restore.
-	 *
-	 * <p>Not the input to a save. A capture reads the root branches each
-	 * {@link Bento} knows about, which are the ones that have a {@link Scene}, so
-	 * after a layout is restored and applied the branch in here is not the branch
-	 * that gets persisted.</p>
-	 */
-	private final List<DockContainerRootBranch> defaultRootBranches =
-			new ArrayList<>();
 
 	private final DockingLayoutPersistenceProvider persistenceProvider =
 			DockingLayoutPersistence.provider();
@@ -129,6 +115,55 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		bento.stageBuilding().setApplyMousePosition(true);
 		bento.stageBuilding().setApplySourceAsOwner(false);
 
+		stage.setTitle("BentoFX Persistence Demo");
+		stage.getIcons().addAll(
+				stageIconImageProvider.getStageIcons()
+		);
+		stage.centerOnScreen();
+
+		// We need to save the docking layout on close request because the stage
+		// is (and all other windows are) no longer available after they are
+		// closed and will not be discoverable when saving the docking layout.
+		stage.setOnCloseRequest(this::saveDockingLayout);
+		stage.setOnHidden(e -> System.exit(0));
+
+		// A Scene is created and additional Stage properties are set when
+		// applying the docking layout.
+		DockingLayout dockingLayout = getDockingLayout(
+				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER),
+				this::getDefaultDockingLayout
+		);
+
+		if (!applyDockingLayout(dockingLayout)) {
+			// Nothing was applied, so the stage has no Scene and was never
+			// shown. Fall back to the default layout to keep the application
+			// usable; continuing without a saved layout would leave the
+			// application process running with no window.
+			discardDockingLayout(dockingLayout);
+
+			logger.warn(
+					"Could not apply the restored docking layout; " +
+							"applying the default docking layout instead."
+			);
+
+			if (!applyDockingLayout(getDefaultDockingLayout())) {
+				logger.error("Could not apply the default docking layout.");
+			}
+		}
+
+		// Built last: a capture only sees root branches that have a Scene, and
+		// auto-save starts as soon as the saver exists.
+		layoutSaver = createLayoutSaver();
+	}
+
+	/**
+	 * {@return a new root branch holding the layout this demo builds for
+	 * itself.}
+	 *
+	 * <p>Built afresh on each call, so {@link #getDefaultDockingLayout()} never
+	 * hands back a branch that has been shown and rearranged since.</p>
+	 */
+	private DockContainerRootBranch buildDefaultRootBranch() {
 		final DockBuilding builder = bento.dockBuilding();
 		final DockContainerRootBranch branchRoot = builder.root("root");
 		final DockContainerBranch branchWorkspace = builder.branch("workspace");
@@ -197,47 +232,7 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		addDockable(CLASS_4, dockableStateProvider, leafWorkspaceHeaders);
 		addDockable(CLASS_5, dockableStateProvider, leafWorkspaceHeaders);
 
-		defaultRootBranches.add(branchRoot);
-
-		stage.setTitle("BentoFX Persistence Demo");
-		stage.getIcons().addAll(
-				stageIconImageProvider.getStageIcons()
-		);
-		stage.centerOnScreen();
-
-		// We need to save the docking layout on close request because the stage
-		// is (and all other windows are) no longer available after they are
-		// closed and will not be discoverable when saving the docking layout.
-		stage.setOnCloseRequest(this::saveDockingLayout);
-		stage.setOnHidden(e -> System.exit(0));
-
-		// A Scene is created and additional Stage properties are set when
-		// applying the docking layout.
-		DockingLayout dockingLayout = getDockingLayout(
-				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER),
-				this::getDefaultDockingLayout
-		);
-
-		if (!applyDockingLayout(dockingLayout)) {
-			// Nothing was applied, so the stage has no Scene and was never
-			// shown. Fall back to the default layout to keep the application
-			// usable; continuing without a saved layout would leave the
-			// application process running with no window.
-			discardDockingLayout(dockingLayout);
-
-			logger.warn(
-					"Could not apply the restored docking layout; " +
-							"applying the default docking layout instead."
-			);
-
-			if (!applyDockingLayout(getDefaultDockingLayout())) {
-				logger.error("Could not apply the default docking layout.");
-			}
-		}
-
-		// Built last: a capture only sees root branches that have a Scene, and
-		// auto-save starts as soon as the saver exists.
-		layoutSaver = createLayoutSaver();
+		return branchRoot;
 	}
 
 	/**
@@ -498,7 +493,8 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 	/**
 	 * {@inheritDoc}
 	 *
-	 * <p>Built from {@link #bento} and {@link #defaultRootBranches}.</p>
+	 * <p>Built for {@link #bento} from {@link #buildDefaultRootBranch()}, afresh
+	 * on each call.</p>
 	 */
 	@Override
 	public DockingLayout getDefaultDockingLayout() {
@@ -509,9 +505,7 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		BentoLayoutBuilder bentoLayoutBuilder = new BentoLayoutBuilder(
 				bento.getIdentifier()
 		);
-		for (final DockContainerRootBranch rootBranch : defaultRootBranches) {
-			bentoLayoutBuilder.addRootBranch(rootBranch);
-		}
+		bentoLayoutBuilder.addRootBranch(buildDefaultRootBranch());
 		dockingLayoutBuilder.addBentoLayout(bentoLayoutBuilder.build());
 
 		return dockingLayoutBuilder.build();

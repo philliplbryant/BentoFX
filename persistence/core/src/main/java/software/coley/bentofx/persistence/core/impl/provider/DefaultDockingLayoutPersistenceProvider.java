@@ -1,6 +1,8 @@
 package software.coley.bentofx.persistence.core.impl.provider;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.LayoutRestorer;
@@ -14,6 +16,7 @@ import software.coley.bentofx.persistence.core.impl.AbstractAutoCloseableLayoutS
 import software.coley.bentofx.persistence.core.impl.DockingLayoutRestorer;
 import software.coley.bentofx.persistence.core.impl.DockingLayoutSaver;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,6 +35,9 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
 public class DefaultDockingLayoutPersistenceProvider
         implements DockingLayoutPersistenceProvider,
         PersistedDockingLayoutOrganizationProvider {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(DefaultDockingLayoutPersistenceProvider.class);
 
     private final List<LayoutCodecProvider> layoutCodecProviders;
     private final List<LayoutStorageProvider> layoutStorageProviders;
@@ -218,18 +224,35 @@ public class DefaultDockingLayoutPersistenceProvider
         for (final String layoutIdentifier :
                 layoutStorageProvider.getLayoutIdentifiers(codecIdentifier)) {
 
-            final PersistableLayout storedLayout = readLayout(
-                    layoutStorageProvider,
-                    layoutCodec,
-                    layoutIdentifier
-            );
+            // One layout that cannot be read is listed without its naming
+            // rather than failing the whole listing, which would hide every
+            // other layout - and the broken one a user might want to delete.
+            String displayName = null;
+            String group = null;
+
+            try {
+                final PersistableLayout storedLayout = readLayout(
+                        layoutStorageProvider,
+                        layoutCodec,
+                        layoutIdentifier
+                );
+                displayName = storedLayout.displayName();
+                group = storedLayout.group();
+            } catch (final BentoStateException e) {
+                logger.warn(
+                        "Could not read the stored layout '{}'; listing it " +
+                                "without its name and group.",
+                        layoutIdentifier,
+                        e
+                );
+            }
 
             layouts.add(new LayoutPersistenceProfile(
                     layoutIdentifier,
                     layoutPersistenceProfile.codecIdentifier(),
                     layoutPersistenceProfile.storageIdentifier(),
-                    storedLayout.displayName(),
-                    storedLayout.group()
+                    displayName,
+                    group
             ));
         }
 
@@ -287,6 +310,13 @@ public class DefaultDockingLayoutPersistenceProvider
             final PersistableLayout layout
     ) throws BentoStateException {
 
+        // Encoded in full before storage is opened, as LayoutStateWriter does.
+        // Storage commits what was written when its stream closes, so a codec
+        // failing part way through would otherwise replace the stored layout
+        // with a fragment of the new one.
+        final ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+        layoutCodec.encode(layout, encoded);
+
         try (final LayoutStorage layoutStorage =
                      layoutStorageProvider.getLayoutStorage(
                              layoutIdentifier,
@@ -294,7 +324,7 @@ public class DefaultDockingLayoutPersistenceProvider
                      );
              final OutputStream outputStream = layoutStorage.openOutputStream()) {
 
-            layoutCodec.encode(layout, outputStream);
+            encoded.writeTo(outputStream);
         } catch (final IOException e) {
             throw new BentoStateException(
                     "Could not write the stored layout '"

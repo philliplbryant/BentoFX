@@ -438,8 +438,13 @@ class DefaultDockingLayoutPersistenceProviderTest {
                 .doesNotThrowAnyException();
     }
 
+    /**
+     * A layout whose storage cannot be opened is still listed, without its
+     * naming, rather than failing the listing for every other layout.
+     */
     @Test
-    void getStoredLayoutsWrapsAReadFailureAsBentoStateException() {
+    void getStoredLayoutsListsALayoutItCannotReadWithoutItsNaming()
+            throws BentoStateException {
         final String layoutIdentifier = "unreadable";
         final IOException openFailure = new IOException("could not open");
         final FailingOpenLayoutStorageProvider storageProvider =
@@ -455,17 +460,25 @@ class DefaultDockingLayoutPersistenceProviderTest {
                         List.of(storageProvider)
                 );
 
-        assertThatThrownBy(() -> provider.getStoredLayouts(
+        final List<LayoutPersistenceProfile> listed = provider.getStoredLayouts(
                 new LayoutPersistenceProfile(
                         TEST_LAYOUT_IDENTIFIER,
                         JSON_CODEC_IDENTIFIER,
                         FILE_STORAGE_IDENTIFIER
                 )
-        ))
-                .describedAs("exception thrown by getStoredLayouts when reading a layout's display name fails")
-                .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining(layoutIdentifier)
-                .hasCause(openFailure);
+        );
+
+        assertThat(listed)
+                .describedAs("layouts listed when one cannot be read")
+                .singleElement()
+                .satisfies(layout -> {
+                    assertThat(layout.layoutIdentifier())
+                            .describedAs("unreadable layout's identifier")
+                            .isEqualTo(layoutIdentifier);
+                    assertThat(layout.displayName())
+                            .describedAs("unreadable layout's display name")
+                            .isNull();
+                });
     }
 
     /**

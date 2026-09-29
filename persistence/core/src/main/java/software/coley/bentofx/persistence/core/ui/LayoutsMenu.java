@@ -152,10 +152,12 @@ public class LayoutsMenu extends Menu {
 			final DockingLayoutRestorable dockingLayoutRestorable,
 			final ResourceBundle resourceBundle
 	) {
-		super(resourceBundle.getString(LAYOUTS_MENU_KEY));
+		super(Objects.requireNonNull(resourceBundle, "resourceBundle")
+				.getString(LAYOUTS_MENU_KEY));
 
-		this.dockingLayoutRestorable = dockingLayoutRestorable;
-		this.owner = owner;
+		this.dockingLayoutRestorable =
+				Objects.requireNonNull(dockingLayoutRestorable, "dockingLayoutRestorable");
+		this.owner = Objects.requireNonNull(owner, "owner");
 		this.resourceBundle = resourceBundle;
 		this.activeCustomLayoutProfile = findActiveLayoutProfile();
 
@@ -998,13 +1000,15 @@ public class LayoutsMenu extends Menu {
 				continue;
 			}
 
+			final LayoutPersistenceProfile movedLayout = storedLayout.withNaming(
+					storedLayout.displayName(),
+					newGroupName
+			);
+
 			try {
-				persistenceProvider().updateStoredLayoutNaming(
-						storedLayout.withNaming(
-								storedLayout.displayName(),
-								newGroupName
-						)
-				);
+				if (persistenceProvider().updateStoredLayoutNaming(movedLayout)) {
+					followNamingChange(movedLayout);
+				}
 			} catch (final BentoStateException e) {
 				logger.warn(
 						"Could not move the stored layout '{}' out of the group "
@@ -1071,10 +1075,13 @@ public class LayoutsMenu extends Menu {
 			final @Nullable String displayName,
 			final @Nullable String group
 	) {
+		final LayoutPersistenceProfile renamedLayout =
+				storedLayout.withNaming(displayName, group);
+
 		try {
-			if (!persistenceProvider().updateStoredLayoutNaming(
-					storedLayout.withNaming(displayName, group)
-			)) {
+			if (persistenceProvider().updateStoredLayoutNaming(renamedLayout)) {
+				followNamingChange(renamedLayout);
+			} else {
 				// Deleted from under the menu, which is rebuilt each time it
 				// opens, so the next open shows the truth.
 				showLayoutError(getTextFromResourceBundle(HEADER_NOT_STORED_ERROR_KEY), null);
@@ -1086,6 +1093,22 @@ public class LayoutsMenu extends Menu {
 					e
 			);
 			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
+		}
+	}
+
+	/**
+	 * Keeps {@link #activeCustomLayoutProfile} in step with a naming change just
+	 * written to storage.
+	 *
+	 * <p>Saving changes writes the active profile's display name and group, so a
+	 * profile left holding the old naming would undo the change on the next save
+	 * - and, for a deleted group, bring the group back.</p>
+	 *
+	 * @param renamedLayout the layout as it is now named in storage.
+	 */
+	private void followNamingChange(final LayoutPersistenceProfile renamedLayout) {
+		if (isActiveLayout(renamedLayout)) {
+			setActiveCustomLayoutProfile(renamedLayout);
 		}
 	}
 

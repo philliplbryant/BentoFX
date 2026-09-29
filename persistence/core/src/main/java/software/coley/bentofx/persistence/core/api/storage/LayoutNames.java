@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.core.api.storage;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Turns the name a user types for a docking layout into the identifier the
@@ -44,8 +45,10 @@ public final class LayoutNames {
 	 * {@link LayoutIdentifiers#findUserLayoutProblem(String)}.</p>
 	 *
 	 * @param displayName the name the user typed.
+	 * @throws NullPointerException if {@code displayName} is {@code null}.
 	 */
 	public static String toIdentifier(final String displayName) {
+		Objects.requireNonNull(displayName, "displayName");
 
 		// Cut before normalizing rather than after. Normalizing only ever
 		// shortens, so cutting first bounds the identifier without leaving the

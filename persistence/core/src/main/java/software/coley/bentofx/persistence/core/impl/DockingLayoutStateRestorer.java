@@ -19,6 +19,7 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
+import software.coley.bentofx.persistence.core.api.BentoLayout;
 import software.coley.bentofx.persistence.core.api.BentoLayout.BentoLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
@@ -82,6 +83,64 @@ final class DockingLayoutStateRestorer {
     DockingLayout restoreDockingLayout(
             final List<BentoState> bentoStateList
     ) {
+        // A drag/drop stage's root registers with its Bento as soon as the stage
+        // has a scene, long before the rest of the layout is built. If anything
+        // after that throws - an application callback, most likely - those
+        // roots would stay registered, never shown, and be captured by the next
+        // save as extra root branches. So every stage given a scene is recorded
+        // here and taken back out if the restore fails.
+        final List<DragDropStage> stagesWithScenes = new ArrayList<>();
+
+        try {
+            return restoreDockingLayout(bentoStateList, stagesWithScenes);
+        } catch (final RuntimeException e) {
+            stagesWithScenes.forEach(DockingLayoutStateRestorer::unregisterRoot);
+            throw e;
+        }
+    }
+
+    /**
+     * Unregisters every drag/drop stage root in a restored layout from its
+     * {@link Bento}, for a layout that will not be applied after all. Must run on
+     * the JavaFX application thread.
+     *
+     * <p>Only drag/drop stages need this. A restored root branch registers only
+     * once it has a scene, and only drag/drop stages are given one here.</p>
+     *
+     * @param dockingLayout the layout being discarded.
+     */
+    static void discard(final DockingLayout dockingLayout) {
+        for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
+            bentoLayout.getDragDropStages().forEach(DockingLayoutStateRestorer::unregisterRoot);
+        }
+    }
+
+    /**
+     * Unregisters a drag/drop stage's root branch from its {@link Bento}.
+     *
+     * @param dragDropStage the stage whose root branch to unregister.
+     */
+    private static void unregisterRoot(final DragDropStage dragDropStage) {
+        final Scene scene = dragDropStage.getScene();
+
+        if (scene != null
+                && scene.getRoot() instanceof final DockContainerRootBranch rootBranch) {
+            rootBranch.getBento().unregisterRoot(rootBranch);
+        }
+    }
+
+    /**
+     * Does the work of {@link #restoreDockingLayout(List)}.
+     *
+     * @param bentoStateList decoded Bento states.
+     * @param stagesWithScenes receives every drag/drop stage as soon as it has
+     * been given a scene, so a failure can unregister its root.
+     * @return restored docking layout.
+     */
+    private DockingLayout restoreDockingLayout(
+            final List<BentoState> bentoStateList,
+            final List<DragDropStage> stagesWithScenes
+    ) {
         final DockingLayoutBuilder dockingLayoutBuilder =
                 new DockingLayoutBuilder();
 
@@ -137,7 +196,8 @@ final class DockingLayoutStateRestorer {
                 bentoLayoutBuilder.addDragDropStage(
                         restoreDragDropStage(
                                 dockBuilding,
-                                dragDropStageState
+                                dragDropStageState,
+                                stagesWithScenes
                         ),
                         dragDropStageState.isShowing().orElse(true)
                 );
@@ -161,11 +221,13 @@ final class DockingLayoutStateRestorer {
      *                     {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
      * @param stageState   the {@link DragDropStageState} defining the persisted
      *                     layout for the {@link DragDropStage}.
+     * @param stagesWithScenes receives the stage as soon as it has a scene.
      * @return the restored {@link DragDropStage}.
      */
     private DragDropStage restoreDragDropStage(
             final DockBuilding dockBuilding,
-            final DragDropStageState stageState
+            final DragDropStageState stageState,
+            final List<DragDropStage> stagesWithScenes
     ) {
 
         final DragDropStage dragDropStage = new DragDropStage(
@@ -198,6 +260,7 @@ final class DockingLayoutStateRestorer {
                         });
 
         dragDropStage.setScene(new Scene(rootContainer));
+        stagesWithScenes.add(dragDropStage);
 
         // Restore the DragDropStage's icons
         if (stageIconImageProvider != null) {
