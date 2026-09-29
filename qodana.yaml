@@ -1,6 +1,8 @@
 version: "1.0"
 
-linter: jetbrains/qodana-jvm
+# Pinned to match the qodana-action release in .github/workflows/qodana.yml
+# (v2026.2.x); update both together.
+linter: jetbrains/qodana-jvm-community:2026.2
 
 projectJDK: "21"
 
