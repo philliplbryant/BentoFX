@@ -1,5 +1,6 @@
 package software.coley.bentofx.persistence.impl.codec.xml;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
@@ -34,8 +35,12 @@ public final class XmlLayoutCodec implements LayoutCodec {
      * XML.
      */
     public XmlLayoutCodec() {
+        // Unknown elements and attributes are skipped, so a layout written by a
+        // later version that adds an optional one still loads here. A change
+        // older versions cannot read bumps the schema version instead.
         this.mapper = XmlMapper.builder()
                 .enable(SerializationFeature.INDENT_OUTPUT)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .build();
         XmlMapperMixins.mixinsByDto().forEach(mapper::addMixIn);
     }

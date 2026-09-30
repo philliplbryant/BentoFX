@@ -114,33 +114,39 @@ class XmlLayoutCodecTest {
         return OPENING_TAG_PREFIX + elementName + ATTRIBUTE_SEPARATOR;
     }
 
+    /**
+     * A layout written by a later version that added an optional element or
+     * attribute still loads, rather than failing and being replaced by the
+     * default layout.
+     */
     @Test
-    void decodeRejectsAnUnrecognizedProperty() {
+    void decodeIgnoresUnrecognizedElementsAndAttributes() throws Exception {
         final XmlLayoutCodec codec = new XmlLayoutCodec();
+        final List<BentoState> original = createBentoStates();
 
-        final String xml = """
-                <dockingLayout>
-                  <metadata>
-                    <schemaVersion>%d</schemaVersion>
-                  </metadata>
-                  <bentos>
-                    <bento identifier="bento-1">
-                      <unexpected>true</unexpected>
-                    </bento>
-                  </bentos>
-                </dockingLayout>
-                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(PersistableLayout.of(original), out);
 
-        assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(
-                        xml.getBytes(StandardCharsets.UTF_8)))
-                        .bentoStates()
-        )
-                .describedAs("unrecognized XML element reporting")
-                .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining("Failed to decode layout from XML")
-                .cause()
-                .hasMessageContaining("unexpected");
+        final String encoded = out.toString(StandardCharsets.UTF_8);
+        final String withUnknownContent = encoded
+                .replaceFirst(
+                        "<metadata\\b",
+                        "<unexpected><nested>1</nested></unexpected>$0 unexpected=\"true\""
+                );
+
+        assertThat(withUnknownContent)
+                .describedAs("XML with an unrecognized element and attribute added")
+                .contains("<nested>", "unexpected=\"true\"");
+
+        final List<BentoState> restored = codec.decode(
+                new ByteArrayInputStream(
+                        withUnknownContent.getBytes(StandardCharsets.UTF_8))
+        ).bentoStates();
+
+        assertThat(restored)
+                .describedAs("layout restored from XML with unrecognized content")
+                .usingRecursiveComparison()
+                .isEqualTo(original);
     }
 
     @Test

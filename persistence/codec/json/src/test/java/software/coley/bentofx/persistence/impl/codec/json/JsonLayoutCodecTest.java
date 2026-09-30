@@ -234,29 +234,42 @@ class JsonLayoutCodecTest {
                 .isInstanceOf(NullPointerException.class);
     }
 
+    /**
+     * A layout written by a later version that added an optional property still
+     * loads, rather than failing and being replaced by the default layout.
+     */
     @Test
-    void decodeRejectsAnUnrecognizedProperty() {
+    void decodeIgnoresUnrecognizedProperties() throws Exception {
         final JsonLayoutCodec codec = new JsonLayoutCodec();
+        final List<BentoState> original = createBentoStates();
 
-        final String json = """
-                {
-                  "metadata": {
-                    "schemaVersion": %d
-                  },
-                  "bentos": [ { "identifier": "bento-1", "unexpected": true } ]
-                }
-                """.formatted(DockingLayoutDto.getCurrentSchemaVersion());
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        codec.encode(PersistableLayout.of(original), out);
 
-        assertThatThrownBy(() ->
-                codec.decode(new ByteArrayInputStream(
-                        json.getBytes(StandardCharsets.UTF_8)))
-                        .bentoStates()
-        )
-                .describedAs("unrecognized JSON property reporting")
-                .isInstanceOf(BentoStateException.class)
-                .hasMessageContaining("Failed to decode layout from JSON")
-                .cause()
-                .hasMessageContaining("unexpected");
+        final String encoded = out.toString(StandardCharsets.UTF_8);
+        final String withUnknownProperties = encoded
+                .replaceFirst(
+                        "\"metadata\"\\s*:",
+                        "\"unexpected\" : { \"nested\" : [ 1, 2 ] }, $0"
+                )
+                .replaceFirst(
+                        "\"metadata\"\\s*:\\s*\\{",
+                        "$0 \"unexpected\" : true,"
+                );
+
+        assertThat(withUnknownProperties)
+                .describedAs("JSON with unrecognized properties added")
+                .contains("\"nested\"", "\"unexpected\" : true");
+
+        final List<BentoState> restored = codec.decode(
+                new ByteArrayInputStream(
+                        withUnknownProperties.getBytes(StandardCharsets.UTF_8))
+        ).bentoStates();
+
+        assertThat(restored)
+                .describedAs("layout restored from JSON with unrecognized properties")
+                .usingRecursiveComparison()
+                .isEqualTo(original);
     }
 
     @Test

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static software.coley.bentofx.persistence.impl.codec.json.mixins.ObjectMapperMixins.mixinsByDto;
 
@@ -33,7 +34,12 @@ public final class JsonLayoutCodec implements LayoutCodec {
      * writing JSON.
      */
     public JsonLayoutCodec() {
-        this.mapper = new ObjectMapper().enable(INDENT_OUTPUT);
+        // Unknown properties are skipped, so a layout written by a later version
+        // that adds an optional property still loads here. A change older
+        // versions cannot read bumps the schema version instead.
+        this.mapper = new ObjectMapper()
+                .enable(INDENT_OUTPUT)
+                .disable(FAIL_ON_UNKNOWN_PROPERTIES);
         mixinsByDto().forEach(mapper::addMixIn);
     }
 
