@@ -329,18 +329,23 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 *
 	 * @return {@link #isCollapsed()} after toggling.
 	 */
-    @SuppressWarnings("NullAway") // FIXME: Parent may be null
 	public boolean toggleCollapse(@Nullable Dockable selectedDockable) {
+		DockContainerBranch currentParent = parent;
+
+		// No parent means there is nothing to collapse this leaf against.
+		if (currentParent == null)
+			return isCollapsed();
+
 		boolean result;
 		if (isCollapsed()) {
-            parent.setContainerCollapsed(this, false);
+			currentParent.setContainerCollapsed(this, false);
 			result = isCollapsed();
 
 			// If we were collapsed, and no longer are, select the given dockable.
 			if (!result)
 				selectDockable(selectedDockable);
 		} else {
-            parent.setContainerCollapsed(this, true);
+			currentParent.setContainerCollapsed(this, true);
 			result = isCollapsed();
 
 			// If we were uncollapsed but now are collapsed, clear the selected dockable.
@@ -410,34 +415,6 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 			case LEFT, RIGHT -> uncollapsedWidth.get();
 			case null -> throw new IllegalStateException("Container with null side should not be collapsed");
 		};
-	}
-
-	/**
-	 * Sets the size this container will occupy when it is uncollapsed. The public
-	 * counterpart to {@link #getUncollapsedSize()}, intended for restoring a size
-	 * that was recorded earlier - for instance by a layout persistence layer
-	 * re-applying a saved layout.
-	 * <p>
-	 * While this container is uncollapsed the tracking properties are bound to its
-	 * live width and height, so a value set here would be overwritten immediately
-	 * and is ignored. Call this only while {@link #isCollapsed()} is {@code true},
-	 * which is when the tracking properties are unbound and the value is the one
-	 * that will be restored on expansion.
-	 *
-	 * @param size
-	 * 		Size to occupy once uncollapsed.
-	 *
-	 * @return {@code true} when the size was applied, {@code false} when it was
-	 * ignored because this container is not collapsed.
-	 *
-	 * @see #getUncollapsedSize()
-	 */
-	public boolean setUncollapsedSize(double size) {
-		if (uncollapsedWidth.isBound() || uncollapsedHeight.isBound())
-			return false;
-
-		updateCollapsedSize(size);
-		return true;
 	}
 
 	/**
@@ -566,6 +543,34 @@ public non-sealed class DockContainerLeaf extends StackPane implements DockConta
 	 */
 	public void setCanSplit(boolean canSplit) {
 		canSplitProperty().set(canSplit);
+	}
+
+	/**
+	 * Sets the size this container will occupy when it is uncollapsed. The public
+	 * counterpart to {@link #getUncollapsedSize()}, intended for restoring a size
+	 * that was recorded earlier - for instance by a layout persistence layer
+	 * re-applying a saved layout.
+	 * <p>
+	 * While this container is uncollapsed the tracking properties are bound to its
+	 * live width and height, so a value set here would be overwritten immediately
+	 * and is ignored. Call this only while {@link #isCollapsed()} is {@code true},
+	 * which is when the tracking properties are unbound and the value is the one
+	 * that will be restored on expansion.
+	 *
+	 * @param size
+	 * 		Size to occupy once uncollapsed.
+	 *
+	 * @return {@code true} when the size was applied, {@code false} when it was
+	 * ignored because this container is not collapsed.
+	 *
+	 * @see #getUncollapsedSize()
+	 */
+	public boolean setUncollapsedSize(double size) {
+		if (uncollapsedWidth.isBound() || uncollapsedHeight.isBound())
+			return false;
+
+		updateCollapsedSize(size);
+		return true;
 	}
 
 	@Override

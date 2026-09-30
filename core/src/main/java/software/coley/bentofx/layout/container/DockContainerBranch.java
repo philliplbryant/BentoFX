@@ -122,7 +122,7 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 		if (childContainers.contains(container))
 			return false;
 
-		childContainers.add(container);
+		childContainers.add(index, container);
 
 		container.setParentContainer(this);
 		getItems().add(index, container.asRegion());
@@ -177,8 +177,8 @@ public non-sealed class DockContainerBranch extends SplitPane implements DockCon
 			if (doPruneWhenEmpty()) {
 				if (childContainers.isEmpty()) {
 					removeFromParent();
-				} else if (childContainers.size() == 1 && parent instanceof DockContainerBranch parentBranch) {
-					parentBranch.replaceContainer(this, childContainers.getFirst());
+				} else if (childContainers.size() == 1 && parent != null) {
+					parent.replaceContainer(this, childContainers.getFirst());
 				}
 			}
 

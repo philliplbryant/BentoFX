@@ -14,7 +14,7 @@ javafx {
 
     // We don't want to include a specific version of JavaFX as a transitive
     // dependency for users of the library.
-    configurations = ['compileOnlyApi', 'testRuntimeOnly']
+    configurations = ['compileOnlyApi', 'testImplementation']
 }
 
 javadoc {
@@ -30,6 +30,22 @@ tasks.withType(JavaCompile).configureEach {
     options.errorprone.check('ReferenceEquality', OFF)
     options.errorprone.check('StringSplitter', OFF)
     options.errorprone.check('UnnecessaryParentheses', OFF)
+}
+
+// Col-E's core unit tests use TestFX.
+dependencies {
+    testImplementation libs.testfx
+    testImplementation libs.testfx.core
+    testRuntimeOnly libs.testfx.monocle
+}
+
+// Run JavaFX tests headless so they work on CI runners without a display.
+test {
+    systemProperty 'testfx.robot', 'glass'
+    systemProperty 'testfx.headless', 'true'
+    systemProperty 'glass.platform', 'Monocle'
+    systemProperty 'monocle.platform', 'Headless'
+    systemProperty 'prism.order', 'sw'
 }
 
 buildConfig {

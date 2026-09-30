@@ -113,6 +113,9 @@ public class HeaderPane extends BorderPane {
 			}
 		});
 		container.getDockables().addListener((ListChangeListener<Dockable>) c -> {
+			if (headers == null) {
+				return;
+			}
 			ObservableList<Node> headerList = headers.getChildren();
 			while (c.next()) {
 				if (c.wasPermutated()) {
@@ -373,7 +376,10 @@ public class HeaderPane extends BorderPane {
 			button.setContextMenu(menu);
 		});
 		button.setOnMouseClicked(e -> button.getContextMenu().show(button, e.getScreenX(), e.getScreenY()));
-        button.visibleProperty().bind(headers.overflowingProperty());
+		if (headers == null)
+			button.setVisible(false);
+		else
+			button.visibleProperty().bind(headers.overflowingProperty());
 		button.managedProperty().bind(button.visibleProperty());
 		return button;
 	}
@@ -410,7 +416,7 @@ public class HeaderPane extends BorderPane {
 	 */
 	@Nullable
 	public Header getHeader(@Nullable Dockable dockable) {
-		if (dockable == null)
+		if (dockable == null || headers == null)
 			return null;
 		for (Node child : headers.getChildren())
 			if (child instanceof Header header && header.getDockable() == dockable)
