@@ -22,6 +22,8 @@ version = versionCatalog.findVersion("bentofx").get().requiredVersion
 // so JReleaser needs a separate stagingRepository entry per module,
 // resolved relative to the root project.
 def publishedModuleStagingRepositories = [
+        // The BOM consumers resolve to align BentoFX versions. It is a released
+        // artifact like any other, so it stages and deploys alongside them.
         'platform/build/staging-deploy',
         'core/build/staging-deploy',
         'persistence/core/build/staging-deploy',

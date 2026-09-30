@@ -19,6 +19,8 @@ javafx {
 
 javadoc {
     options {
+        // Only the public API exposed in module-info.java; configure Javadoc
+        // to match it.
         showFromPublic()
         addBooleanOption('Xdoclint:all,-missing', true)
     }
