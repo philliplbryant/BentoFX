@@ -28,9 +28,6 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
@@ -44,3 +41,7 @@ build/
 ### Local-only working notes ###
 # Scratch notes, reviews and drafts that are not part of the published project.
 .ignored/
+
+### SonarQube ###
+# Scanner working directory, written by a local 'sonar-scanner' run.
+.scannerwork/

@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Sonar needs master to diff PRs against, and history for blame
       - name: Setup JDK
         uses: actions/setup-java@v6
         with:
@@ -48,17 +50,36 @@ jobs:
       - name: Write coverage summary
         if: always()
         run: python3 .github/scripts/coverage-summary.py
+      # ':sonarClasspath' writes one list per module during the build. The
+      # scanner takes them as a single property, so they are joined here.
+      - name: Collect the Sonar Java classpath
+        if: github.repository == 'philliplbryant/BentoFX'
+        run: |
+          join() {
+            find . -path "*/build/sonar/$1" -exec cat {} \; -exec echo \; \
+              | grep -v '^$' | paste -sd, -
+          }
+          {
+            echo "SONAR_JAVA_LIBRARIES=$(join libraries.txt)"
+            echo "SONAR_JAVA_TEST_LIBRARIES=$(join test-libraries.txt)"
+          } >> "$GITHUB_ENV"
       # Runs after the build so the aggregated coverage reports it reads already
-      # exist. Source classification and report paths live in
-      # 'sonar-project.properties'.
+      # exist. Source and test classification, coverage report paths, and the
+      # module exclusions all live in 'sonar-project.properties'.
       - name: SonarQube Scan
         if: github.repository == 'philliplbryant/BentoFX'
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        with:
+          args: >-
+            -Dsonar.java.libraries=${{ env.SONAR_JAVA_LIBRARIES }}
+            -Dsonar.java.test.libraries=${{ env.SONAR_JAVA_TEST_LIBRARIES }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      # The scan submits and returns without results, so it gates nothing on its
-      # own; this polls. 'continue-on-error' makes a slow or unreachable server a
-      # warning - the next step fails the build, and only on an explicit FAILED.
+      # The scan above submits the analysis and returns without waiting for
+      # results from the server, so on its own it gates nothing. This polls for
+      # those results. 'continue-on-error' is what turns a slow or unreachable
+      # server into a warning instead of a failed build: the step below is what
+      # fails the build, and only on an explicit FAILED.
       - name: Wait for the SonarQube quality gate
         id: sonar-gate
         if: github.repository == 'philliplbryant/BentoFX'
@@ -89,14 +110,16 @@ jobs:
               echo "::warning::No SonarQube quality gate verdict within the polling timeout. Not failing the build."
               ;;
           esac
-      # Not guarded by repository the way the SonarQube step above is: coverage
-      # reporting should run wherever this workflow runs. Requires CODECOV_TOKEN,
-      # and 'fail_ci_if_error' is deliberate - silent coverage loss is worse.
+      # Guarded by repository the way the SonarQube steps above are: only this
+      # repository is registered with Codecov, and 'fail_ci_if_error' is
+      # deliberate - silent coverage loss is worse - so an unregistered fork
+      # without CODECOV_TOKEN would fail the build on every run.
       #
       # 'files' has to stay on one line. The action splits it on commas without
       # trimming, so a block scalar leaves a newline glued to every path after
       # the first and only the first report uploads.
       - name: Upload coverage to Codecov
+        if: github.repository == 'philliplbryant/BentoFX'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           disable_search: true
@@ -222,12 +245,18 @@ jobs:
             build/jreleaser/trace.log
             build/jreleaser/output.properties
 
-  # Without this the dependency graph holds only Actions, so Dependabot alerts
-  # cover no Gradle dependency. This submits the resolved graph, transitives
-  # included. Default branch only: the graph is per repository and derived from
-  # that branch, so other branches would overwrite it. Separate job because it
-  # needs 'contents: write'. Gated by repository too, so it only ever submits
-  # this repository's graph.
+  # Without this, GitHub's dependency graph for the repository contains only the
+  # Actions used by these workflows - no Gradle dependency appears in it, so
+  # Dependabot alerts cover none of them. This resolves the build and submits the
+  # full graph, transitive dependencies included.
+  #
+  # Runs on the default branch only, because the dependency graph is per
+  # repository and derived from that branch. Submitting from every feature branch
+  # would keep overwriting it. It needs 'contents: write', which is why this is a
+  # separate job rather than a step in 'test'.
+  #
+  # Gated by repository as well, the way the SonarQube and Codecov steps are, so
+  # it only ever submits this repository's graph.
   dependency-submission:
     name: Submit dependency graph
     if: github.repository == 'philliplbryant/BentoFX' && github.ref == 'refs/heads/master'

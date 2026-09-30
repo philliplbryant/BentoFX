@@ -8,6 +8,7 @@ plugins {
     id 'java-library'
     id 'com.autonomousapps.dependency-analysis'
     id 'bento.analysis.jspecify'
+    id 'bento.analysis.sonar-classpath'
     id 'bento.project.build-lifecycle'
     id 'bento.test.unit-test-suite'
 }
