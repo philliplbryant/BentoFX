@@ -2,11 +2,13 @@ package software.coley.gradle.artifacts
 
 import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.internal.os.OperatingSystem
 
 /**
  * Normalizes JavaFX-adjacent dependency metadata
  */
+@SuppressWarnings("unused") // Used in bento.project.project-convention.gradle
 abstract class JavaFxDependencyMetadataRule implements ComponentMetadataRule {
     private static final String OPENJFX_GROUP = 'org.openjfx'
     private static final String OPENJFX_ARTIFACT_PREFIX = 'javafx-'
@@ -21,15 +23,15 @@ abstract class JavaFxDependencyMetadataRule implements ComponentMetadataRule {
         selectOpenJfxPlatformArtifact(context)
     }
 
-    protected void alignTestFxModules(final ComponentMetadataContext context) {
-        final def id = context.details.id
+    protected static void alignTestFxModules(final ComponentMetadataContext context) {
+        final ModuleVersionIdentifier id = context.details.id
         if (id.group == TESTFX_GROUP && id.name != TESTFX_MONOCLE_ARTIFACT) {
             context.details.belongsTo("${TESTFX_VIRTUAL_BOM_GROUP}:${TESTFX_VIRTUAL_BOM_ARTIFACT}:${id.version}")
         }
     }
 
     protected void selectOpenJfxPlatformArtifact(final ComponentMetadataContext context) {
-        final def id = context.details.id
+        final ModuleVersionIdentifier id = context.details.id
         if (id.group != OPENJFX_GROUP || !id.name.startsWith(OPENJFX_ARTIFACT_PREFIX)) {
             return
         }
@@ -52,7 +54,7 @@ abstract class JavaFxDependencyMetadataRule implements ComponentMetadataRule {
         }
     }
 
-    protected String currentPlatformClassifier() {
+    protected static String currentPlatformClassifier() {
         final OperatingSystem operatingSystem = OperatingSystem.current()
         if (operatingSystem.isWindows()) {
             return 'win'
