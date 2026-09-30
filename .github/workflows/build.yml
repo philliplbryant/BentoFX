@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Sonar needs master to diff PRs against, and history for blame
       - name: Setup JDK
         uses: actions/setup-java@v6
         with:
