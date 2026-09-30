@@ -54,9 +54,10 @@ class DatabaseLayoutStorageProviderTest {
 
         try {
             LayoutStorageLocations.configureHome(Path.of("layouts;INIT=nothing"));
+            final DatabaseLayoutStorageProvider provider =
+                    new DatabaseLayoutStorageProvider();
 
-            assertThatThrownBy(() -> new DatabaseLayoutStorageProvider()
-                    .getLayoutStorage("layout", CODEC_IDENTIFIER))
+            assertThatThrownBy(() -> provider.getLayoutStorage("layout", CODEC_IDENTIFIER))
                     .describedAs("home directory containing ';'")
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining(";");

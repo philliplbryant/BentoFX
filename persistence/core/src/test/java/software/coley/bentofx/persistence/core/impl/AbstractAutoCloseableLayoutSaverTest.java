@@ -68,6 +68,7 @@ class AbstractAutoCloseableLayoutSaverTest {
     @Test
     void closingDuringAScheduledSaveStillSavesOnExit() throws InterruptedException {
         final CountDownLatch scheduledSaveStarted = new CountDownLatch(1);
+        final CountDownLatch neverReleased = new CountDownLatch(1);
         final AtomicBoolean savedOnExit = new AtomicBoolean();
 
         final AbstractAutoCloseableLayoutSaver saver =
@@ -77,7 +78,7 @@ class AbstractAutoCloseableLayoutSaverTest {
                         scheduledSaveStarted.countDown();
                         try {
                             // Stands in for waiting on a busy JavaFX thread.
-                            Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+                            neverReleased.await(1, TimeUnit.MINUTES);
                         } catch (final InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new BentoStateException("interrupted", e);

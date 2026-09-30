@@ -769,14 +769,10 @@ final class DockingLayoutStateRestorer {
     private static Collection<DockContainerLeafState> getLeafStates(
             final DockContainerBranchState branchState
     ) {
-        List<DockContainerLeafState> leafStates = new ArrayList<>();
-        for (final DockContainerState childState :
-                branchState.getChildDockContainerStates()) {
-            if (childState instanceof final DockContainerLeafState leafState) {
-                leafStates.add(leafState);
-            }
-        }
-        return List.copyOf(leafStates);
+        return branchState.getChildDockContainerStates().stream()
+                .filter(DockContainerLeafState.class::isInstance)
+                .map(DockContainerLeafState.class::cast)
+                .toList();
     }
 
     /**

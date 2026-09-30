@@ -354,6 +354,10 @@ public final class BentoStateMapper {
 	 * @throws BentoStateException when the layout declares no schema version, or
 	 * declares one this framework cannot restore.
 	 */
+    // The for loop calls fromDto(BentoStateDto), which throws the checked
+    // BentoStateException. A stream would have to wrap it in an unchecked
+    // exception and unwrap it again, which is harder to follow than the loop.
+    @SuppressWarnings("java:S9391")
 	public static PersistableLayout fromDto(
 			final DockingLayoutDto dockingLayoutDto
 	) throws BentoStateException {
