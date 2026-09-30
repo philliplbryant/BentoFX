@@ -21,14 +21,17 @@ version = versionCatalog.findVersion("bentofx").get().requiredVersion
 // across independent Gradle tasks breaks up-to-date/stale-output tracking,
 // so JReleaser needs a separate stagingRepository entry per module,
 // resolved relative to the root project.
-// TODO BENTO-13: Add the persistence modules' staging-deploy paths back when
-//  those modules are added. Omitted here because JReleaser would stage
-//  directories that are never created.
 def publishedModuleStagingRepositories = [
         // The BOM consumers resolve to align BentoFX versions. It is a released
         // artifact like any other, so it stages and deploys alongside them.
         'platform/build/staging-deploy',
         'core/build/staging-deploy',
+        'persistence/core/build/staging-deploy',
+        'persistence/codec/common/build/staging-deploy',
+        'persistence/codec/json/build/staging-deploy',
+        'persistence/codec/xml/build/staging-deploy',
+        'persistence/storage/db/h2/build/staging-deploy',
+        'persistence/storage/file/build/staging-deploy',
 ]
 
 def checkAllTask = tasks.register('checkAll') {
