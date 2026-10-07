@@ -2,9 +2,13 @@
 
 [&larr; Back to the BentoFX README](../../README.md)
 
+## Overview   
+
 The [persistence](../../persistence) modules, herein referred to as the "persistence framework", or just "framework", supplements docking by saving and restoring BentoFX docking layouts across application executions. The framework saves the structure of the docking layout, selected dockables, divider positions, collapsed containers, and drag/drop stages. The framework does **not** serialize non-docking components such as JavaFX `Node`, `Stage`, and `Menu` nor does it serialize application-domain objects.
 
-Because a saved layout records only structure, restoring a layout requires turning a saved identifier back into a live object, which is what **providers** do. Providers are small interfaces the application implements so the framework can ask for the content it cannot serialize. A saved layout says "a dockable called `terminal` was open here"; the provider is what provides the actual terminal that goes there. The framework defines eight providers, most with one or more default implementations available. [Provider Interfaces](providers.md) describes them all.
+Because a saved layout records only structure, restoring a layout requires turning a saved identifier back into a live object, which is what **providers** do. Providers are small interfaces the application implements so the framework can ask for the content it cannot serialize. A saved layout says "a dockable called `terminal` was open here"; the provider is what provides the actual `terminal` that goes there. The framework defines eight providers, most with one or more default implementations available. [Provider Interfaces](providers.md) describes them all.
+
+> <span style="font-size: 1.5em;">💡</span>  `DockableStateProvider` is the only required provider interface for which the framework does not include a default implementation.
 
 Application developers control the serialized format and storage destination by adding runtime dependencies for `LayoutCodecProvider` and `LayoutStorageProvider` implementations. In the common case, changing from one codec or storage implementation to another only requires changing runtime dependencies, not application code.
 
@@ -14,6 +18,7 @@ To further support persisting docking layouts, the framework also offers a ready
 
 ## Table of Contents
 
+- [Overview](#overview)
 - [Usage](#persistence-usage)
   - [Gradle (Groovy DSL)](#persistence-gradle-groovy-dsl)
   - [Gradle (Kotlin DSL)](#persistence-gradle-kotlin-dsl)

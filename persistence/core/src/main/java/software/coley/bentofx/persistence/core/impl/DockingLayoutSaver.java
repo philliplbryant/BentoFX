@@ -27,7 +27,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 	private static final Logger logger =
 			LoggerFactory.getLogger(DockingLayoutSaver.class);
 
-	private final BentoLayoutStateCaptor bentoLayoutStateCaptor;
+	private final DefaultBentoStateCapturer bentoLayoutStateCaptor;
 	private final LayoutStateWriter layoutStateWriter;
 
 	/**
@@ -104,7 +104,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 	) {
 		this(
 				bentoProvider,
-				new BentoLayoutStateCaptor(bentoProvider),
+				new DefaultBentoStateCapturer(bentoProvider),
 				new LayoutStateWriter(
 						displayName,
 						group,
@@ -116,7 +116,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 
 	DockingLayoutSaver(
 			final BentoProvider bentoProvider,
-			final BentoLayoutStateCaptor bentoLayoutStateCaptor,
+			final DefaultBentoStateCapturer bentoLayoutStateCaptor,
 			final LayoutStateWriter layoutStateWriter
 	) {
 		super(bentoProvider);
@@ -155,7 +155,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 			throws BentoStateException {
 		final List<BentoState> bentoStateList =
 				PersistenceThreading.callOnFxThread(
-						bentoLayoutStateCaptor::captureBentoStates,
+						bentoLayoutStateCaptor::capture,
 						fxTimeoutMillis
 				);
 

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import software.coley.bentofx.Bento;
+import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
 import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState.DockContainerLeafStateBuilder;
@@ -14,7 +15,6 @@ import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranch
 import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.bentofx.persistence.core.api.state.DockableState.DockableStateBuilder;
 import software.coley.bentofx.persistence.core.api.state.DragDropStageState.DragDropStageStateBuilder;
-import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
@@ -54,7 +54,7 @@ class FailedRestoreRollbackITG {
         final AtomicInteger rootsAfterFailure = new AtomicInteger(-1);
 
         robot.interact(() -> {
-            final DockingLayoutStateRestorer restorer = new DockingLayoutStateRestorer(
+            final DefaultDockingLayoutRebuilder restorer = new DefaultDockingLayoutRebuilder(
                     new DefaultBentoProvider(bento),
                     id -> Optional.of(createDockableState(id)),
                     null,
@@ -67,7 +67,7 @@ class FailedRestoreRollbackITG {
             );
 
             try {
-                restorer.restoreDockingLayout(List.of(createBentoState()));
+                restorer.rebuild(List.of(createBentoState()));
             } catch (final RuntimeException e) {
                 failure.set(e);
             }

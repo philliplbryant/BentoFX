@@ -40,7 +40,7 @@ import static javafx.geometry.Side.LEFT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ApplicationExtension.class)
-class DockingLayoutStateRestorerCollaboratorITG {
+class DefaultDockingLayoutRebuilderCollaboratorITG {
 
     private static final String BENTO_ID = "bento-state-restorer";
     private static final String ROOT_BRANCH_ID = "root-state-restorer";
@@ -112,12 +112,12 @@ class DockingLayoutStateRestorerCollaboratorITG {
                             .build();
 
             dockingLayoutReference.set(
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> Optional.empty(),
                             null,
                             null
-                    ).restoreDockingLayout(List.of(bentoState))
+                    ).rebuild(List.of(bentoState))
             );
         });
 
@@ -164,13 +164,13 @@ class DockingLayoutStateRestorerCollaboratorITG {
                             .build();
 
             bentoLayoutReference.set(
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> Optional.empty(),
                             null,
                             null
                     )
-                            .restoreDockingLayout(List.of(bentoState))
+                            .rebuild(List.of(bentoState))
                             .getBentoLayouts()
                             .getFirst()
             );
@@ -217,14 +217,14 @@ class DockingLayoutStateRestorerCollaboratorITG {
                             .build();
 
             final DockingLayout dockingLayout =
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> Optional.empty(),
                             null,
                             leafIdentifier -> leafIdentifier.equals(LEAF_ID)
                                     ? Optional.of(menuFactory)
                                     : Optional.empty()
-                    ).restoreDockingLayout(List.of(bentoState));
+                    ).rebuild(List.of(bentoState));
 
             final DockContainerRootBranch rootBranch =
                     dockingLayout.getBentoLayouts()
@@ -274,12 +274,12 @@ class DockingLayoutStateRestorerCollaboratorITG {
                             .build();
 
             final DockingLayout dockingLayout =
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> Optional.of(mismatchedDockableState),
                             null,
                             null
-                    ).restoreDockingLayout(List.of(bentoState));
+                    ).rebuild(List.of(bentoState));
 
             final DockContainerRootBranch rootBranch =
                     dockingLayout.getBentoLayouts()
@@ -331,12 +331,12 @@ class DockingLayoutStateRestorerCollaboratorITG {
                             .build();
 
             final DockingLayout dockingLayout =
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> Optional.empty(),
                             null,
                             null
-                    ).restoreDockingLayout(List.of(bentoState));
+                    ).rebuild(List.of(bentoState));
 
             final DockContainerRootBranch rootBranch =
                     dockingLayout.getBentoLayouts()
@@ -389,14 +389,14 @@ class DockingLayoutStateRestorerCollaboratorITG {
             final BentoState bentoState = createNestedBentoState(dockableState);
 
             dockingLayoutReference.set(
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             actualId -> actualId.equals(DOCKABLE_ID)
                                     ? Optional.of(dockableState)
                                     : Optional.empty(),
                             null,
                             null
-                    ).restoreDockingLayout(List.of(bentoState))
+                    ).rebuild(List.of(bentoState))
             );
         });
 

@@ -63,7 +63,7 @@ class DockableStateTest {
 
     @Test
     void capturedDockableStatesCompareByIdentifierAlone() {
-        // What BentoLayoutStateCaptor actually produces: identifier only. Change
+        // What DefaultBentoStateCapturer actually produces: identifier only. Change
         // detection over captured layouts therefore never meets the
         // identity-compared fields.
         assertThat(new DockableStateBuilder("dockable-1").build())

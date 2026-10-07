@@ -23,6 +23,7 @@ import software.coley.bentofx.persistence.core.api.BentoLayout;
 import software.coley.bentofx.persistence.core.api.BentoLayout.BentoLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
+import software.coley.bentofx.persistence.core.api.DockingLayoutRebuilder;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockContainerLeafMenuFactoryProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockableStateProvider;
@@ -48,19 +49,24 @@ import static software.coley.bentofx.persistence.core.impl.StageUtils.getYInScre
 /**
  * Restores decoded Bento layout state into live BentoFX runtime objects.
  *
+ * <p>Default implementation of {@link DockingLayoutRebuilder}. Public so the
+ * interface's static factory method can construct it, but kept in a
+ * non-exported package: callers obtain it through
+ * {@link DockingLayoutRebuilder#create}.</p>
+ *
  * @author Phil Bryant
  */
-final class DockingLayoutStateRestorer {
+public final class DefaultDockingLayoutRebuilder implements DockingLayoutRebuilder {
 
     private static final Logger logger =
-            LoggerFactory.getLogger(DockingLayoutStateRestorer.class);
+            LoggerFactory.getLogger(DefaultDockingLayoutRebuilder.class);
 
     private final BentoProvider bentoProvider;
     private final DockableStateProvider dockableStateProvider;
     private final @Nullable StageIconImageProvider stageIconImageProvider;
     private final @Nullable DockContainerLeafMenuFactoryProvider dockContainerLeafMenuFactoryProvider;
 
-    DockingLayoutStateRestorer(
+    public DefaultDockingLayoutRebuilder(
             final BentoProvider bentoProvider,
             final DockableStateProvider dockableStateProvider,
             final @Nullable StageIconImageProvider stageIconImageProvider,
@@ -73,18 +79,17 @@ final class DockingLayoutStateRestorer {
     }
 
     /**
-     * Restores decoded layout state to JavaFX/BentoFX runtime objects. This
-     * method must run on the JavaFX application thread because it creates and
-     * mutates JavaFX and BentoFX objects.
+     * {@inheritDoc}
      *
-     * @param bentoStateList decoded Bento states.
-     * @return restored docking layout.
+     * <p>This method must run on the JavaFX application thread because it
+     * creates and mutates JavaFX and BentoFX objects.</p>
      */
-    DockingLayout restoreDockingLayout(
+    @Override
+    public DockingLayout rebuild(
             final List<BentoState> bentoStateList
     ) {
-        // A drag/drop stage's root registers with its Bento as soon as the stage
-        // has a scene, long before the rest of the layout is built. If anything
+        // A DragDropStage's root registers with its Bento as soon as the stage
+        // has a scene, before the rest of the layout is built. If anything
         // after that throws - an application callback, most likely - those
         // roots would stay registered, never shown, and be captured by the next
         // save as extra root branches. So every stage given a scene is recorded
@@ -92,17 +97,19 @@ final class DockingLayoutStateRestorer {
         final List<DragDropStage> stagesWithScenes = new ArrayList<>();
 
         try {
-            return restoreDockingLayout(bentoStateList, stagesWithScenes);
+            return rebuild(bentoStateList, stagesWithScenes);
         } catch (final RuntimeException e) {
-            stagesWithScenes.forEach(DockingLayoutStateRestorer::unregisterRoot);
+            stagesWithScenes.forEach(
+                    DefaultDockingLayoutRebuilder::unregisterRoot
+            );
             throw e;
         }
     }
 
     /**
      * Unregisters every drag/drop stage root in a restored layout from its
-     * {@link Bento}, for a layout that will not be applied after all. Must run on
-     * the JavaFX application thread.
+     * {@link Bento}, for a layout that will not be applied after all. Must run
+     * on the JavaFX application thread.
      *
      * <p>Only drag/drop stages need this. A restored root branch registers only
      * once it has a scene, and only drag/drop stages are given one here.</p>
@@ -111,7 +118,9 @@ final class DockingLayoutStateRestorer {
      */
     static void discard(final DockingLayout dockingLayout) {
         for (final BentoLayout bentoLayout : dockingLayout.getBentoLayouts()) {
-            bentoLayout.getDragDropStages().forEach(DockingLayoutStateRestorer::unregisterRoot);
+            bentoLayout.getDragDropStages().forEach(
+                    DefaultDockingLayoutRebuilder::unregisterRoot
+            );
         }
     }
 
@@ -130,14 +139,14 @@ final class DockingLayoutStateRestorer {
     }
 
     /**
-     * Does the work of {@link #restoreDockingLayout(List)}.
+     * Does the work of {@link #rebuild(List)}.
      *
      * @param bentoStateList decoded Bento states.
      * @param stagesWithScenes receives every drag/drop stage as soon as it has
      * been given a scene, so a failure can unregister its root.
      * @return restored docking layout.
      */
-    private DockingLayout restoreDockingLayout(
+    private DockingLayout rebuild(
             final List<BentoState> bentoStateList,
             final List<DragDropStage> stagesWithScenes
     ) {
@@ -218,9 +227,9 @@ final class DockingLayoutStateRestorer {
      * to the {@link DragDropStage}.
      *
      * @param dockBuilding the {@link DockBuilding} to use to create
-     *                     {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
+     * {@link DockContainer}s and {@link Dockable}s in the {@link DragDropStage}.
      * @param stageState   the {@link DragDropStageState} defining the persisted
-     *                     layout for the {@link DragDropStage}.
+     * layout for the {@link DragDropStage}.
      * @param stagesWithScenes receives the stage as soon as it has a scene.
      * @return the restored {@link DragDropStage}.
      */
@@ -234,13 +243,13 @@ final class DockingLayoutStateRestorer {
                 stageState.isAutoClosedWhenEmpty()
         );
 
-        // Every restored stage gets a scene, even when the persisted state held no
-        // root branch. A scene-less Stage is a live hazard rather than a harmless
-        // empty one: the captor dereferences the scene on the next save, and core's
-        // own WINDOW_HIDDEN/WINDOW_SHOWN filters on DragDropStage do the same as
-        // soon as anything shows it - which callers do unconditionally for every
-        // stage in the returned layout. Falling back to an empty root keeps the
-        // stage inert instead.
+        // Every restored stage gets a scene, even when the persisted state held
+        // no root branch. A scene-less Stage is a live hazard rather than a
+        // harmless empty one: the captor dereferences the scene on the next
+        // save, and core's own WINDOW_HIDDEN/WINDOW_SHOWN filters on
+        // DragDropStage do the same as soon as anything shows it - which
+        // callers do unconditionally for every stage in the returned layout.
+        // Falling back to an empty root keeps the stage inert instead.
         final DockContainerRootBranch rootContainer =
                 stageState.getDockContainerRootBranchState()
                         .map(dockContainerRootBranchState ->
@@ -307,12 +316,11 @@ final class DockingLayoutStateRestorer {
      * {@link DockContainerRootBranchState} to the
      * {@link DockContainerRootBranch}.
      *
-     * @param dockBuilding    the {@link DockBuilding} to use to create
-     *                        {@link DockContainer}s and {@link Dockable}s in the
-     *                        {@link DockContainerRootBranch}.
-     * @param rootBranchState the {@link DockContainerRootBranchState}
-     *                        defining the persisted layout for the
-     *                        {@link DockContainerRootBranch}.
+     * @param dockBuilding the {@link DockBuilding} to use to create
+     * {@link DockContainer}s and {@link Dockable}s in the
+     * {@link DockContainerRootBranch}.
+     * @param rootBranchState the {@link DockContainerRootBranchState} defining
+     * the persisted layout for the {@link DockContainerRootBranch}.
      * @return the restored {@link DockContainerRootBranch}.
      */
     private DockContainerRootBranch restoreRootBranchContainer(
@@ -330,11 +338,12 @@ final class DockingLayoutStateRestorer {
                 rootBranch::setOrientation
         );
 
-        // No child-dockable pass here: a root branch holds dockables only through
-        // its descendant leaves, which restoreChildDockContainers walks. The call
-        // that used to sit here could never have done anything anyway - it ran
-        // before any child container existed, and DockContainerBranch.addDockable
-        // returns false when there is no child to accept the dockable.
+        // No child-dockable pass here: a root branch holds dockables only
+        // through its descendant leaves, which restoreChildDockContainers
+        // walks. The call that used to sit here could never have done anything
+        // anyway - it ran before any child container existed, and
+        // DockContainerBranch.addDockable returns false when there is no child
+        // to accept the dockable.
         restoreChildDockContainers(dockBuilding, rootBranchState, rootBranch);
         applyDividerPositions(
                 rootBranchState.getDividerPositions().entrySet(),

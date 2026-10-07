@@ -111,12 +111,12 @@ class LeafResizableWithParentRoundTripITG {
         robot.interact(() -> {
             final List<BentoState> bentoStates = captureBentoStates();
 
-            final DockingLayout restoredLayout = new DockingLayoutStateRestorer(
+            final DockingLayout restoredLayout = new DefaultDockingLayoutRebuilder(
                     new DefaultBentoProvider(new Bento(BENTO_ID + "-restored")),
                     LeafResizableWithParentRoundTripITG::dockableStateFor,
                     null,
                     null
-            ).restoreDockingLayout(bentoStates);
+            ).rebuild(bentoStates);
 
             final DockContainerRootBranch restoredRoot = restoredLayout
                     .getBentoLayouts()
@@ -215,8 +215,8 @@ class LeafResizableWithParentRoundTripITG {
             final DefaultBentoProvider bentoProvider =
                     new DefaultBentoProvider(bento);
 
-            return new BentoLayoutStateCaptor(bentoProvider)
-                    .captureBentoStates();
+            return new DefaultBentoStateCapturer(bentoProvider)
+                    .capture();
         } finally {
             captureStage.close();
         }

@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 @ExtendWith(ApplicationExtension.class)
-class BentoLayoutStateCaptorITG {
+class DefaultBentoStateCapturerITG {
 
     private static final String BENTO_ID = "bento-state-captor";
     private static final String ROOT_BRANCH_ID = "root-state-captor";
@@ -61,7 +61,7 @@ class BentoLayoutStateCaptorITG {
             final FxRobot robot
     ) {
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        final AtomicReference<List<BentoState>> bentoStatesReference =
+        final AtomicReference<@Nullable List<BentoState>> bentoStatesReference =
                 new AtomicReference<>();
         final Stage primaryStage = getStage();
 
@@ -97,8 +97,8 @@ class BentoLayoutStateCaptorITG {
             bentoProvider.addBento(bento);
 
             bentoStatesReference.set(
-                    new BentoLayoutStateCaptor(bentoProvider)
-                            .captureBentoStates()
+                    new DefaultBentoStateCapturer(bentoProvider)
+                            .capture()
             );
         });
 
@@ -199,7 +199,7 @@ class BentoLayoutStateCaptorITG {
             final FxRobot robot
     ) {
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        final AtomicReference<Throwable> thrownReference =
+        final AtomicReference<@Nullable Throwable> thrownReference =
                 new AtomicReference<>();
         final Stage primaryStage = getStage();
 
@@ -238,8 +238,8 @@ class BentoLayoutStateCaptorITG {
             uncapturable.startFailing();
 
             thrownReference.set(catchThrowable(() ->
-                    new BentoLayoutStateCaptor(bentoProvider)
-                            .captureBentoStates()
+                    new DefaultBentoStateCapturer(bentoProvider)
+                            .capture()
             ));
         });
 
@@ -264,9 +264,9 @@ class BentoLayoutStateCaptorITG {
             final FxRobot robot
     ) {
         final DefaultBentoProvider bentoProvider = new DefaultBentoProvider();
-        final AtomicReference<List<BentoState>> bentoStatesReference =
+        final AtomicReference<@Nullable List<BentoState>> bentoStatesReference =
                 new AtomicReference<>();
-        final AtomicReference<DragDropStage> rogueStageReference =
+        final AtomicReference<@Nullable DragDropStage> rogueStageReference =
                 new AtomicReference<>();
 
         robot.interact(() -> {
@@ -276,8 +276,8 @@ class BentoLayoutStateCaptorITG {
             rogueStageReference.set(rogueStage);
 
             bentoStatesReference.set(
-                    new BentoLayoutStateCaptor(bentoProvider)
-                            .captureBentoStates()
+                    new DefaultBentoStateCapturer(bentoProvider)
+                            .capture()
             );
         });
 
@@ -286,7 +286,7 @@ class BentoLayoutStateCaptorITG {
                     .describedAs("bentoStates with no Bentos registered")
                     .isEmpty();
         } finally {
-            robot.interact(rogueStageReference.get()::hide);
+            robot.interact(requireNonNull(rogueStageReference.get())::hide);
         }
     }
 

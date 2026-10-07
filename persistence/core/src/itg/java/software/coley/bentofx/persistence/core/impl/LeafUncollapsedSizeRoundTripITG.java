@@ -175,12 +175,12 @@ class LeafUncollapsedSizeRoundTripITG {
                 new AtomicReference<>();
 
         robot.interact(() -> {
-            final DockingLayout dockingLayout = new DockingLayoutStateRestorer(
+            final DockingLayout dockingLayout = new DefaultDockingLayoutRebuilder(
                     new DefaultBentoProvider(new Bento(BENTO_ID)),
                     LeafUncollapsedSizeRoundTripITG::dockableStateFor,
                     null,
                     null
-            ).restoreDockingLayout(List.of(persistedBentoState()));
+            ).rebuild(List.of(persistedBentoState()));
 
             final DockContainerRootBranch rootBranch = dockingLayout
                     .getBentoLayouts()

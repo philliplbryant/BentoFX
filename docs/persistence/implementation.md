@@ -43,10 +43,10 @@ Round-trip persistence is a multistep, pipelined process:
 
 | Collaborator | Responsibility | Threading expectation |
 |--------------|----------------|-----------------------|
-| `BentoLayoutStateCaptor` | Walks live BentoFX objects and builds serializable `BentoState` instances. | JavaFX application thread. |
+| `DefaultBentoStateCapturer` | Walks live BentoFX objects and builds serializable `BentoState` instances. | JavaFX application thread. |
 | `LayoutStateWriter` | Encodes captured state with `LayoutCodec` and writes it with `LayoutStorage`. | Off the JavaFX application thread. |
 | `LayoutStateReader` | Reads persisted layouts with `LayoutStorage` and decodes them with `LayoutCodec`. | Off the JavaFX application thread. |
-| `DockingLayoutStateRestorer` | Rebuilds live BentoFX objects from decoded state and application providers. | JavaFX application thread. |
+| `DefaultDockingLayoutRebuilder` | Rebuilds live BentoFX objects from decoded state and application providers. | JavaFX application thread. |
 
 This split keeps the public saver/restorer API stable while making the persistence pipeline easier to test. Unit tests can cover storage/codec error handling through `LayoutStateReader` and `LayoutStateWriter` without creating JavaFX stages,
 and graphical integration tests can continue to cover full end-to-end save and restore behavior.

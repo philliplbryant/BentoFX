@@ -156,9 +156,9 @@ class ScenelessDragDropStageITG {
 						.isNotNull();
 
 				bentoStateReference.set(
-						new BentoLayoutStateCaptor(
+						new DefaultBentoStateCapturer(
 								new DefaultBentoProvider(bento)
-						).captureBentoStates()
+						).capture()
 				);
 			});
 
@@ -270,8 +270,8 @@ class ScenelessDragDropStageITG {
 						bento
 				);
 
-				new BentoLayoutStateCaptor(new DefaultBentoProvider(bento))
-						.captureBentoStates();
+				new DefaultBentoStateCapturer(new DefaultBentoProvider(bento))
+						.capture();
 			} catch (final RuntimeException e) {
 				thrown.set(e);
 			}
@@ -350,11 +350,11 @@ class ScenelessDragDropStageITG {
 			final BentoState bentoState,
 			final Bento bento
 	) {
-		return new DockingLayoutStateRestorer(
+		return new DefaultDockingLayoutRebuilder(
 				new DefaultBentoProvider(bento),
 				id -> Optional.empty(),
 				null,
 				null
-		).restoreDockingLayout(List.of(bentoState));
+		).rebuild(List.of(bentoState));
 	}
 }

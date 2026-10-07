@@ -155,11 +155,11 @@ class LayoutRoundTripITG {
 		try {
 			robot.interact(() ->
 					capturedReference.set(
-							new BentoLayoutStateCaptor(
+							new DefaultBentoStateCapturer(
 									new DefaultBentoProvider(
 											treeReference.get().bento()
 									)
-							).captureBentoStates()
+							).capture()
 					)
 			);
 
@@ -185,12 +185,12 @@ class LayoutRoundTripITG {
 
 		robot.interact(() -> {
 			final DockingLayout dockingLayout =
-					new DockingLayoutStateRestorer(
+					new DefaultDockingLayoutRebuilder(
 							new DefaultBentoProvider(restoredBento),
 							LayoutRoundTripITG::dockableStateFor,
 							null,
 							null
-					).restoreDockingLayout(captured);
+					).rebuild(captured);
 
 			final DockContainerRootBranch rootBranch = dockingLayout
 					.getBentoLayouts()
@@ -214,9 +214,9 @@ class LayoutRoundTripITG {
 		try {
 			robot.interact(() ->
 					recapturedReference.set(
-							new BentoLayoutStateCaptor(
+							new DefaultBentoStateCapturer(
 									new DefaultBentoProvider(restoredBento)
-							).captureBentoStates()
+							).capture()
 					)
 			);
 

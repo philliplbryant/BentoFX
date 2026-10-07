@@ -142,8 +142,8 @@ class HeaderlessLeafCaptureITG {
             stageRef.set(stage);
 
             captured.set(
-                    new BentoLayoutStateCaptor(new DefaultBentoProvider(bento))
-                            .captureBentoStates()
+                    new DefaultBentoStateCapturer(new DefaultBentoProvider(bento))
+                            .capture()
             );
         });
 

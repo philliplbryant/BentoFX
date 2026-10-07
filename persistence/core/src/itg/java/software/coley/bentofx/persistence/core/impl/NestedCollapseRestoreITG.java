@@ -122,12 +122,12 @@ class NestedCollapseRestoreITG {
             );
 
             final DockingLayout dockingLayout =
-                    new DockingLayoutStateRestorer(
+                    new DefaultDockingLayoutRebuilder(
                             new DefaultBentoProvider(new Bento(BENTO_ID)),
                             id -> Optional.ofNullable(dockableStates.get(id)),
                             null,
                             null
-                    ).restoreDockingLayout(List.of(createNestedBentoState()));
+                    ).rebuild(List.of(createNestedBentoState()));
 
             final DockContainerRootBranch rootBranch = dockingLayout
                     .getBentoLayouts()

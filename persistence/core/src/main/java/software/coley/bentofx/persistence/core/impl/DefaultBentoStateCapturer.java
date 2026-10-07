@@ -14,6 +14,7 @@ import software.coley.bentofx.layout.DockContainer;
 import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
+import software.coley.bentofx.persistence.core.api.BentoStateCapturer;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.state.BentoState;
 import software.coley.bentofx.persistence.core.api.state.BentoState.BentoStateBuilder;
@@ -39,36 +40,40 @@ import static software.coley.bentofx.persistence.core.impl.StageUtils.getAllStag
 /**
  * Captures the live BentoFX runtime graph as serializable persistence state.
  *
+ * <p>Default implementation of {@link BentoStateCapturer}. Public so the
+ * interface's static factory method can construct it, but kept in a
+ * non-exported package. Callers obtain it through
+ * {@link BentoStateCapturer#create(BentoProvider)}.</p>
+ *
  * @author Phil Bryant
  */
-final class BentoLayoutStateCaptor {
+public final class DefaultBentoStateCapturer implements BentoStateCapturer {
 
 	private static final Logger logger =
-			LoggerFactory.getLogger(BentoLayoutStateCaptor.class);
+			LoggerFactory.getLogger(DefaultBentoStateCapturer.class);
 
 	private final BentoProvider bentoProvider;
 
-	BentoLayoutStateCaptor(final BentoProvider bentoProvider) {
+	public DefaultBentoStateCapturer(final BentoProvider bentoProvider) {
 		this.bentoProvider = Objects.requireNonNull(bentoProvider);
 	}
 
 	/**
-	 * Captures the current state of every available Bento.
+	 * {@inheritDoc}
 	 *
 	 * <p>Drag-and-drop stages are handled separately from ordinary root
 	 * branches. A root branch belonging to a {@link DragDropStage} is saved
 	 * as part of that stage and is therefore excluded from the Bento's ordinary
 	 * root-branch states.</p>
-	 *
-	 * @return an unmodifiable list containing the captured state of each Bento
 	 */
-	List<BentoState> captureBentoStates() {
+	@Override
+	public List<BentoState> capture() {
 
 		final List<DragDropStageRoot> dragDropStageRoots =
 				getAllStages().stream()
 						.filter(DragDropStage.class::isInstance)
 						.map(DragDropStage.class::cast)
-						.map(this::toDragDropStageRoot)
+						.map(this::captureDragDropStageRoot)
 						.flatMap(Optional::stream)
 						.toList();
 
@@ -135,7 +140,7 @@ final class BentoLayoutStateCaptor {
 	 * empty {@link Optional} when the stage has no scene, or its scene root is not
 	 * a {@link DockContainerRootBranch}
 	 */
-	private Optional<DragDropStageRoot> toDragDropStageRoot(
+	private Optional<DragDropStageRoot> captureDragDropStageRoot(
 			final DragDropStage stage
 	) {
 
@@ -303,8 +308,8 @@ final class BentoLayoutStateCaptor {
 	) {
 
 		return switch (dockContainer) {
-			case final DockContainerBranch branch -> buildBranchState(branch);
-			case final DockContainerLeaf leaf -> buildLeafState(leaf);
+			case final DockContainerBranch branch -> buildDockContainerBranchState(branch);
+			case final DockContainerLeaf leaf -> buildDockContainerLeafState(leaf);
 		};
 	}
 
@@ -316,10 +321,10 @@ final class BentoLayoutStateCaptor {
 	 *
 	 * @return the {@link DockContainerBranchState}.
 	 */
-	private DockContainerBranchState buildBranchState(
+	private DockContainerBranchState buildDockContainerBranchState(
 			final DockContainerBranch branch
 	) {
-		final String id = nonEmptyOr(
+		final String id = getNonBlankValue(
 				branch.getIdentifier(),
 				"branch-" + System.identityHashCode(branch)
 		);
@@ -361,7 +366,7 @@ final class BentoLayoutStateCaptor {
 	 *
 	 * @return the {@link DockContainerLeafState}.
 	 */
-	private DockContainerLeafState buildLeafState(
+	private DockContainerLeafState buildDockContainerLeafState(
 			final DockContainerLeaf leaf
 	) {
 
@@ -420,7 +425,7 @@ final class BentoLayoutStateCaptor {
 		// failure reported a successful save and then truncated the last good
 		// file with a layout missing a pane.
 		for (final Dockable dockable : leaf.getDockables()) {
-			leafStateBuilder.addChildDockableState(buildDockable(dockable));
+			leafStateBuilder.addChildDockableState(buildDockableState(dockable));
 		}
 
 		return leafStateBuilder.build();
@@ -434,7 +439,7 @@ final class BentoLayoutStateCaptor {
 	 *
 	 * @return the {@link DockableState}.
 	 */
-	private DockableState buildDockable(final Dockable dockable) {
+	private DockableState buildDockableState(final Dockable dockable) {
 		return new DockableStateBuilder(dockable.getIdentifier())
 				.build();
 	}
@@ -447,7 +452,7 @@ final class BentoLayoutStateCaptor {
 	 *
 	 * @return the non-blank value of a {@link String}.
 	 */
-	private static String nonEmptyOr(
+	private static String getNonBlankValue(
 			final String value,
 			final String fallback
 	) {
