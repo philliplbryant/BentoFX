@@ -4,9 +4,9 @@ maven-group = "software.coley.bento-fx"
 # noinspection UnusedVersionCatalogEntry
 bentofx = "0.16.1-SNAPSHOT"
 # noinspection UnusedVersionCatalogEntry
-gradle-wrapper = "9.8.0"
+gradle-wrapper = "9.8.1"
 # noinspection UnusedVersionCatalogEntry
-gradle-checksum = "bafd5ce9cfaea0fbccfdc8439a1ac42fbd4cd9c89dc9a988228d8a2639a58e6c"
+gradle-checksum = "dce76f55f8e251a3a1f130eb120f30b3d271de2b76c9b0729d316b5a1b6dc01f"
 # noinspection UnusedVersionCatalogEntry
 java-jdk = "21"
 
@@ -22,7 +22,7 @@ testfx-monocle = "21.0.2"
 
 # Plugins
 ben-manes-versions-plugin = "0.57.0"
-buildconfig = "6.1.1"
+buildconfig = "6.1.2"
 dependency-analysis-gradle-plugin = "3.19.2"
 errorprone-plugin = "5.1.1"
 # noinspection UnusedVersionCatalogEntry
