@@ -2,7 +2,12 @@
 
 [&larr; Back to the BentoFX Persistence guide](guide.md)
 
-This document describes writing new codecs and storage implementations. Applications that use the codec and storage implementations provided by the framework do not need anything described herein - see [Usage](guide.md#persistence-usage) instead.
+This document describes extending the persistence platform for new data formats and storage destinations. Applications that use the codec and storage implementations provided by the framework do not need anything described herein. See [Usage](guide.md#persistence-usage) instead.
+
+Persistence can be extended at two levels:
+
+- **Simple extension**: write a new `LayoutCodec` or `LayoutStorage` to add a serialization format or a storage destination. The framework handles everything else. This is what applications are most likely to need.
+- **Advanced extension**: write a custom `DockingLayoutPersistenceProvider` that implements the entire save-and-restore cycle. This option might be useful when the storage understands the shape of the data, such as a relational database with normalized tables. Covered under [Advanced Extension](#advanced-extension).
 
 ## Table of Contents
 
@@ -11,6 +16,11 @@ This document describes writing new codecs and storage implementations. Applicat
   - [Storage Implementation Conventions](#storage-implementation-conventions)
 - [Adding a Codec](#adding-a-codec)
 - [What ServiceLoader Requires of a Provider](#serviceloader-requirements)
+- [Advanced Extension: Custom Persistence Provider](#advanced-extension)
+  - [When to Take This Path](#advanced-when)
+  - [The Capture and Rebuild Building Blocks](#advanced-building-blocks)
+  - [Example: Relational Database](#advanced-example-relational)
+  - [What to Keep in Mind](#advanced-notes)
 - [Complete Examples](#complete-examples)
 - [See Also](#see-also)
 
@@ -201,6 +211,96 @@ Both provider interfaces are discovered the same way, so both implementations mu
 * return a stable identifier from `getIdentifier()`
 * optionally return `true` from `isDefault()` to be selected automatically when several providers are present
 * be registered twice: with a `provides` clause in `module-info.java` for module-path launches, and with a `META-INF/services` file for class-path launches
+
+<h2 id="advanced-extension">Advanced Extension: Custom Persistence Provider</h2>
+
+A custom `DockingLayoutPersistenceProvider` replaces the `LayoutCodec`/`LayoutStorage` pipeline entirely. The framework's lifecycle hooks still call it the same way, but what happens below those hooks must be implemented. In such a case, the storage can inspect, index, query, and version the layout content directly, rather than treating it as an opaque byte stream.
+
+<h3 id="advanced-when">When to Take This Path</h3>
+
+The `LayoutCodec`/`LayoutStorage` pair is the right answer for almost every extension. Take the advanced path only when the storage genuinely needs to understand the data rather than treat it as opaque bytes.
+
+The driving case is a **relational database with a normalized schema**: you want to run SQL against layout content (*"which users have the terminal pane open?"*), add [JPA audit history](https://hibernate.org/orm/envers/) over structured changes, or run schema migrations via Flyway or Liquibase. A single `BLOB` column cannot support any of that, and extending the `LayoutCodec`/`LayoutStorage` pair to simulate it is more work than writing a custom `DockingLayoutPersistenceProvider` that is intentional about talking to a schema.
+
+For anything short of that - a service that stores and returns bytes keyed by a layout identifier, a different file format, a cloud storage destination - stick with the `LayoutCodec`/`LayoutStorage` pair. Write a `LayoutStorage` whose `openOutputStream()` writes to the destination and whose `openInputStream()` reads back, pair it with any `LayoutCodec`, and let the framework do the rest. A custom `DockingLayoutPersistenceProvider` must implement all eight of its methods along with the capture/rebuild wiring.
+
+<h3 id="advanced-building-blocks">The Capture and Rebuild Building Blocks</h3>
+
+The two conversions the default pipeline performs are published as public API so a custom provider does not have to reimplement them:
+
+- [`BentoStateCapturer`](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/api/BentoStateCapturer.java) - walks the live BentoFX tree into a `List<BentoState>`. One method: `capture()`.
+- [`DockingLayoutRebuilder`](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/api/DockingLayoutRebuilder.java) - takes a `List<BentoState>` and returns a live `DockingLayout`. One method: `rebuild(List<BentoState>)`.
+
+Each has a static factory that returns the framework's default implementation. Both must be called on the JavaFX Application Thread, matching the thread rules the framework applies when the default provider calls them.
+
+A custom `DockingLayoutPersistenceProvider`'s save step uses `capture()`, decomposes the result into its own schema, and persists it. The restore step reconstructs a `List<BentoState>` from storage and calls `rebuild(List<BentoState>)`. The custom `DockingLayoutPersistenceProvider` must write everything in between.
+
+<h3 id="advanced-example-relational">Example: Relational Database</h3>
+
+Sketch of a `DockingLayoutPersistenceProvider` that writes layouts to normalized tables:
+
+```java
+public final class NormalizedDbPersistenceProvider
+        implements DockingLayoutPersistenceProvider {
+
+    private final LayoutRepository repository;
+
+    @Override
+    public LayoutSaver getLayoutSaver(
+            final LayoutPersistenceProfile profile,
+            final BentoProvider bentoProvider
+    ) {
+        final BentoStateCapturer capturer =
+                BentoStateCapturer.create(bentoProvider);
+
+        return () -> {
+            // capture() must run on the JavaFX Application Thread. The 
+            // framework's LayoutSaver handles this. A custom implementation 
+            // is responsible for scheduling it correctly.
+            final List<BentoState> state = capturer.capture();
+            repository.saveNormalized(profile.layoutIdentifier(), state);
+        };
+    }
+
+    @Override
+    public LayoutRestorer getLayoutRestorer(
+            final LayoutPersistenceProfile profile,
+            final BentoProvider bentoProvider,
+            final DockableStateProvider dockableStateProvider,
+            final @Nullable StageIconImageProvider iconProvider,
+            final @Nullable DockContainerLeafMenuFactoryProvider leafMenuFactoryProvider
+    ) {
+        final DockingLayoutRebuilder rebuilder = DockingLayoutRebuilder.create(
+                bentoProvider,
+                dockableStateProvider,
+                iconProvider,
+                leafMenuFactoryProvider
+        );
+
+        return defaultLayoutSupplier -> {
+            final List<BentoState> state =
+                    repository.loadNormalized(profile.layoutIdentifier());
+
+            return state.isEmpty()
+                    ? defaultLayoutSupplier.get()
+                    : rebuilder.rebuild(state);
+        };
+    }
+	
+    // The remaining DockingLayoutPersistenceProvider methods all go through 
+    // the repository rather than LayoutCodec and LayoutStorage.
+}
+```
+
+The `LayoutRepository` is must be implemented as part of extending `DockingLayoutPersistenceProvider`. It can decompose a `BentoState` into whatever tables make sense: one per Bento, per root branch, per leaf, per dockable, plus join tables for divider positions, drag-drop stages, and so on. JPA entities with `@Version` for optimistic locking, Hibernate Envers for audit history, Flyway migrations for schema evolution, all plug in at this layer and the framework does not need to know about any of it.
+
+<h3 id="advanced-notes">What to Consider</h3>
+
+A custom `DockingLayoutPersistenceProvider` implementation owns thread discipline. The default framework provider runs `capture()` on the JavaFX Application Thread and schedules writing to storage off of this thread. A custom provider inherits the same responsibility: `capture()` and `rebuild()` must be called on the JavaFX Application Thread. The framework exposes [`PersistenceThreading.callOnFxThread`](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/impl/PersistenceThreading.java) via the internal implementation; a custom provider typically wraps capture/rebuild with its own equivalent using `Platform.runLater` or `FutureTask`-on-FX.
+
+A custom `DockingLayoutPersistenceProvider` implementation that wants `LayoutsMenu` to offer group management and active-layout tracking also implements [`PersistedDockingLayoutOrganizationProvider`](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/api/provider/PersistedDockingLayoutOrganizationProvider.java). It is a separate, optional interface. The menu checks for it with `instanceof` and degrades gracefully when it is absent.
+
+A custom `DockingLayoutPersistenceProvider` implementation should be discoverable through `ServiceLoader`, the same way the default implementation is, so the `provides` clause in `module-info.java` and the matching `META-INF/services` file both apply. Point them at `DockingLayoutPersistenceProvider`, not at `LayoutCodecProvider` or `LayoutStorageProvider`.
 
 <h2 id="complete-examples">Complete Examples</h2>
 
