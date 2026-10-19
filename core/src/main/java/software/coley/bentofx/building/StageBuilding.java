@@ -149,7 +149,6 @@ public class StageBuilding {
 	                                         double width, double height,
 	                                         @Nullable Consumer<DockContainerLeaf> leafSetup) {
 		// Sanity check, leaf shouldn't have an existing parent.
-		// `!=` is intentionally used here, for efficiency.
 		if (leaf.getParentContainer() != root && leaf.getParentContainer() != null)
 			leaf.removeFromParent();
 
