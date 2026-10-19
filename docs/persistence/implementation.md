@@ -26,7 +26,7 @@ Persistence is expressed as immutable-ish *state* objects rather than direct ser
 
 ### Storage and codec
 
-Round-trip persistence is a multistep, pipelined process:
+Round-trip persistence is a multistep, pipelined process. 
 
 1. The application adds one or more `LayoutCodecProvider` implementations to make persisted formats available.
 2. The application adds one or more `LayoutStorageProvider` implementations to make storage destinations available.
@@ -36,6 +36,18 @@ Round-trip persistence is a multistep, pipelined process:
 5. `LayoutSaver` builds serializable state, encodes it with `LayoutCodec`, and writes it with `LayoutStorage`.
 6. `LayoutRestorer` reads state with `LayoutStorage`, decodes it with `LayoutCodec`, and rebuilds runtime layout objects.
 7. The application applies the returned `DockingLayout` to its stages.
+
+For concrete implementations of these roles, review the bundled implementations:   
+
+<u>**Codec**</u>   
+[JsonLayoutCodecProvider](../../persistence/codec/json/src/main/java/software/coley/bentofx/persistence/impl/codec/json/provider/JsonLayoutCodecProvider.java)   
+[XmlLayoutCodecProvider](../../persistence/codec/xml/src/main/java/software/coley/bentofx/persistence/impl/codec/xml/provider/XmlLayoutCodecProvider.java)
+
+<u>**Storage**</u>   
+[FileLayoutStorageProvider](../../persistence/storage/file/src/main/java/software/coley/bentofx/persistence/impl/storage/file/provider/FileLayoutStorageProvider.java)   
+[DatabaseLayoutStorageProvider](../../persistence/storage/db/h2/src/main/java/software/coley/bentofx/persistence/impl/storage/db/provider/DatabaseLayoutStorageProvider.java)
+
+You can also refer to the [persistence guide](guide.md) for the full list of bundled providers.
 
 ## Internal process flow
 
