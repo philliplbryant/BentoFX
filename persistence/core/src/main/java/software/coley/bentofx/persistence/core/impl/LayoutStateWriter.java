@@ -21,77 +21,83 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 final class LayoutStateWriter implements AutoCloseable {
 
-    private final LayoutCodec layoutCodec;
-    private final LayoutStorage layoutStorage;
-    private final @Nullable String displayName;
-    private final @Nullable String group;
-    private final AtomicBoolean closed = new AtomicBoolean();
+	private final LayoutCodec layoutCodec;
+	private final LayoutStorage layoutStorage;
+	private final @Nullable String displayName;
+	private final @Nullable String group;
+	private final AtomicBoolean closed = new AtomicBoolean();
 
-    LayoutStateWriter(
-            final @Nullable String displayName,
-            final @Nullable String group,
-            final LayoutCodec layoutCodec,
-            final LayoutStorage layoutStorage
-    ) {
-        this.layoutCodec = Objects.requireNonNull(layoutCodec);
-        this.layoutStorage = Objects.requireNonNull(layoutStorage);
-        this.displayName = displayName;
-        this.group = group;
-    }
+	LayoutStateWriter(
+			final @Nullable String displayName,
+			final @Nullable String group,
+			final LayoutCodec layoutCodec,
+			final LayoutStorage layoutStorage
+	) {
+		this.layoutCodec = Objects.requireNonNull(layoutCodec);
+		this.layoutStorage = Objects.requireNonNull(layoutStorage);
+		this.displayName = displayName;
+		this.group = group;
+	}
 
-    /**
-     * Encodes and writes captured layout state. This method should run away
-     * from the JavaFX application thread because it performs codec and storage
-     * operations.
-     *
-     * @param bentoStateList captured Bento states.
-     * @throws BentoStateException when encoding or storage fails.
-     */
-    void writeLayout(final List<BentoState> bentoStateList)
-            throws BentoStateException {
+	/**
+	 * Encodes and writes captured layout state. This method should run away
+	 * from the JavaFX application thread because it performs codec and storage
+	 * operations.
+	 *
+	 * @param bentoStateList captured Bento states.
+	 *
+	 * @throws BentoStateException when encoding or storage fails.
+	 */
+	void writeLayout(final List<BentoState> bentoStateList)
+			throws BentoStateException {
 
-        // Encoded in full before storage is opened. Handing the codec the
-        // storage stream meant a codec failure part way through had already
-        // replaced what was stored before, since closing the stream is what
-        // commits it.
-        final byte[] encoded = encode(bentoStateList);
+		// Encoded in full before storage is opened. Handing the codec the
+		// storage stream meant a codec failure part way through had already
+		// replaced what was stored before, since closing the stream is what
+		// commits it.
+		final byte[] encoded = encode(bentoStateList);
 
-        try (final OutputStream out = layoutStorage.openOutputStream()) {
+		try (final OutputStream out = layoutStorage.openOutputStream()) {
 
-            out.write(encoded);
-        } catch (final IOException e) {
+			out.write(encoded);
+		} catch (final IOException e) {
 
-            throw new BentoStateException(
-                    "Could not write persisted layout state",
-                    e
-            );
-        }
-    }
+			throw new BentoStateException(
+					"Could not write persisted layout state",
+					e
+			);
+		}
+	}
 
-    /**
-     * {@return the encoded layout.}
-     *
-     * @param bentoStateList captured Bento states.
-     * @throws BentoStateException when encoding fails.
-     */
-    private byte[] encode(final List<BentoState> bentoStateList)
-            throws BentoStateException {
+	/**
+	 * {@return the encoded layout.}
+	 *
+	 * @param bentoStateList captured Bento states.
+	 *
+	 * @throws BentoStateException when encoding fails.
+	 */
+	private byte[] encode(final List<BentoState> bentoStateList)
+			throws BentoStateException {
 
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        layoutCodec.encode(
-                new PersistableLayout(displayName, bentoStateList)
-                        .withNaming(displayName, group),
-                buffer
-        );
+		layoutCodec.encode(
+				new PersistableLayout(
+						displayName,
+						bentoStateList,
+						group,
+						List.of()
+				),
+				buffer
+		);
 
-        return buffer.toByteArray();
-    }
+		return buffer.toByteArray();
+	}
 
-    @Override
-    public void close() {
-        if (closed.compareAndSet(false, true)) {
-            layoutStorage.close();
-        }
-    }
+	@Override
+	public void close() {
+		if (closed.compareAndSet(false, true)) {
+			layoutStorage.close();
+		}
+	}
 }

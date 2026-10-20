@@ -47,7 +47,7 @@ implementation "software.coley.bento-fx:core:${version}"
 <h4 id="core-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>
 
 ```kotlin
-implementation("software.coley.bentofx:core:${version}")
+implementation("software.coley.bento-fx:core:${version}")
 ```
 
 <h4 id="core-maven">Maven</h4>
