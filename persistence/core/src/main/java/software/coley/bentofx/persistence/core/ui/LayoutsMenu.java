@@ -1,7 +1,12 @@
 package software.coley.bentofx.persistence.core.ui;
 
 import javafx.application.Platform;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.Window;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -20,7 +25,12 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -28,7 +38,60 @@ import java.util.function.UnaryOperator;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.DEFAULT_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_GROUP_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_BLANK_NAME_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_GROUP_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_REPLACE_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_RESTORE_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CUSTOM_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEFAULT_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_GROUP_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEVICE_NAME_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DUPLICATE_GROUP_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUPS_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_TOO_LONG_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_BLANK_NAME_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_NAME_GROUP_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_SAVE_NAMED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_GROUP_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_LIST_GROUPS_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_NOT_STORED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RENAME_GROUP_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_REPLACE_CONFIRM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RESTORE_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_SAVE_FAILED_ERROR_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.LAYOUTS_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.LIST_FAILED_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.MOVE_TO_GROUP_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NEW_GROUP_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUPS_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUP_CHOICE_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_LAYOUTS_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_MOVE_TO_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_NEW_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_SAVE_AS_NEW_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_GROUP_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RESERVED_PROBLEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RESTORE_MENU_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAVE_AS_NEW_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAVE_CHANGES_ITEM_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_MOVE_TO_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_NEW_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_SAVE_AS_NEW_DIALOG_KEY;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in
@@ -825,10 +888,17 @@ public class LayoutsMenu extends Menu {
 
 		// Starting on a group that is not offered would show the dialog with a
 		// selection the list does not hold, so an unknown group starts on none.
+		// Matching is case-insensitive to agree with LayoutGroups' CASE_INSENSITIVE_ORDER
+		// ordering, and the starting choice is taken from the list rather than
+		// from currentGroup so its spelling matches an entry ChoiceDialog
+		// recognizes.
 		final String startingChoice =
-				currentGroup != null && choices.contains(currentGroup)
-						? currentGroup
-						: noGroupChoice;
+				currentGroup == null
+						? noGroupChoice
+						: choices.stream()
+								.filter(choice -> choice.equalsIgnoreCase(currentGroup))
+								.findFirst()
+								.orElse(noGroupChoice);
 
 		final ChoiceDialog<String> dialog =
 				new ChoiceDialog<>(startingChoice, choices);
