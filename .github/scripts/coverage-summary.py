@@ -25,6 +25,14 @@ EXCLUDED_PATH_PARTS = {
     "settings-logic",
 }
 
+# Source-line count must agree with what coverage is scoped to - the
+# 'software/coley/bentofx/persistence' packages under each module's main
+# source set. Without this, 'core/' and the test source sets inflate the
+# count while coverage only reflects persistence main sources, making every
+# reported percentage read lower than it should.
+SRC_MAIN_SUBPATH = ("src", "main")
+REPORTED_PACKAGE_SUBPATH = ("software", "coley", "bentofx", "persistence")
+
 JACOCO_COUNTER_TYPES = {
     "INSTRUCTION",
     "BRANCH",
@@ -35,8 +43,19 @@ JACOCO_COUNTER_TYPES = {
 }
 
 
+def contains_subpath(parts: tuple[str, ...], subpath: tuple[str, ...]) -> bool:
+    length = len(subpath)
+    return any(parts[index:index + length] == subpath for index in range(len(parts) - length + 1))
+
+
 def is_source_file(path: Path) -> bool:
-    return path.suffix in SOURCE_EXTENSIONS and not EXCLUDED_PATH_PARTS.intersection(path.parts)
+    parts = path.parts
+    return (
+        path.suffix in SOURCE_EXTENSIONS
+        and not EXCLUDED_PATH_PARTS.intersection(parts)
+        and contains_subpath(parts, SRC_MAIN_SUBPATH)
+        and contains_subpath(parts, REPORTED_PACKAGE_SUBPATH)
+    )
 
 
 def is_code_line(line: str, in_block_comment: bool) -> tuple[bool, bool]:
