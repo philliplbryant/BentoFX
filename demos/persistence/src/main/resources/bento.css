@@ -1,7 +1,6 @@
 /*
-This was copied from 'demos/basic/src/main/resources/bento.css'
-This serves as an example of how you would create a stylesheet for Bento.
-It outlines all of the classes and pseudo-states used by controls.
+This file was copied from 'demos/basic/src/main/resources/bento.css' with minor
+modifications to delete unused style rules.
  */
 .root {
     -color-base-9: white;
