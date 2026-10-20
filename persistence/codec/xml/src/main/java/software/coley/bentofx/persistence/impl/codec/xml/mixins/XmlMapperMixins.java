@@ -22,34 +22,34 @@ import static java.util.Map.entry;
  */
 public final class XmlMapperMixins {
 
-    /**
-     * Each DTO and the mix-in that annotates it, as a map rather than a run of
-     * {@code addMixIn} calls so that a test can read the pairing back.
-     */
-    static final Map<Class<?>, Class<?>> MIXINS_BY_DTO = Map.ofEntries(
-            entry(BentoStateDto.class, BentoStateDtoXmlMixin.class),
-            entry(DividerPositionDto.class, DividerPositionDtoXmlMixin.class),
-            entry(DockableDto.class, DockableDtoXmlMixin.class),
-            entry(DockContainerDto.class, DockContainerDtoXmlMixin.class),
-            entry(DockContainerBranchDto.class, DockContainerBranchDtoXmlMixin.class),
-            entry(DockContainerLeafDto.class, DockContainerLeafDtoXmlMixin.class),
-            entry(DockContainerRootBranchDto.class, DockContainerRootBranchDtoXmlMixin.class),
-            entry(DockingLayoutDto.class, DockingLayoutDtoXmlMixin.class),
-            entry(DragDropStageDto.class, DragDropStageDtoXmlMixin.class),
-            entry(LayoutMetadataDto.class, LayoutMetadataDtoXmlMixin.class)
-    );
+	/**
+	 * Each DTO and the mix-in that annotates it, as a map rather than a run of
+	 * {@code addMixIn} calls so that a test can read the pairing back.
+	 */
+	static final Map<Class<?>, Class<?>> MIXINS_BY_DTO = Map.ofEntries(
+			entry(BentoStateDto.class, BentoStateDtoXmlMixin.class),
+			entry(DividerPositionDto.class, DividerPositionDtoXmlMixin.class),
+			entry(DockableDto.class, DockableDtoXmlMixin.class),
+			entry(DockContainerDto.class, DockContainerDtoXmlMixin.class),
+			entry(DockContainerBranchDto.class, DockContainerBranchDtoXmlMixin.class),
+			entry(DockContainerLeafDto.class, DockContainerLeafDtoXmlMixin.class),
+			entry(DockContainerRootBranchDto.class, DockContainerRootBranchDtoXmlMixin.class),
+			entry(DockingLayoutDto.class, DockingLayoutDtoXmlMixin.class),
+			entry(DragDropStageDto.class, DragDropStageDtoXmlMixin.class),
+			entry(LayoutMetadataDto.class, LayoutMetadataDtoXmlMixin.class)
+	);
 
-    private XmlMapperMixins() {
-        throw new IllegalStateException("Utility class");
-    }
+	private XmlMapperMixins() {
+		throw new IllegalStateException("Utility class");
+	}
 
-    /**
-     * {@return each DTO and the mix-in that annotates it.}
-     *
-     * <p>Classes rather than a configured mapper, so that nothing here puts a
-     * Jackson type in a signature a caller can see.</p>
-     */
-    public static Map<Class<?>, Class<?>> mixinsByDto() {
-        return MIXINS_BY_DTO;
-    }
+	/**
+	 * {@return each DTO and the mix-in that annotates it.}
+	 *
+	 * <p>Classes rather than a configured mapper, so that nothing here puts a
+	 * Jackson type in a signature a caller can see.</p>
+	 */
+	public static Map<Class<?>, Class<?>> mixinsByDto() {
+		return MIXINS_BY_DTO;
+	}
 }

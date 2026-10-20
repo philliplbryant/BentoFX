@@ -28,125 +28,125 @@ import java.util.Map;
  */
 public class InMemoryLayoutCodec implements LayoutCodec {
 
-    private static final String IDENTIFIER = "memory";
-    private static final String TOKEN_PREFIX = "bento-layout-";
+	private static final String IDENTIFIER = "memory";
+	private static final String TOKEN_PREFIX = "bento-layout-";
 
-    private final Map<String, PersistableLayout> encodedLayouts =
-            new HashMap<>();
-    private final List<PersistableLayout> encodeCalls = new ArrayList<>();
-    private int nextToken = 0;
+	private final Map<String, PersistableLayout> encodedLayouts =
+			new HashMap<>();
+	private final List<PersistableLayout> encodeCalls = new ArrayList<>();
+	private int nextToken = 0;
 
-    @Override
-    public String getIdentifier() {
-        return IDENTIFIER;
-    }
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER;
+	}
 
-    @Override
-    public synchronized void encode(
-            final PersistableLayout layout,
-            final OutputStream outputStream
-    ) throws BentoStateException {
-        final String token = TOKEN_PREFIX + nextToken++;
+	@Override
+	public synchronized void encode(
+			final PersistableLayout layout,
+			final OutputStream outputStream
+	) throws BentoStateException {
+		final String token = TOKEN_PREFIX + nextToken++;
 
-        encodedLayouts.put(token, layout);
-        encodeCalls.add(layout);
+		encodedLayouts.put(token, layout);
+		encodeCalls.add(layout);
 
-        try {
-            outputStream.write(token.getBytes(StandardCharsets.UTF_8));
-        } catch (final IOException e) {
-            throw new BentoStateException(
-                    "Could not write encoded layout to the output stream",
-                    e
-            );
-        }
-    }
+		try {
+			outputStream.write(token.getBytes(StandardCharsets.UTF_8));
+		} catch (final IOException e) {
+			throw new BentoStateException(
+					"Could not write encoded layout to the output stream",
+					e
+			);
+		}
+	}
 
-    @Override
-    public synchronized PersistableLayout decode(
-            final InputStream inputStream
-    ) throws BentoStateException {
-        final String token;
+	@Override
+	public synchronized PersistableLayout decode(
+			final InputStream inputStream
+	) throws BentoStateException {
+		final String token;
 
-        try {
-            token = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (final IOException e) {
-            throw new BentoStateException(
-                    "Could not read encoded layout from the input stream",
-                    e
-            );
-        }
+		try {
+			token = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+		} catch (final IOException e) {
+			throw new BentoStateException(
+					"Could not read encoded layout from the input stream",
+					e
+			);
+		}
 
-        if (token.isEmpty()) {
-            return PersistableLayout.of(List.of());
-        }
+		if (token.isEmpty()) {
+			return PersistableLayout.of(List.of());
+		}
 
-        final PersistableLayout layout = encodedLayouts.get(token);
-        if (layout == null) {
-            throw new BentoStateException(
-                    "Input stream was not encoded by this InMemoryLayoutCodec"
-            );
-        }
+		final PersistableLayout layout = encodedLayouts.get(token);
+		if (layout == null) {
+			throw new BentoStateException(
+					"Input stream was not encoded by this InMemoryLayoutCodec"
+			);
+		}
 
-        return layout;
-    }
+		return layout;
+	}
 
-    /**
-     * Seeds the codec with a layout and writes the matching token to the
-     * supplied output stream, so that a later {@link #decode(InputStream)} of
-     * those bytes returns it. Useful when testing restore-only code.
-     *
-     * @param layout the layout later decodes return for the written bytes.
-     * @param outputStream output stream to receive the token.
-     * @throws BentoStateException on error.
-     */
-    public void writeEncoded(
-            final PersistableLayout layout,
-            final OutputStream outputStream
-    ) throws BentoStateException {
-        encode(layout, outputStream);
-    }
+	/**
+	 * Seeds the codec with a layout and writes the matching token to the
+	 * supplied output stream, so that a later {@link #decode(InputStream)} of
+	 * those bytes returns it. Useful when testing restore-only code.
+	 *
+	 * @param layout the layout later decodes return for the written bytes.
+	 * @param outputStream output stream to receive the token.
+	 * @throws BentoStateException on error.
+	 */
+	public void writeEncoded(
+			final PersistableLayout layout,
+			final OutputStream outputStream
+	) throws BentoStateException {
+		encode(layout, outputStream);
+	}
 
-    /**
-     * Seeds the codec with states and writes the matching token, for a test
-     * that does not care about a display name.
-     *
-     * @param bentoStates states later decodes return for the written bytes.
-     * @param outputStream output stream to receive the token.
-     * @throws BentoStateException on error.
-     */
-    public void writeEncoded(
-            final List<BentoState> bentoStates,
-            final OutputStream outputStream
-    ) throws BentoStateException {
-        encode(PersistableLayout.of(bentoStates), outputStream);
-    }
+	/**
+	 * Seeds the codec with states and writes the matching token, for a test
+	 * that does not care about a display name.
+	 *
+	 * @param bentoStates states later decodes return for the written bytes.
+	 * @param outputStream output stream to receive the token.
+	 * @throws BentoStateException on error.
+	 */
+	public void writeEncoded(
+			final List<BentoState> bentoStates,
+			final OutputStream outputStream
+	) throws BentoStateException {
+		encode(PersistableLayout.of(bentoStates), outputStream);
+	}
 
-    /**
-     * @return states from the most recent encode call, or an empty list if this
-     * codec has not encoded anything.
-     */
-    public synchronized List<BentoState> getEncodedStates() {
-        if (encodeCalls.isEmpty()) {
-            return List.of();
-        }
+	/**
+	 * @return states from the most recent encode call, or an empty list if this
+	 * codec has not encoded anything.
+	 */
+	public synchronized List<BentoState> getEncodedStates() {
+		if (encodeCalls.isEmpty()) {
+			return List.of();
+		}
 
-        return encodeCalls.getLast().bentoStates();
-    }
+		return encodeCalls.getLast().bentoStates();
+	}
 
-    /**
-     * @return the states handed to every encode call, in call order.
-     */
-    public synchronized List<List<BentoState>> getEncodeCalls() {
-        return encodeCalls.stream()
-                .map(PersistableLayout::bentoStates)
-                .toList();
-    }
+	/**
+	 * @return the states handed to every encode call, in call order.
+	 */
+	public synchronized List<List<BentoState>> getEncodeCalls() {
+		return encodeCalls.stream()
+				.map(PersistableLayout::bentoStates)
+				.toList();
+	}
 
-    /**
-     * @return the layouts handed to every encode call, in call order, for a
-     * test that also cares about the display name.
-     */
-    public synchronized List<PersistableLayout> getEncodedLayouts() {
-        return List.copyOf(encodeCalls);
-    }
+	/**
+	 * @return the layouts handed to every encode call, in call order, for a
+	 * test that also cares about the display name.
+	 */
+	public synchronized List<PersistableLayout> getEncodedLayouts() {
+		return List.copyOf(encodeCalls);
+	}
 }

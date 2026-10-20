@@ -1,27 +1,27 @@
 pluginManagement {
-    // Runs before Gradle configures projects.
-    includeBuild('settings-logic')
-    // Runs after settings and is used to configure projects.
-    includeBuild 'build-logic'
+	// Runs before Gradle configures projects.
+	includeBuild('settings-logic')
+	// Runs after settings and is used to configure projects.
+	includeBuild 'build-logic'
 
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+	}
 }
 
 plugins {
-    id 'bento.analysis.ben-manes-versions-settings'
-    id 'bento.analysis.dagp-settings'
-    id 'bento.report.aggregation-settings'
+	id 'bento.analysis.ben-manes-versions-settings'
+	id 'bento.analysis.dagp-settings'
+	id 'bento.report.aggregation-settings'
 }
 
 dependencyResolutionManagement {
-    includeBuild 'build-logic'
+	includeBuild 'build-logic'
 
-    repositories {
-        mavenCentral()
-    }
+	repositories {
+		mavenCentral()
+	}
 }
 
 rootProject.name = 'bento-fx'
@@ -86,27 +86,27 @@ def pathsByProjectName = [:]
 
 def collectProjectNames
 collectProjectNames = { descriptor ->
-    if (descriptor.buildFile.exists()) {
-        pathsByProjectName
-                .computeIfAbsent(descriptor.name) { [] }
-                .add(descriptor.path)
-    }
-    descriptor.children.each { child -> collectProjectNames(child) }
+	if (descriptor.buildFile.exists()) {
+		pathsByProjectName
+				.computeIfAbsent(descriptor.name) { [] }
+				.add(descriptor.path)
+	}
+	descriptor.children.each { child -> collectProjectNames(child) }
 }
 collectProjectNames(rootProject)
 
 def collidingProjects = pathsByProjectName.findAll { name, paths ->
-    paths.size() > 1
+	paths.size() > 1
 }
 
 if (!collidingProjects.isEmpty()) {
-    throw new GradleException(
-            'Two projects that build something cannot share a name, because ' +
-                    'Gradle would treat them as one module:\n' +
-                    collidingProjects.collect { name, paths ->
-                        "  '$name' is the name of ${paths.join(' and ')}"
-                    }.join('\n') +
-                    '\nRename one, or declare it flat at the root the way ' +
-                    "':persistence-core' is."
-    )
+	throw new GradleException(
+			'Two projects that build something cannot share a name, because ' +
+					'Gradle would treat them as one module:\n' +
+					collidingProjects.collect { name, paths ->
+						"  '$name' is the name of ${paths.join(' and ')}"
+					}.join('\n') +
+					'\nRename one, or declare it flat at the root the way ' +
+					"':persistence-core' is."
+	)
 }

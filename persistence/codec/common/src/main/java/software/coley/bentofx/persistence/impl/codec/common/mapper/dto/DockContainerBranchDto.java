@@ -14,29 +14,29 @@ import java.util.List;
  */
 public final class DockContainerBranchDto extends DockContainerDto {
 
-    /**
-     * Creates an empty branch container DTO for a mapper to populate.
-     */
-    public DockContainerBranchDto() {
-        // This empty constructor exists merely to support Javadoc and its
-        // recommended practice for providing the comment for the default
-        // constructor.
-    }
+	/**
+	 * Creates an empty branch container DTO for a mapper to populate.
+	 */
+	public DockContainerBranchDto() {
+		// This empty constructor exists merely to support Javadoc and its
+		// recommended practice for providing the comment for the default
+		// constructor.
+	}
 
-    /**
-     * The positions of the dividers between this branch's child containers.
-     */
-    public final List<DividerPositionDto> dividerPositions =
-            new ArrayList<>();
+	/**
+	 * The positions of the dividers between this branch's child containers.
+	 */
+	public final List<DividerPositionDto> dividerPositions =
+			new ArrayList<>();
 
-    /**
-     * The child containers, in the order the branch holds them.
-     */
-    public final List<DockContainerDto> childDockContainers =
-            new ArrayList<>();
+	/**
+	 * The child containers, in the order the branch holds them.
+	 */
+	public final List<DockContainerDto> childDockContainers =
+			new ArrayList<>();
 
-    /**
-     * The branch's orientation.
-     */
-    public @Nullable Orientation orientation;
+	/**
+	 * The branch's orientation.
+	 */
+	public @Nullable Orientation orientation;
 }

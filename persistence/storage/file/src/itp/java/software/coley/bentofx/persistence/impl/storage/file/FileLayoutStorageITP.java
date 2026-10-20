@@ -93,32 +93,32 @@ class FileLayoutStorageITP {
 	void testFileLayoutStorageIntegration() throws IOException {
 		// Test the file does not initially exist
 		assertThat(fileLayoutStorage.exists())
-                .describedAs("File should not exist initially")
-                .isFalse();
+				.describedAs("File should not exist initially")
+				.isFalse();
 
 		// Write data to the file and verify existence
 		try (OutputStream outputStream = fileLayoutStorage.openOutputStream()) {
 			outputStream.write(TEST_FILE_CONTENT.getBytes(UTF_8));
 		}
 		assertThat(fileLayoutStorage.exists())
-                .describedAs("File should exist after writing to it")
-                .isTrue();
+				.describedAs("File should exist after writing to it")
+				.isTrue();
 		assertThat(testFile)
-                .describedAs("File length should be greater than zero after writing data")
-                .isNotEmpty();
+				.describedAs("File length should be greater than zero after writing data")
+				.isNotEmpty();
 
 		// Read data from the file and verify the content
 		StringBuilder fileContent = new StringBuilder();
 		try (InputStream inputStream = fileLayoutStorage.openInputStream();
-		     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
+			 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				fileContent.append(line);
 			}
 		}
 		assertThat(fileContent)
-                .describedAs("File content should match the written data")
-                .hasToString(TEST_FILE_CONTENT);
+				.describedAs("File content should match the written data")
+				.hasToString(TEST_FILE_CONTENT);
 	}
 
 	@Test

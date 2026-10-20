@@ -23,17 +23,17 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class LayoutMetadataDtoXmlMixin {
 
-    @JacksonXmlProperty(localName = SCHEMA_VERSION_ELEMENT_NAME)
-    public @Nullable Integer schemaVersion;
+	@JacksonXmlProperty(localName = SCHEMA_VERSION_ELEMENT_NAME)
+	public @Nullable Integer schemaVersion;
 
-    @JacksonXmlProperty(localName = DISPLAY_NAME_ELEMENT_NAME)
-    public @Nullable String displayName;
+	@JacksonXmlProperty(localName = DISPLAY_NAME_ELEMENT_NAME)
+	public @Nullable String displayName;
 
-    @JacksonXmlProperty(localName = GROUP_ELEMENT_NAME)
-    public @Nullable String group;
+	@JacksonXmlProperty(localName = GROUP_ELEMENT_NAME)
+	public @Nullable String group;
 
-    @JacksonXmlElementWrapper(localName = GROUP_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = GROUP_NAME_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<String> groups;
+	@JacksonXmlElementWrapper(localName = GROUP_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = GROUP_NAME_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<String> groups;
 }

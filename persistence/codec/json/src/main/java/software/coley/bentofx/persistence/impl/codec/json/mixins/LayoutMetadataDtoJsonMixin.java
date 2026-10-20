@@ -18,16 +18,16 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class LayoutMetadataDtoJsonMixin {
 
-    @JsonProperty(SCHEMA_VERSION_ELEMENT_NAME)
-    public @Nullable Integer schemaVersion;
+	@JsonProperty(SCHEMA_VERSION_ELEMENT_NAME)
+	public @Nullable Integer schemaVersion;
 
-    @JsonProperty(DISPLAY_NAME_ELEMENT_NAME)
-    public @Nullable String displayName;
+	@JsonProperty(DISPLAY_NAME_ELEMENT_NAME)
+	public @Nullable String displayName;
 
-    @JsonProperty(GROUP_ELEMENT_NAME)
-    public @Nullable String group;
+	@JsonProperty(GROUP_ELEMENT_NAME)
+	public @Nullable String group;
 
-    @JsonInclude(NON_EMPTY)
-    @JsonProperty(GROUP_LIST_ELEMENT_NAME)
-    public @Nullable List<String> groups;
+	@JsonInclude(NON_EMPTY)
+	@JsonProperty(GROUP_LIST_ELEMENT_NAME)
+	public @Nullable List<String> groups;
 }

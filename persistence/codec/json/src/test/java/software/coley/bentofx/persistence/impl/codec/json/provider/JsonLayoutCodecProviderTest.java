@@ -8,30 +8,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JsonLayoutCodecProviderTest {
 
-    @Test
-    void exposesJsonIdentifierAndIsNotDefault() {
-        final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
+	@Test
+	void exposesJsonIdentifierAndIsNotDefault() {
+		final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
 
-        assertThat(provider.getIdentifier())
-                .describedAs("provider.getIdentifier()")
-                .isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
-        assertThat(provider.isDefault())
-                .describedAs("provider.isDefault()")
-                .isFalse();
-    }
+		assertThat(provider.getIdentifier())
+				.describedAs("provider.getIdentifier()")
+				.isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
+		assertThat(provider.isDefault())
+				.describedAs("provider.isDefault()")
+				.isFalse();
+	}
 
-    @Test
-    void getLayoutCodecReturnsJsonLayoutCodec() {
-        final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
+	@Test
+	void getLayoutCodecReturnsJsonLayoutCodec() {
+		final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
 
-        final LayoutCodec codec = provider.getLayoutCodec();
+		final LayoutCodec codec = provider.getLayoutCodec();
 
-        assertThat(codec)
-                .describedAs("codec")
-                .isNotNull()
-                .isInstanceOf(JsonLayoutCodec.class);
-        assertThat(codec.getIdentifier())
-                .describedAs("codec.getIdentifier()")
-                .isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
-    }
+		assertThat(codec)
+				.describedAs("codec")
+				.isNotNull()
+				.isInstanceOf(JsonLayoutCodec.class);
+		assertThat(codec.getIdentifier())
+				.describedAs("codec.getIdentifier()")
+				.isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
+	}
 }

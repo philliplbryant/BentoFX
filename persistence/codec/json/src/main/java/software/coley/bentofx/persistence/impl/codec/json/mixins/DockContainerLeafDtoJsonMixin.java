@@ -22,7 +22,7 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonTypeName(LEAF_ELEMENT_NAME)
 abstract class DockContainerLeafDtoJsonMixin {
 
-    @JsonProperty(DOCKABLE_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockableDto> dockables;
+	@JsonProperty(DOCKABLE_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockableDto> dockables;
 }

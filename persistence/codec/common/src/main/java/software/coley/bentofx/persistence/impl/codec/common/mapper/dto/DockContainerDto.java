@@ -9,20 +9,20 @@ import org.jspecify.annotations.Nullable;
  * @author Phil Bryant
  */
 public abstract sealed class DockContainerDto
-        permits DockContainerBranchDto, DockContainerLeafDto {
+		permits DockContainerBranchDto, DockContainerLeafDto {
 
-    /**
-     * Creates an empty container DTO for a subclass to populate.
-     */
-    protected DockContainerDto() { }
+	/**
+	 * Creates an empty container DTO for a subclass to populate.
+	 */
+	protected DockContainerDto() { }
 
-    /**
-     * The container's identifier.
-     */
-    public @Nullable String identifier;
+	/**
+	 * The container's identifier.
+	 */
+	public @Nullable String identifier;
 
-    /**
-     * {@code true} when the container prunes itself from its parent once empty.
-     */
-    public @Nullable Boolean pruneWhenEmpty;
+	/**
+	 * {@code true} when the container prunes itself from its parent once empty.
+	 */
+	public @Nullable Boolean pruneWhenEmpty;
 }

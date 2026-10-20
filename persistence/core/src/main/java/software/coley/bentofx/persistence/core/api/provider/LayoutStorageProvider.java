@@ -27,72 +27,72 @@ import java.util.List;
  */
 public interface LayoutStorageProvider extends LayoutPersistenceComponentProvider {
 
-    /**
-     * Returns a {@link LayoutStorage} that can be used to persist a Bento
-     * layout.
-     * <p>
-     * Each call must return a fresh instance, even for arguments it has already
-     * been given. The caller takes ownership of what it is handed and closes it
-     * (see {@link LayoutStorage#close()}), so an implementation that caches and
-     * returns one instance per layout would have a closed saver take the
-     * restorer's storage down with it.
-     *
-     * @return a {@link LayoutStorage} that can be used to persist a Bento
-     * layout.
-     */
-    LayoutStorage getLayoutStorage(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    );
+	/**
+	 * Returns a {@link LayoutStorage} that can be used to persist a Bento
+	 * layout.
+	 * <p>
+	 * Each call must return a fresh instance, even for arguments it has already
+	 * been given. The caller takes ownership of what it is handed and closes it
+	 * (see {@link LayoutStorage#close()}), so an implementation that caches and
+	 * returns one instance per layout would have a closed saver take the
+	 * restorer's storage down with it.
+	 *
+	 * @return a {@link LayoutStorage} that can be used to persist a Bento
+	 * layout.
+	 */
+	LayoutStorage getLayoutStorage(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	);
 
-    /**
-     * {@return the identifiers of the layouts this destination holds for the
-     * supplied codec, in no particular order.}
-     *
-     * <p>A layout appears only when there is something to read: an entry with no
-     * content is not a layout, which is the same rule {@link LayoutStorage#exists()}
-     * applies. A destination holding no layouts returns an empty list.</p>
-     *
-     * <p>An unreachable destination throws an unchecked exception rather than
-     * reporting no layouts, for the reason {@link LayoutStorage#exists()} gives:
-     * answering "nothing here" when the truth is "cannot tell" invites the caller
-     * to write over a layout that exists.</p>
-     *
-     * @param codecIdentifier identifies the codec whose layouts are wanted.
-     */
-    List<String> getLayoutIdentifiers(final String codecIdentifier);
+	/**
+	 * {@return the identifiers of the layouts this destination holds for the
+	 * supplied codec, in no particular order.}
+	 *
+	 * <p>A layout appears only when there is something to read: an entry with no
+	 * content is not a layout, which is the same rule {@link LayoutStorage#exists()}
+	 * applies. A destination holding no layouts returns an empty list.</p>
+	 *
+	 * <p>An unreachable destination throws an unchecked exception rather than
+	 * reporting no layouts, for the reason {@link LayoutStorage#exists()} gives:
+	 * answering "nothing here" when the truth is "cannot tell" invites the caller
+	 * to write over a layout that exists.</p>
+	 *
+	 * @param codecIdentifier identifies the codec whose layouts are wanted.
+	 */
+	List<String> getLayoutIdentifiers(final String codecIdentifier);
 
-    /**
-     * {@return {@code true} when this destination holds a layout for the supplied
-     * identifiers; otherwise, {@code false}.}
-     *
-     * <p>The default asks the storage itself, which every implementation can
-     * answer. Override when the destination can answer more cheaply than opening
-     * one.</p>
-     *
-     * @param layoutIdentifier identifies the layout.
-     * @param codecIdentifier identifies the codec whose output is stored.
-     */
-    default boolean isLayoutStored(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        try (final LayoutStorage layoutStorage =
-                     getLayoutStorage(layoutIdentifier, codecIdentifier)) {
-            return layoutStorage.exists();
-        }
-    }
+	/**
+	 * {@return {@code true} when this destination holds a layout for the supplied
+	 * identifiers; otherwise, {@code false}.}
+	 *
+	 * <p>The default asks the storage itself, which every implementation can
+	 * answer. Override when the destination can answer more cheaply than opening
+	 * one.</p>
+	 *
+	 * @param layoutIdentifier identifies the layout.
+	 * @param codecIdentifier identifies the codec whose output is stored.
+	 */
+	default boolean isLayoutStored(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		try (final LayoutStorage layoutStorage =
+					 getLayoutStorage(layoutIdentifier, codecIdentifier)) {
+			return layoutStorage.exists();
+		}
+	}
 
-    /**
-     * Removes the stored layout, if there is one.
-     *
-     * @param layoutIdentifier identifies the layout to remove.
-     * @param codecIdentifier identifies the codec whose output is stored.
-     * @return {@code true} when a layout was removed; {@code false} when there was
-     * nothing to remove.
-     */
-    boolean deleteLayout(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    );
+	/**
+	 * Removes the stored layout, if there is one.
+	 *
+	 * @param layoutIdentifier identifies the layout to remove.
+	 * @param codecIdentifier identifies the codec whose output is stored.
+	 * @return {@code true} when a layout was removed; {@code false} when there was
+	 * nothing to remove.
+	 */
+	boolean deleteLayout(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	);
 }

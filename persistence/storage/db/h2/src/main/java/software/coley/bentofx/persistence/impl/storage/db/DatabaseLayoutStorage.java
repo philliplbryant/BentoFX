@@ -7,7 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.coley.bentofx.persistence.core.api.storage.LayoutStorage;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -142,7 +146,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 	 */
 	@Override
 	public OutputStream openOutputStream() {
-        // Capture bytes, then persist on close()
+		// Capture bytes, then persist on close()
 		return new ByteArrayOutputStream() {
 			private final AtomicBoolean isStreamClosed = new AtomicBoolean();
 
@@ -222,7 +226,7 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 		requireNonNull(codecIdentifier, CODEC_IDENTIFIER_PARAMETER);
 
 		try (final EntityManager entityManager =
-				     entityManagerFactory.createEntityManager()) {
+					 entityManagerFactory.createEntityManager()) {
 
 			final List<?> identifiers =
 					entityManager.createNativeQuery(LAYOUT_IDENTIFIERS_QUERY)

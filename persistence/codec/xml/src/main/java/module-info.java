@@ -12,19 +12,19 @@ import software.coley.bentofx.persistence.impl.codec.xml.provider.XmlLayoutCodec
 @NullMarked
 module bento.fx.persistence.codec.xml {
 
-    requires transitive bento.fx.persistence.core;
+	requires transitive bento.fx.persistence.core;
 
-    requires bento.fx.persistence.codec.common;
+	requires bento.fx.persistence.codec.common;
 
-    requires com.fasterxml.jackson.annotation;
-    requires com.fasterxml.jackson.databind;
-    requires com.fasterxml.jackson.dataformat.xml;
-    requires java.xml;
+	requires com.fasterxml.jackson.annotation;
+	requires com.fasterxml.jackson.databind;
+	requires com.fasterxml.jackson.dataformat.xml;
+	requires java.xml;
 
-    requires static org.jspecify;
+	requires static org.jspecify;
 
-    exports software.coley.bentofx.persistence.impl.codec.xml;
-    exports software.coley.bentofx.persistence.impl.codec.xml.provider;
+	exports software.coley.bentofx.persistence.impl.codec.xml;
+	exports software.coley.bentofx.persistence.impl.codec.xml.provider;
 
-    provides LayoutCodecProvider with XmlLayoutCodecProvider;
+	provides LayoutCodecProvider with XmlLayoutCodecProvider;
 }

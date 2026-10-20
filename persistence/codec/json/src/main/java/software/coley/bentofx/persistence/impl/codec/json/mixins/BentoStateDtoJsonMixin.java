@@ -21,11 +21,11 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class BentoStateDtoJsonMixin {
 
-    @JsonProperty(ROOT_BRANCH_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockContainerRootBranchDto> rootBranches;
+	@JsonProperty(ROOT_BRANCH_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockContainerRootBranchDto> rootBranches;
 
-    @JsonProperty(DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DragDropStageDto> dragDropStages;
+	@JsonProperty(DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DragDropStageDto> dragDropStages;
 }

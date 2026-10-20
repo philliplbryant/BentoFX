@@ -12,22 +12,22 @@ import software.coley.bentofx.persistence.impl.codec.json.JsonLayoutCodec;
  */
 public class JsonLayoutCodecProvider implements LayoutCodecProvider {
 
-    /**
-     * Creates a {@link LayoutCodecProvider} for JSON.
-     */
-    public JsonLayoutCodecProvider() {
-        // This empty constructor exists merely to support Javadoc and its
-        // recommended practice for providing the comment for the default
-        // constructor.
-    }
+	/**
+	 * Creates a {@link LayoutCodecProvider} for JSON.
+	 */
+	public JsonLayoutCodecProvider() {
+		// This empty constructor exists merely to support Javadoc and its
+		// recommended practice for providing the comment for the default
+		// constructor.
+	}
 
-    @Override
-    public String getIdentifier() {
-        return JsonLayoutCodec.CODEC_IDENTIFIER;
-    }
+	@Override
+	public String getIdentifier() {
+		return JsonLayoutCodec.CODEC_IDENTIFIER;
+	}
 
-    @Override
-    public LayoutCodec getLayoutCodec() {
-        return new JsonLayoutCodec();
-    }
+	@Override
+	public LayoutCodec getLayoutCodec() {
+		return new JsonLayoutCodec();
+	}
 }

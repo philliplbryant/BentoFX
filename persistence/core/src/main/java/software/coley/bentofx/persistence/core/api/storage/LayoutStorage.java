@@ -21,43 +21,43 @@ import java.io.OutputStream;
  */
 public interface LayoutStorage extends AutoCloseable {
 
-    /**
-     * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.
-     * <p>
-     * {@code false} means there is no layout to read, not that the answer could
-     * not be obtained. Answering may cost a query or a filesystem call, and an
-     * implementation whose store is unreachable throws an unchecked exception
-     * rather than reporting the layout as missing.
-     *
-     * @return {@code true} if the stored layout exists; otherwise, returns {@code false}.
-     */
-    boolean exists();
+	/**
+	 * Returns {@code true} if the stored layout exists; otherwise, returns {@code false}.
+	 * <p>
+	 * {@code false} means there is no layout to read, not that the answer could
+	 * not be obtained. Answering may cost a query or a filesystem call, and an
+	 * implementation whose store is unreachable throws an unchecked exception
+	 * rather than reporting the layout as missing.
+	 *
+	 * @return {@code true} if the stored layout exists; otherwise, returns {@code false}.
+	 */
+	boolean exists();
 
-    /**
-     * Returns an opened {@link OutputStream} that is expected to be
-     * owned/managed by the caller.
-     * @return an opened {@link OutputStream} that is expected to be
-     * owned/managed by the caller.
-     * @throws IOException if an I/O error occurs.
-     */
-    OutputStream openOutputStream() throws IOException;
+	/**
+	 * Returns an opened {@link OutputStream} that is expected to be
+	 * owned/managed by the caller.
+	 * @return an opened {@link OutputStream} that is expected to be
+	 * owned/managed by the caller.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	OutputStream openOutputStream() throws IOException;
 
-    /**
-     * Returns an opened {@link InputStream} that is expected to be
-     * owned/managed by the caller.
-     * @return an opened {@link InputStream} that is expected to be
-     * owned/managed by the caller.
-     * @throws IOException if an I/O error occurs.
-     */
-    InputStream openInputStream() throws IOException;
+	/**
+	 * Returns an opened {@link InputStream} that is expected to be
+	 * owned/managed by the caller.
+	 * @return an opened {@link InputStream} that is expected to be
+	 * owned/managed by the caller.
+	 * @throws IOException if an I/O error occurs.
+	 */
+	InputStream openInputStream() throws IOException;
 
-    /**
-     * Releases any resources this storage holds. Called by the owning
-     * saver or restorer; see the ownership note on this interface before
-     * calling it directly.
-     */
-    @Override
-    default void close() {
-        // Default no-op. Implementations that own resources should override.
-    }
+	/**
+	 * Releases any resources this storage holds. Called by the owning
+	 * saver or restorer; see the ownership note on this interface before
+	 * calling it directly.
+	 */
+	@Override
+	default void close() {
+		// Default no-op. Implementations that own resources should override.
+	}
 }

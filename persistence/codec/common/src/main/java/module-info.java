@@ -13,21 +13,21 @@ import org.jspecify.annotations.NullMarked;
 @SuppressWarnings("module")
 module bento.fx.persistence.codec.common {
 
-    requires transitive bento.fx.persistence.core;
+	requires transitive bento.fx.persistence.core;
 
-    requires transitive javafx.graphics;
+	requires transitive javafx.graphics;
 
-    requires static org.jspecify;
+	requires static org.jspecify;
 
-    // Only the codecs built on this mapping may use it: the DTOs are mutable and
-    // the mapping is an implementation detail, not API an application should
-    // compile against.
-    exports software.coley.bentofx.persistence.impl.codec.common.mapper to
-            bento.fx.persistence.codec.json,
-            bento.fx.persistence.codec.xml;
-    exports software.coley.bentofx.persistence.impl.codec.common.mapper.dto to
-            bento.fx.persistence.codec.json,
-            bento.fx.persistence.codec.xml;
+	// Only the codecs built on this mapping may use it: the DTOs are mutable and
+	// the mapping is an implementation detail, not API an application should
+	// compile against.
+	exports software.coley.bentofx.persistence.impl.codec.common.mapper to
+			bento.fx.persistence.codec.json,
+			bento.fx.persistence.codec.xml;
+	exports software.coley.bentofx.persistence.impl.codec.common.mapper.dto to
+			bento.fx.persistence.codec.json,
+			bento.fx.persistence.codec.xml;
 
-    opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
+	opens software.coley.bentofx.persistence.impl.codec.common.mapper.dto;
 }

@@ -14,9 +14,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 abstract class DividerPositionDtoXmlMixin {
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Integer index;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Integer index;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Double position;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Double position;
 }

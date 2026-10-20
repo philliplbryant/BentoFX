@@ -22,32 +22,32 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DockContainerLeafDtoXmlMixin {
 
-    @JacksonXmlElementWrapper(localName = DOCKABLE_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = DOCKABLE_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockableDto> dockables;
+	@JacksonXmlElementWrapper(localName = DOCKABLE_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = DOCKABLE_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockableDto> dockables;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable String identifier;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable String identifier;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Boolean pruneWhenEmpty;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Boolean pruneWhenEmpty;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable String selectedDockableIdentifier;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable String selectedDockableIdentifier;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Side side;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Side side;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Boolean isResizableWithParent;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Boolean isResizableWithParent;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Boolean isCanSplit;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Boolean isCanSplit;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Double uncollapsedSizePx;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Double uncollapsedSizePx;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Boolean isCollapsed;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Boolean isCollapsed;
 }

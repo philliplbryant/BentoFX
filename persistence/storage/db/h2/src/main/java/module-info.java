@@ -12,32 +12,32 @@ import software.coley.bentofx.persistence.impl.storage.db.provider.DatabaseLayou
 @NullMarked
 module bento.fx.persistence.storage.db.h2Database {
 
-    requires transitive bento.fx.persistence.core;
-    requires transitive jakarta.persistence;
+	requires transitive bento.fx.persistence.core;
+	requires transitive jakarta.persistence;
 
-    requires static org.jspecify;
+	requires static org.jspecify;
 
-    requires com.zaxxer.hikari;
-    requires jakarta.cdi.lang.model;
-    requires jakarta.el;
-    requires jakarta.transaction;
-    requires jakarta.xml.bind;
-    requires net.bytebuddy;
+	requires com.zaxxer.hikari;
+	requires jakarta.cdi.lang.model;
+	requires jakarta.el;
+	requires jakarta.transaction;
+	requires jakarta.xml.bind;
+	requires net.bytebuddy;
 
-    requires org.hibernate.orm.core;
-    requires org.hibernate.orm.hikaricp;
-    requires org.hibernate.validator;
-    requires org.slf4j;
+	requires org.hibernate.orm.core;
+	requires org.hibernate.orm.hikaricp;
+	requires org.hibernate.validator;
+	requires org.slf4j;
 
-    // The storage and entity package is not exported: its classes are this
-    // provider's implementation, and the entity key must stay public for JPA,
-    // which would otherwise make it API. Hibernate reaches it through the opens
-    // below.
-    exports software.coley.bentofx.persistence.impl.storage.db.provider;
+	// The storage and entity package is not exported: its classes are this
+	// provider's implementation, and the entity key must stay public for JPA,
+	// which would otherwise make it API. Hibernate reaches it through the opens
+	// below.
+	exports software.coley.bentofx.persistence.impl.storage.db.provider;
 
-    opens software.coley.bentofx.persistence.impl.storage.db to
-            org.hibernate.orm.core;
+	opens software.coley.bentofx.persistence.impl.storage.db to
+			org.hibernate.orm.core;
 
-    provides LayoutStorageProvider with
-            DatabaseLayoutStorageProvider;
+	provides LayoutStorageProvider with
+			DatabaseLayoutStorageProvider;
 }

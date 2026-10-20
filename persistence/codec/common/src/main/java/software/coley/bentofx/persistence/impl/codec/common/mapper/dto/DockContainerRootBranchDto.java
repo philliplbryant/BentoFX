@@ -14,39 +14,39 @@ import java.util.List;
  */
 public class DockContainerRootBranchDto {
 
-    /**
-     * Creates an empty root branch DTO for a mapper to populate.
-     */
-    public DockContainerRootBranchDto() {
-        // This empty constructor exists merely to support Javadoc and its
-        // recommended practice for providing the comment for the default
-        // constructor.
-    }
+	/**
+	 * Creates an empty root branch DTO for a mapper to populate.
+	 */
+	public DockContainerRootBranchDto() {
+		// This empty constructor exists merely to support Javadoc and its
+		// recommended practice for providing the comment for the default
+		// constructor.
+	}
 
-    /**
-     * The root branch's identifier.
-     */
-    public @Nullable String identifier;
+	/**
+	 * The root branch's identifier.
+	 */
+	public @Nullable String identifier;
 
-    /**
-     * {@code true} when the root branch prunes itself once empty.
-     */
-    public @Nullable Boolean pruneWhenEmpty;
+	/**
+	 * {@code true} when the root branch prunes itself once empty.
+	 */
+	public @Nullable Boolean pruneWhenEmpty;
 
-    /**
-     * The root branch's orientation.
-     */
-    public @Nullable Orientation orientation;
+	/**
+	 * The root branch's orientation.
+	 */
+	public @Nullable Orientation orientation;
 
-    /**
-     * The positions of the dividers between this root branch's child containers.
-     */
-    public final List<DividerPositionDto> dividerPositions =
-            new ArrayList<>();
+	/**
+	 * The positions of the dividers between this root branch's child containers.
+	 */
+	public final List<DividerPositionDto> dividerPositions =
+			new ArrayList<>();
 
-    /**
-     * The child containers, in the order the root branch holds them.
-     */
-    public final List<DockContainerDto> childDockContainers =
-            new ArrayList<>();
+	/**
+	 * The child containers, in the order the root branch holds them.
+	 */
+	public final List<DockContainerDto> childDockContainers =
+			new ArrayList<>();
 }

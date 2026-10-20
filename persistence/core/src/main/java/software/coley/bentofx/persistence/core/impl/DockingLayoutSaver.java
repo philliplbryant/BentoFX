@@ -121,9 +121,9 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 	) {
 		super(bentoProvider);
 		this.bentoLayoutStateCaptor =
-                Objects.requireNonNull(bentoLayoutStateCaptor);
+				Objects.requireNonNull(bentoLayoutStateCaptor);
 		this.layoutStateWriter =
-                Objects.requireNonNull(layoutStateWriter);
+				Objects.requireNonNull(layoutStateWriter);
 	}
 
 	@Override

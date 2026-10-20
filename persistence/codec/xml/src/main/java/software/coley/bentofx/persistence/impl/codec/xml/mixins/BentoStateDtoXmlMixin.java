@@ -21,16 +21,16 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class BentoStateDtoXmlMixin {
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable String identifier;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable String identifier;
 
-    @JacksonXmlElementWrapper(localName = ROOT_BRANCH_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = ROOT_BRANCH_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockContainerRootBranchDto> rootBranches;
+	@JacksonXmlElementWrapper(localName = ROOT_BRANCH_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = ROOT_BRANCH_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockContainerRootBranchDto> rootBranches;
 
-    @JacksonXmlElementWrapper(localName = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = DRAG_DROP_STAGE_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DragDropStageDto> dragDropStages;
+	@JacksonXmlElementWrapper(localName = DRAG_DROP_STAGE_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = DRAG_DROP_STAGE_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DragDropStageDto> dragDropStages;
 }

@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test;
  */
 class DragDropStageStateTest {
 
-    @Test
-    void dragDropStageStateHonoursTheEqualsContract() {
-        StateVerifiers.configured()
-                .forClass(DragDropStageState.class)
-                // Objects.requireNonNull in the constructor; every other field
-                // is genuinely nullable and stays under null test.
-                .withNonnullFields("isAutoClosedWhenEmpty")
-                .verify();
-    }
+	@Test
+	void dragDropStageStateHonoursTheEqualsContract() {
+		StateVerifiers.configured()
+				.forClass(DragDropStageState.class)
+				// Objects.requireNonNull in the constructor; every other field
+				// is genuinely nullable and stays under null test.
+				.withNonnullFields("isAutoClosedWhenEmpty")
+				.verify();
+	}
 }

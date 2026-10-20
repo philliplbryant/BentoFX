@@ -23,17 +23,17 @@ import java.time.Instant;
 @Table(name = DockingLayoutEntity.TABLE_NAME)
 class DockingLayoutEntity {
 
-    static final String TABLE_NAME = "docking_layout";
+	static final String TABLE_NAME = "docking_layout";
 
-    static final String PAYLOAD_COLUMN_NAME = "payload";
+	static final String PAYLOAD_COLUMN_NAME = "payload";
 
-    @EmbeddedId
-    @Nullable DockingLayoutEntityCompositeKey key;
+	@EmbeddedId
+	@Nullable DockingLayoutEntityCompositeKey key;
 
-    @Lob
-    @Column(name = PAYLOAD_COLUMN_NAME, nullable = false)
-    byte[] payload = new byte[0];
+	@Lob
+	@Column(name = PAYLOAD_COLUMN_NAME, nullable = false)
+	byte[] payload = new byte[0];
 
-    @Column(name = "updated_at", nullable = false)
-    Instant updatedAt = Instant.EPOCH;
+	@Column(name = "updated_at", nullable = false)
+	Instant updatedAt = Instant.EPOCH;
 }

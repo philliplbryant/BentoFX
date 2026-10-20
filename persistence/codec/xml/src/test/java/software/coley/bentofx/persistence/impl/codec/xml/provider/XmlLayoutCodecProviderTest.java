@@ -8,30 +8,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class XmlLayoutCodecProviderTest {
 
-    @Test
-    void exposesXmlIdentifierAndIsNotDefault() {
-        final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
+	@Test
+	void exposesXmlIdentifierAndIsNotDefault() {
+		final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
 
-        assertThat(provider.getIdentifier())
-                .describedAs("provider.getIdentifier()")
-                .isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
-        assertThat(provider.isDefault())
-                .describedAs("provider.isDefault()")
-                .isFalse();
-    }
+		assertThat(provider.getIdentifier())
+				.describedAs("provider.getIdentifier()")
+				.isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
+		assertThat(provider.isDefault())
+				.describedAs("provider.isDefault()")
+				.isFalse();
+	}
 
-    @Test
-    void getLayoutCodecReturnsXmlLayoutCodec() {
-        final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
+	@Test
+	void getLayoutCodecReturnsXmlLayoutCodec() {
+		final XmlLayoutCodecProvider provider = new XmlLayoutCodecProvider();
 
-        final LayoutCodec codec = provider.getLayoutCodec();
+		final LayoutCodec codec = provider.getLayoutCodec();
 
-        assertThat(codec)
-                .describedAs("codec")
-                .isNotNull()
-                .isInstanceOf(XmlLayoutCodec.class);
-        assertThat(codec.getIdentifier())
-                .describedAs("codec.getIdentifier()")
-                .isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
-    }
+		assertThat(codec)
+				.describedAs("codec")
+				.isNotNull()
+				.isInstanceOf(XmlLayoutCodec.class);
+		assertThat(codec.getIdentifier())
+				.describedAs("codec.getIdentifier()")
+				.isEqualTo(XmlLayoutCodec.CODEC_IDENTIFIER);
+	}
 }

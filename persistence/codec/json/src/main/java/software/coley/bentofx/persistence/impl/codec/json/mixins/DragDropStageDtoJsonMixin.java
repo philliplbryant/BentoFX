@@ -16,6 +16,6 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DragDropStageDtoJsonMixin {
 
-    @JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
-    public @Nullable DockContainerRootBranchDto dockContainerRootBranchDto;
+	@JsonProperty(ROOT_BRANCH_ELEMENT_NAME)
+	public @Nullable DockContainerRootBranchDto dockContainerRootBranchDto;
 }

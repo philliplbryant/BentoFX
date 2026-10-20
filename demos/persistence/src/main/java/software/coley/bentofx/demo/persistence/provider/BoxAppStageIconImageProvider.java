@@ -21,44 +21,44 @@ import java.util.List;
  */
 public class BoxAppStageIconImageProvider implements StageIconImageProvider {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(BoxAppStageIconImageProvider.class);
+	private static final Logger logger =
+			LoggerFactory.getLogger(BoxAppStageIconImageProvider.class);
 
-    private static final List<String> ICON_RESOURCES = List.of(
-            "/images/logo-16.png",
-            "/images/logo-32.png",
-            "/images/logo-48.png",
-            "/images/logo-256.png"
-    );
+	private static final List<String> ICON_RESOURCES = List.of(
+			"/images/logo-16.png",
+			"/images/logo-32.png",
+			"/images/logo-48.png",
+			"/images/logo-256.png"
+	);
 
-    @Override
-    public Collection<Image> getStageIcons() {
+	@Override
+	public Collection<Image> getStageIcons() {
 
-        final List<Image> images = new ArrayList<>();
+		final List<Image> images = new ArrayList<>();
 
-        for (final String iconResource : ICON_RESOURCES) {
-            try (
-                    final InputStream inputStream =
-                            getClass().getResourceAsStream(iconResource)
-            ) {
-                if (inputStream == null) {
+		for (final String iconResource : ICON_RESOURCES) {
+			try (
+					final InputStream inputStream =
+							getClass().getResourceAsStream(iconResource)
+			) {
+				if (inputStream == null) {
 
-                    logger.warn(
-                            "Could not find the resource {}.", iconResource
-                    );
-                } else {
+					logger.warn(
+							"Could not find the resource {}.", iconResource
+					);
+				} else {
 
-                    images.add(new Image(inputStream));
-                }
-            } catch (IOException e) {
+					images.add(new Image(inputStream));
+				}
+			} catch (IOException e) {
 
-                logger.warn(
-                        "Could not read the resource {}.", iconResource,
-                        e
-                );
-            }
-        }
+				logger.warn(
+						"Could not read the resource {}.", iconResource,
+						e
+				);
+			}
+		}
 
-        return images;
-    }
+		return images;
+	}
 }

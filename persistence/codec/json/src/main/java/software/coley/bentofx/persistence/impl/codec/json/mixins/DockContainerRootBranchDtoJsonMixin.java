@@ -21,11 +21,11 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DockContainerRootBranchDtoJsonMixin {
 
-    @JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DividerPositionDto> dividerPositions;
+	@JsonProperty(DIVIDER_POSITION_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DividerPositionDto> dividerPositions;
 
-    @JsonProperty(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockContainerDto> childDockContainers;
+	@JsonProperty(CHILD_DOCK_CONTAINER_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockContainerDto> childDockContainers;
 }

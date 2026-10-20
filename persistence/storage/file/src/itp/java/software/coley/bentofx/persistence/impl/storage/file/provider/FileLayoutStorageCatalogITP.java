@@ -54,11 +54,11 @@ class FileLayoutStorageCatalogITP {
 				new FileLayoutStorageProvider();
 
 		try (final LayoutStorage storage =
-				     provider.getLayoutStorage(
-						     "redirect-probe",
-						     CODEC_IDENTIFIER
-				     );
-		     final OutputStream outputStream = storage.openOutputStream()
+					 provider.getLayoutStorage(
+							 "redirect-probe",
+							 CODEC_IDENTIFIER
+					 );
+			 final OutputStream outputStream = storage.openOutputStream()
 		) {
 
 			outputStream.write(LAYOUT_CONTENT.getBytes(UTF_8));
@@ -232,8 +232,8 @@ class FileLayoutStorageCatalogITP {
 			final String layoutIdentifier
 	) throws IOException {
 		try (final LayoutStorage storage =
-				     provider.getLayoutStorage(layoutIdentifier, CODEC_IDENTIFIER);
-		     final OutputStream outputStream = storage.openOutputStream()) {
+					 provider.getLayoutStorage(layoutIdentifier, CODEC_IDENTIFIER);
+			 final OutputStream outputStream = storage.openOutputStream()) {
 			outputStream.write(LAYOUT_CONTENT.getBytes(UTF_8));
 		}
 	}

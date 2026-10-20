@@ -167,9 +167,9 @@ public interface DockingLayoutPersistenceProvider {
 	 * order.}
 	 *
 	 * <p>The profile selects the codec and the storage. This reports every layout
-     * the destination holds, which includes the one the application saves
-     * automatically, so a list of layouts a user may restore should filter
-     * that one out.</p>
+	 * the destination holds, which includes the one the application saves
+	 * automatically, so a list of layouts a user may restore should filter
+	 * that one out.</p>
 	 *
 	 * <p>An empty list means the destination holds no layouts, or that the storage
 	 * implementation cannot enumerate them.</p>

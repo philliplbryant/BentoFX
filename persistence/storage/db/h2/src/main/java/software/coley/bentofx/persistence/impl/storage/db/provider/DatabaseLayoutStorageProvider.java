@@ -39,138 +39,138 @@ import java.util.Map;
  */
 public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {
 
-    private static final String IDENTIFIER = "h2";
+	private static final String IDENTIFIER = "h2";
 
-    private static final String PERSISTENCE_UNIT_NAME = "bentoLayout";
+	private static final String PERSISTENCE_UNIT_NAME = "bentoLayout";
 
-    private static final String JDBC_URL_PROPERTY = "jakarta.persistence.jdbc.url";
+	private static final String JDBC_URL_PROPERTY = "jakarta.persistence.jdbc.url";
 
-    /**
-     * The H2 database file's basename, below the resolved BentoFX home. H2
-     * appends its own extension, so this never collides with the file-backed
-     * provider's identically-named {@code layouts} directory - a directory
-     * and a {@code layouts.mv.db} file are different filesystem entries.
-     */
-    private static final String DATABASE_FILE_NAME = "layouts";
+	/**
+	 * The H2 database file's basename, below the resolved BentoFX home. H2
+	 * appends its own extension, so this never collides with the file-backed
+	 * provider's identically-named {@code layouts} directory - a directory
+	 * and a {@code layouts.mv.db} file are different filesystem entries.
+	 */
+	private static final String DATABASE_FILE_NAME = "layouts";
 
-    /**
-     * One factory per database file, so storages already handed out keep the
-     * factory they were given when the home changes. Guarded by this
-     * provider's monitor.
-     */
-    private final Map<Path, EntityManagerFactory> entityManagerFactories =
-            new HashMap<>();
+	/**
+	 * One factory per database file, so storages already handed out keep the
+	 * factory they were given when the home changes. Guarded by this
+	 * provider's monitor.
+	 */
+	private final Map<Path, EntityManagerFactory> entityManagerFactories =
+			new HashMap<>();
 
-    /**
-     * Creates a {@code DatabaseLayoutStorageProvider} for persisting Bento
-     * layouts to an H2 database.
-     */
-    public DatabaseLayoutStorageProvider() {
-        // This empty constructor exists merely to support Javadoc and its
-        // recommended practice for providing the comment for the default
-        // constructor.
-    }
+	/**
+	 * Creates a {@code DatabaseLayoutStorageProvider} for persisting Bento
+	 * layouts to an H2 database.
+	 */
+	public DatabaseLayoutStorageProvider() {
+		// This empty constructor exists merely to support Javadoc and its
+		// recommended practice for providing the comment for the default
+		// constructor.
+	}
 
-    @Override
-    public String getIdentifier() {
-        return IDENTIFIER;
-    }
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER;
+	}
 
-    @Override
-    public LayoutStorage getLayoutStorage(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
+	@Override
+	public LayoutStorage getLayoutStorage(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
-        return new DatabaseLayoutStorage(
-                getEntityManagerFactory(),
-                layoutIdentifier,
-                codecIdentifier
-        );
-    }
+		return new DatabaseLayoutStorage(
+				getEntityManagerFactory(),
+				layoutIdentifier,
+				codecIdentifier
+		);
+	}
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>One row per layout and codec, so the layouts stored are the layout
-     * identifiers on rows with a payload.</p>
-     */
-    @Override
-    public List<String> getLayoutIdentifiers(final String codecIdentifier) {
-        return DatabaseLayoutStorage.getLayoutIdentifiers(
-                getEntityManagerFactory(),
-                codecIdentifier
-        );
-    }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>One row per layout and codec, so the layouts stored are the layout
+	 * identifiers on rows with a payload.</p>
+	 */
+	@Override
+	public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+		return DatabaseLayoutStorage.getLayoutIdentifiers(
+				getEntityManagerFactory(),
+				codecIdentifier
+		);
+	}
 
-    @Override
-    public boolean deleteLayout(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
+	@Override
+	public boolean deleteLayout(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		LayoutIdentifiers.requireValid(layoutIdentifier, codecIdentifier);
 
-        return DatabaseLayoutStorage.deleteLayout(
-                getEntityManagerFactory(),
-                layoutIdentifier,
-                codecIdentifier
-        );
-    }
+		return DatabaseLayoutStorage.deleteLayout(
+				getEntityManagerFactory(),
+				layoutIdentifier,
+				codecIdentifier
+		);
+	}
 
-    /**
-     * {@return the {@link EntityManagerFactory} for the database the current home
-     * resolves to, creating it when this is the first call to need it.}
-     *
-     * <p>Synchronized because the first caller is the one that creates it, and
-     * nothing says a saver, a restorer and a catalog lookup happen on one
-     * thread.</p>
-     *
-     * <p>The JDBC URL {@code META-INF/persistence.xml} declares is overridden
-     * here with one built from {@link LayoutStorageLocations#resolveBentoFxHome()},
-     * so the two properties it reads apply to this provider the same way they
-     * apply to the file-backed one - the XML value is what a JPA tool sees if
-     * it opens this persistence unit directly, not what this class actually
-     * uses.</p>
-     */
-    private synchronized EntityManagerFactory getEntityManagerFactory() {
-        // Resolved on every call, as the file-backed provider does, so a home
-        // changed after this provider was first used takes effect here too.
-        final Path databaseFile =
-                LayoutStorageLocations.resolveBentoFxHome().resolve(DATABASE_FILE_NAME);
+	/**
+	 * {@return the {@link EntityManagerFactory} for the database the current home
+	 * resolves to, creating it when this is the first call to need it.}
+	 *
+	 * <p>Synchronized because the first caller is the one that creates it, and
+	 * nothing says a saver, a restorer and a catalog lookup happen on one
+	 * thread.</p>
+	 *
+	 * <p>The JDBC URL {@code META-INF/persistence.xml} declares is overridden
+	 * here with one built from {@link LayoutStorageLocations#resolveBentoFxHome()},
+	 * so the two properties it reads apply to this provider the same way they
+	 * apply to the file-backed one - the XML value is what a JPA tool sees if
+	 * it opens this persistence unit directly, not what this class actually
+	 * uses.</p>
+	 */
+	private synchronized EntityManagerFactory getEntityManagerFactory() {
+		// Resolved on every call, as the file-backed provider does, so a home
+		// changed after this provider was first used takes effect here too.
+		final Path databaseFile =
+				LayoutStorageLocations.resolveBentoFxHome().resolve(DATABASE_FILE_NAME);
 
-        return entityManagerFactories.computeIfAbsent(
-                databaseFile,
-                DatabaseLayoutStorageProvider::createEntityManagerFactory
-        );
-    }
+		return entityManagerFactories.computeIfAbsent(
+				databaseFile,
+				DatabaseLayoutStorageProvider::createEntityManagerFactory
+		);
+	}
 
-    /**
-     * {@return a new {@link EntityManagerFactory} for the database file.}
-     *
-     * @param databaseFile the database file, without H2's extension.
-     * @throws IllegalStateException when the path holds a {@code ;}, which H2
-     * would read as the start of its URL settings. H2 cannot escape one in a
-     * file path, so such a path would either fail to open or, worse, have part
-     * of it applied as settings.
-     */
-    private static EntityManagerFactory createEntityManagerFactory(
-            final Path databaseFile
-    ) {
-        final String path = databaseFile.toString();
+	/**
+	 * {@return a new {@link EntityManagerFactory} for the database file.}
+	 *
+	 * @param databaseFile the database file, without H2's extension.
+	 * @throws IllegalStateException when the path holds a {@code ;}, which H2
+	 * would read as the start of its URL settings. H2 cannot escape one in a
+	 * file path, so such a path would either fail to open or, worse, have part
+	 * of it applied as settings.
+	 */
+	private static EntityManagerFactory createEntityManagerFactory(
+			final Path databaseFile
+	) {
+		final String path = databaseFile.toString();
 
-        if (path.indexOf(';') >= 0) {
-            throw new IllegalStateException(
-                    "The H2 layout database cannot be kept at '" + path + "': "
-                            + "H2 reads ';' in a database path as the start of its "
-                            + "settings. Choose a home directory without one ("
-                            + LayoutStorageLocations.HOME_DIRECTORY_PROPERTY + ")."
-            );
-        }
+		if (path.indexOf(';') >= 0) {
+			throw new IllegalStateException(
+					"The H2 layout database cannot be kept at '" + path + "': "
+							+ "H2 reads ';' in a database path as the start of its "
+							+ "settings. Choose a home directory without one ("
+							+ LayoutStorageLocations.HOME_DIRECTORY_PROPERTY + ")."
+			);
+		}
 
-        return Persistence.createEntityManagerFactory(
-                PERSISTENCE_UNIT_NAME,
-                Map.of(JDBC_URL_PROPERTY, "jdbc:h2:file:" + path)
-        );
-    }
+		return Persistence.createEntityManagerFactory(
+				PERSISTENCE_UNIT_NAME,
+				Map.of(JDBC_URL_PROPERTY, "jdbc:h2:file:" + path)
+		);
+	}
 }

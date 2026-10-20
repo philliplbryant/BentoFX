@@ -25,11 +25,11 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JacksonXmlRootElement(localName = DOCKING_LAYOUT_ROOT_ELEMENT_NAME)
 abstract class DockingLayoutDtoXmlMixin {
 
-    @JacksonXmlProperty(localName = METADATA_ELEMENT_NAME)
-    public @Nullable LayoutMetadataDto metadata;
+	@JacksonXmlProperty(localName = METADATA_ELEMENT_NAME)
+	public @Nullable LayoutMetadataDto metadata;
 
-    @JacksonXmlElementWrapper(localName = BENTO_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = BENTO_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<BentoStateDto> bentoStates;
+	@JacksonXmlElementWrapper(localName = BENTO_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = BENTO_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<BentoStateDto> bentoStates;
 }

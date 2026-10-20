@@ -21,67 +21,67 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Phil Bryant
  */
 public final class ThreadRecordingLayoutStorage implements LayoutStorage {
-    private final AtomicReference<@Nullable Thread> existsThread = new AtomicReference<>();
-    private final AtomicReference<@Nullable Thread> openInputStreamThread = new AtomicReference<>();
-    private final AtomicReference<@Nullable Thread> openOutputStreamThread = new AtomicReference<>();
-    private final AtomicReference<byte[]> storedBytes = new AtomicReference<>(new byte[0]);
+	private final AtomicReference<@Nullable Thread> existsThread = new AtomicReference<>();
+	private final AtomicReference<@Nullable Thread> openInputStreamThread = new AtomicReference<>();
+	private final AtomicReference<@Nullable Thread> openOutputStreamThread = new AtomicReference<>();
+	private final AtomicReference<byte[]> storedBytes = new AtomicReference<>(new byte[0]);
 
-    @Override
-    public boolean exists() {
-        existsThread.set(Thread.currentThread());
-        return storedBytes.get().length > 0;
-    }
+	@Override
+	public boolean exists() {
+		existsThread.set(Thread.currentThread());
+		return storedBytes.get().length > 0;
+	}
 
-    @Override
-    public OutputStream openOutputStream() {
-        openOutputStreamThread.set(Thread.currentThread());
+	@Override
+	public OutputStream openOutputStream() {
+		openOutputStreamThread.set(Thread.currentThread());
 
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        return new FilterOutputStream(buffer) {
-            @Override
-            public void close() throws IOException {
-                super.close();
-                storedBytes.set(buffer.toByteArray());
-            }
-        };
-    }
+		return new FilterOutputStream(buffer) {
+			@Override
+			public void close() throws IOException {
+				super.close();
+				storedBytes.set(buffer.toByteArray());
+			}
+		};
+	}
 
-    @Override
-    public InputStream openInputStream() {
-        openInputStreamThread.set(Thread.currentThread());
-        return new ByteArrayInputStream(storedBytes.get());
-    }
+	@Override
+	public InputStream openInputStream() {
+		openInputStreamThread.set(Thread.currentThread());
+		return new ByteArrayInputStream(storedBytes.get());
+	}
 
-    /**
-     * {@return the thread that last called {@link #exists()}, or {@code null} when
-     * it has not been called.}
-     */
-    public @Nullable Thread getExistsThread() {
-        return existsThread.get();
-    }
+	/**
+	 * {@return the thread that last called {@link #exists()}, or {@code null} when
+	 * it has not been called.}
+	 */
+	public @Nullable Thread getExistsThread() {
+		return existsThread.get();
+	}
 
-    /**
-     * {@return the thread that last called {@link #openInputStream()}, or
-     * {@code null} when it has not been called.}
-     */
-    public @Nullable Thread getOpenInputStreamThread() {
-        return openInputStreamThread.get();
-    }
+	/**
+	 * {@return the thread that last called {@link #openInputStream()}, or
+	 * {@code null} when it has not been called.}
+	 */
+	public @Nullable Thread getOpenInputStreamThread() {
+		return openInputStreamThread.get();
+	}
 
-    /**
-     * {@return the thread that last called {@link #openOutputStream()}, or
-     * {@code null} when it has not been called.}
-     */
-    public @Nullable Thread getOpenOutputStreamThread() {
-        return openOutputStreamThread.get();
-    }
+	/**
+	 * {@return the thread that last called {@link #openOutputStream()}, or
+	 * {@code null} when it has not been called.}
+	 */
+	public @Nullable Thread getOpenOutputStreamThread() {
+		return openOutputStreamThread.get();
+	}
 
-    /**
-     * {@return a copy of the stored bytes, which are the bytes of the last stream
-     * that was closed.}
-     */
-    public byte[] toByteArray() {
-        return storedBytes.get().clone();
-    }
+	/**
+	 * {@return a copy of the stored bytes, which are the bytes of the last stream
+	 * that was closed.}
+	 */
+	public byte[] toByteArray() {
+		return storedBytes.get().clone();
+	}
 }

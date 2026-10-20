@@ -47,8 +47,8 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 	 * @param layoutCodec the {@link LayoutCodec} to use to decode the persisted
 	 * layout.
 	 * @param layoutStorage the {@link LayoutStorage} to use to read the
-     * persisted layout. This restorer takes ownership of it and closes it from
-     * {@link #close()}, so the same instance must not also be given to a
+	 * persisted layout. This restorer takes ownership of it and closes it from
+	 * {@link #close()}, so the same instance must not also be given to a
 	 * {@code LayoutSaver}.
 	 * @param bentoProvider the {@link BentoProvider} to use to get {@link Bento}
 	 * instances from their identifier.
@@ -58,9 +58,9 @@ public class DockingLayoutRestorer implements LayoutRestorer {
 	 * @param stageIconImageProvider the {@link StageIconImageProvider} to use
 	 * to get icons for restored {@link DragDropStage} instances.
 	 * @param dockContainerLeafMenuFactoryProvider the
-     * {@link DockContainerLeafMenuFactoryProvider} to use to get
-     * {@link DockContainerLeafMenuFactory} for restored
-     * {@link DockContainerLeaf} instances.
+	 * {@link DockContainerLeafMenuFactoryProvider} to use to get
+	 * {@link DockContainerLeafMenuFactory} for restored
+	 * {@link DockContainerLeaf} instances.
 	 */
 	public DockingLayoutRestorer(
 			final LayoutCodec layoutCodec,

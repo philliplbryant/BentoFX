@@ -10,19 +10,19 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 module bento.fx.demo.persistence {
 
-    requires bento.fx;
-    requires bento.fx.persistence.core;
+	requires bento.fx;
+	requires bento.fx.persistence.core;
 
-    requires java.logging;
-    requires javafx.controls;
-    requires org.slf4j;
+	requires java.logging;
+	requires javafx.controls;
+	requires org.slf4j;
 
-    requires static org.jspecify;
+	requires static org.jspecify;
 
-    // This must be exported for the JavaFX launcher to access the
-    // application classes in them.
-    exports software.coley.bentofx.demo.persistence;
+	// This must be exported for the JavaFX launcher to access the
+	// application classes in them.
+	exports software.coley.bentofx.demo.persistence;
 
-    // No 'uses' clause for the persistence provider: DockingLayoutPersistence
-    // performs that lookup inside the persistence API module.
+	// No 'uses' clause for the persistence provider: DockingLayoutPersistence
+	// performs that lookup inside the persistence API module.
 }

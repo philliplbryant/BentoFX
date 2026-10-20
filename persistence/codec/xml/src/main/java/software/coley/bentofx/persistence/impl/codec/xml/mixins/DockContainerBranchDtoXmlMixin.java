@@ -23,21 +23,21 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DockContainerBranchDtoXmlMixin {
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable String identifier;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable String identifier;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Boolean pruneWhenEmpty;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Boolean pruneWhenEmpty;
 
-    @JacksonXmlElementWrapper(localName = DIVIDER_POSITION_LIST_ELEMENT_NAME)
-    @JacksonXmlProperty(localName = DIVIDER_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DividerPositionDto> dividerPositions;
+	@JacksonXmlElementWrapper(localName = DIVIDER_POSITION_LIST_ELEMENT_NAME)
+	@JacksonXmlProperty(localName = DIVIDER_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DividerPositionDto> dividerPositions;
 
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<DockContainerDto> childDockContainers;
+	@JacksonXmlElementWrapper(useWrapping = false)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<DockContainerDto> childDockContainers;
 
-    @JacksonXmlProperty(isAttribute = true)
-    public @Nullable Orientation orientation;
+	@JacksonXmlProperty(isAttribute = true)
+	public @Nullable Orientation orientation;
 }

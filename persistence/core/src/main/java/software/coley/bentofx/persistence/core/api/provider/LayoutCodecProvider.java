@@ -16,9 +16,9 @@ import software.coley.bentofx.persistence.core.api.codec.LayoutCodec;
  */
 public interface LayoutCodecProvider extends LayoutPersistenceComponentProvider {
 
-    /**
-     * Returns a {@link LayoutCodec}.
-     * @return a {@link LayoutCodec}
-     */
-    LayoutCodec getLayoutCodec();
+	/**
+	 * Returns a {@link LayoutCodec}.
+	 * @return a {@link LayoutCodec}
+	 */
+	LayoutCodec getLayoutCodec();
 }

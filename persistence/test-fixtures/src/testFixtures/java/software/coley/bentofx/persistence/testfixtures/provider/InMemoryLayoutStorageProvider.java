@@ -32,66 +32,66 @@ import java.util.Map;
  * @author Phil Bryant
  */
 public final class InMemoryLayoutStorageProvider
-        extends AbstractConfigurableLayoutProvider
-        implements LayoutStorageProvider {
+		extends AbstractConfigurableLayoutProvider
+		implements LayoutStorageProvider {
 
-    private final Map<String, InMemoryLayoutStorage> storagesByLayoutIdentifier =
-            new LinkedHashMap<>();
+	private final Map<String, InMemoryLayoutStorage> storagesByLayoutIdentifier =
+			new LinkedHashMap<>();
 
-    /**
-     * Creates a provider reporting {@code "in-memory"} as its identifier and as
-     * the default.
-     */
-    public InMemoryLayoutStorageProvider() {
-        super("in-memory", true);
-    }
+	/**
+	 * Creates a provider reporting {@code "in-memory"} as its identifier and as
+	 * the default.
+	 */
+	public InMemoryLayoutStorageProvider() {
+		super("in-memory", true);
+	}
 
-    @Override
-    public LayoutStorage getLayoutStorage(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        return storagesByLayoutIdentifier.computeIfAbsent(
-                layoutIdentifier,
-                key -> new InMemoryLayoutStorage()
-        );
-    }
+	@Override
+	public LayoutStorage getLayoutStorage(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		return storagesByLayoutIdentifier.computeIfAbsent(
+				layoutIdentifier,
+				key -> new InMemoryLayoutStorage()
+		);
+	}
 
-    @Override
-    public List<String> getLayoutIdentifiers(final String codecIdentifier) {
-        final List<String> identifiers = new ArrayList<>();
-        storagesByLayoutIdentifier.forEach((identifier, storage) -> {
-            if (storage.exists()) {
-                identifiers.add(identifier);
-            }
-        });
-        return identifiers;
-    }
+	@Override
+	public List<String> getLayoutIdentifiers(final String codecIdentifier) {
+		final List<String> identifiers = new ArrayList<>();
+		storagesByLayoutIdentifier.forEach((identifier, storage) -> {
+			if (storage.exists()) {
+				identifiers.add(identifier);
+			}
+		});
+		return identifiers;
+	}
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Overridden to answer from the backing map rather than through the
-     * {@link #getLayoutStorage} default, so that asking about a layout that was
-     * never stored does not create an empty entry for it.</p>
-     */
-    @Override
-    public boolean isLayoutStored(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        final InMemoryLayoutStorage storage =
-                storagesByLayoutIdentifier.get(layoutIdentifier);
-        return storage != null && storage.exists();
-    }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>Overridden to answer from the backing map rather than through the
+	 * {@link #getLayoutStorage} default, so that asking about a layout that was
+	 * never stored does not create an empty entry for it.</p>
+	 */
+	@Override
+	public boolean isLayoutStored(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		final InMemoryLayoutStorage storage =
+				storagesByLayoutIdentifier.get(layoutIdentifier);
+		return storage != null && storage.exists();
+	}
 
-    @Override
-    public boolean deleteLayout(
-            final String layoutIdentifier,
-            final String codecIdentifier
-    ) {
-        final InMemoryLayoutStorage removed =
-                storagesByLayoutIdentifier.remove(layoutIdentifier);
-        return removed != null && removed.exists();
-    }
+	@Override
+	public boolean deleteLayout(
+			final String layoutIdentifier,
+			final String codecIdentifier
+	) {
+		final InMemoryLayoutStorage removed =
+				storagesByLayoutIdentifier.remove(layoutIdentifier);
+		return removed != null && removed.exists();
+	}
 }

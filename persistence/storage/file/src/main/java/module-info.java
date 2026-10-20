@@ -12,12 +12,12 @@ import software.coley.bentofx.persistence.impl.storage.file.provider.FileLayoutS
 @NullMarked
 module bento.fx.persistence.storage.file {
 
-    requires transitive bento.fx.persistence.core;
+	requires transitive bento.fx.persistence.core;
 
-    requires static org.jspecify;
+	requires static org.jspecify;
 
-    exports software.coley.bentofx.persistence.impl.storage.file;
-    exports software.coley.bentofx.persistence.impl.storage.file.provider;
+	exports software.coley.bentofx.persistence.impl.storage.file;
+	exports software.coley.bentofx.persistence.impl.storage.file.provider;
 
-    provides LayoutStorageProvider with FileLayoutStorageProvider;
+	provides LayoutStorageProvider with FileLayoutStorageProvider;
 }

@@ -21,10 +21,10 @@ import static software.coley.bentofx.persistence.impl.codec.common.mapper.Elemen
 @JsonInclude(NON_NULL)
 abstract class DockingLayoutDtoJsonMixin {
 
-    @JsonProperty(METADATA_ELEMENT_NAME)
-    public @Nullable LayoutMetadataDto metadata;
+	@JsonProperty(METADATA_ELEMENT_NAME)
+	public @Nullable LayoutMetadataDto metadata;
 
-    @JsonProperty(BENTO_LIST_ELEMENT_NAME)
-    @JsonInclude(NON_EMPTY)
-    public @Nullable List<BentoStateDto> bentoStates;
+	@JsonProperty(BENTO_LIST_ELEMENT_NAME)
+	@JsonInclude(NON_EMPTY)
+	public @Nullable List<BentoStateDto> bentoStates;
 }

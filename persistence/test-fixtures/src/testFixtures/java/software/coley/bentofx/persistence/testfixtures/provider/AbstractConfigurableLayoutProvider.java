@@ -12,32 +12,32 @@ import software.coley.bentofx.persistence.core.api.provider.LayoutPersistenceCom
  * @author Phil Bryant
  */
 public abstract class AbstractConfigurableLayoutProvider
-        implements LayoutPersistenceComponentProvider {
+		implements LayoutPersistenceComponentProvider {
 
-    private final String identifier;
-    private final boolean defaultProvider;
+	private final String identifier;
+	private final boolean defaultProvider;
 
-    /**
-     * Creates a provider that reports the supplied identifier and default flag.
-     *
-     * @param identifier the identifier this provider answers to.
-     * @param defaultProvider whether this provider is the default one.
-     */
-    protected AbstractConfigurableLayoutProvider(
-            final String identifier,
-            final boolean defaultProvider
-    ) {
-        this.identifier = identifier;
-        this.defaultProvider = defaultProvider;
-    }
+	/**
+	 * Creates a provider that reports the supplied identifier and default flag.
+	 *
+	 * @param identifier the identifier this provider answers to.
+	 * @param defaultProvider whether this provider is the default one.
+	 */
+	protected AbstractConfigurableLayoutProvider(
+			final String identifier,
+			final boolean defaultProvider
+	) {
+		this.identifier = identifier;
+		this.defaultProvider = defaultProvider;
+	}
 
-    @Override
-    public final String getIdentifier() {
-        return identifier;
-    }
+	@Override
+	public final String getIdentifier() {
+		return identifier;
+	}
 
-    @Override
-    public final boolean isDefault() {
-        return defaultProvider;
-    }
+	@Override
+	public final boolean isDefault() {
+		return defaultProvider;
+	}
 }

@@ -8,22 +8,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PersistableLayoutTest {
 
-    @Test
-    void findDisplayNameReturnsTheDisplayNameWhenPresent() {
-        final PersistableLayout layout =
-                new PersistableLayout("Multi-Monitor", List.of());
+	@Test
+	void findDisplayNameReturnsTheDisplayNameWhenPresent() {
+		final PersistableLayout layout =
+				new PersistableLayout("Multi-Monitor", List.of());
 
-        assertThat(layout.findDisplayName())
-                .describedAs("findDisplayName() with a display name")
-                .contains("Multi-Monitor");
-    }
+		assertThat(layout.findDisplayName())
+				.describedAs("findDisplayName() with a display name")
+				.contains("Multi-Monitor");
+	}
 
-    @Test
-    void findDisplayNameIsEmptyWhenTheLayoutHasNoDisplayName() {
-        final PersistableLayout layout = PersistableLayout.of(List.of());
+	@Test
+	void findDisplayNameIsEmptyWhenTheLayoutHasNoDisplayName() {
+		final PersistableLayout layout = PersistableLayout.of(List.of());
 
-        assertThat(layout.findDisplayName())
-                .describedAs("findDisplayName() with no display name")
-                .isEmpty();
-    }
+		assertThat(layout.findDisplayName())
+				.describedAs("findDisplayName() with no display name")
+				.isEmpty();
+	}
 }

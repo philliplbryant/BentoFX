@@ -1,8 +1,8 @@
 plugins {
-    alias(libs.plugins.javafx)
-    id 'bento.project.project-convention'
-    id 'bento.release.publish-convention'
-    id 'bento.test.integration-test-graphical-suite'
+	alias(libs.plugins.javafx)
+	id 'bento.project.project-convention'
+	id 'bento.release.publish-convention'
+	id 'bento.test.integration-test-graphical-suite'
 }
 
 description = "BentoFX Persistence Core"
@@ -16,9 +16,9 @@ description = "BentoFX Persistence Core"
  * rather than demanding a comment on every member.</p>
  */
 javadoc {
-    options {
-        addStringOption('Xdoclint:all,-missing', '-quiet')
-    }
+	options {
+		addStringOption('Xdoclint:all,-missing', '-quiet')
+	}
 }
 
 /**
@@ -29,39 +29,39 @@ javadoc {
  * the same source at {@code PRIVATE} member level.</p>
  */
 def javadocLint = tasks.register('javadocLint', Javadoc) {
-    description = 'Fails when any Javadoc in this module is malformed, including on non-public members.'
-    group = 'verification'
+	description = 'Fails when any Javadoc in this module is malformed, including on non-public members.'
+	group = 'verification'
 
-    source = sourceSets.main.allJava
-    classpath = sourceSets.main.compileClasspath
-    destinationDir = layout.buildDirectory.dir('docs/javadoc-lint').get().asFile
+	source = sourceSets.main.allJava
+	classpath = sourceSets.main.compileClasspath
+	destinationDir = layout.buildDirectory.dir('docs/javadoc-lint').get().asFile
 
-    options.memberLevel = JavadocMemberLevel.PRIVATE
-    options.addStringOption('Xdoclint:all,-missing', '-quiet')
+	options.memberLevel = JavadocMemberLevel.PRIVATE
+	options.addStringOption('Xdoclint:all,-missing', '-quiet')
 }
 
 tasks.named('check') {
-    dependsOn javadocLint
+	dependsOn javadocLint
 }
 
 javafx {
-    modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
-    configurations = ['api','integrationTestGraphicalImplementation']
+	modules = ['javafx.base', 'javafx.controls', 'javafx.graphics']
+	configurations = ['api','integrationTestGraphicalImplementation']
 }
 
 dependencies {
-    api projects.core
+	api projects.core
 
-    implementation libs.slf4j.api
+	implementation libs.slf4j.api
 
-    testImplementation testFixtures(projects.persistence.testFixtures)
+	testImplementation testFixtures(projects.persistence.testFixtures)
 
-    testImplementation libs.equals.verifier
-    testImplementation libs.junit.params
+	testImplementation libs.equals.verifier
+	testImplementation libs.junit.params
 
-    integrationTestGraphicalImplementation testFixtures(projects.persistence.testFixtures)
+	integrationTestGraphicalImplementation testFixtures(projects.persistence.testFixtures)
 
-    integrationTestGraphicalImplementation libs.junit.params
+	integrationTestGraphicalImplementation libs.junit.params
 
-    integrationTestGraphicalRuntimeOnly libs.slf4j.simple
+	integrationTestGraphicalRuntimeOnly libs.slf4j.simple
 }

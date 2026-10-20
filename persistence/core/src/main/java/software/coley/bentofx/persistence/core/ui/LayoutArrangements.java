@@ -7,9 +7,19 @@ import software.coley.bentofx.layout.container.DockContainerBranch;
 import software.coley.bentofx.layout.container.DockContainerLeaf;
 import software.coley.bentofx.layout.container.DockContainerRootBranch;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
-import software.coley.bentofx.persistence.core.api.state.*;
+import software.coley.bentofx.persistence.core.api.state.BentoState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerLeafState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerRootBranchState;
+import software.coley.bentofx.persistence.core.api.state.DockContainerState;
+import software.coley.bentofx.persistence.core.api.state.DragDropStageState;
+import software.coley.bentofx.persistence.core.api.state.IdentifiableState;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Compares stored layout state with what each {@link Bento} is showing.
@@ -78,8 +88,8 @@ final class LayoutArrangements {
 	 * @param bentoState the state to read.
 	 */
 	private static List<DockContainerRootBranchState> getDockContainerRootBranchStates(
-            final BentoState bentoState
-    ) {
+			final BentoState bentoState
+	) {
 		final List<DockContainerRootBranchState> roots =
 				new ArrayList<>(bentoState.getRootBranchStates());
 
@@ -110,7 +120,7 @@ final class LayoutArrangements {
 		}
 
 		final List<DockContainerRootBranch> unmatched =
-                new ArrayList<>(actualRoots);
+				new ArrayList<>(actualRoots);
 
 		for (final DockContainerRootBranchState expectedRoot : expectedRoots) {
 			if (!removeFirstMatch(unmatched, expectedRoot)) {

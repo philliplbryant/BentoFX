@@ -58,176 +58,176 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(ApplicationExtension.class)
 class NestedCollapseRestoreITG {
 
-    private static final String BENTO_ID = "bento-nested-collapse";
-    private static final String ROOT_BRANCH_ID = "root-nested-collapse";
-    private static final String NESTED_BRANCH_ID = "branch-nested-collapse";
-    private static final String COLLAPSED_LEAF_ID = "leaf-collapsed-nested";
-    private static final String OPEN_LEAF_ID = "leaf-open-nested";
-    private static final String COLLAPSED_DOCKABLE_ID = "dockable-collapsed-nested";
-    private static final String OPEN_DOCKABLE_ID = "dockable-open-nested";
+	private static final String BENTO_ID = "bento-nested-collapse";
+	private static final String ROOT_BRANCH_ID = "root-nested-collapse";
+	private static final String NESTED_BRANCH_ID = "branch-nested-collapse";
+	private static final String COLLAPSED_LEAF_ID = "leaf-collapsed-nested";
+	private static final String OPEN_LEAF_ID = "leaf-open-nested";
+	private static final String COLLAPSED_DOCKABLE_ID = "dockable-collapsed-nested";
+	private static final String OPEN_DOCKABLE_ID = "dockable-open-nested";
 
-    /**
-     * A leaf nested one level below the root must come back collapsed. This is
-     * the case that regressed: before the fix the restored leaf was always
-     * expanded.
-     */
-    @Test
-    void restoreCollapsesLeafNestedBelowRootBranch(final FxRobot robot) {
-        final DockContainerLeaf collapsedLeaf = restoreAndFindLeaf(
-                robot,
-                COLLAPSED_LEAF_ID
-        );
+	/**
+	 * A leaf nested one level below the root must come back collapsed. This is
+	 * the case that regressed: before the fix the restored leaf was always
+	 * expanded.
+	 */
+	@Test
+	void restoreCollapsesLeafNestedBelowRootBranch(final FxRobot robot) {
+		final DockContainerLeaf collapsedLeaf = restoreAndFindLeaf(
+				robot,
+				COLLAPSED_LEAF_ID
+		);
 
-        assertThat(collapsedLeaf.isCollapsed())
-                .describedAs("nested collapsedLeaf.isCollapsed()")
-                .isTrue();
-    }
+		assertThat(collapsedLeaf.isCollapsed())
+				.describedAs("nested collapsedLeaf.isCollapsed()")
+				.isTrue();
+	}
 
-    /**
-     * The sibling leaf, whose state says it is not collapsed, must come back
-     * expanded. Without this the previous test would also pass against a
-     * hypothetical fix that collapsed every nested leaf indiscriminately.
-     */
-    @Test
-    void restoreLeavesUncollapsedSiblingExpanded(final FxRobot robot) {
-        final DockContainerLeaf openLeaf = restoreAndFindLeaf(
-                robot,
-                OPEN_LEAF_ID
-        );
+	/**
+	 * The sibling leaf, whose state says it is not collapsed, must come back
+	 * expanded. Without this the previous test would also pass against a
+	 * hypothetical fix that collapsed every nested leaf indiscriminately.
+	 */
+	@Test
+	void restoreLeavesUncollapsedSiblingExpanded(final FxRobot robot) {
+		final DockContainerLeaf openLeaf = restoreAndFindLeaf(
+				robot,
+				OPEN_LEAF_ID
+		);
 
-        assertThat(openLeaf.isCollapsed())
-                .describedAs("nested openLeaf.isCollapsed()")
-                .isFalse();
-    }
+		assertThat(openLeaf.isCollapsed())
+				.describedAs("nested openLeaf.isCollapsed()")
+				.isFalse();
+	}
 
-    /**
-     * Restores the layout, attaches it to a shown stage so the collapse has laid
-     * out geometry to work with, and returns the nested leaf with the requested
-     * identifier.
-     */
-    private static DockContainerLeaf restoreAndFindLeaf(
-            final FxRobot robot,
-            final String leafIdentifier
-    ) {
-        final AtomicReference<@Nullable DockContainerLeaf> leafReference =
-                new AtomicReference<>();
-        final AtomicReference<Stage> stageReference = new AtomicReference<>();
+	/**
+	 * Restores the layout, attaches it to a shown stage so the collapse has laid
+	 * out geometry to work with, and returns the nested leaf with the requested
+	 * identifier.
+	 */
+	private static DockContainerLeaf restoreAndFindLeaf(
+			final FxRobot robot,
+			final String leafIdentifier
+	) {
+		final AtomicReference<@Nullable DockContainerLeaf> leafReference =
+				new AtomicReference<>();
+		final AtomicReference<Stage> stageReference = new AtomicReference<>();
 
-        robot.interact(() -> {
-            final Map<String, DockableState> dockableStates = Map.of(
-                    COLLAPSED_DOCKABLE_ID,
-                    createDockableState(COLLAPSED_DOCKABLE_ID),
-                    OPEN_DOCKABLE_ID,
-                    createDockableState(OPEN_DOCKABLE_ID)
-            );
+		robot.interact(() -> {
+			final Map<String, DockableState> dockableStates = Map.of(
+					COLLAPSED_DOCKABLE_ID,
+					createDockableState(COLLAPSED_DOCKABLE_ID),
+					OPEN_DOCKABLE_ID,
+					createDockableState(OPEN_DOCKABLE_ID)
+			);
 
-            final DockingLayout dockingLayout =
-                    new DefaultDockingLayoutRebuilder(
-                            new DefaultBentoProvider(new Bento(BENTO_ID)),
-                            id -> Optional.ofNullable(dockableStates.get(id)),
-                            null,
-                            null
-                    ).rebuild(List.of(createNestedBentoState()));
+			final DockingLayout dockingLayout =
+					new DefaultDockingLayoutRebuilder(
+							new DefaultBentoProvider(new Bento(BENTO_ID)),
+							id -> Optional.ofNullable(dockableStates.get(id)),
+							null,
+							null
+					).rebuild(List.of(createNestedBentoState()));
 
-            final DockContainerRootBranch rootBranch = dockingLayout
-                    .getBentoLayouts()
-                    .getFirst()
-                    .getRootBranches()
-                    .getFirst();
+			final DockContainerRootBranch rootBranch = dockingLayout
+					.getBentoLayouts()
+					.getFirst()
+					.getRootBranches()
+					.getFirst();
 
-            // Collapsing consults divider geometry, and core queues the work when
-            // the container has no Scene. Show the tree so the collapse applies.
-            final Stage stage = new Stage();
-            stage.setScene(new Scene(rootBranch, 800, 600));
-            stage.show();
-            stageReference.set(stage);
+			// Collapsing consults divider geometry, and core queues the work when
+			// the container has no Scene. Show the tree so the collapse applies.
+			final Stage stage = new Stage();
+			stage.setScene(new Scene(rootBranch, 800, 600));
+			stage.show();
+			stageReference.set(stage);
 
-            leafReference.set(findNestedLeaf(rootBranch, leafIdentifier));
-        });
+			leafReference.set(findNestedLeaf(rootBranch, leafIdentifier));
+		});
 
-        // The restorer defers divider and collapse work onto the JavaFX queue.
-        // A no-op interact() round trip lets that queued work finish before the
-        // assertion reads the leaf.
-        robot.interact(() -> { /* fence */ });
+		// The restorer defers divider and collapse work onto the JavaFX queue.
+		// A no-op interact() round trip lets that queued work finish before the
+		// assertion reads the leaf.
+		robot.interact(() -> { /* fence */ });
 
-        try {
-            return requireNonNull(
-                    leafReference.get(),
-                    "nested leaf " + leafIdentifier
-            );
-        } finally {
-            robot.interact(() -> stageReference.get().close());
-        }
-    }
+		try {
+			return requireNonNull(
+					leafReference.get(),
+					"nested leaf " + leafIdentifier
+			);
+		} finally {
+			robot.interact(() -> stageReference.get().close());
+		}
+	}
 
-    /**
-     * Builds root -> branch -> (collapsed leaf, open leaf). The nested branch is
-     * horizontal and both leaves sit on the left so the collapse is compatible
-     * with the split orientation.
-     */
-    private static BentoState createNestedBentoState() {
-        final DockContainerLeafStateBuilder collapsedLeafBuilder =
-                new DockContainerLeafStateBuilder(COLLAPSED_LEAF_ID);
-        collapsedLeafBuilder.setSide(LEFT);
-        collapsedLeafBuilder.setCollapsed(true);
-        collapsedLeafBuilder.addChildDockableState(
-                createDockableState(COLLAPSED_DOCKABLE_ID)
-        );
+	/**
+	 * Builds root -> branch -> (collapsed leaf, open leaf). The nested branch is
+	 * horizontal and both leaves sit on the left so the collapse is compatible
+	 * with the split orientation.
+	 */
+	private static BentoState createNestedBentoState() {
+		final DockContainerLeafStateBuilder collapsedLeafBuilder =
+				new DockContainerLeafStateBuilder(COLLAPSED_LEAF_ID);
+		collapsedLeafBuilder.setSide(LEFT);
+		collapsedLeafBuilder.setCollapsed(true);
+		collapsedLeafBuilder.addChildDockableState(
+				createDockableState(COLLAPSED_DOCKABLE_ID)
+		);
 
-        final DockContainerLeafStateBuilder openLeafBuilder =
-                new DockContainerLeafStateBuilder(OPEN_LEAF_ID);
-        openLeafBuilder.setSide(LEFT);
-        openLeafBuilder.setCollapsed(false);
-        openLeafBuilder.addChildDockableState(
-                createDockableState(OPEN_DOCKABLE_ID)
-        );
+		final DockContainerLeafStateBuilder openLeafBuilder =
+				new DockContainerLeafStateBuilder(OPEN_LEAF_ID);
+		openLeafBuilder.setSide(LEFT);
+		openLeafBuilder.setCollapsed(false);
+		openLeafBuilder.addChildDockableState(
+				createDockableState(OPEN_DOCKABLE_ID)
+		);
 
-        final DockContainerBranchStateBuilder nestedBranchBuilder =
-                new DockContainerBranchStateBuilder(NESTED_BRANCH_ID);
-        nestedBranchBuilder.setOrientation(HORIZONTAL);
-        nestedBranchBuilder.addDockContainerState(collapsedLeafBuilder.build());
-        nestedBranchBuilder.addDockContainerState(openLeafBuilder.build());
+		final DockContainerBranchStateBuilder nestedBranchBuilder =
+				new DockContainerBranchStateBuilder(NESTED_BRANCH_ID);
+		nestedBranchBuilder.setOrientation(HORIZONTAL);
+		nestedBranchBuilder.addDockContainerState(collapsedLeafBuilder.build());
+		nestedBranchBuilder.addDockContainerState(openLeafBuilder.build());
 
-        final DockContainerRootBranchStateBuilder rootBranchBuilder =
-                new DockContainerRootBranchStateBuilder(ROOT_BRANCH_ID);
-        rootBranchBuilder.setOrientation(HORIZONTAL);
-        rootBranchBuilder.addDockContainerState(nestedBranchBuilder.build());
+		final DockContainerRootBranchStateBuilder rootBranchBuilder =
+				new DockContainerRootBranchStateBuilder(ROOT_BRANCH_ID);
+		rootBranchBuilder.setOrientation(HORIZONTAL);
+		rootBranchBuilder.addDockContainerState(nestedBranchBuilder.build());
 
-        return new BentoStateBuilder(BENTO_ID)
-                .addRootBranchState(rootBranchBuilder.build())
-                .build();
-    }
+		return new BentoStateBuilder(BENTO_ID)
+				.addRootBranchState(rootBranchBuilder.build())
+				.build();
+	}
 
-    private static DockableState createDockableState(final String identifier) {
-        return new DockableStateBuilder(identifier)
-                .setTitle(identifier)
-                .setDockableNode(new Label(identifier))
-                .build();
-    }
+	private static DockableState createDockableState(final String identifier) {
+		return new DockableStateBuilder(identifier)
+				.setTitle(identifier)
+				.setDockableNode(new Label(identifier))
+				.build();
+	}
 
-    /**
-     * Depth-first search for a leaf, so the test does not assume how deeply the
-     * restorer nested it.
-     */
-    private static @Nullable DockContainerLeaf findNestedLeaf(
-            final DockContainerBranch branch,
-            final String leafIdentifier
-    ) {
-        for (final DockContainer child : branch.getChildContainers()) {
-            if (child instanceof final DockContainerLeaf leaf
-                    && leaf.getIdentifier().equals(leafIdentifier)) {
-                return leaf;
-            }
+	/**
+	 * Depth-first search for a leaf, so the test does not assume how deeply the
+	 * restorer nested it.
+	 */
+	private static @Nullable DockContainerLeaf findNestedLeaf(
+			final DockContainerBranch branch,
+			final String leafIdentifier
+	) {
+		for (final DockContainer child : branch.getChildContainers()) {
+			if (child instanceof final DockContainerLeaf leaf
+					&& leaf.getIdentifier().equals(leafIdentifier)) {
+				return leaf;
+			}
 
-            if (child instanceof final DockContainerBranch childBranch) {
-                final DockContainerLeaf found =
-                        findNestedLeaf(childBranch, leafIdentifier);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
+			if (child instanceof final DockContainerBranch childBranch) {
+				final DockContainerLeaf found =
+						findNestedLeaf(childBranch, leafIdentifier);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 }

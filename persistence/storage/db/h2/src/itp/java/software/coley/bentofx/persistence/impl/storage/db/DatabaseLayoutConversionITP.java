@@ -51,217 +51,217 @@ import static software.coley.bentofx.persistence.testfixtures.codec.state.Sample
  */
 class DatabaseLayoutConversionITP {
 
-    private static final String LAYOUT_IDENTIFIER = "converted-layout";
-    private static final String DISPLAY_NAME = "Converted Layout";
+	private static final String LAYOUT_IDENTIFIER = "converted-layout";
+	private static final String DISPLAY_NAME = "Converted Layout";
 
-    @TempDir
-    private static Path temporaryDirectory;
+	@TempDir
+	private static Path temporaryDirectory;
 
-    private static DatabaseLayoutStorageProvider storageProvider;
+	private static DatabaseLayoutStorageProvider storageProvider;
 
-    /**
-     * {@return every bundled codec, since one is chosen per layout and both
-     * have to work.}
-     *
-     * <p>Both share one database: a row is keyed by layout identifier and codec
-     * identifier together, so the two cannot collide.</p>
-     */
-    static Stream<LayoutCodec> bundledCodecs() {
-        return Stream.of(new JsonLayoutCodec(), new XmlLayoutCodec());
-    }
+	/**
+	 * {@return every bundled codec, since one is chosen per layout and both
+	 * have to work.}
+	 *
+	 * <p>Both share one database: a row is keyed by layout identifier and codec
+	 * identifier together, so the two cannot collide.</p>
+	 */
+	static Stream<LayoutCodec> bundledCodecs() {
+		return Stream.of(new JsonLayoutCodec(), new XmlLayoutCodec());
+	}
 
-    @BeforeAll
-    static void redirectStorageToATemporaryDirectory() {
-        System.setProperty(
-                LayoutStorageLocations.HOME_DIRECTORY_PROPERTY,
-                temporaryDirectory.toString()
-        );
+	@BeforeAll
+	static void redirectStorageToATemporaryDirectory() {
+		System.setProperty(
+				LayoutStorageLocations.HOME_DIRECTORY_PROPERTY,
+				temporaryDirectory.toString()
+		);
 
-        storageProvider = new DatabaseLayoutStorageProvider();
-    }
+		storageProvider = new DatabaseLayoutStorageProvider();
+	}
 
-    @AfterAll
-    static void stopRedirectingStorage() {
-        // The factory this provider opened stays open: it is created lazily and
-        // LayoutStorageProvider has no shutdown to hook into, which the
-        // provider's own documentation calls out. The embedded database goes
-        // when the JVM does, and it lives under a temporary directory.
-        System.clearProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY);
-    }
+	@AfterAll
+	static void stopRedirectingStorage() {
+		// The factory this provider opened stays open: it is created lazily and
+		// LayoutStorageProvider has no shutdown to hook into, which the
+		// provider's own documentation calls out. The embedded database goes
+		// when the JVM does, and it lives under a temporary directory.
+		System.clearProperty(LayoutStorageLocations.HOME_DIRECTORY_PROPERTY);
+	}
 
-    @ParameterizedTest
-    @MethodSource("bundledCodecs")
-    void aLayoutIsStoredAndReadBackWithNoBentoAndNoJavaFxRuntime(
-            final LayoutCodec layoutCodec
-    ) throws Exception {
-        // Storing a layout cannot require a started JavaFX runtime: an external
-        // tool converting layouts from another docking framework has none.
-        assertThatThrownBy(() -> Platform.runLater(() -> { }))
-                .describedAs("JavaFX runtime state for this suite")
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Toolkit not initialized");
+	@ParameterizedTest
+	@MethodSource("bundledCodecs")
+	void aLayoutIsStoredAndReadBackWithNoBentoAndNoJavaFxRuntime(
+			final LayoutCodec layoutCodec
+	) throws Exception {
+		// Storing a layout cannot require a started JavaFX runtime: an external
+		// tool converting layouts from another docking framework has none.
+		assertThatThrownBy(() -> Platform.runLater(() -> { }))
+				.describedAs("JavaFX runtime state for this suite")
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("Toolkit not initialized");
 
-        final List<BentoState> original = createBentoStates();
-        final String codecIdentifier = layoutCodec.getIdentifier();
+		final List<BentoState> original = createBentoStates();
+		final String codecIdentifier = layoutCodec.getIdentifier();
 
-        try (
-                final LayoutStorage layoutStorage =
-                        storageProvider.getLayoutStorage(
-                                LAYOUT_IDENTIFIER,
-                                codecIdentifier
-                        );
-                final OutputStream outputStream =
-                        layoutStorage.openOutputStream()
-        ) {
-            layoutCodec.encode(
-                    new PersistableLayout(DISPLAY_NAME, original),
-                    outputStream
-            );
-        }
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								LAYOUT_IDENTIFIER,
+								codecIdentifier
+						);
+				final OutputStream outputStream =
+						layoutStorage.openOutputStream()
+		) {
+			layoutCodec.encode(
+					new PersistableLayout(DISPLAY_NAME, original),
+					outputStream
+			);
+		}
 
-        assertThat(storageProvider.isLayoutStored(
-                LAYOUT_IDENTIFIER,
-                codecIdentifier
-        ))
-                .describedAs("layout reported as stored after conversion")
-                .isTrue();
+		assertThat(storageProvider.isLayoutStored(
+				LAYOUT_IDENTIFIER,
+				codecIdentifier
+		))
+				.describedAs("layout reported as stored after conversion")
+				.isTrue();
 
-        final PersistableLayout restored;
+		final PersistableLayout restored;
 
-        try (
-                final LayoutStorage layoutStorage =
-                        storageProvider.getLayoutStorage(
-                                LAYOUT_IDENTIFIER,
-                                codecIdentifier
-                        );
-                final InputStream inputStream =
-                        layoutStorage.openInputStream()
-        ) {
-            restored = layoutCodec.decode(inputStream);
-        }
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								LAYOUT_IDENTIFIER,
+								codecIdentifier
+						);
+				final InputStream inputStream =
+						layoutStorage.openInputStream()
+		) {
+			restored = layoutCodec.decode(inputStream);
+		}
 
-        assertThat(restored.displayName())
-                .describedAs("display name restored from converted layout")
-                .isEqualTo(DISPLAY_NAME);
+		assertThat(restored.displayName())
+				.describedAs("display name restored from converted layout")
+				.isEqualTo(DISPLAY_NAME);
 
-        assertThat(restored.bentoStates())
-                .describedAs("Bento states restored from converted layout")
-                .usingRecursiveComparison()
-                .isEqualTo(original);
-    }
+		assertThat(restored.bentoStates())
+				.describedAs("Bento states restored from converted layout")
+				.usingRecursiveComparison()
+				.isEqualTo(original);
+	}
 
-    /**
-     * A layout's group and its display name survive a real row, apart from each
-     * other, and the group needs no column of its own: it rides inside the
-     * payload the way the display name already does.
-     */
-    @ParameterizedTest
-    @MethodSource("bundledCodecs")
-    void aLayoutsGroupIsStoredAndReadBackApartFromItsName(
-            final LayoutCodec layoutCodec
-    ) throws Exception {
-        final String layoutIdentifier =
-                "grouped-" + layoutCodec.getIdentifier();
+	/**
+	 * A layout's group and its display name survive a real row, apart from each
+	 * other, and the group needs no column of its own: it rides inside the
+	 * payload the way the display name already does.
+	 */
+	@ParameterizedTest
+	@MethodSource("bundledCodecs")
+	void aLayoutsGroupIsStoredAndReadBackApartFromItsName(
+			final LayoutCodec layoutCodec
+	) throws Exception {
+		final String layoutIdentifier =
+				"grouped-" + layoutCodec.getIdentifier();
 
-        writeLayout(
-                layoutCodec,
-                layoutIdentifier,
-                new PersistableLayout(
-                        "TCP/IP Debug",
-                        createBentoStates(),
-                        "Debugging",
-                        List.of()
-                )
-        );
+		writeLayout(
+				layoutCodec,
+				layoutIdentifier,
+				new PersistableLayout(
+						"TCP/IP Debug",
+						createBentoStates(),
+						"Debugging",
+						List.of()
+				)
+		);
 
-        final PersistableLayout restored =
-                readLayout(layoutCodec, layoutIdentifier);
+		final PersistableLayout restored =
+				readLayout(layoutCodec, layoutIdentifier);
 
-        assertThat(restored.displayName())
-                .describedAs("display name restored from a grouped layout")
-                .isEqualTo("TCP/IP Debug");
-        assertThat(restored.group())
-                .describedAs("group restored from a grouped layout")
-                .isEqualTo("Debugging");
-    }
+		assertThat(restored.displayName())
+				.describedAs("display name restored from a grouped layout")
+				.isEqualTo("TCP/IP Debug");
+		assertThat(restored.group())
+				.describedAs("group restored from a grouped layout")
+				.isEqualTo("Debugging");
+	}
 
-    /**
-     * The group catalog is an ordinary row under a reserved identifier, so the
-     * schema is untouched by groups existing.
-     */
-    @ParameterizedTest
-    @MethodSource("bundledCodecs")
-    void theGroupCatalogIsStoredAsAnOrdinaryRow(
-            final LayoutCodec layoutCodec
-    ) throws Exception {
-        writeLayout(
-                layoutCodec,
-                GROUP_CATALOG_LAYOUT_IDENTIFIER,
-                PersistableLayout.ofGroups(List.of("Debugging", "Presentation"))
-        );
+	/**
+	 * The group catalog is an ordinary row under a reserved identifier, so the
+	 * schema is untouched by groups existing.
+	 */
+	@ParameterizedTest
+	@MethodSource("bundledCodecs")
+	void theGroupCatalogIsStoredAsAnOrdinaryRow(
+			final LayoutCodec layoutCodec
+	) throws Exception {
+		writeLayout(
+				layoutCodec,
+				GROUP_CATALOG_LAYOUT_IDENTIFIER,
+				PersistableLayout.ofGroups(List.of("Debugging", "Presentation"))
+		);
 
-        assertThat(storageProvider.getLayoutIdentifiers(
-                layoutCodec.getIdentifier()
-        ))
-                .describedAs("layouts the destination reports")
-                .contains(GROUP_CATALOG_LAYOUT_IDENTIFIER);
+		assertThat(storageProvider.getLayoutIdentifiers(
+				layoutCodec.getIdentifier()
+		))
+				.describedAs("layouts the destination reports")
+				.contains(GROUP_CATALOG_LAYOUT_IDENTIFIER);
 
-        final PersistableLayout restored =
-                readLayout(layoutCodec, GROUP_CATALOG_LAYOUT_IDENTIFIER);
+		final PersistableLayout restored =
+				readLayout(layoutCodec, GROUP_CATALOG_LAYOUT_IDENTIFIER);
 
-        assertThat(restored.groups())
-                .describedAs("group catalog restored from a real row")
-                .containsExactly("Debugging", "Presentation");
-        assertThat(restored.bentoStates())
-                .describedAs("docking state in the group catalog")
-                .isEmpty();
-    }
+		assertThat(restored.groups())
+				.describedAs("group catalog restored from a real row")
+				.containsExactly("Debugging", "Presentation");
+		assertThat(restored.bentoStates())
+				.describedAs("docking state in the group catalog")
+				.isEmpty();
+	}
 
-    /**
-     * Writes a layout through the real database storage.
-     *
-     * @param layoutCodec the codec to write with.
-     * @param layoutIdentifier addresses the layout.
-     * @param layout what to write.
-     */
-    private static void writeLayout(
-            final LayoutCodec layoutCodec,
-            final String layoutIdentifier,
-            final PersistableLayout layout
-    ) throws Exception {
-        try (
-                final LayoutStorage layoutStorage =
-                        storageProvider.getLayoutStorage(
-                                layoutIdentifier,
-                                layoutCodec.getIdentifier()
-                        );
-                final OutputStream outputStream =
-                        layoutStorage.openOutputStream()
-        ) {
-            layoutCodec.encode(layout, outputStream);
-        }
-    }
+	/**
+	 * Writes a layout through the real database storage.
+	 *
+	 * @param layoutCodec the codec to write with.
+	 * @param layoutIdentifier addresses the layout.
+	 * @param layout what to write.
+	 */
+	private static void writeLayout(
+			final LayoutCodec layoutCodec,
+			final String layoutIdentifier,
+			final PersistableLayout layout
+	) throws Exception {
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								layoutIdentifier,
+								layoutCodec.getIdentifier()
+						);
+				final OutputStream outputStream =
+						layoutStorage.openOutputStream()
+		) {
+			layoutCodec.encode(layout, outputStream);
+		}
+	}
 
-    /**
-     * {@return a layout read back through the real database storage.}
-     *
-     * @param layoutCodec the codec to read with.
-     * @param layoutIdentifier addresses the layout.
-     */
-    private static PersistableLayout readLayout(
-            final LayoutCodec layoutCodec,
-            final String layoutIdentifier
-    ) throws Exception {
-        try (
-                final LayoutStorage layoutStorage =
-                        storageProvider.getLayoutStorage(
-                                layoutIdentifier,
-                                layoutCodec.getIdentifier()
-                        );
-                final InputStream inputStream =
-                        layoutStorage.openInputStream()
-        ) {
-            return layoutCodec.decode(inputStream);
-        }
-    }
+	/**
+	 * {@return a layout read back through the real database storage.}
+	 *
+	 * @param layoutCodec the codec to read with.
+	 * @param layoutIdentifier addresses the layout.
+	 */
+	private static PersistableLayout readLayout(
+			final LayoutCodec layoutCodec,
+			final String layoutIdentifier
+	) throws Exception {
+		try (
+				final LayoutStorage layoutStorage =
+						storageProvider.getLayoutStorage(
+								layoutIdentifier,
+								layoutCodec.getIdentifier()
+						);
+				final InputStream inputStream =
+						layoutStorage.openInputStream()
+		) {
+			return layoutCodec.decode(inputStream);
+		}
+	}
 }

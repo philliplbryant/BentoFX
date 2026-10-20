@@ -36,103 +36,103 @@ import static java.util.Objects.requireNonNull;
  * @author Phil Bryant
  */
 public record PersistableLayout(
-        @Nullable String displayName,
-        List<BentoState> bentoStates,
-        @Nullable String group,
-        List<String> groups
+		@Nullable String displayName,
+		List<BentoState> bentoStates,
+		@Nullable String group,
+		List<String> groups
 ) {
 
-    /**
-     * Canonical constructor, copying both lists so the layout is immutable.
-     */
-    public PersistableLayout {
-        requireNonNull(bentoStates, "bentoStates");
-        requireNonNull(groups, "groups");
-        bentoStates = List.copyOf(bentoStates);
-        groups = List.copyOf(groups);
-    }
+	/**
+	 * Canonical constructor, copying both lists so the layout is immutable.
+	 */
+	public PersistableLayout {
+		requireNonNull(bentoStates, "bentoStates");
+		requireNonNull(groups, "groups");
+		bentoStates = List.copyOf(bentoStates);
+		groups = List.copyOf(groups);
+	}
 
-    /**
-     * Constructs a layout that belongs to no group and declares none, which is
-     * every layout but one a user has grouped and the group catalog itself.
-     *
-     * @param displayName the layout's human-readable name, or {@code null} when
-     * it has none.
-     * @param bentoStates the state that makes up the layout.
-     */
-    public PersistableLayout(
-            final @Nullable String displayName,
-            final List<BentoState> bentoStates
-    ) {
-        this(displayName, bentoStates, null, List.of());
-    }
+	/**
+	 * Constructs a layout that belongs to no group and declares none, which is
+	 * every layout but one a user has grouped and the group catalog itself.
+	 *
+	 * @param displayName the layout's human-readable name, or {@code null} when
+	 * it has none.
+	 * @param bentoStates the state that makes up the layout.
+	 */
+	public PersistableLayout(
+			final @Nullable String displayName,
+			final List<BentoState> bentoStates
+	) {
+		this(displayName, bentoStates, null, List.of());
+	}
 
-    /**
-     * {@return a layout of the supplied state with no display name}, for one
-     * that is not saved under a name of its own.
-     *
-     * @param bentoStates the state that makes up the layout.
-     */
-    public static PersistableLayout of(final List<BentoState> bentoStates) {
-        return new PersistableLayout(null, bentoStates);
-    }
+	/**
+	 * {@return a layout of the supplied state with no display name}, for one
+	 * that is not saved under a name of its own.
+	 *
+	 * @param bentoStates the state that makes up the layout.
+	 */
+	public static PersistableLayout of(final List<BentoState> bentoStates) {
+		return new PersistableLayout(null, bentoStates);
+	}
 
-    /**
-     * {@return a group catalog holding the supplied group names, which is a
-     * layout in name only: it carries no state and is never restored.}
-     *
-     * @param groups the groups that exist.
-     */
-    public static PersistableLayout ofGroups(final List<String> groups) {
-        return new PersistableLayout(null, List.of(), null, groups);
-    }
+	/**
+	 * {@return a group catalog holding the supplied group names, which is a
+	 * layout in name only: it carries no state and is never restored.}
+	 *
+	 * @param groups the groups that exist.
+	 */
+	public static PersistableLayout ofGroups(final List<String> groups) {
+		return new PersistableLayout(null, List.of(), null, groups);
+	}
 
-    /**
-     * {@return an entry recording which named layout is active, which is a
-     * layout in name only: it carries no state and is never restored.}
-     *
-     * <p>Reuses {@code displayName} to carry the active layout's identifier,
-     * the same way {@link #ofGroups} reuses {@code groups} for an unrelated
-     * catalog.</p>
-     *
-     * @param layoutIdentifier the active layout's identifier, or {@code null}
-     * when no named layout is active.
-     */
-    public static PersistableLayout ofActiveLayout(
-            final @Nullable String layoutIdentifier
-    ) {
-        return new PersistableLayout(layoutIdentifier, List.of());
-    }
+	/**
+	 * {@return an entry recording which named layout is active, which is a
+	 * layout in name only: it carries no state and is never restored.}
+	 *
+	 * <p>Reuses {@code displayName} to carry the active layout's identifier,
+	 * the same way {@link #ofGroups} reuses {@code groups} for an unrelated
+	 * catalog.</p>
+	 *
+	 * @param layoutIdentifier the active layout's identifier, or {@code null}
+	 * when no named layout is active.
+	 */
+	public static PersistableLayout ofActiveLayout(
+			final @Nullable String layoutIdentifier
+	) {
+		return new PersistableLayout(layoutIdentifier, List.of());
+	}
 
-    /**
-     * {@return this layout's state under a different name and group.}
-     *
-     * <p>What a rename and a move to another group both come down to. The state
-     * is carried over untouched, which is the point: the alternative is
-     * capturing the containers on screen, and those belong to whichever layout
-     * is showing rather than to the one being renamed.</p>
-     *
-     * @param displayName the name to store, or {@code null} to store none.
-     * @param group the group to store, or {@code null} for no group.
-     */
-    public PersistableLayout withNaming(
-            final @Nullable String displayName,
-            final @Nullable String group
-    ) {
-        return new PersistableLayout(displayName, bentoStates, group, groups);
-    }
+	/**
+	 * {@return this layout's state under a different name and group.}
+	 *
+	 * <p>What a rename and a move to another group both come down to. The state
+	 * is carried over untouched, which is the point: the alternative is
+	 * capturing the containers on screen, and those belong to whichever layout
+	 * is showing rather than to the one being renamed.</p>
+	 *
+	 * @param displayName the name to store, or {@code null} to store none.
+	 * @param group the group to store, or {@code null} for no group.
+	 */
+	public PersistableLayout withNaming(
+			final @Nullable String displayName,
+			final @Nullable String group
+	) {
+		return new PersistableLayout(displayName, bentoStates, group, groups);
+	}
 
-    /**
-     * {@return the layout's display name, if it has one.}
-     */
-    public Optional<String> findDisplayName() {
-        return Optional.ofNullable(displayName);
-    }
+	/**
+	 * {@return the layout's display name, if it has one.}
+	 */
+	public Optional<String> findDisplayName() {
+		return Optional.ofNullable(displayName);
+	}
 
-    /**
-     * {@return the group the layout belongs to, if it belongs to one.}
-     */
-    public Optional<String> findGroup() {
-        return Optional.ofNullable(group);
-    }
+	/**
+	 * {@return the group the layout belongs to, if it belongs to one.}
+	 */
+	public Optional<String> findGroup() {
+		return Optional.ofNullable(group);
+	}
 }

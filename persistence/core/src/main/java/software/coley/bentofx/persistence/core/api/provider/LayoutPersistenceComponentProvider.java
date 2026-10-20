@@ -27,21 +27,21 @@ package software.coley.bentofx.persistence.core.api.provider;
  */
 public interface LayoutPersistenceComponentProvider {
 
-    /**
-     * Returns the stable identifier for this provider.
-     *
-     * @return the stable provider identifier
-     */
-    String getIdentifier();
+	/**
+	 * Returns the stable identifier for this provider.
+	 *
+	 * @return the stable provider identifier
+	 */
+	String getIdentifier();
 
-    /**
-     * Indicates whether this provider should be preferred when more than one
-     * provider of the same type is available and the application has not
-     * explicitly selected one.
-     *
-     * @return {@code true} when this provider should be preferred by default
-     */
-    default boolean isDefault() {
-        return false;
-    }
+	/**
+	 * Indicates whether this provider should be preferred when more than one
+	 * provider of the same type is available and the application has not
+	 * explicitly selected one.
+	 *
+	 * @return {@code true} when this provider should be preferred by default
+	 */
+	default boolean isDefault() {
+		return false;
+	}
 }

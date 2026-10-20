@@ -17,31 +17,31 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ConfigurableLayoutCodecProvider extends AbstractConfigurableLayoutProvider implements LayoutCodecProvider {
 
-    private final AtomicInteger createdCodecCount = new AtomicInteger();
+	private final AtomicInteger createdCodecCount = new AtomicInteger();
 
-    /**
-     * Creates a provider that reports the supplied identifier and default flag.
-     *
-     * @param identifier the identifier this provider answers to.
-     * @param defaultProvider whether this provider is the default one.
-     */
-    public ConfigurableLayoutCodecProvider(
-            final String identifier,
-            final boolean defaultProvider
-    ) {
-        super(identifier, defaultProvider);
-    }
+	/**
+	 * Creates a provider that reports the supplied identifier and default flag.
+	 *
+	 * @param identifier the identifier this provider answers to.
+	 * @param defaultProvider whether this provider is the default one.
+	 */
+	public ConfigurableLayoutCodecProvider(
+			final String identifier,
+			final boolean defaultProvider
+	) {
+		super(identifier, defaultProvider);
+	}
 
-    @Override
-    public LayoutCodec getLayoutCodec() {
-        createdCodecCount.incrementAndGet();
-        return new DoNothingLayoutCodec(getIdentifier());
-    }
+	@Override
+	public LayoutCodec getLayoutCodec() {
+		createdCodecCount.incrementAndGet();
+		return new DoNothingLayoutCodec(getIdentifier());
+	}
 
-    /**
-     * {@return how many codecs this provider has been asked for.}
-     */
-    public int getCreatedCodecCount() {
-        return createdCodecCount.get();
-    }
+	/**
+	 * {@return how many codecs this provider has been asked for.}
+	 */
+	public int getCreatedCodecCount() {
+		return createdCodecCount.get();
+	}
 }

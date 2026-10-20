@@ -12,22 +12,22 @@ import software.coley.bentofx.persistence.impl.codec.xml.XmlLayoutCodec;
  */
 public class XmlLayoutCodecProvider implements LayoutCodecProvider {
 
-    /**
-     * Creates a {@link LayoutCodecProvider} for XML.
-     */
-    public XmlLayoutCodecProvider() {
-        // This empty constructor exists merely to support Javadoc and its
-        // recommended practice for providing the comment for the default
-        // constructor.
-    }
+	/**
+	 * Creates a {@link LayoutCodecProvider} for XML.
+	 */
+	public XmlLayoutCodecProvider() {
+		// This empty constructor exists merely to support Javadoc and its
+		// recommended practice for providing the comment for the default
+		// constructor.
+	}
 
-    @Override
-    public String getIdentifier() {
-        return XmlLayoutCodec.CODEC_IDENTIFIER;
-    }
+	@Override
+	public String getIdentifier() {
+		return XmlLayoutCodec.CODEC_IDENTIFIER;
+	}
 
-    @Override
-    public LayoutCodec getLayoutCodec() {
-        return new XmlLayoutCodec();
-    }
+	@Override
+	public LayoutCodec getLayoutCodec() {
+		return new XmlLayoutCodec();
+	}
 }

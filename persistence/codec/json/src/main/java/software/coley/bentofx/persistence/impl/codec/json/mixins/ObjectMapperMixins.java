@@ -22,34 +22,34 @@ import static java.util.Map.entry;
  */
 public final class ObjectMapperMixins {
 
-    /**
-     * Each DTO and the mix-in that annotates it as a map rather than a run of
-     * {@code addMixIn} calls so a test can read the pairing back.
-     */
-    static final Map<Class<?>, Class<?>> MIXINS_BY_DTO = Map.ofEntries(
-            entry(BentoStateDto.class, BentoStateDtoJsonMixin.class),
-            entry(DividerPositionDto.class, DividerPositionDtoJsonMixin.class),
-            entry(DockableDto.class, DockableDtoJsonMixin.class),
-            entry(DockContainerDto.class, DockContainerDtoJsonMixin.class),
-            entry(DockContainerBranchDto.class, DockContainerBranchDtoJsonMixin.class),
-            entry(DockContainerLeafDto.class, DockContainerLeafDtoJsonMixin.class),
-            entry(DockContainerRootBranchDto.class, DockContainerRootBranchDtoJsonMixin.class),
-            entry(DockingLayoutDto.class, DockingLayoutDtoJsonMixin.class),
-            entry(DragDropStageDto.class, DragDropStageDtoJsonMixin.class),
-            entry(LayoutMetadataDto.class, LayoutMetadataDtoJsonMixin.class)
-    );
+	/**
+	 * Each DTO and the mix-in that annotates it as a map rather than a run of
+	 * {@code addMixIn} calls so a test can read the pairing back.
+	 */
+	static final Map<Class<?>, Class<?>> MIXINS_BY_DTO = Map.ofEntries(
+			entry(BentoStateDto.class, BentoStateDtoJsonMixin.class),
+			entry(DividerPositionDto.class, DividerPositionDtoJsonMixin.class),
+			entry(DockableDto.class, DockableDtoJsonMixin.class),
+			entry(DockContainerDto.class, DockContainerDtoJsonMixin.class),
+			entry(DockContainerBranchDto.class, DockContainerBranchDtoJsonMixin.class),
+			entry(DockContainerLeafDto.class, DockContainerLeafDtoJsonMixin.class),
+			entry(DockContainerRootBranchDto.class, DockContainerRootBranchDtoJsonMixin.class),
+			entry(DockingLayoutDto.class, DockingLayoutDtoJsonMixin.class),
+			entry(DragDropStageDto.class, DragDropStageDtoJsonMixin.class),
+			entry(LayoutMetadataDto.class, LayoutMetadataDtoJsonMixin.class)
+	);
 
-    private ObjectMapperMixins() {
-        throw new IllegalStateException("Utility class");
-    }
+	private ObjectMapperMixins() {
+		throw new IllegalStateException("Utility class");
+	}
 
-    /**
-     * {@return each DTO and the mix-in that annotates it.}
-     *
-     * <p>Classes rather than a configured mapper, so that nothing here puts a
-     * Jackson type in a signature a caller can see.</p>
-     */
-    public static Map<Class<?>, Class<?>> mixinsByDto() {
-        return MIXINS_BY_DTO;
-    }
+	/**
+	 * {@return each DTO and the mix-in that annotates it.}
+	 *
+	 * <p>Classes rather than a configured mapper, so that nothing here puts a
+	 * Jackson type in a signature a caller can see.</p>
+	 */
+	public static Map<Class<?>, Class<?>> mixinsByDto() {
+		return MIXINS_BY_DTO;
+	}
 }

@@ -24,39 +24,39 @@ import java.util.Optional;
  */
 public interface BentoProvider {
 
-    /**
-     * {@return a {@link BentoProvider} holding the given {@link Bento}s, keyed on
-     * their identifiers.}
-     *
-     * <p>For the common case of a fixed set of {@link Bento}s known at start-up.
-     * The result is not mutable through this interface, so an application that adds
-     * or removes {@link Bento}s later should implement {@link BentoProvider} itself
-     * rather than call this.</p>
-     *
-     * <p><b>The caller must keep its own reference to each {@link Bento}.</b> They
-     * are held weakly here, so a {@link Bento} the application no longer references
-     * becomes collectable and drops out of the saved layout without warning.
-     * Passing a freshly constructed {@link Bento} straight into this method and
-     * keeping no field for it is therefore a mistake.</p>
-     *
-     * @param bentos the {@link Bento}s whose layouts are to be saved and restored.
-     */
-    static BentoProvider of(final Bento... bentos) {
-        return new DefaultBentoProvider(bentos);
-    }
+	/**
+	 * {@return a {@link BentoProvider} holding the given {@link Bento}s, keyed on
+	 * their identifiers.}
+	 *
+	 * <p>For the common case of a fixed set of {@link Bento}s known at start-up.
+	 * The result is not mutable through this interface, so an application that adds
+	 * or removes {@link Bento}s later should implement {@link BentoProvider} itself
+	 * rather than call this.</p>
+	 *
+	 * <p><b>The caller must keep its own reference to each {@link Bento}.</b> They
+	 * are held weakly here, so a {@link Bento} the application no longer references
+	 * becomes collectable and drops out of the saved layout without warning.
+	 * Passing a freshly constructed {@link Bento} straight into this method and
+	 * keeping no field for it is therefore a mistake.</p>
+	 *
+	 * @param bentos the {@link Bento}s whose layouts are to be saved and restored.
+	 */
+	static BentoProvider of(final Bento... bentos) {
+		return new DefaultBentoProvider(bentos);
+	}
 
-    /**
-     * {@return an {@link Optional<Bento>} with the given identifier.}
-     * Implementations should return an empty {@link Optional<Bento>} when a
-     * {@link Bento} with the specified identifier cannot be found.
-     *
-     * @param identifier the identifier of the {@link Bento} to be returned.
-     */
-    Optional<Bento> getBento(String identifier);
+	/**
+	 * {@return an {@link Optional<Bento>} with the given identifier.}
+	 * Implementations should return an empty {@link Optional<Bento>} when a
+	 * {@link Bento} with the specified identifier cannot be found.
+	 *
+	 * @param identifier the identifier of the {@link Bento} to be returned.
+	 */
+	Optional<Bento> getBento(String identifier);
 
-    /**
-     * {@return a {@link Collection} of all {@link Bento} whose layouts are to be
-     * saved and restored.}
-     */
-    Collection<Bento> getAllBentos();
+	/**
+	 * {@return a {@link Collection} of all {@link Bento} whose layouts are to be
+	 * saved and restored.}
+	 */
+	Collection<Bento> getAllBentos();
 }

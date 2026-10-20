@@ -52,17 +52,7 @@ import software.coley.bentofx.persistence.core.api.state.DockableState;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.BOOKMARKS;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.CLASS_1;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.CLASS_2;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.CLASS_3;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.CLASS_4;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.CLASS_5;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.LOGGING;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.MODIFICATIONS;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.PROBLEMS;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.TERMINAL;
-import static software.coley.bentofx.demo.persistence.provider.DockableProperties.WORKSPACE;
+import static software.coley.bentofx.demo.persistence.provider.DockableProperties.*;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 
 /**
@@ -411,13 +401,13 @@ public class BoxApp extends Application implements DockingLayoutRestorable {
 		// closed here rather than abandoned. The layout it returns is already built,
 		// so closing the storage afterward costs nothing.
 		try (final LayoutRestorer layoutRestorer =
-				     persistenceProvider.getLayoutRestorer(
-						     layoutPersistenceProfile,
-						     bentoProvider,
-						     dockableStateProvider,
-						     stageIconImageProvider,
-						     dockContainerLeafMenuFactoryProvider
-				     )) {
+					 persistenceProvider.getLayoutRestorer(
+							 layoutPersistenceProfile,
+							 bentoProvider,
+							 dockableStateProvider,
+							 stageIconImageProvider,
+							 dockContainerLeafMenuFactoryProvider
+					 )) {
 
 			return layoutRestorer.restoreLayout(fallbackLayoutSupplier);
 		} catch (BentoStateException e) {
