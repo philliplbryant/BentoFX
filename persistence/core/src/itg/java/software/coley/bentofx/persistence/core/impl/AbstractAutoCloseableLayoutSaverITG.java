@@ -124,7 +124,7 @@ class AbstractAutoCloseableLayoutSaverITG {
         }
 
         @Override
-        public void saveLayout() throws BentoStateException {
+        protected void saveLayoutInternal() throws BentoStateException {
             saveCount.incrementAndGet();
             saveLatch.countDown();
             if (failure != null) {

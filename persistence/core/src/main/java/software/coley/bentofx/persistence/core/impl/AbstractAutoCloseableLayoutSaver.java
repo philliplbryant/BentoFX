@@ -42,14 +42,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p><b>Thread safety.</b> {@link #enableAutoSave(long, TimeUnit)},
  * {@link #disableAutoSave()} and {@link #close()} may be called from any thread
- * and are mutually exclusive; the auto-save lifecycle state they share is guarded
- * by a private lock. {@link #close()} is idempotent. What is <em>not</em>
- * serialized is saving itself: {@link #close()} stops the timer under that lock
- * but deliberately performs its final save outside it, because a save waits on
- * the JavaFX application thread and that thread may itself be calling in here. A subclass overriding
- * {@link #saveLayout()} or {@link #saveLayoutForShutdown()} must therefore assume
- * it can be entered from the scheduler thread and from a caller of
- * {@link #close()}, and make its own state safe accordingly.</p>
+ * and are mutually exclusive; the auto-save lifecycle state they share is
+ * guarded by a private lock. {@link #close()} is idempotent. What is
+ * <em>not</em> serialized is saving itself: {@link #close()} stops the timer
+ * under that lock but deliberately performs its final save outside it, because
+ * a save waits on the JavaFX application thread and that thread may itself be
+ * calling in here.
+ * A subclass implementing {@link #saveLayoutInternal()} or overriding
+ * {@link #saveLayoutForShutdown()} must therefore assume it can be entered from
+ * the scheduler thread and from a caller of {@link #close()}, and make its own
+ * state safe accordingly.</p>
  *
  * @author Phil Bryant
  */
@@ -359,6 +361,39 @@ public abstract class AbstractAutoCloseableLayoutSaver
             disableAutoSave();
         }
     }
+
+    /**
+     * Saves the layout, then clears the "dirty" flag so a subsequent
+     * {@link #close()} and its {@link #autoSave} short-circuit when no
+     * {@link DockEvent} has arrived since. This matters when a caller
+     * saves explicitly and then closes: without the clear, {@code close()}
+     * would see the flag still set and save a second time.
+     *
+     * <p>Subclasses implement {@link #saveLayoutInternal()} to perform the
+     * actual save; this method is {@code final} so the clear-on-success
+     * invariant stays here. If {@code saveLayoutInternal()} throws, the flag is
+     * left as it was, so the next {@code close()} or scheduled save still has
+     * work to do.</p>
+     *
+     * @throws BentoStateException when the layout cannot be saved.
+     */
+    @Override
+    public final void saveLayout() throws BentoStateException {
+        saveLayoutInternal();
+        wasDockEventReceived.set(false);
+    }
+
+    /**
+     * Performs the actual save. Called by {@link #saveLayout()} and (via
+     * {@link #autoSave}) by scheduled saves and {@link #close()}.
+     *
+     * <p>Subclasses implement this instead of overriding
+     * {@link #saveLayout()} so the "dirty" flag's clear-on-success invariant
+     * stays in one place.</p>
+     *
+     * @throws BentoStateException when the layout cannot be saved.
+     */
+    protected abstract void saveLayoutInternal() throws BentoStateException;
 
     /**
      * Saves the layout while the application is shutting down.

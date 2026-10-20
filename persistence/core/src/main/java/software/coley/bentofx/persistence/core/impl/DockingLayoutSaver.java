@@ -127,7 +127,7 @@ public class DockingLayoutSaver extends AbstractAutoCloseableLayoutSaver {
 	}
 
 	@Override
-	public void saveLayout() throws BentoStateException {
+	protected void saveLayoutInternal() throws BentoStateException {
 		saveLayout(PersistenceThreading.FX_CAPTURE_TIMEOUT_MILLIS);
 	}
 

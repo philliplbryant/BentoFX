@@ -41,7 +41,7 @@ The [core](./core) module is a framework of user interface controls that can be 
 <h4 id="core-gradle-groovy-dsl">Gradle (Groovy DSL)</h4>
 
 ```groovy
-implementation 'software.coley.bento-fx:core:${version}'
+implementation "software.coley.bento-fx:core:${version}"
 ```
 
 <h4 id="core-gradle-kotlin-dsl">Gradle (Kotlin DSL)</h4>
