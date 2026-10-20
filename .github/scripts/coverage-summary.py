@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 from xml.etree import ElementTree
@@ -122,12 +123,19 @@ def find_jacoco_xml_reports(root: Path) -> list[Path]:
     )
 
 
-def iter_reported_packages(report: Path) -> Iterator[Element]:
+def parse_report_root(report: Path) -> Element | None:
+    # Returns None when the report cannot be parsed so callers can skip the
+    # entry entirely rather than record a zero-counter row that reads like a
+    # suite with no coverage. Printing to stderr makes the omission visible
+    # in CI logs without changing the step summary's shape.
     try:
-        root = ElementTree.parse(report).getroot()
-    except (ElementTree.ParseError, OSError):
-        return
+        return ElementTree.parse(report).getroot()
+    except (ElementTree.ParseError, OSError) as exc:
+        print(f"warning: skipping unparseable JaCoCo report {report}: {exc}", file=sys.stderr)
+        return None
 
+
+def iter_reported_packages(root: Element) -> Iterator[Element]:
     for package in root.iter("package"):
         name = package.get("name", "")
         if name == REPORTED_PACKAGE_PREFIX or name.startswith(REPORTED_PACKAGE_PREFIX + "/"):
@@ -143,8 +151,12 @@ def collect_report_counters(reports: list[Path]) -> dict[str, dict[str, tuple[in
     # Summed from the package counters, not read from the report's own totals,
     # because those totals include the packages left out above.
     for report in reports:
+        root = parse_report_root(report)
+        if root is None:
+            continue
+
         counters = {counter_type: (0, 0) for counter_type in JACOCO_COUNTER_TYPES}
-        for package in iter_reported_packages(report):
+        for package in iter_reported_packages(root):
             for counter in package.findall("counter"):
                 counter_type = counter.get("type")
                 if counter_type not in JACOCO_COUNTER_TYPES:
@@ -163,7 +175,11 @@ def iter_report_lines(reports: list[Path]) -> Iterator[tuple[str, Element]]:
     # Yields every line of every report keyed by package, source file and number.
     # That key is the line's identity, which is what makes the union exact.
     for report in reports:
-        for package in iter_reported_packages(report):
+        root = parse_report_root(report)
+        if root is None:
+            continue
+
+        for package in iter_reported_packages(root):
             for source_file in package.findall("sourcefile"):
                 for line in source_file.findall("line"):
                     key = f"{package.get('name')}|{source_file.get('name')}|{line.get('nr')}"
