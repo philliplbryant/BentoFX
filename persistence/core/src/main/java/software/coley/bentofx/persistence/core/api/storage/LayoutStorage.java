@@ -16,6 +16,16 @@ import java.io.OutputStream;
  * the storage the restorer still reads from. Obtain one instance per component
  * from a
  * {@link software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider}.
+ * <p>
+ * <b>Scope of this type.</b> A {@code LayoutStorage} is a single-use I/O
+ * session against a stored layout, not a persistent reference to one. Operations
+ * that do not need an open stream - checking whether a layout exists without
+ * reading it, enumerating stored layouts, deleting one - live on
+ * {@link software.coley.bentofx.persistence.core.api.provider.LayoutStorageProvider}
+ * rather than here. The split mirrors the JDK's
+ * {@link java.nio.file.Files} static operations versus {@link InputStream} and
+ * {@link OutputStream}: the location-level operations are keyed by identifier
+ * on the provider, and this type represents the opened stream.
  *
  * @author Phil Bryant
  */

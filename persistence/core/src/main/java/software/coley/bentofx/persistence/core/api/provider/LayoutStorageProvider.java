@@ -85,6 +85,17 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
 
 	/**
 	 * Removes the stored layout, if there is one.
+	 * <p>
+	 * Location-level operation: does not require a prior
+	 * {@link #getLayoutStorage(String, String)} call. Delete lives on this
+	 * provider rather than on
+	 * {@link software.coley.bentofx.persistence.core.api.storage.LayoutStorage}
+	 * because a {@code LayoutStorage} is a single-use I/O session against the
+	 * stored layout, not a persistent reference to its location. The split
+	 * mirrors the JDK's {@link java.nio.file.Files#delete(java.nio.file.Path)}
+	 * versus {@link java.nio.file.Files#newInputStream(java.nio.file.Path,
+	 * java.nio.file.OpenOption...)}: both operations are keyed by the same
+	 * identifier, but neither requires the other to have been called first.
 	 *
 	 * @param layoutIdentifier identifies the layout to remove.
 	 * @param codecIdentifier identifies the codec whose output is stored.
