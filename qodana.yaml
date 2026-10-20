@@ -23,7 +23,9 @@ exclude:
   - name: All
     paths:
       - build
-      # TODO BENTO-13: Enable analysis on these modules
-      - core
-      - demos/basic
-      - demos/persistence/src/main/resources
+      # TEMPORARY (BENTO-13): 'core' and 'demos/basic' are included in the
+      # scan to surface their pre-existing backlog for triage. Restore both
+      # lines before merge.
+      # - core
+      # - demos/basic
+      # - demos/persistence/src/main/resources
