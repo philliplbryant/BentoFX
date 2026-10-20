@@ -45,7 +45,7 @@ class AbstractAutoCloseableLayoutSaverTest {
         try (AbstractAutoCloseableLayoutSaver saver =
                      new AbstractAutoCloseableLayoutSaver(new DefaultBentoProvider()) {
                          @Override
-                         public void saveLayout() throws BentoStateException {
+                         protected void saveLayoutInternal() throws BentoStateException {
                              secondAttempt.countDown();
                              if (attempts.incrementAndGet() == 1) {
                                  throw new BentoStateException("first save fails");
@@ -74,7 +74,7 @@ class AbstractAutoCloseableLayoutSaverTest {
         final AbstractAutoCloseableLayoutSaver saver =
                 new AbstractAutoCloseableLayoutSaver(new DefaultBentoProvider()) {
                     @Override
-                    public void saveLayout() throws BentoStateException {
+                    protected void saveLayoutInternal() throws BentoStateException {
                         scheduledSaveStarted.countDown();
                         try {
                             // Stands in for waiting on a busy JavaFX thread.

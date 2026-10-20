@@ -142,6 +142,18 @@ public abstract class AbstractAutoCloseableLayoutSaver
     }
 
     /**
+     * Performs the actual save. Called by {@link #saveLayout()} and (via
+     * {@link #autoSave}) by scheduled saves and {@link #close()}.
+     *
+     * <p>Subclasses implement this instead of overriding
+     * {@link #saveLayout()} so the "dirty" flag's clear-on-success invariant
+     * stays in one place.</p>
+     *
+     * @throws BentoStateException when the layout cannot be saved.
+     */
+    protected abstract void saveLayoutInternal() throws BentoStateException;
+
+    /**
      * Starts auto-save on a fully constructed saver at the default interval and
      * returns it, so a factory can build and arm an instance in one expression.
      *
@@ -382,18 +394,6 @@ public abstract class AbstractAutoCloseableLayoutSaver
         saveLayoutInternal();
         wasDockEventReceived.set(false);
     }
-
-    /**
-     * Performs the actual save. Called by {@link #saveLayout()} and (via
-     * {@link #autoSave}) by scheduled saves and {@link #close()}.
-     *
-     * <p>Subclasses implement this instead of overriding
-     * {@link #saveLayout()} so the "dirty" flag's clear-on-success invariant
-     * stays in one place.</p>
-     *
-     * @throws BentoStateException when the layout cannot be saved.
-     */
-    protected abstract void saveLayoutInternal() throws BentoStateException;
 
     /**
      * Saves the layout while the application is shutting down.
