@@ -9,12 +9,10 @@ projectJDK: "21"
 profile:
   name: qodana.starter
 
-# TODO BENTO-13: Reinstate 'failThreshold: 0' once a 'qodana.sarif.json' baseline
-# is committed, so the gate holds at zero *new* problems.
-#
-# 'core' and 'demos/basic' are analyzed now and carry a pre-existing backlog. With
-# no threshold they report without failing, and the workflow's SARIF upload still
-# puts every problem in the GitHub Security tab.
+# Baseline captures the pre-existing backlog in 'core' and 'demos/basic'; the
+# gate fails on any *new* problem beyond it.
+baseline: qodana.sarif.json
+failThreshold: 0
 
 coverage:
   reportProblems: false
@@ -23,9 +21,3 @@ exclude:
   - name: All
     paths:
       - build
-      # TEMPORARY (BENTO-13): 'core' and 'demos/basic' are included in the
-      # scan to surface their pre-existing backlog for triage. Restore both
-      # lines before merge.
-      # - core
-      # - demos/basic
-      # - demos/persistence/src/main/resources
