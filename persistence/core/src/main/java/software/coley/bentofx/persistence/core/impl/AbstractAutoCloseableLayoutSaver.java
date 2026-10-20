@@ -257,8 +257,13 @@ public abstract class AbstractAutoCloseableLayoutSaver
 	 * reset state within a single critical section rather than releasing the lock
 	 * between disabling and re-arming - a gap in which another thread could
 	 * observe auto-save as neither on nor off, or interleave its own teardown.</p>
+	 *
+	 * <p>Returns {@code void} rather than the stopped scheduler so callers that
+	 * only need the teardown do not surface it as an {@code AutoCloseable} with
+	 * no owner. {@link #close()} captures {@link #scheduler} directly before
+	 * calling in; both reads happen under {@code autoSaveLock}.</p>
 	 */
-	private @Nullable ScheduledExecutorService disableAutoSaveInternal() {
+	private void disableAutoSaveInternal() {
 
 		this.isAutoSaveEnabled = false;
 
@@ -277,8 +282,6 @@ public abstract class AbstractAutoCloseableLayoutSaver
 		}
 
 		removeListeners();
-
-		return currentScheduler;
 	}
 
 	/**
@@ -348,7 +351,11 @@ public abstract class AbstractAutoCloseableLayoutSaver
 		// flag a true answer to whether the final save below has work to do.
 		final ScheduledExecutorService stoppedScheduler;
 		synchronized (autoSaveLock) {
-			stoppedScheduler = disableAutoSaveInternal();
+			// Capture under the lock, before the field is set to null, so the
+			// following wait runs outside the lock on the already-shut-down
+			// handle.
+			stoppedScheduler = scheduler;
+			disableAutoSaveInternal();
 		}
 		awaitScheduledSave(stoppedScheduler);
 

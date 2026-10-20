@@ -45,7 +45,6 @@ jobs:
       # This makes an alert fail the branch build too. The path filter matches the
       # exclusions in 'sonar-project.properties' and 'qodana.yaml', so the three
       # tools agree on what is in scope.
-      # TODO BENTO-13: Remove the path filter once those modules are clean.
       - name: Fail on CodeQL alerts
         if: always() && steps.analyze.outcome == 'success'
         env:
@@ -55,8 +54,6 @@ jobs:
           alerts=$(gh api \
             "repos/${{ github.repository }}/code-scanning/alerts?ref=${{ github.ref }}&state=open&tool_name=CodeQL&per_page=100" \
             --jq '[.[]
-                   | select(((.most_recent_instance.location.path // "") | startswith("core/")) == false)
-                   | select(((.most_recent_instance.location.path // "") | startswith("demos/basic/")) == false)
                    | select(.rule.severity == "error"
                             or (.rule.security_severity_level // "") == "critical"
                             or (.rule.security_severity_level // "") == "high")
