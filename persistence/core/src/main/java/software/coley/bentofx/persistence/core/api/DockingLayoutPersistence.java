@@ -37,9 +37,10 @@ public final class DockingLayoutPersistence {
 	 * {@return the {@link DockingLayoutPersistenceProvider} implementation found
 	 * on the module path.}
 	 *
-	 * <p>Each call resolves afresh rather than caching, because a cached provider
-	 * would outlive the module layer it was found in. Applications normally call
-	 * this once during start-up and hold the result.</p>
+	 * <p>Call this once during start-up and hold the result. The method
+	 * re-resolves on every call rather than caching so that an application
+	 * that reconfigures its module layer or persistence setup after start-up
+	 * sees the new provider on the next call.</p>
 	 *
 	 * @throws IllegalStateException when no implementation can be found, which
 	 * means no persistence implementation is on the module path or the class
