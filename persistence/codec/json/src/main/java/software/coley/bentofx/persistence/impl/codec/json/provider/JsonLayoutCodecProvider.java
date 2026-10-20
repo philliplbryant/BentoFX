@@ -26,6 +26,19 @@ public class JsonLayoutCodecProvider implements LayoutCodecProvider {
 		return JsonLayoutCodec.CODEC_IDENTIFIER;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * JSON is the preferred default codec when more than one codec is present
+	 * and the application has not selected one, matching the file storage
+	 * provider's role as the preferred default storage. Keeps the active
+	 * codec stable against dependency drift that adds another codec module.
+	 */
+	@Override
+	public boolean isDefault() {
+		return true;
+	}
+
 	@Override
 	public LayoutCodec getLayoutCodec() {
 		return new JsonLayoutCodec();

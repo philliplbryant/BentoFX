@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JsonLayoutCodecProviderTest {
 
 	@Test
-	void exposesJsonIdentifierAndIsNotDefault() {
+	void exposesJsonIdentifierAndIsDefault() {
 		final JsonLayoutCodecProvider provider = new JsonLayoutCodecProvider();
 
 		assertThat(provider.getIdentifier())
@@ -17,7 +17,7 @@ class JsonLayoutCodecProviderTest {
 				.isEqualTo(JsonLayoutCodec.CODEC_IDENTIFIER);
 		assertThat(provider.isDefault())
 				.describedAs("provider.isDefault()")
-				.isFalse();
+				.isTrue();
 	}
 
 	@Test

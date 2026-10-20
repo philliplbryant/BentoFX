@@ -23,6 +23,17 @@ import java.util.List;
  * Applications reach all three through {@link DockingLayoutPersistenceProvider}
  * rather than selecting a storage provider themselves.</p>
  *
+ * <p><b>Codec-partitioned namespace.</b> This provider enumerates, opens, and
+ * deletes layouts keyed by a {@code (layoutIdentifier, codecIdentifier)} pair.
+ * Each codec owns its own namespace within the storage - a layout written by
+ * the JSON codec is not enumerated or openable through the XML codec, even
+ * against the same storage root. This keeps every codec's byte format
+ * self-contained and avoids examining content when opening, at the cost that
+ * an application that switches codecs sees only the layouts stored under the
+ * active codec. See {@link #getLayoutIdentifiers(String)} for the enumeration
+ * consequences and {@link #getLayoutStorage(String, String)} for the open
+ * contract.</p>
+ *
  * @author Phil Bryant
  */
 public interface LayoutStorageProvider extends LayoutPersistenceComponentProvider {
@@ -57,6 +68,15 @@ public interface LayoutStorageProvider extends LayoutPersistenceComponentProvide
 	 * reporting no layouts, for the reason {@link LayoutStorage#exists()} gives:
 	 * answering "nothing here" when the truth is "cannot tell" invites the caller
 	 * to write over a layout that exists.</p>
+	 *
+	 * <p>Enumeration is codec-scoped: only layouts that were written by the named
+	 * codec are returned. Layouts stored under a different codec identifier
+	 * remain in the storage (per the storage's own retention rules) but are
+	 * invisible to this call. Applications that let the active codec change over
+	 * time should either migrate stored layouts to the new codec at the switch,
+	 * or notify application users that previously-saved layouts are temporarily
+	 * inaccessible - this provider deliberately does neither. See
+	 * {@link LayoutStorageProvider} for the design intent.</p>
 	 *
 	 * @param codecIdentifier identifies the codec whose layouts are wanted.
 	 */

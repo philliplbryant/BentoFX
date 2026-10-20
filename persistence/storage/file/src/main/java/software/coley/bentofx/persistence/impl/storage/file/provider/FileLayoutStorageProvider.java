@@ -25,6 +25,26 @@ import static java.util.Objects.requireNonNull;
  * {@link LayoutStorageLocations#HOME_DIRECTORY_PROPERTY} and
  * {@link LayoutStorageLocations#NAMESPACE_PROPERTY}.</p>
  *
+ * <p><b>On-disk layout.</b> {@code FileLayoutStorageProvider} keeps layouts
+ * under {@code <home>/.bentofx[/<namespace>]/layouts/}, named
+ * {@code <layoutIdentifier>.<codecIdentifier>} - the codec identifier is the
+ * file extension, not a directory level. Layouts written by different codecs
+ * sit side by side in the same directory; a layout written by the JSON codec
+ * is at {@code <layoutDir>/<layoutIdentifier>.json} and remains there when
+ * the application switches to another codec, present on disk but invisible
+ * through {@code getLayoutIdentifiers("xml")}. If an application needs to
+ * carry layouts across a codec change, migrate them explicitly at the switch
+ * point: enumerate under the old codec, re-save under the new one, delete
+ * the originals.</p>
+ *
+ * <p>See {@link LayoutStorageLocations} for how {@code <home>} and
+ * {@code <namespace>} are resolved - the {@code <namespace>} subdirectory is
+ * the mechanism for keeping multiple BentoFX-based applications on the same
+ * machine from sharing one layouts directory. Groups are layout-level
+ * metadata recorded in the
+ * {@link software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers#GROUP_CATALOG_LAYOUT_IDENTIFIER}
+ * catalog layout, not in the file path.</p>
+ *
  * @author Phil Bryant
  */
 public class FileLayoutStorageProvider implements LayoutStorageProvider {
