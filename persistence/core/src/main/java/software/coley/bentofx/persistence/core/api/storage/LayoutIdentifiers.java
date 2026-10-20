@@ -181,6 +181,66 @@ public final class LayoutIdentifiers {
 	}
 
 	/**
+	 * Accepts a layout identifier that every storage implementation can use, and
+	 * rejects the rest.
+	 *
+	 * <p>Does not check whether the identifier is one this framework reserves,
+	 * because reserved identifiers are legitimate for the layouts this framework
+	 * writes itself. The {@link #findUserLayoutProblem(String)} overload adds the
+	 * reserved check for user-chosen identifiers.</p>
+	 *
+	 * <p>Does not check joined length, because that rule needs the codec
+	 * identifier the layout will pair with; storage implementations check it as
+	 * the pair arrives via {@link #requireValid}.</p>
+	 *
+	 * @param layoutIdentifier identifies the layout. Additionally may not be a
+	 * name reserved for a device, because file-backed storage makes it the
+	 * beginning of a file name.
+	 * @throws NullPointerException if the identifier is {@code null}.
+	 * @throws IllegalArgumentException if the identifier is blank, contains a
+	 * path separator, names a directory, holds a character no file name may hold
+	 * ({@code < > : " | ? *} or a control character), ends with a space or a
+	 * period, or is a name reserved for a device.
+	 */
+	public static void requireValidLayoutIdentifier(
+			final @Nullable String layoutIdentifier
+	) {
+		final Optional<LayoutIdentifierProblem> problem = findProblem(layoutIdentifier);
+
+		if (problem.isPresent()) {
+			throw exceptionFor(problem.get());
+		}
+	}
+
+	/**
+	 * {@return why the layout identifier cannot be used, or an empty
+	 * {@link Optional} when it can.}
+	 *
+	 * <p>Checks the format rules {@link #requireValid} applies to the layout
+	 * identifier alone, without the joined-length rule that needs a codec and
+	 * without the reserved-name rule for user-chosen identifiers. Never throws,
+	 * including for {@code null}, which is reported as
+	 * {@link LayoutIdentifierProblem.Rule#MISSING}.</p>
+	 *
+	 * @param layoutIdentifier identifies the layout.
+	 */
+	public static Optional<LayoutIdentifierProblem> findProblem(
+			final @Nullable String layoutIdentifier
+	) {
+		final LayoutIdentifierProblem nameProblem =
+				findUsableNameProblem(layoutIdentifier, LAYOUT_IDENTIFIER);
+
+		if (nameProblem != null) {
+			return Optional.of(nameProblem);
+		}
+
+		// Non-null once its own check has passed.
+		final String layout = requireNonNull(layoutIdentifier);
+
+		return Optional.ofNullable(findDeviceNameProblem(layout));
+	}
+
+	/**
 	 * {@return why the pair cannot be used, or an empty {@link Optional} when it
 	 * can.}
 	 *

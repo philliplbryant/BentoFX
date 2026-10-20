@@ -435,6 +435,51 @@ class LayoutIdentifiersTest {
 				.isEqualTo(Rule.TOO_LONG);
 	}
 
+	@Test
+	void requireValidLayoutIdentifierAcceptsAnOrdinaryIdentifier() {
+		assertThatCode(() ->
+				LayoutIdentifiers.requireValidLayoutIdentifier(LAYOUT_IDENTIFIER)
+		)
+				.describedAs("an ordinary layout identifier")
+				.doesNotThrowAnyException();
+	}
+
+	@Test
+	void requireValidLayoutIdentifierRejectsNull() {
+		assertThatNullPointerException()
+				.describedAs("null layout identifier")
+				.isThrownBy(() -> LayoutIdentifiers.requireValidLayoutIdentifier(null))
+				.withMessage("layoutIdentifier");
+	}
+
+	@Test
+	void requireValidLayoutIdentifierRejectsBlank() {
+		assertThatIllegalArgumentException()
+				.describedAs("blank layout identifier")
+				.isThrownBy(() -> LayoutIdentifiers.requireValidLayoutIdentifier(" "))
+				.withMessageContaining("blank");
+	}
+
+	@Test
+	void requireValidLayoutIdentifierRejectsDeviceName() {
+		assertThatIllegalArgumentException()
+				.describedAs("device name as layout identifier")
+				.isThrownBy(() -> LayoutIdentifiers.requireValidLayoutIdentifier("CON"))
+				.withMessageContaining("device");
+	}
+
+	@Test
+	void requireValidLayoutIdentifierAcceptsFrameworkReservedIdentifier() {
+		// 'session', 'groups', 'activeLayout', 'defaultLayout' pass this check
+		// because it skips the reserved-name rule; that rule is for
+		// user-chosen identifiers via 'findUserLayoutProblem'.
+		assertThatCode(() ->
+				LayoutIdentifiers.requireValidLayoutIdentifier("session")
+		)
+				.describedAs("framework-reserved identifier 'session'")
+				.doesNotThrowAnyException();
+	}
+
 	/**
 	 * A utility class with only static members has no reason to be
 	 * instantiated; the private constructor exists to say so rather than to

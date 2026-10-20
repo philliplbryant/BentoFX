@@ -1,6 +1,7 @@
 package software.coley.bentofx.persistence.core.api;
 
 import org.jspecify.annotations.Nullable;
+import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -33,9 +34,24 @@ public record LayoutPersistenceProfile(
 
 	/**
 	 * Canonical constructor.
+	 *
+	 * <p>Validates the fields that a programmer sets, so that a profile which
+	 * could not be saved is refused where it was built rather than at the save
+	 * that needed it. The {@code layoutIdentifier} must satisfy
+	 * {@link LayoutIdentifiers#requireValidLayoutIdentifier}, and the
+	 * provider-selector fields {@code codecIdentifier} and {@code
+	 * storageIdentifier} may be {@code null} but not blank, because {@code null}
+	 * means "framework selects one" and a blank string names no provider.</p>
+	 *
+	 * <p>{@code displayName} and {@code group} are user data that may arrive from
+	 * hand-edited storage, so blank values on those two fields pass through to
+	 * the layers above for defensive handling (for example,
+	 * {@code LayoutGroups.mergeGroupNames} drops blank group names).</p>
 	 */
 	public LayoutPersistenceProfile {
-		Objects.requireNonNull(layoutIdentifier, "layoutIdentifier");
+		LayoutIdentifiers.requireValidLayoutIdentifier(layoutIdentifier);
+		requireNullOrNonBlank(codecIdentifier, "codecIdentifier");
+		requireNullOrNonBlank(storageIdentifier, "storageIdentifier");
 	}
 
 	/**
@@ -163,5 +179,21 @@ public record LayoutPersistenceProfile(
 	 */
 	public Optional<String> findGroup() {
 		return Optional.ofNullable(group);
+	}
+
+	/**
+	 * Rejects a blank value, accepts {@code null} or any non-blank value.
+	 *
+	 * @param value the value to check.
+	 * @param parameterName the name of the field, for the exception message.
+	 * @throws IllegalArgumentException if the value is non-null and blank.
+	 */
+	private static void requireNullOrNonBlank(
+			final @Nullable String value,
+			final String parameterName
+	) {
+		if (value != null && value.isBlank()) {
+			throw new IllegalArgumentException(parameterName + " must not be blank.");
+		}
 	}
 }
