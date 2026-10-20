@@ -81,6 +81,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-params = { module = "org.junit.jupiter:junit-jupiter-params" }
 # noinspection UnusedVersionCatalogEntry
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 nullaway-gradlePlugin-dependency = { module = "net.ltgt.nullaway:net.ltgt.nullaway.gradle.plugin", version.ref = "nullaway-plugin" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }

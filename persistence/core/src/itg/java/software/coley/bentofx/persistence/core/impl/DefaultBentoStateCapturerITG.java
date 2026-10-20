@@ -24,6 +24,7 @@ import software.coley.bentofx.persistence.core.api.state.DockableState;
 import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvider;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Objects.requireNonNull;
@@ -104,6 +105,9 @@ class DefaultBentoStateCapturerITG {
 
         try {
             final List<BentoState> bentoStates = bentoStatesReference.get();
+
+            Objects.requireNonNull(bentoStates, "bentoStates cannot be null");
+
             assertThat(bentoStates)
                     .describedAs("bentoStates")
                     .hasSize(1);
