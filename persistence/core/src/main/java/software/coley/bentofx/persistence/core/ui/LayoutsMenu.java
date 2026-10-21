@@ -34,46 +34,7 @@ import java.util.function.Supplier;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.DEFAULT_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_BLANK_NAME_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_REPLACE_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_RESTORE_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CUSTOM_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEFAULT_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_GROUP_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEVICE_NAME_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUPS_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_BLANK_NAME_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_SAVE_NAMED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_LIST_GROUPS_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_NOT_STORED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_REPLACE_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RESTORE_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_SAVE_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.LAYOUTS_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.LIST_FAILED_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.MOVE_TO_GROUP_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NEW_GROUP_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUPS_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_LAYOUTS_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_MOVE_TO_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_SAVE_AS_NEW_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_GROUP_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RESERVED_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RESTORE_MENU_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAVE_AS_NEW_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAVE_CHANGES_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_MOVE_TO_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_SAVE_AS_NEW_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in
@@ -139,15 +100,8 @@ public class LayoutsMenu extends Menu {
 	/** Handles group CRUD and catalog operations. */
 	private final LayoutGroupOperations groupOperations;
 
-	/**
-	 * The custom layout showing now, or {@code null} when no named layout is
-	 * active.
-	 *
-	 * <p>Saving changes and renaming both write the live containers, so both
-	 * are offered only for the layout on screen. This is what they write to,
-	 * and what the check mark in the menu marks.</p>
-	 */
-	private @Nullable LayoutPersistenceProfile activeCustomLayoutProfile;
+	/** Tracks which named layout is currently active. */
+	private final ActiveLayoutState activeLayoutState;
 
 	/**
 	 * How the default layout was arranged when it was last applied, read from
@@ -244,7 +198,7 @@ public class LayoutsMenu extends Menu {
 					}
 				}
 		);
-		this.activeCustomLayoutProfile = findActiveLayoutProfile();
+		this.activeLayoutState = new ActiveLayoutState(dockingLayoutRestorable);
 
 		// With no session layout saved, a restore fell back to the default
 		// layout, so that is what the application is showing.
@@ -271,7 +225,7 @@ public class LayoutsMenu extends Menu {
 		// as the session layout the application starts with, which checks
 		// Custom and nothing under it.
 		final boolean isDefaultShowing =
-				activeCustomLayoutProfile == null && isDefaultLayoutShowing();
+				activeLayoutState.getActiveLayoutProfile() == null && isDefaultLayoutShowing();
 
 		final MenuItem defaultItem = new MenuItem(
 				markedText(
@@ -315,7 +269,7 @@ public class LayoutsMenu extends Menu {
 		final Menu groupsMenu = new Menu(getTextFromResourceBundle(GROUPS_MENU_KEY));
 
 		final MenuItem saveChangesItem = new MenuItem(getTextFromResourceBundle(SAVE_CHANGES_ITEM_KEY));
-		saveChangesItem.setDisable(activeCustomLayoutProfile == null);
+		saveChangesItem.setDisable(activeLayoutState.getActiveLayoutProfile() == null);
 		saveChangesItem.setOnAction(event -> saveChangesToActiveLayout());
 
 		// One reading of storage fills every list below. Listing with display
@@ -784,7 +738,7 @@ public class LayoutsMenu extends Menu {
 	 * Saves the layout showing now over the stored layout it came from.
 	 */
 	private void saveChangesToActiveLayout() {
-		final LayoutPersistenceProfile activeLayout = activeCustomLayoutProfile;
+		final LayoutPersistenceProfile activeLayout = activeLayoutState.getActiveLayoutProfile();
 
 		if (activeLayout == null) {
 			return;
@@ -910,19 +864,13 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
-	 * Keeps {@link #activeCustomLayoutProfile} in step with a naming change just
-	 * written to storage.
-	 *
-	 * <p>Saving changes writes the active profile's display name and group, so a
-	 * profile left holding the old naming would undo the change on the next save
-	 * - and, for a deleted group, bring the group back.</p>
+	 * Keeps the active-layout state in step with a naming change just written
+	 * to storage. Delegates to {@link ActiveLayoutState#followNamingChange}.
 	 *
 	 * @param renamedLayout the layout as it is now named in storage.
 	 */
 	private void followNamingChange(final LayoutPersistenceProfile renamedLayout) {
-		if (isActiveLayout(renamedLayout)) {
-			setActiveCustomLayoutProfile(renamedLayout);
-		}
+		activeLayoutState.followNamingChange(renamedLayout);
 	}
 
 	/**
@@ -1128,24 +1076,21 @@ public class LayoutsMenu extends Menu {
 	 * {@return {@code true} when the supplied layout is the one showing now;
 	 * otherwise, {@code false}.}
 	 *
+	 * <p>Delegates to {@link ActiveLayoutState#isActiveLayout}.</p>
+	 *
 	 * @param layoutPersistenceProfile identifies the layout to test.
 	 */
 	private boolean isActiveLayout(
 			final LayoutPersistenceProfile layoutPersistenceProfile
 	) {
-		final LayoutPersistenceProfile activeLayout = activeCustomLayoutProfile;
-
-		return activeLayout != null && activeLayout.layoutIdentifier()
-				.equals(layoutPersistenceProfile.layoutIdentifier());
+		return activeLayoutState.isActiveLayout(layoutPersistenceProfile);
 	}
 
 	/**
-	 * Sets {@link #activeCustomLayoutProfile} and records it through
-	 * {@link PersistedDockingLayoutOrganizationProvider}, when the persistence provider
-	 * supports it.
-	 *
-	 * <p>The only way that field changes - every other assignment in this
-	 * class goes through here, so a restart never misses a change.</p>
+	 * Sets the active layout and records it through
+	 * {@link PersistedDockingLayoutOrganizationProvider}, when the persistence
+	 * provider supports it. Delegates to
+	 * {@link ActiveLayoutState#setActiveCustomLayoutProfile}.
 	 *
 	 * @param activeCustomLayoutProfile the layout to show as active, or
 	 * {@code null} for none.
@@ -1153,85 +1098,10 @@ public class LayoutsMenu extends Menu {
 	private void setActiveCustomLayoutProfile(
 			final @Nullable LayoutPersistenceProfile activeCustomLayoutProfile
 	) {
-		this.activeCustomLayoutProfile = activeCustomLayoutProfile;
-		rememberActiveLayout(activeCustomLayoutProfile);
+		activeLayoutState.setActiveCustomLayoutProfile(activeCustomLayoutProfile);
 	}
 
-	/**
-	 * {@return the named layout to show as active from the moment this menu
-	 * opens, read through {@link PersistedDockingLayoutOrganizationProvider}, or
-	 * {@code null} when none is recorded, it no longer exists, or the
-	 * persistence provider does not support this.}
-	 *
-	 * <p>An application that restores the session layout at startup - which
-	 * mirrors whatever was last on screen, including the content of a named
-	 * layout that was switched to and then left there - has no other way to
-	 * know that happened. This is what lets this menu show that layout
-	 * selected again after a restart, rather than {@code Default}.</p>
-	 */
-	private @Nullable LayoutPersistenceProfile findActiveLayoutProfile() {
-		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
-				extendedPersistenceProvider();
-
-		if (extendedProvider.isEmpty()) {
-			return null;
-		}
-
-		try {
-			final Optional<String> activeLayoutIdentifier =
-					extendedProvider.get().getActiveLayoutIdentifier(
-							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
-					);
-
-			if (activeLayoutIdentifier.isEmpty()) {
-				return null;
-			}
-
-			// Taken from the catalog rather than built from the identifier, so
-			// that it carries the stored display name and group: saving changes
-			// writes this profile's naming, and one without it would take the
-			// layout out of its group and drop its name. Recorded once, but not
-			// necessarily still true: the layout may have been deleted since.
-			return persistenceProvider()
-					.getStoredLayouts(LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER))
-					.stream()
-					.filter(storedLayout -> storedLayout.layoutIdentifier()
-							.equals(activeLayoutIdentifier.get()))
-					.findFirst()
-					.orElse(null);
-		} catch (final BentoStateException e) {
-			logger.warn("Could not read which named layout was active.", e);
-			return null;
-		}
-	}
-
-	/**
-	 * Records which named layout is active through
-	 * {@link PersistedDockingLayoutOrganizationProvider}, so {@link #findActiveLayoutProfile()}
-	 * can read it back on the next launch. Does nothing when the persistence
-	 * provider does not support this.
-	 *
-	 * @param activeLayoutProfile the layout now active, or {@code null} when
-	 * the default layout is showing or the active layout was deleted.
-	 */
-	private void rememberActiveLayout(
-			final @Nullable LayoutPersistenceProfile activeLayoutProfile
-	) {
-		extendedPersistenceProvider().ifPresent(extendedProvider -> {
-			try {
-				extendedProvider.setActiveLayoutIdentifier(
-						LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER),
-						activeLayoutProfile == null
-								? null
-								: activeLayoutProfile.layoutIdentifier()
-				);
-			} catch (final BentoStateException e) {
-				logger.warn("Could not record which named layout is active.", e);
-			}
-		});
-	}
-
-	/**
+/**
 	 * {@return the provider layouts are read, written, and listed through.}
 	 *
 	 * <p>Asked of the application at each use rather than held here, so that
