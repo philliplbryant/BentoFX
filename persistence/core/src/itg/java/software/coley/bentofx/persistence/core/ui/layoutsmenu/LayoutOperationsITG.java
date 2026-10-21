@@ -44,8 +44,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -593,13 +593,26 @@ class LayoutOperationsITG {
 	/**
 	 * Fires an operation from the FX thread, dismissing any dialogs it raises
 	 * with the supplied steps, one dialog at a time and in order. Blocks the
-	 * test thread until the last dialog closes or
+	 * test thread until the operation returns or
 	 * {@value #DIALOG_TIMEOUT_SECONDS} seconds elapse.
 	 *
 	 * <p>Each step is queued via {@link Platform#runLater} before the
 	 * operation runs. The dialog's nested event loop pumps the task queue, so
 	 * each step fires in order and closes its dialog before
 	 * {@code showAndWait} returns.</p>
+	 *
+	 * <p>The test thread waits on a {@link CountDownLatch} that the FX thread
+	 * counts down when the operation returns, rather than polling
+	 * {@link #findShowingDialogPane()}. A dialog that opens and closes within
+	 * a single FX pulse — which happens whenever the dismiss step is already
+	 * queued when the nested event loop starts pumping — would never be
+	 * observed in the "showing" state by a polling waiter, and the test would
+	 * time out looking for a dialog that already closed. Waiting on the
+	 * operation itself has no such window.</p>
+	 *
+	 * <p>If the operation does not complete in time, any still-showing dialog
+	 * is force-cancelled so {@code showAndWait} can return and surface the real
+	 * failure rather than hanging the test runner.</p>
 	 *
 	 * @param operation the operation to fire.
 	 * @param dialogSteps steps that dismiss dialogs, in the order they open.
@@ -609,6 +622,7 @@ class LayoutOperationsITG {
 			final Runnable... dialogSteps
 	) {
 		final AtomicReference<Throwable> operationFailure = new AtomicReference<>();
+		final CountDownLatch operationDone = new CountDownLatch(1);
 		Platform.runLater(() -> {
 			for (final Runnable step : dialogSteps) {
 				Platform.runLater(step);
@@ -617,47 +631,75 @@ class LayoutOperationsITG {
 				operation.run();
 			} catch (final RuntimeException | Error e) {
 				operationFailure.set(e);
+			} finally {
+				operationDone.countDown();
 			}
 		});
-		// First wait for the dialog to actually open — otherwise the
-		// "it is not open" condition below is already true at time zero and
-		// the test proceeds while the operation is still blocked in
-		// showAndWait on the FX thread.
-		try {
-			WaitForAsyncUtils.waitFor(
-					DIALOG_TIMEOUT_SECONDS,
-					TimeUnit.SECONDS,
-					() -> findShowingDialogPane().isPresent()
-							|| operationFailure.get() != null
-			);
-		} catch (final TimeoutException e) {
+		final boolean completed = awaitUninterruptibly(
+				operationDone, DIALOG_TIMEOUT_SECONDS, TimeUnit.SECONDS
+		);
+		if (!completed) {
+			Platform.runLater(() -> findShowingDialogPane().ifPresent(pane -> {
+				final Button cancel = cancelButton(pane);
+				if (cancel != null) {
+					cancel.fire();
+				}
+			}));
+			if (!awaitUninterruptibly(operationDone, 1, TimeUnit.SECONDS)) {
+				throw new AssertionError(
+						"Timed out waiting for the operation to complete"
+								+ " (dialog still open after force-cancel)"
+				);
+			}
 			throw new AssertionError(
-					"Timed out waiting for the dialog to show",
-					e
+					"Dialog step did not dismiss the dialog within "
+							+ DIALOG_TIMEOUT_SECONDS + "s"
 			);
 		}
 		if (operationFailure.get() != null) {
 			throw new AssertionError(
-					"Operation threw before opening a dialog",
+					"Operation threw",
 					operationFailure.get()
-			);
-		}
-		try {
-			WaitForAsyncUtils.waitFor(
-					DIALOG_TIMEOUT_SECONDS,
-					TimeUnit.SECONDS,
-					() -> findShowingDialogPane().isEmpty()
-			);
-		} catch (final TimeoutException e) {
-			throw new AssertionError(
-					"Timed out waiting for the dialog to close",
-					e
 			);
 		}
 		// Let the FX thread finish the post-dialog portion of the operation
 		// (setActive, followNamingChange, updateStoredLayoutNaming) before
 		// the test asserts on state.
 		WaitForAsyncUtils.waitForFxEvents();
+	}
+
+	/**
+	 * {@return whether {@code latch} counted down to zero within the timeout},
+	 * ignoring interrupts and restoring the interrupt flag on return.
+	 *
+	 * @param latch the latch to wait on.
+	 * @param timeout how long to wait.
+	 * @param unit the unit of {@code timeout}.
+	 */
+	private static boolean awaitUninterruptibly(
+			final CountDownLatch latch,
+			final long timeout,
+			final TimeUnit unit
+	) {
+		final long deadlineNanos = System.nanoTime() + unit.toNanos(timeout);
+		boolean interrupted = false;
+		try {
+			while (true) {
+				final long remaining = deadlineNanos - System.nanoTime();
+				if (remaining <= 0) {
+					return false;
+				}
+				try {
+					return latch.await(remaining, TimeUnit.NANOSECONDS);
+				} catch (final InterruptedException e) {
+					interrupted = true;
+				}
+			}
+		} finally {
+			if (interrupted) {
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	/**
