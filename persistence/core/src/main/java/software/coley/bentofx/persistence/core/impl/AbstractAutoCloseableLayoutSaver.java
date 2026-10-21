@@ -10,6 +10,7 @@ import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.LayoutSaver;
 import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -61,7 +62,17 @@ public abstract class AbstractAutoCloseableLayoutSaver
 	private static final Logger logger =
 			LoggerFactory.getLogger(AbstractAutoCloseableLayoutSaver.class);
 
-	private static final long DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES = 5;
+	/**
+	 * The interval {@link #startAutoSave(AbstractAutoCloseableLayoutSaver)}
+	 * uses when no explicit interval is supplied.
+	 *
+	 * <p>Public so a subclass that configures auto-save by hand (via
+	 * {@link #enableAutoSave(long, TimeUnit)}) can see what the framework
+	 * default is, as a reference point for its own choice. The value is a
+	 * {@link Duration} rather than a bare {@code long} so the unit is carried
+	 * with the value and cannot be paired with the wrong {@link TimeUnit}.</p>
+	 */
+	public static final Duration DEFAULT_AUTO_SAVE_INTERVAL = Duration.ofMinutes(5);
 
 	private final AtomicBoolean wasDockEventReceived =
 			new AtomicBoolean(false);
@@ -171,7 +182,7 @@ public abstract class AbstractAutoCloseableLayoutSaver
 	) {
 		Objects.requireNonNull(saver);
 		saver.enableAutoSave(
-				DEFAULT_AUTO_SAVE_INTERVAL_IN_MINUTES,
+				DEFAULT_AUTO_SAVE_INTERVAL.toMinutes(),
 				TimeUnit.MINUTES
 		);
 		return saver;

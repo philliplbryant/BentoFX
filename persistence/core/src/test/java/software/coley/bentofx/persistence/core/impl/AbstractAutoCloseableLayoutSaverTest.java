@@ -6,6 +6,7 @@ import software.coley.bentofx.persistence.core.impl.provider.DefaultBentoProvide
 import software.coley.bentofx.persistence.testfixtures.codec.InMemoryLayoutCodec;
 import software.coley.bentofx.persistence.testfixtures.storage.InMemoryLayoutStorage;
 
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,6 +103,19 @@ class AbstractAutoCloseableLayoutSaverTest {
 		assertThat(savedOnExit)
 				.describedAs("saved on exit after interrupting the scheduled save")
 				.isTrue();
+	}
+
+	/**
+	 * Pins the published default interval. A change here is observable to
+	 * subclasses that read {@link AbstractAutoCloseableLayoutSaver#DEFAULT_AUTO_SAVE_INTERVAL}
+	 * to size their own choice against the framework default, so changing it
+	 * silently would surprise them.
+	 */
+	@Test
+	void defaultAutoSaveIntervalIsFiveMinutes() {
+		assertThat(AbstractAutoCloseableLayoutSaver.DEFAULT_AUTO_SAVE_INTERVAL)
+				.describedAs("published default auto-save interval")
+				.isEqualTo(Duration.ofMinutes(5));
 	}
 
 	/**
