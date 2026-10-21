@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
+import static software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenuTextKeys.*;
 
 /**
  * A {@code Layouts} menu for any application that keeps its docking layout in
@@ -68,7 +68,7 @@ public class LayoutsMenu extends Menu {
 	 * {@link ResourceBundle} rather than to shadow this one.</p>
 	 */
 	private static final String BUNDLE_BASE_NAME =
-			"software.coley.bentofx.persistence.core.ui.LayoutsMenu";
+			"software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu";
 
 	private final DockingLayoutRestorable dockingLayoutRestorable;
 

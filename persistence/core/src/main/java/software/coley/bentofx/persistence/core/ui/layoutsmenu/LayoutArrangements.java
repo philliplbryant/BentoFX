@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import software.coley.bentofx.Bento;
 import software.coley.bentofx.dockable.Dockable;

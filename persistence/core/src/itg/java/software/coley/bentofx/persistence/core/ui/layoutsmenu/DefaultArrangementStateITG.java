@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import javafx.stage.Stage;
 import org.jspecify.annotations.Nullable;

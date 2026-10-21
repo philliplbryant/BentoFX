@@ -1,11 +1,11 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
+import software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutGroups.GroupNameProblem;
 
 import java.util.List;
 import java.util.Map;

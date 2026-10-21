@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -68,7 +68,7 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
 class LayoutOperationsITG {
 
 	private static final String BUNDLE_BASE_NAME =
-			"software.coley.bentofx.persistence.core.ui.LayoutsMenu";
+			"software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu";
 
 	/** Captured in {@link #start} so helpers can pass it as the dialog owner. */
 	private @Nullable Stage stage;

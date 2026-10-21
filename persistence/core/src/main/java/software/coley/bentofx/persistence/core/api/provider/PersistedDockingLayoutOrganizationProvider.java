@@ -4,7 +4,7 @@ import org.jspecify.annotations.Nullable;
 import software.coley.bentofx.persistence.core.api.BentoStateException;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.state.BentoState;
-import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
+import software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,7 +2,7 @@ package software.coley.bentofx.persistence.core.api.provider;
 
 import software.coley.bentofx.persistence.core.api.DockingLayout;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
+import software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu;
 
 import java.util.function.Supplier;
 

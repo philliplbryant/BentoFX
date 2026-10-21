@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +29,7 @@ class LayoutsMenuTextsTest {
 	 * below, which is the intended way to find out.
 	 */
 	private static final String BUNDLE_BASE_NAME =
-			"software.coley.bentofx.persistence.core.ui.LayoutsMenu";
+			"software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu";
 
 	/**
 	 * Every key the menu asks for. Kept here as a list rather than derived,

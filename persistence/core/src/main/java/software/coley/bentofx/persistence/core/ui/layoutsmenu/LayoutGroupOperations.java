@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
@@ -11,7 +11,7 @@ import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
-import software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
+import software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutGroups.GroupNameProblem;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.ResourceBundle;
 import java.util.function.UnaryOperator;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
+import static software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenuTextKeys.*;
 
 /**
  * Group CRUD and catalog operations: creating, renaming, deleting, and moving

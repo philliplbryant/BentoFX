@@ -5,7 +5,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Window;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
-import software.coley.bentofx.persistence.core.ui.LayoutsMenu;
+import software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenu;
 
 /**
  * The {@link MenuBar} for {@link BoxApp}.

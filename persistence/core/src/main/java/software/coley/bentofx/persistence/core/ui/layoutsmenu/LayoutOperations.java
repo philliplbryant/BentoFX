@@ -1,4 +1,4 @@
-package software.coley.bentofx.persistence.core.ui;
+package software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Window;
@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
+import static software.coley.bentofx.persistence.core.ui.layoutsmenu.LayoutsMenuTextKeys.*;
 
 /**
  * Layout CRUD operations: save, restore, rename, move to a group, delete,

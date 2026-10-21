@@ -53,7 +53,7 @@ module bento.fx.persistence.core {
 	 * test cannot reach without starting the JavaFX toolkit, so this is the
 	 * package to exclude when measuring coverage.
 	 */
-	exports software.coley.bentofx.persistence.core.ui;
+	exports software.coley.bentofx.persistence.core.ui.layoutsmenu;
 
 	/*
 	 * None of the impl packages are exported. Everything in them is an implementation
