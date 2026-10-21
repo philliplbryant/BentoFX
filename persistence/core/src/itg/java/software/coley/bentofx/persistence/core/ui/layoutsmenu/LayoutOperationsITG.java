@@ -112,7 +112,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -143,7 +143,7 @@ class LayoutOperationsITG {
 				createRestorable(throwingOnSaveProvider());
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -170,7 +170,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext(); // confirmResult defaults to true
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -195,7 +195,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		context.confirmResult = false;
 		final LayoutOperations ops =
@@ -222,7 +222,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -252,7 +252,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -284,7 +284,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -328,7 +328,7 @@ class LayoutOperationsITG {
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
 		final DefaultArrangementState defaultArrangementState =
-				new DefaultArrangementState(restorable);
+				createDefaultArrangementState(restorable);
 		final FakeContext context = new FakeContext();
 		final LayoutOperations ops =
 				createLayoutOperations(restorable, activeLayoutState, defaultArrangementState, context);
@@ -338,7 +338,7 @@ class LayoutOperationsITG {
 
 		fireDialogOperation(
 				() -> ops.moveStoredLayoutToGroup(profile),
-				selectChoiceAndDismiss()
+				LayoutOperationsITG::selectChoiceAndDismiss
 		);
 
 		assertThat(provider.getStoredLayouts(LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)))
@@ -379,6 +379,32 @@ class LayoutOperationsITG {
 				defaultArrangementState,
 				context
 		);
+	}
+
+	/**
+	 * {@return a {@link DefaultArrangementState} whose bootstrap task has
+	 * already run.}
+	 *
+	 * <p>{@link DefaultArrangementState}'s constructor schedules
+	 * {@link javafx.application.Platform#runLater} to record the arrangement
+	 * showing now as the default layout's. That queued task calls
+	 * {@code provider.saveLayout} on the FX thread, which iterates the
+	 * {@code BentoProvider}'s state. A test that constructs
+	 * {@code DefaultArrangementState} and immediately calls
+	 * {@code provider.saveLayout} on the test thread races the bootstrap: both
+	 * sides iterate the same state concurrently and the second one throws
+	 * {@link java.util.ConcurrentModificationException}. Draining the FX event
+	 * queue here lets the bootstrap complete before the caller continues.</p>
+	 *
+	 * @param restorable the application whose persistence providers the
+	 * default arrangement is read and written through.
+	 */
+	private static DefaultArrangementState createDefaultArrangementState(
+			final DockingLayoutRestorable restorable
+	) {
+		final DefaultArrangementState state = new DefaultArrangementState(restorable);
+		WaitForAsyncUtils.waitForFxEvents();
+		return state;
 	}
 
 	/**
@@ -717,14 +743,17 @@ class LayoutOperationsITG {
 	}
 
 	/**
-	 * {@return a step that picks a value in the currently-showing choice
-	 * dialog, then dismisses it with OK.}
+	 * Picks the Workspace value in the currently-showing choice dialog, then
+	 * dismisses it with OK.
 	 *
 	 * <p>The selection goes through the {@link ComboBox} the dialog builds,
-	 * which is what the dialog reads its result from.</p>
+	 * which is what the dialog reads its result from. Written as a plain
+	 * method rather than a factory returning a {@link Runnable}, so a call
+	 * site can pass it as {@code LayoutOperationsITG::selectChoiceAndDismiss}
+	 * without the outer "return a lambda" wrapper ErrorProne flags.</p>
 	 */
-	private static Runnable selectChoiceAndDismiss() {
-		return () -> runDialogStep(pane -> {
+	private static void selectChoiceAndDismiss() {
+		runDialogStep(pane -> {
 			@SuppressWarnings("unchecked")
 			final ComboBox<String> choices = (ComboBox<String>) Objects.requireNonNull(
 					pane.lookup(".combo-box"), ".combo-box"
