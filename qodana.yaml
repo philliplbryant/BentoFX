@@ -9,10 +9,10 @@ projectJDK: "21"
 profile:
   name: qodana.starter
 
-# Baseline captures the pre-existing backlog in 'core' and 'demos/basic'; the
-# gate fails on any *new* problem beyond it.
-baseline: qodana.sarif.json
-failThreshold: 0
+# Baseline and fail-threshold are passed as CLI args in
+# .github/workflows/qodana.yml: the standalone Qodana CLI the Action
+# installs rejects those keys here, even though the linter image accepts
+# them. The baseline file 'qodana.sarif.json' is tracked at repo root.
 
 coverage:
   reportProblems: false
