@@ -3,7 +3,6 @@ package software.coley.bentofx.persistence.core.ui;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
@@ -25,7 +24,6 @@ import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
 import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -33,16 +31,12 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.DEFAULT_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
-import static software.coley.bentofx.persistence.core.ui.LayoutGroups.GroupNameProblem;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_GROUP_PROBLEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_PROBLEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_BLANK_NAME_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_GROUP_CONFIRM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_REPLACE_CONFIRM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_RESTORE_FAILED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CUSTOM_MENU_KEY;
@@ -50,21 +44,14 @@ import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEF
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_GROUP_MENU_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DELETE_MENU_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DEVICE_NAME_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DUPLICATE_GROUP_PROBLEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUPS_MENU_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_TOO_LONG_PROBLEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_BLANK_NAME_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_NAME_GROUP_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_SAVE_NAMED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_CONFIRM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_GROUP_FAILED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_LIST_GROUPS_FAILED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_NOT_STORED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RENAME_GROUP_FAILED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_REPLACE_CONFIRM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RESTORE_FAILED_ERROR_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_SAVE_FAILED_ERROR_KEY;
@@ -73,12 +60,9 @@ import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.LIS
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.MOVE_TO_GROUP_MENU_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NEW_GROUP_ITEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUPS_ITEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUP_CHOICE_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_LAYOUTS_ITEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_MOVE_TO_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_NEW_GROUP_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_GROUP_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_SAVE_AS_NEW_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_GROUP_MENU_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.RENAME_MENU_KEY;
@@ -88,9 +72,7 @@ import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAV
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.SAVE_CHANGES_ITEM_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_MOVE_TO_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_NEW_GROUP_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_GROUP_DIALOG_KEY;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_SAVE_AS_NEW_DIALOG_KEY;
 
 /**
@@ -153,6 +135,9 @@ public class LayoutsMenu extends Menu {
 
 	/** Every word a user reads from this menu. */
 	private final ResourceBundle resourceBundle;
+
+	/** Handles group CRUD and catalog operations. */
+	private final LayoutGroupOperations groupOperations;
 
 	/**
 	 * The custom layout showing now, or {@code null} when no named layout is
@@ -222,6 +207,43 @@ public class LayoutsMenu extends Menu {
 				Objects.requireNonNull(dockingLayoutRestorable, "dockingLayoutRestorable");
 		this.owner = Objects.requireNonNull(owner, "owner");
 		this.resourceBundle = resourceBundle;
+		this.groupOperations = new LayoutGroupOperations(
+				dockingLayoutRestorable,
+				owner,
+				resourceBundle,
+				new LayoutGroupOperationsContext() {
+					@Override
+					public boolean confirmLayoutAction(
+							final String header,
+							final String content
+					) {
+						return LayoutsMenu.this.confirmLayoutAction(header, content);
+					}
+
+					@Override
+					public void showLayoutError(
+							final String header,
+							final @Nullable String content
+					) {
+						LayoutsMenu.this.showLayoutError(header, content);
+					}
+
+					@Override
+					public String problemText(final LayoutIdentifierProblem problem) {
+						return LayoutsMenu.this.problemText(problem);
+					}
+
+					@Override
+					public void populate() {
+						LayoutsMenu.this.populate();
+					}
+
+					@Override
+					public void followNamingChange(final LayoutPersistenceProfile renamedLayout) {
+						LayoutsMenu.this.followNamingChange(renamedLayout);
+					}
+				}
+		);
 		this.activeCustomLayoutProfile = findActiveLayoutProfile();
 
 		// With no session layout saved, a restore fell back to the default
@@ -381,7 +403,7 @@ public class LayoutsMenu extends Menu {
 			final List<String> groupNames
 	) {
 		final MenuItem newGroupItem = new MenuItem(getTextFromResourceBundle(NEW_GROUP_ITEM_KEY));
-		newGroupItem.setOnAction(event -> createGroup(groupNames));
+		newGroupItem.setOnAction(event -> groupOperations.createGroup(groupNames));
 
 		final Menu renameGroupMenu = new Menu(getTextFromResourceBundle(RENAME_GROUP_MENU_KEY));
 		final Menu deleteGroupMenu = new Menu(getTextFromResourceBundle(DELETE_GROUP_MENU_KEY));
@@ -393,13 +415,13 @@ public class LayoutsMenu extends Menu {
 			for (final String groupName : groupNames) {
 				final MenuItem renameItem = layoutItem(groupName);
 				renameItem.setOnAction(event ->
-						renameGroup(groupName, groupNames, storedLayouts)
+						groupOperations.renameGroup(groupName, groupNames, storedLayouts)
 				);
 				renameGroupMenu.getItems().add(renameItem);
 
 				final MenuItem deleteItem = layoutItem(groupName);
 				deleteItem.setOnAction(event ->
-						deleteGroup(groupName, storedLayouts)
+						groupOperations.deleteGroup(groupName, storedLayouts)
 				);
 				deleteGroupMenu.getItems().add(deleteItem);
 			}
@@ -712,7 +734,7 @@ public class LayoutsMenu extends Menu {
 		if (groupNames.get().isEmpty()) {
 			group = null;
 		} else {
-			final Optional<String> choice = findGroupChoice(
+			final Optional<String> choice = groupOperations.findGroupChoice(
 					getTextFromResourceBundle(TITLE_SAVE_AS_NEW_DIALOG_KEY),
 					getTextFromResourceBundle(GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY),
 					null,
@@ -723,7 +745,7 @@ public class LayoutsMenu extends Menu {
 				return;
 			}
 
-			group = chosenGroup(choice.get());
+			group = groupOperations.chosenGroup(choice.get());
 		}
 
 		final LayoutPersistenceProfile newLayout = newProfile(
@@ -836,7 +858,7 @@ public class LayoutsMenu extends Menu {
 			return;
 		}
 
-		final Optional<String> choice = findGroupChoice(
+		final Optional<String> choice = groupOperations.findGroupChoice(
 				getTextFromResourceBundle(TITLE_MOVE_TO_GROUP_DIALOG_KEY),
 				getTextFromResourceBundle(PROMPT_MOVE_TO_GROUP_DIALOG_KEY),
 				storedLayout.group(),
@@ -850,287 +872,8 @@ public class LayoutsMenu extends Menu {
 		updateStoredLayoutNaming(
 				storedLayout,
 				storedLayout.displayName(),
-				chosenGroup(choice.get())
+				groupOperations.chosenGroup(choice.get())
 		);
-	}
-
-	/**
-	 * {@return the group a user picked, or an empty {@link Optional} when the
-	 * dialog was dismissed.}
-	 *
-	 * <p>What comes back is the label that was picked, which is
-	 * {@code choice.noGroup} when the user chose to leave the layout in no group -
-	 * put it through {@link #chosenGroup(String)} to get the group to store.</p>
-	 *
-	 * <p>A {@link ChoiceDialog} rather than a submenu of groups, because the menu
-	 * item this opens from already names a layout and an item cannot both act and
-	 * hold a submenu.</p>
-	 *
-	 * <p>FX Application Thread only, and blocks in a nested event loop until the
-	 * dialog is dismissed.</p>
-	 *
-	 * @param title the dialog's title.
-	 * @param prompt what to ask for.
-	 * @param currentGroup the group to start on, or {@code null} to start on no
-	 * group.
-	 * @param groupNames the groups to choose between.
-	 */
-	private Optional<String> findGroupChoice(
-			final String title,
-			final String prompt,
-			final @Nullable String currentGroup,
-			final List<String> groupNames
-	) {
-		final String noGroupChoice = getTextFromResourceBundle(NO_GROUP_CHOICE_KEY);
-		final List<String> choices = new ArrayList<>();
-		choices.add(noGroupChoice);
-		choices.addAll(groupNames);
-
-		// Starting on a group that is not offered would show the dialog with a
-		// selection the list does not hold, so an unknown group starts on none.
-		// Matching is case-insensitive to agree with LayoutGroups' CASE_INSENSITIVE_ORDER
-		// ordering, and the starting choice is taken from the list rather than
-		// from currentGroup so its spelling matches an entry ChoiceDialog
-		// recognizes.
-		final String startingChoice =
-				currentGroup == null
-						? noGroupChoice
-						: choices.stream()
-								.filter(choice -> choice.equalsIgnoreCase(currentGroup))
-								.findFirst()
-								.orElse(noGroupChoice);
-
-		final ChoiceDialog<String> dialog =
-				new ChoiceDialog<>(startingChoice, choices);
-
-		dialog.initOwner(owner);
-		dialog.setTitle(title);
-		dialog.setHeaderText(null);
-		dialog.setContentText(prompt);
-
-		return dialog.showAndWait();
-	}
-
-	/**
-	 * {@return the group to store for a label a user picked, which is
-	 * {@code null} when they picked no group.}
-	 *
-	 * @param choice the label {@link #findGroupChoice} returned.
-	 */
-	private @Nullable String chosenGroup(final String choice) {
-		return choice.equals(getTextFromResourceBundle(NO_GROUP_CHOICE_KEY)) ? null : choice;
-	}
-
-	/**
-	 * Asks for a name and adds a group under it.
-	 *
-	 * <p>The group is written to the catalog and holds nothing, which is what
-	 * lets it be created before there is a layout to put in it.</p>
-	 *
-	 * @param groupNames the groups that already exist, which a new name may not
-	 * repeat.
-	 */
-	private void createGroup(final List<String> groupNames) {
-		final Optional<String> groupName = findLayoutName(
-				getTextFromResourceBundle(TITLE_NEW_GROUP_DIALOG_KEY),
-				getTextFromResourceBundle(PROMPT_NEW_GROUP_DIALOG_KEY),
-				""
-		);
-
-		if (groupName.isEmpty() || !isUsableGroupName(
-				groupName.get(),
-				groupNames,
-				null
-		)) {
-			return;
-		}
-
-		// Read the catalog rather than reusing the merged list: merging folds in
-		// the groups the layouts name, and writing those back would quietly
-		// promote a group into the catalog that nobody asked to create.
-		writeGroupCatalog(catalog -> {
-			final List<String> updated = new ArrayList<>(catalog);
-			updated.add(groupName.get().trim());
-			return updated;
-		}, getTextFromResourceBundle(HEADER_GROUP_FAILED_ERROR_KEY));
-	}
-
-	/**
-	 * Asks for a new name for a group and renames it, along with every layout in
-	 * it.
-	 *
-	 * <p>The catalog is rewritten first and the layouts after. Either order can be
-	 * interrupted, and neither loses a layout: the group a layout records and the
-	 * catalog are read together as a union, so a layout left behind under the old
-	 * name still appears - under that name - rather than vanishing.</p>
-	 *
-	 * @param groupName the group to rename.
-	 * @param groupNames the groups that exist.
-	 * @param storedLayouts the layouts to carry across.
-	 */
-	private void renameGroup(
-			final String groupName,
-			final List<String> groupNames,
-			final List<LayoutPersistenceProfile> storedLayouts
-	) {
-		final Optional<String> newGroupName = findLayoutName(
-				getTextFromResourceBundle(TITLE_RENAME_GROUP_DIALOG_KEY),
-				getTextFromResourceBundle(PROMPT_RENAME_GROUP_DIALOG_KEY),
-				groupName
-		);
-
-		if (newGroupName.isEmpty() || !isUsableGroupName(
-				newGroupName.get(),
-				groupNames,
-				groupName
-		)) {
-			return;
-		}
-
-		final String trimmedName = newGroupName.get().trim();
-
-		final boolean catalogWritten = writeGroupCatalog(
-				catalog -> catalog.stream()
-						.map(stored -> stored.equalsIgnoreCase(groupName)
-								? trimmedName
-								: stored)
-						.toList(),
-				getTextFromResourceBundle(HEADER_RENAME_GROUP_FAILED_ERROR_KEY)
-		);
-
-		if (catalogWritten) {
-			moveGroupMembers(
-					groupName,
-					trimmedName,
-					storedLayouts,
-					getTextFromResourceBundle(HEADER_RENAME_GROUP_FAILED_ERROR_KEY)
-			);
-		}
-	}
-
-	/**
-	 * Confirms, then removes a group and takes the layouts in it out of it.
-	 *
-	 * <p>The layouts are not deleted. They are moved out of the group first and
-	 * the catalog is rewritten after, so an interrupted delete leaves a group that
-	 * is empty rather than one that appears to hold layouts no longer in it.</p>
-	 *
-	 * @param groupName the group to remove.
-	 * @param storedLayouts the layouts to take out of it.
-	 */
-	private void deleteGroup(
-			final String groupName,
-			final List<LayoutPersistenceProfile> storedLayouts
-	) {
-		if (!confirmLayoutAction(
-				getTextFromResourceBundle(HEADER_DELETE_GROUP_CONFIRM_KEY, groupName),
-				getTextFromResourceBundle(CONTENT_DELETE_GROUP_CONFIRM_KEY)
-		)) {
-			return;
-		}
-
-		final boolean membersMoved = moveGroupMembers(
-				groupName,
-				null,
-				storedLayouts,
-				getTextFromResourceBundle(HEADER_DELETE_GROUP_FAILED_ERROR_KEY)
-		);
-
-		if (membersMoved) {
-			writeGroupCatalog(
-					catalog -> catalog.stream()
-							.filter(stored -> !stored.equalsIgnoreCase(groupName))
-							.toList(),
-					getTextFromResourceBundle(HEADER_DELETE_GROUP_FAILED_ERROR_KEY)
-			);
-		}
-	}
-
-	/**
-	 * Moves every layout in a group to another group, or out of any group.
-	 *
-	 * @param groupName the group whose layouts to move.
-	 * @param newGroupName the group to move them to, or {@code null} to take them
-	 * out of any group.
-	 * @param storedLayouts the layouts to look through.
-	 * @param errorHeader what to tell the user when a layout cannot be written.
-	 * @return {@code true} when every layout in the group was moved; otherwise,
-	 * {@code false}, the user having been told.
-	 */
-	private boolean moveGroupMembers(
-			final String groupName,
-			final @Nullable String newGroupName,
-			final List<LayoutPersistenceProfile> storedLayouts,
-			final String errorHeader
-	) {
-		for (final LayoutPersistenceProfile storedLayout : storedLayouts) {
-			final String layoutGroup = storedLayout.group();
-
-			if (layoutGroup == null || !layoutGroup.equalsIgnoreCase(groupName)) {
-				continue;
-			}
-
-			final LayoutPersistenceProfile movedLayout = storedLayout.withNaming(
-					storedLayout.displayName(),
-					newGroupName
-			);
-
-			try {
-				if (persistenceProvider().updateStoredLayoutNaming(movedLayout)) {
-					followNamingChange(movedLayout);
-				}
-			} catch (final BentoStateException e) {
-				logger.warn(
-						"Could not move the stored layout '{}' out of the group "
-								+ "'{}'.",
-						storedLayout.layoutIdentifier(),
-						groupName,
-						e
-				);
-				showLayoutError(errorHeader, e.getMessage());
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Reads the group catalog, changes it, and writes it back.
-	 *
-	 * @param change what the catalog should become, given what it holds now.
-	 * @param errorHeader what to tell the user when it cannot be read or written,
-	 * or when the persistence provider has no catalog to write to.
-	 * @return {@code true} when the catalog was written; otherwise, {@code false},
-	 * the user having been told.
-	 */
-	private boolean writeGroupCatalog(
-			final UnaryOperator<List<String>> change,
-			final String errorHeader
-	) {
-		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
-				extendedPersistenceProvider();
-
-		if (extendedProvider.isEmpty()) {
-			showLayoutError(errorHeader, null);
-			return false;
-		}
-
-		final PersistedDockingLayoutOrganizationProvider provider = extendedProvider.get();
-		final LayoutPersistenceProfile storageProfile =
-				LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER);
-
-		try {
-			provider.setStoredGroups(
-					storageProfile,
-					change.apply(provider.getStoredGroups(storageProfile))
-			);
-			return true;
-		} catch (final BentoStateException e) {
-			logger.warn("Could not write the stored layout groups.", e);
-			showLayoutError(errorHeader, e.getMessage());
-			return false;
-		}
 	}
 
 	/**
@@ -1180,46 +923,6 @@ public class LayoutsMenu extends Menu {
 		if (isActiveLayout(renamedLayout)) {
 			setActiveCustomLayoutProfile(renamedLayout);
 		}
-	}
-
-	/**
-	 * {@return {@code true} when the name can be a group; otherwise,
-	 * {@code false}, the user having been told why.}
-	 *
-	 * @param groupName the name the user typed.
-	 * @param groupNames the groups that exist.
-	 * @param renamedGroup the group being renamed, or {@code null} when one is
-	 * being created.
-	 */
-	private boolean isUsableGroupName(
-			final String groupName,
-			final List<String> groupNames,
-			final @Nullable String renamedGroup
-	) {
-		final Optional<GroupNameProblem> problem =
-				LayoutGroups.findGroupNameProblem(
-						groupName,
-						groupNames,
-						renamedGroup
-				);
-
-		if (problem.isEmpty()) {
-			return true;
-		}
-
-		showLayoutError(
-				getTextFromResourceBundle(HEADER_CANNOT_NAME_GROUP_ERROR_KEY, groupName),
-				switch (problem.get()) {
-					case BLANK -> getTextFromResourceBundle(BLANK_GROUP_PROBLEM_KEY);
-					case TOO_LONG -> getTextFromResourceBundle(
-							GROUP_TOO_LONG_PROBLEM_KEY,
-							LayoutGroups.MAX_GROUP_NAME_LENGTH
-					);
-					case DUPLICATE -> getTextFromResourceBundle(DUPLICATE_GROUP_PROBLEM_KEY);
-				}
-		);
-
-		return false;
 	}
 
 	/**
