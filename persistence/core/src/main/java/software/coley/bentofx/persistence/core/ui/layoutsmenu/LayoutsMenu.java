@@ -223,7 +223,7 @@ public class LayoutsMenu extends Menu {
 		// as the session layout the application starts with, which checks
 		// Custom and nothing under it.
 		final boolean isDefaultShowing =
-				controller.getActiveLayoutState().getActiveLayoutProfile() == null && controller.getDefaultArrangementState().isDefaultLayoutShowing();
+				controller.activeLayoutState().getActiveLayoutProfile() == null && controller.defaultArrangementState().isDefaultLayoutShowing();
 
 		final MenuItem defaultItem = new MenuItem(
 				markedText(
@@ -231,7 +231,7 @@ public class LayoutsMenu extends Menu {
 						isDefaultShowing
 				)
 		);
-		defaultItem.setOnAction(event -> controller.getLayoutOperations().restoreDefaultLayout());
+		defaultItem.setOnAction(event -> controller.layoutOperations().restoreDefaultLayout());
 
 		final Menu customMenu = new Menu(
 				markedText(
@@ -243,7 +243,7 @@ public class LayoutsMenu extends Menu {
 
 		final MenuItem saveAsNewItem =
 				new MenuItem(getTextFromResourceBundle(SAVE_AS_NEW_ITEM_KEY));
-		saveAsNewItem.setOnAction(event -> controller.getLayoutOperations().saveCurrentLayoutAsNew());
+		saveAsNewItem.setOnAction(event -> controller.layoutOperations().saveCurrentLayoutAsNew());
 
 		getItems().setAll(defaultItem, customMenu, saveAsNewItem);
 	}
@@ -267,8 +267,8 @@ public class LayoutsMenu extends Menu {
 		final Menu groupsMenu = new Menu(getTextFromResourceBundle(GROUPS_MENU_KEY));
 
 		final MenuItem saveChangesItem = new MenuItem(getTextFromResourceBundle(SAVE_CHANGES_ITEM_KEY));
-		saveChangesItem.setDisable(controller.getActiveLayoutState().getActiveLayoutProfile() == null);
-		saveChangesItem.setOnAction(event -> controller.getLayoutOperations().saveChangesToActiveLayout());
+		saveChangesItem.setDisable(controller.activeLayoutState().getActiveLayoutProfile() == null);
+		saveChangesItem.setOnAction(event -> controller.layoutOperations().saveChangesToActiveLayout());
 
 		// One reading of storage fills every list below. Listing with display
 		// names decodes every stored layout, so asking again would decode again.
@@ -295,21 +295,21 @@ public class LayoutsMenu extends Menu {
 					storedLayouts.get(),
 					groupNames.get(),
 					true,
-					controller.getLayoutOperations()::restoreStoredLayout
+					controller.layoutOperations()::restoreStoredLayout
 			);
 			addLayoutItems(
 					renameMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					controller.getLayoutOperations()::renameStoredLayout
+					controller.layoutOperations()::renameStoredLayout
 			);
 			addLayoutItems(
 					deleteMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					controller.getLayoutOperations()::deleteStoredLayout
+					controller.layoutOperations()::deleteStoredLayout
 			);
 
 			// Nothing to move a layout into until a group exists, and an item
@@ -323,7 +323,7 @@ public class LayoutsMenu extends Menu {
 						storedLayouts.get(),
 						groupNames.get(),
 						false,
-						controller.getLayoutOperations()::moveStoredLayoutToGroup
+						controller.layoutOperations()::moveStoredLayoutToGroup
 				);
 			}
 
@@ -356,7 +356,7 @@ public class LayoutsMenu extends Menu {
 			final List<String> groupNames
 	) {
 		final MenuItem newGroupItem = new MenuItem(getTextFromResourceBundle(NEW_GROUP_ITEM_KEY));
-		newGroupItem.setOnAction(event -> controller.getGroupOperations().createGroup(groupNames));
+		newGroupItem.setOnAction(event -> controller.groupOperations().createGroup(groupNames));
 
 		final Menu renameGroupMenu = new Menu(getTextFromResourceBundle(RENAME_GROUP_MENU_KEY));
 		final Menu deleteGroupMenu = new Menu(getTextFromResourceBundle(DELETE_GROUP_MENU_KEY));
@@ -368,13 +368,13 @@ public class LayoutsMenu extends Menu {
 			for (final String groupName : groupNames) {
 				final MenuItem renameItem = layoutItem(groupName);
 				renameItem.setOnAction(event ->
-						controller.getGroupOperations().renameGroup(groupName, groupNames, storedLayouts)
+						controller.groupOperations().renameGroup(groupName, groupNames, storedLayouts)
 				);
 				renameGroupMenu.getItems().add(renameItem);
 
 				final MenuItem deleteItem = layoutItem(groupName);
 				deleteItem.setOnAction(event ->
-						controller.getGroupOperations().deleteGroup(groupName, storedLayouts)
+						controller.groupOperations().deleteGroup(groupName, storedLayouts)
 				);
 				deleteGroupMenu.getItems().add(deleteItem);
 			}
@@ -453,7 +453,7 @@ public class LayoutsMenu extends Menu {
 		final Menu groupMenu = new Menu(markedText(
 				groupName,
 				marksActiveLayout
-						&& groupLayouts.stream().anyMatch(controller.getActiveLayoutState()::isActiveLayout)
+						&& groupLayouts.stream().anyMatch(controller.activeLayoutState()::isActiveLayout)
 		));
 		groupMenu.setMnemonicParsing(false);
 
@@ -489,7 +489,7 @@ public class LayoutsMenu extends Menu {
 	) {
 		final MenuItem item = layoutItem(markedText(
 				StoredLayouts.getLayoutLabel(storedLayout),
-				marksActiveLayout && controller.getActiveLayoutState().isActiveLayout(storedLayout)
+				marksActiveLayout && controller.activeLayoutState().isActiveLayout(storedLayout)
 		));
 		item.setOnAction(event -> action.accept(storedLayout));
 

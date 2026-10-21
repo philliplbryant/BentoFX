@@ -14,16 +14,12 @@ import java.util.Objects;
  *
  * @author Phil Bryant
  */
-final class LayoutsController {
-
-	private final LayoutGroupOperations groupOperations;
-
-	private final ActiveLayoutState activeLayoutState;
-
-	private final DefaultArrangementState defaultArrangementState;
-
-	private final LayoutOperations layoutOperations;
-
+record LayoutsController(
+		LayoutGroupOperations groupOperations,
+		ActiveLayoutState activeLayoutState,
+		DefaultArrangementState defaultArrangementState,
+		LayoutOperations layoutOperations
+) {
 	/**
 	 * Builds a controller from four already-constructed collaborators. The
 	 * collaborators have references between themselves ({@link LayoutOperations}
@@ -31,12 +27,16 @@ final class LayoutsController {
 	 * {@link DefaultArrangementState}), so the caller is responsible for
 	 * building them in the right order.
 	 *
-	 * @param groupOperations handles group CRUD and catalog operations.
-	 * @param activeLayoutState tracks which named layout is currently active.
-	 * @param defaultArrangementState tracks whether the default layout is
-	 * currently showing.
-	 * @param layoutOperations handles layout CRUD: save, restore, rename,
-	 * delete, and write.
+	 * @param groupOperations
+	 * 		handles group CRUD and catalog operations.
+	 * @param activeLayoutState
+	 * 		tracks which named layout is currently active.
+	 * @param defaultArrangementState
+	 * 		tracks whether the default layout is
+	 * 		currently showing.
+	 * @param layoutOperations
+	 * 		handles layout CRUD: save, restore, rename,
+	 * 		delete, and write.
 	 */
 	LayoutsController(
 			final LayoutGroupOperations groupOperations,
@@ -55,22 +55,26 @@ final class LayoutsController {
 	}
 
 	/** {@return the group CRUD and catalog operations.} */
-	LayoutGroupOperations getGroupOperations() {
+	@Override
+	public LayoutGroupOperations groupOperations() {
 		return groupOperations;
 	}
 
 	/** {@return the tracker for which named layout is currently active.} */
-	ActiveLayoutState getActiveLayoutState() {
+	@Override
+	public ActiveLayoutState activeLayoutState() {
 		return activeLayoutState;
 	}
 
 	/** {@return the tracker for whether the default layout is currently showing.} */
-	DefaultArrangementState getDefaultArrangementState() {
+	@Override
+	public DefaultArrangementState defaultArrangementState() {
 		return defaultArrangementState;
 	}
 
 	/** {@return the layout CRUD operations: save, restore, rename, delete, and write.} */
-	LayoutOperations getLayoutOperations() {
+	@Override
+	public LayoutOperations layoutOperations() {
 		return layoutOperations;
 	}
 }
