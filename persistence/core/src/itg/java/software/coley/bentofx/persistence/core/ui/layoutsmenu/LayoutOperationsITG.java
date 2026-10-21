@@ -247,8 +247,7 @@ class LayoutOperationsITG {
 	 * {@link javafx.scene.control.ChoiceDialog} appears.</p>
 	 */
 	@Test
-	void saveCurrentLayoutAsNewPersistsAndActivatesProfile()
-			throws BentoStateException {
+	void saveCurrentLayoutAsNewPersistsAndActivatesProfile() {
 		final DockingLayoutPersistenceProvider provider = createPersistenceProvider();
 		final DockingLayoutRestorable restorable = createRestorable(provider);
 		final ActiveLayoutState activeLayoutState = new ActiveLayoutState(restorable);
@@ -339,7 +338,7 @@ class LayoutOperationsITG {
 
 		fireDialogOperation(
 				() -> ops.moveStoredLayoutToGroup(profile),
-				selectChoiceAndDismiss("Workspace")
+				selectChoiceAndDismiss()
 		);
 
 		assertThat(provider.getStoredLayouts(LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)))
@@ -621,7 +620,7 @@ class LayoutOperationsITG {
 			final Runnable operation,
 			final Runnable... dialogSteps
 	) {
-		final AtomicReference<Throwable> operationFailure = new AtomicReference<>();
+		final AtomicReference<@Nullable Throwable> operationFailure = new AtomicReference<>();
 		final CountDownLatch operationDone = new CountDownLatch(1);
 		Platform.runLater(() -> {
 			for (final Runnable step : dialogSteps) {
@@ -636,7 +635,7 @@ class LayoutOperationsITG {
 			}
 		});
 		final boolean completed = awaitUninterruptibly(
-				operationDone, DIALOG_TIMEOUT_SECONDS, TimeUnit.SECONDS
+				operationDone, DIALOG_TIMEOUT_SECONDS
 		);
 		if (!completed) {
 			Platform.runLater(() -> findShowingDialogPane().ifPresent(pane -> {
@@ -645,7 +644,7 @@ class LayoutOperationsITG {
 					cancel.fire();
 				}
 			}));
-			if (!awaitUninterruptibly(operationDone, 1, TimeUnit.SECONDS)) {
+			if (!awaitUninterruptibly(operationDone, 1)) {
 				throw new AssertionError(
 						"Timed out waiting for the operation to complete"
 								+ " (dialog still open after force-cancel)"
@@ -672,16 +671,16 @@ class LayoutOperationsITG {
 	 * {@return whether {@code latch} counted down to zero within the timeout},
 	 * ignoring interrupts and restoring the interrupt flag on return.
 	 *
-	 * @param latch the latch to wait on.
-	 * @param timeout how long to wait.
-	 * @param unit the unit of {@code timeout}.
+	 * @param latch
+	 * 		the latch to wait on.
+	 * @param timeout
+	 * 		how long to wait.
 	 */
 	private static boolean awaitUninterruptibly(
 			final CountDownLatch latch,
-			final long timeout,
-			final TimeUnit unit
+			final long timeout
 	) {
-		final long deadlineNanos = System.nanoTime() + unit.toNanos(timeout);
+		final long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
 		boolean interrupted = false;
 		try {
 			while (true) {
@@ -723,10 +722,8 @@ class LayoutOperationsITG {
 	 *
 	 * <p>The selection goes through the {@link ComboBox} the dialog builds,
 	 * which is what the dialog reads its result from.</p>
-	 *
-	 * @param choice the item to select.
 	 */
-	private static Runnable selectChoiceAndDismiss(final String choice) {
+	private static Runnable selectChoiceAndDismiss() {
 		return () -> runDialogStep(pane -> {
 			@SuppressWarnings("unchecked")
 			final ComboBox<String> choices = (ComboBox<String>) Objects.requireNonNull(
@@ -735,9 +732,9 @@ class LayoutOperationsITG {
 
 			assertThat(choices.getItems())
 					.describedAs("choices offered by the dialog")
-					.contains(choice);
+					.contains("Workspace");
 
-			choices.getSelectionModel().select(choice);
+			choices.getSelectionModel().select("Workspace");
 			((Button) pane.lookupButton(OK)).fire();
 		});
 	}
