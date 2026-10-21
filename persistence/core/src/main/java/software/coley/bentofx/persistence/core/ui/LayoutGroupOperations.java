@@ -22,32 +22,17 @@ import java.util.ResourceBundle;
 import java.util.function.UnaryOperator;
 
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.BLANK_GROUP_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.CONTENT_DELETE_GROUP_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.DUPLICATE_GROUP_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.GROUP_TOO_LONG_PROBLEM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_CANNOT_NAME_GROUP_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_CONFIRM_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_DELETE_GROUP_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_GROUP_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.HEADER_RENAME_GROUP_FAILED_ERROR_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.NO_GROUP_CHOICE_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_NEW_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.PROMPT_RENAME_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_NEW_GROUP_DIALOG_KEY;
-import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.TITLE_RENAME_GROUP_DIALOG_KEY;
+import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
 
 /**
- * Group CRUD and catalog operations extracted from {@link LayoutsMenu}.
+ * Group CRUD and catalog operations: creating, renaming, deleting, and moving
+ * layouts between groups, plus the underlying catalog reads and writes.
  *
- * <p>Handles creating, renaming, deleting, and moving layouts between groups, plus
- * the underlying catalog reads and writes. {@link LayoutsMenu} holds an instance and
- * delegates every group-management call here.</p>
- *
- * <p>Helpers that are also used by other parts of {@link LayoutsMenu}
- * ({@code confirmLayoutAction}, {@code showLayoutError}, {@code problemText},
- * {@code populate}, {@code followNamingChange}) are reached through the
- * {@link LayoutGroupOperationsContext} passed at construction.</p>
+ * <p>Confirmation, error-reporting, and post-operation callbacks that this
+ * class cannot own — {@code confirmLayoutAction}, {@code showLayoutError},
+ * {@code problemText}, {@code populate}, {@code followNamingChange} — are
+ * reached through the {@link LayoutGroupOperationsContext} passed at
+ * construction.</p>
  *
  * @author Phil Bryant
  */
@@ -66,8 +51,8 @@ class LayoutGroupOperations {
 	 * storage operations go through.
 	 * @param owner the window the dialogs raised here belong to.
 	 * @param resourceBundle every word a user reads from the dialogs here.
-	 * @param context bridges back to the helpers and callbacks in
-	 * {@link LayoutsMenu}.
+	 * @param context supplies the confirmation, error-reporting, and naming
+	 * callbacks this class cannot own itself.
 	 */
 	LayoutGroupOperations(
 			final DockingLayoutRestorable dockingLayoutRestorable,

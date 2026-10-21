@@ -35,12 +35,11 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
 
 /**
  * Coverage for {@link LayoutArrangements#isShowing}, which decides whether the
- * {@code Default} item in {@link LayoutsMenu} is checked.
+ * {@code Default} menu item is marked.
  *
  * <p>Each test shows an arrangement in a real window, records it through a real
- * persistence provider and reads it back as state, the way {@link LayoutsMenu}
- * does when the default layout is applied, then changes what is showing and
- * compares.</p>
+ * persistence provider and reads it back as state, then changes what is showing
+ * and compares.</p>
  *
  * @author Phil Bryant
  */

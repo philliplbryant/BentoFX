@@ -1,7 +1,7 @@
 package software.coley.bentofx.persistence.core.ui;
 
 /**
- * The {@code LayoutsMenu.properties} keys {@link LayoutsMenu} reads.
+ * The {@code LayoutsMenu.properties} resource bundle keys.
  *
  * @author Phil Bryant
  */

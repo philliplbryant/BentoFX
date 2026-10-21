@@ -19,14 +19,12 @@ import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifi
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 
 /**
- * Default-arrangement state extracted from {@link LayoutsMenu}: whether the
- * default layout is currently showing, and the persistence read/write that
- * keeps it in step across restarts.
+ * Tracks whether the default layout is currently showing, comparing what is
+ * on screen against the arrangement recorded the last time it was applied,
+ * so the check mark on the Default item stays accurate.
  *
- * <p>{@link LayoutsMenu} holds one instance and delegates every
- * default-arrangement call here. The state it owns is the last-recorded
- * arrangement of the default layout, which is compared against what is on
- * screen each time the menu fills to decide whether to check the
+ * <p>The last-recorded arrangement of the default layout is compared against
+ * what is on screen each time the menu fills to decide whether to mark the
  * {@code Default} item.</p>
  *
  * <p>{@link #recordDefaultArrangement()} must be called on the FX Application

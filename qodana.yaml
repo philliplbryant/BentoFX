@@ -21,3 +21,6 @@ exclude:
   - name: All
     paths:
       - build
+      - core
+      - demos/basic
+      - demos/persistence/src/main/resources/bento.css

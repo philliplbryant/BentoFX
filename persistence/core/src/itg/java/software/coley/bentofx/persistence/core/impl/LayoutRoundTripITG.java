@@ -187,7 +187,7 @@ class LayoutRoundTripITG {
 			final DockingLayout dockingLayout =
 					new DefaultDockingLayoutRebuilder(
 							new DefaultBentoProvider(restoredBento),
-							LayoutRoundTripITG::dockableStateFor,
+							LayoutRoundTripITG::findDockableState,
 							null,
 							null
 					).rebuild(captured);
@@ -298,7 +298,7 @@ class LayoutRoundTripITG {
 	 * The restorer resolves dockables through a provider, so the test has to supply
 	 * one for each identifier the captured state names.
 	 */
-	private static Optional<DockableState> dockableStateFor(
+	private static Optional<DockableState> findDockableState(
 			final String dockableIdentifier
 	) {
 		return Optional.of(

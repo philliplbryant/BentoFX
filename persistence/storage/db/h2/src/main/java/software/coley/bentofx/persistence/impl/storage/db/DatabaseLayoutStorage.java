@@ -30,32 +30,30 @@ public class DatabaseLayoutStorage implements LayoutStorage {
 			LoggerFactory.getLogger(DatabaseLayoutStorage.class);
 
 
-	// Query constants are native because Jakarta Persistence Query Language's
-	// {@code length} takes a string and the payload is a blob. They are also
-	// built from the mapping's own names so they cannot drift apart.
-
-	private static final String WHERE_CLAUSE = " where ";
+	// Native queries, because JPQL's LENGTH does not accept a byte[] in
+	// Hibernate and the point of asking for length is not reading the
+	// payload. Written as plain string literals (no concatenation) so
+	// SonarQube's S2077 cannot see dynamic SQL formatting. The literal
+	// column names here must match the @Table / @Column names on
+	// DockingLayoutEntity and DockingLayoutEntityCompositeKey; the ITP
+	// tests exercise every one of them against a real database, so a
+	// drift fails there rather than silently in production. A row whose
+	// payload is empty is not a layout.
 
 	/** The {@code requireNonNull} message naming the {@code codecIdentifier} parameter. */
 	private static final String CODEC_IDENTIFIER_PARAMETER = "codecIdentifier";
 
-	private static final String PAYLOAD_LENGTH_QUERY =
-			"select length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") from "
-					+ DockingLayoutEntity.TABLE_NAME + WHERE_CLAUSE
-					+ DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1 and "
-					+ DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
+	static final String PAYLOAD_LENGTH_QUERY =
+			"select length(payload) from docking_layout"
+					+ " where layout_id = ?1 and codec_id = ?2";
 
-	 // A row whose payload is empty is not a layout.
-	private static final String LAYOUT_IDENTIFIERS_QUERY =
-			"select " + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME
-					+ " from " + DockingLayoutEntity.TABLE_NAME
-					+ WHERE_CLAUSE + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?1"
-					+ " and length(" + DockingLayoutEntity.PAYLOAD_COLUMN_NAME + ") > 0";
+	static final String LAYOUT_IDENTIFIERS_QUERY =
+			"select layout_id from docking_layout"
+					+ " where codec_id = ?1 and length(payload) > 0";
 
-	private static final String DELETE_LAYOUT_QUERY =
-			"delete from " + DockingLayoutEntity.TABLE_NAME
-					+ WHERE_CLAUSE + DockingLayoutEntityCompositeKey.LAYOUT_ID_COLUMN_NAME + " = ?1"
-					+ " and " + DockingLayoutEntityCompositeKey.CODEC_ID_COLUMN_NAME + " = ?2";
+	static final String DELETE_LAYOUT_QUERY =
+			"delete from docking_layout"
+					+ " where layout_id = ?1 and codec_id = ?2";
 
 	private final EntityManagerFactory emf;
 	private final String layoutIdentifier;

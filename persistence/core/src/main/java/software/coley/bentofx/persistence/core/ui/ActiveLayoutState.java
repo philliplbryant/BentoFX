@@ -15,15 +15,9 @@ import java.util.Optional;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 
 /**
- * Active-layout state extracted from {@link LayoutsMenu}: which named layout
- * is currently showing, and the persistence read/write that keeps it in step
- * across restarts.
- *
- * <p>{@link LayoutsMenu} holds one instance and delegates every
- * active-layout call here. The state it owns is which named layout is active,
- * which is written through
- * {@link PersistedDockingLayoutOrganizationProvider#setActiveLayoutIdentifier}
- * on every change so that a restart can recover it.</p>
+ * Tracks which named layout is currently shown as the user's active choice,
+ * and reads and writes that choice through the extended persistence provider
+ * so it survives a restart.
  *
  * <p>None of the methods here touch the scene graph, so none require the
  * FX Application Thread.</p>

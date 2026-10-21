@@ -20,8 +20,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static software.coley.bentofx.persistence.impl.storage.db.DockingLayoutEntityCompositeKey.MAX_COMPOSITE_KEY_LENGTH;
 
 class DatabaseLayoutStorageITP {
@@ -86,6 +85,50 @@ class DatabaseLayoutStorageITP {
 	@AfterEach
 	void tearDown() {
 		deleteTestLayout();
+	}
+
+	/**
+	 * Runs each native query in {@link DatabaseLayoutStorage} against the real
+	 * schema Hibernate generates from the entity annotations. A rename of a
+	 * {@code @Table} or {@code @Column} name on {@link DockingLayoutEntity} or
+	 * {@link DockingLayoutEntityCompositeKey} that is not matched by a rename
+	 * in the hardcoded query strings fails here rather than silently in
+	 * production.
+	 */
+	@Test
+	void nativeQueriesParseAgainstTheRealSchema() {
+		try (final EntityManager em = entityManagerFactory.createEntityManager()) {
+			assertThatCode(() ->
+					em.createNativeQuery(DatabaseLayoutStorage.PAYLOAD_LENGTH_QUERY)
+							.setParameter(1, TEST_LAYOUT_IDENTIFIER)
+							.setParameter(2, TEST_CODEC_IDENTIFIER)
+							.getResultList()
+			)
+					.describedAs("PAYLOAD_LENGTH_QUERY against the real schema")
+					.doesNotThrowAnyException();
+
+			assertThatCode(() ->
+					em.createNativeQuery(DatabaseLayoutStorage.LAYOUT_IDENTIFIERS_QUERY)
+							.setParameter(1, TEST_CODEC_IDENTIFIER)
+							.getResultList()
+			)
+					.describedAs("LAYOUT_IDENTIFIERS_QUERY against the real schema")
+					.doesNotThrowAnyException();
+
+			em.getTransaction().begin();
+			try {
+				assertThatCode(() ->
+						em.createNativeQuery(DatabaseLayoutStorage.DELETE_LAYOUT_QUERY)
+								.setParameter(1, TEST_LAYOUT_IDENTIFIER)
+								.setParameter(2, TEST_CODEC_IDENTIFIER)
+								.executeUpdate()
+				)
+						.describedAs("DELETE_LAYOUT_QUERY against the real schema")
+						.doesNotThrowAnyException();
+			} finally {
+				em.getTransaction().rollback();
+			}
+		}
 	}
 
 	@Test

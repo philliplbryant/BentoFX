@@ -113,7 +113,7 @@ class LeafResizableWithParentRoundTripITG {
 
 			final DockingLayout restoredLayout = new DefaultDockingLayoutRebuilder(
 					new DefaultBentoProvider(new Bento(BENTO_ID + "-restored")),
-					LeafResizableWithParentRoundTripITG::dockableStateFor,
+					LeafResizableWithParentRoundTripITG::findDockableState,
 					null,
 					null
 			).rebuild(bentoStates);
@@ -237,7 +237,7 @@ class LeafResizableWithParentRoundTripITG {
 		return leaf;
 	}
 
-	private static Optional<DockableState> dockableStateFor(
+	private static Optional<DockableState> findDockableState(
 			final String identifier
 	) {
 		if (PINNED_DOCKABLE_ID.equals(identifier)

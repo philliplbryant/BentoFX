@@ -29,8 +29,7 @@ import java.util.function.Supplier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Coverage for {@link DefaultArrangementState}: the default-arrangement tracking
- * extracted from {@link LayoutsMenu}.
+ * Coverage for {@link DefaultArrangementState}, the default-arrangement tracking.
  *
  * <p>Runs as an integration-test graphical because the constructor schedules a
  * recording through {@link javafx.application.Platform#runLater} when no
@@ -55,7 +54,7 @@ class DefaultArrangementStateITG {
 	@Test
 	void isDefaultLayoutShowingReturnsTrueWhenNoDefaultArrangementIsRecorded() {
 		final DefaultArrangementState state =
-				new DefaultArrangementState(restorableFor(providerFor()));
+				new DefaultArrangementState(createRestorable(createPersistenceProvider()));
 
 		assertThat(state.isDefaultLayoutShowing())
 				.describedAs("isDefaultLayoutShowing with no default arrangement stored")
@@ -85,7 +84,7 @@ class DefaultArrangementStateITG {
 	/**
 	 * {@return a provider backed by in-memory storage and a single in-memory codec.}
 	 */
-	private static DefaultDockingLayoutPersistenceProvider providerFor() {
+	private static DefaultDockingLayoutPersistenceProvider createPersistenceProvider() {
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		return new DefaultDockingLayoutPersistenceProvider(
 				List.of(new SingleCodecProvider(codec)),
@@ -101,7 +100,7 @@ class DefaultArrangementStateITG {
 	 * @param provider what {@link DockingLayoutRestorable#getPersistenceProvider()}
 	 * hands back.
 	 */
-	private static DockingLayoutRestorable restorableFor(
+	private static DockingLayoutRestorable createRestorable(
 			final DockingLayoutPersistenceProvider provider
 	) {
 		return new DockingLayoutRestorable() {
@@ -144,7 +143,7 @@ class DefaultArrangementStateITG {
 	 * {@link software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider}.}
 	 */
 	private static DockingLayoutRestorable nonExtendedRestorable() {
-		return restorableFor(new NonExtendedProvider());
+		return createRestorable(new NonExtendedProvider());
 	}
 
 	/**

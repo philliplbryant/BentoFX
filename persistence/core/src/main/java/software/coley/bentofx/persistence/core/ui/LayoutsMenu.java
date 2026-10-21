@@ -4,33 +4,20 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Window;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.coley.bentofx.persistence.core.api.BentoStateException;
-import software.coley.bentofx.persistence.core.api.DockingLayout;
-import software.coley.bentofx.persistence.core.api.DockingLayout.DockingLayoutBuilder;
 import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
-import software.coley.bentofx.persistence.core.api.provider.BentoProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutPersistenceProvider;
 import software.coley.bentofx.persistence.core.api.provider.DockingLayoutRestorable;
 import software.coley.bentofx.persistence.core.api.provider.PersistedDockingLayoutOrganizationProvider;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
-import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers;
-import software.coley.bentofx.persistence.core.api.storage.LayoutNames;
 
-import java.text.MessageFormat;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import static software.coley.bentofx.persistence.core.api.storage.LayoutIdentifiers.SESSION_LAYOUT_IDENTIFIER;
 import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
 
 /**
@@ -69,9 +56,6 @@ import static software.coley.bentofx.persistence.core.ui.LayoutsMenuTextKeys.*;
  */
 public class LayoutsMenu extends Menu {
 
-	private static final Logger logger =
-			LoggerFactory.getLogger(LayoutsMenu.class);
-
 	private static final String CHECK_MARK = "✓";
 
 	/**
@@ -102,6 +86,9 @@ public class LayoutsMenu extends Menu {
 
 	/** Tracks whether the default layout is currently showing. */
 	private final DefaultArrangementState defaultArrangementState;
+
+	/** Handles layout CRUD: save, restore, rename, delete, and write. */
+	private final LayoutOperations layoutOperations;
 
 	/**
 	 * Builds a menu that reads the text this framework provides, in the
@@ -182,18 +169,95 @@ public class LayoutsMenu extends Menu {
 
 					@Override
 					public void followNamingChange(final LayoutPersistenceProfile renamedLayout) {
-						LayoutsMenu.this.followNamingChange(renamedLayout);
+						activeLayoutState.followNamingChange(renamedLayout);
 					}
 				}
 		);
 		this.activeLayoutState = new ActiveLayoutState(dockingLayoutRestorable);
 		this.defaultArrangementState = new DefaultArrangementState(dockingLayoutRestorable);
+		this.layoutOperations = new LayoutOperations(
+				dockingLayoutRestorable,
+				owner,
+				resourceBundle,
+				groupOperations,
+				activeLayoutState,
+				defaultArrangementState,
+				new LayoutOperationsContext() {
+					@Override
+					public boolean confirmLayoutAction(
+							final String header,
+							final String content
+					) {
+						return LayoutsMenu.this.confirmLayoutAction(header, content);
+					}
 
-		// Rebuilt every time it opens, and once now so that it has something to
-		// open with - a menu with no items never opens, and so would never
-		// reach the handler that fills it. Rebuilding is what keeps the check
-		// marks and both layout lists agreeing with each other and with what is
-		// stored, which changes while the application runs.
+					@Override
+					public void showLayoutError(
+							final String header,
+							final @Nullable String content
+					) {
+						LayoutsMenu.this.showLayoutError(header, content);
+					}
+				}
+		);
+
+		wireMenu();
+	}
+
+	/**
+	 * Builds a menu whose collaborators are supplied rather than constructed,
+	 * for tests that drive menu behavior against stubs.
+	 *
+	 * <p>Package-private: the collaborator types are not public API. Production
+	 * code uses one of the public constructors.</p>
+	 *
+	 * @param owner the window the dialogs these items raise belong to.
+	 * @param dockingLayoutRestorable the application whose docking layout these
+	 * items switch, and whose providers they read and write it through.
+	 * @param resourceBundle every word a user reads from this menu.
+	 * @param groupOperations handles group CRUD and catalog operations.
+	 * @param activeLayoutState tracks which named layout is currently active.
+	 * @param defaultArrangementState tracks whether the default layout is
+	 * currently showing.
+	 * @param layoutOperations handles layout CRUD: save, restore, rename,
+	 * delete, and write.
+	 */
+	LayoutsMenu(
+			final Window owner,
+			final DockingLayoutRestorable dockingLayoutRestorable,
+			final ResourceBundle resourceBundle,
+			final LayoutGroupOperations groupOperations,
+			final ActiveLayoutState activeLayoutState,
+			final DefaultArrangementState defaultArrangementState,
+			final LayoutOperations layoutOperations
+	) {
+		super(Objects.requireNonNull(resourceBundle, "resourceBundle")
+				.getString(LAYOUTS_MENU_KEY));
+
+		this.owner = Objects.requireNonNull(owner, "owner");
+		this.dockingLayoutRestorable =
+				Objects.requireNonNull(dockingLayoutRestorable, "dockingLayoutRestorable");
+		this.resourceBundle = resourceBundle;
+		this.groupOperations =
+				Objects.requireNonNull(groupOperations, "groupOperations");
+		this.activeLayoutState =
+				Objects.requireNonNull(activeLayoutState, "activeLayoutState");
+		this.defaultArrangementState =
+				Objects.requireNonNull(defaultArrangementState, "defaultArrangementState");
+		this.layoutOperations =
+				Objects.requireNonNull(layoutOperations, "layoutOperations");
+
+		wireMenu();
+	}
+
+	/**
+	 * Wires the showing handler and fills the menu once so it opens with
+	 * items. A menu with no items never opens, and so would never reach the
+	 * handler that fills it. Rebuilding on every showing is what keeps the
+	 * check marks and both layout lists in step with storage, which changes
+	 * while the application runs.
+	 */
+	private void wireMenu() {
 		setOnShowing(event -> populate());
 		populate();
 	}
@@ -216,7 +280,7 @@ public class LayoutsMenu extends Menu {
 						isDefaultShowing
 				)
 		);
-		defaultItem.setOnAction(event -> restoreDefaultLayout());
+		defaultItem.setOnAction(event -> layoutOperations.restoreDefaultLayout());
 
 		final Menu customMenu = new Menu(
 				markedText(
@@ -228,7 +292,7 @@ public class LayoutsMenu extends Menu {
 
 		final MenuItem saveAsNewItem =
 				new MenuItem(getTextFromResourceBundle(SAVE_AS_NEW_ITEM_KEY));
-		saveAsNewItem.setOnAction(event -> saveCurrentLayoutAsNew());
+		saveAsNewItem.setOnAction(event -> layoutOperations.saveCurrentLayoutAsNew());
 
 		getItems().setAll(defaultItem, customMenu, saveAsNewItem);
 	}
@@ -253,17 +317,18 @@ public class LayoutsMenu extends Menu {
 
 		final MenuItem saveChangesItem = new MenuItem(getTextFromResourceBundle(SAVE_CHANGES_ITEM_KEY));
 		saveChangesItem.setDisable(activeLayoutState.getActiveLayoutProfile() == null);
-		saveChangesItem.setOnAction(event -> saveChangesToActiveLayout());
+		saveChangesItem.setOnAction(event -> layoutOperations.saveChangesToActiveLayout());
 
 		// One reading of storage fills every list below. Listing with display
 		// names decodes every stored layout, so asking again would decode again.
 		final Optional<List<LayoutPersistenceProfile>> storedLayouts =
-				findStoredCustomLayouts();
+				StoredLayouts.findStoredCustomLayouts(persistenceProvider());
 		// flatMap, so that layouts which could not be listed give no groups
 		// either: with no layouts to reconcile against, a catalog on its own
 		// would report groups for a list of layouts this menu does not have.
 		final Optional<List<String>> groupNames =
-				storedLayouts.flatMap(this::findGroupNames);
+				storedLayouts.flatMap(layouts ->
+						StoredLayouts.findGroupNames(persistenceProvider(), layouts));
 
 		final List<Menu> layoutMenus =
 				List.of(restoreMenu, renameMenu, moveToGroupMenu, deleteMenu);
@@ -279,21 +344,21 @@ public class LayoutsMenu extends Menu {
 					storedLayouts.get(),
 					groupNames.get(),
 					true,
-					this::restoreStoredLayout
+					layoutOperations::restoreStoredLayout
 			);
 			addLayoutItems(
 					renameMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					this::renameStoredLayout
+					layoutOperations::renameStoredLayout
 			);
 			addLayoutItems(
 					deleteMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					this::deleteStoredLayout
+					layoutOperations::deleteStoredLayout
 			);
 
 			// Nothing to move a layout into until a group exists, and an item
@@ -307,7 +372,7 @@ public class LayoutsMenu extends Menu {
 						storedLayouts.get(),
 						groupNames.get(),
 						false,
-						this::moveStoredLayoutToGroup
+						layoutOperations::moveStoredLayoutToGroup
 				);
 			}
 
@@ -407,7 +472,7 @@ public class LayoutsMenu extends Menu {
 				LayoutGroups.ungroupedLayouts(groupNames, storedLayouts)) {
 
 			targetMenu.getItems().add(
-					layoutItemFor(ungroupedLayout, marksActiveLayout, action)
+					createLayoutItem(ungroupedLayout, marksActiveLayout, action)
 			);
 		}
 
@@ -437,7 +502,7 @@ public class LayoutsMenu extends Menu {
 		final Menu groupMenu = new Menu(markedText(
 				groupName,
 				marksActiveLayout
-						&& groupLayouts.stream().anyMatch(this::isActiveLayout)
+						&& groupLayouts.stream().anyMatch(activeLayoutState::isActiveLayout)
 		));
 		groupMenu.setMnemonicParsing(false);
 
@@ -449,7 +514,7 @@ public class LayoutsMenu extends Menu {
 
 		for (final LayoutPersistenceProfile groupLayout : groupLayouts) {
 			groupMenu.getItems().add(
-					layoutItemFor(groupLayout, marksActiveLayout, action)
+					createLayoutItem(groupLayout, marksActiveLayout, action)
 			);
 		}
 
@@ -466,14 +531,14 @@ public class LayoutsMenu extends Menu {
 	 * @param marksActiveLayout whether to mark the layout showing now.
 	 * @param action what to do with the layout when the item is chosen.
 	 */
-	private MenuItem layoutItemFor(
+	private MenuItem createLayoutItem(
 			final LayoutPersistenceProfile storedLayout,
 			final boolean marksActiveLayout,
 			final Consumer<LayoutPersistenceProfile> action
 	) {
 		final MenuItem item = layoutItem(markedText(
-				getLayoutLabel(storedLayout),
-				marksActiveLayout && isActiveLayout(storedLayout)
+				StoredLayouts.getLayoutLabel(storedLayout),
+				marksActiveLayout && activeLayoutState.isActiveLayout(storedLayout)
 		));
 		item.setOnAction(event -> action.accept(storedLayout));
 
@@ -481,512 +546,6 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
-	 * {@return the layouts a user may act on, or an empty {@link Optional} when
-	 * storage could not be read.}
-	 *
-	 * <p>The profile this asks with selects only the codec and the storage; its
-	 * layout identifier is not used, so the session profile serves rather than
-	 * a second one being invented. The session layout is dropped from the
-	 * result, because it is the layout the application saves to on its own and
-	 * not one a user restores or deletes by name.</p>
-	 */
-	private Optional<List<LayoutPersistenceProfile>> findStoredCustomLayouts() {
-		try {
-			return Optional.of(
-					persistenceProvider().getStoredLayouts(
-							LayoutPersistenceProfile.of(
-									SESSION_LAYOUT_IDENTIFIER
-							)
-					).stream()
-							.filter(LayoutsMenu::isUserLayout)
-							.sorted(Comparator.comparing(
-									LayoutsMenu::getLayoutLabel,
-									String.CASE_INSENSITIVE_ORDER
-							))
-							.toList()
-			);
-		} catch (final BentoStateException e) {
-			logger.warn("Could not list the stored docking layouts.", e);
-			return Optional.empty();
-		}
-	}
-
-	/**
-	 * {@return the groups to show, or an empty {@link Optional} when storage
-	 * could not be read.}
-	 *
-	 * <p>The stored catalog together with the groups the layouts themselves name -
-	 * see {@link LayoutGroups#mergeGroupNames}. Callers that could not list the
-	 * layouts must not call this at all, because a catalog on its own would
-	 * report groups for a list of layouts the menu does not have. A provider with
-	 * no {@link PersistedDockingLayoutOrganizationProvider} support has no catalog to read, so
-	 * this reports only the groups the layouts themselves name.</p>
-	 *
-	 * @param storedLayouts the layouts storage reported.
-	 */
-	private Optional<List<String>> findGroupNames(
-			final List<LayoutPersistenceProfile> storedLayouts
-	) {
-		final Optional<PersistedDockingLayoutOrganizationProvider> extendedProvider =
-				extendedPersistenceProvider();
-
-		if (extendedProvider.isEmpty()) {
-			return Optional.of(
-					LayoutGroups.mergeGroupNames(List.of(), storedLayouts)
-			);
-		}
-
-		try {
-			return Optional.of(LayoutGroups.mergeGroupNames(
-					extendedProvider.get().getStoredGroups(
-							LayoutPersistenceProfile.of(SESSION_LAYOUT_IDENTIFIER)
-					),
-					storedLayouts
-			));
-		} catch (final BentoStateException e) {
-			logger.warn("Could not list the stored layout groups.", e);
-			return Optional.empty();
-		}
-	}
-
-	/**
-	 * {@return {@code true} when the layout is one a user named; otherwise,
-	 * {@code false}.}
-	 *
-	 * @param layoutPersistenceProfile identifies the layout to test.
-	 */
-	private static boolean isUserLayout(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		return !LayoutIdentifiers.isReserved(
-				layoutPersistenceProfile.layoutIdentifier()
-		);
-	}
-
-	/**
-	 * Switches to the layout the application builds for itself.
-	 */
-	private void restoreDefaultLayout() {
-		if (switchToLayout(
-				dockingLayoutRestorable::getDefaultDockingLayout
-		)) {
-			setActiveCustomLayoutProfile(null);
-			defaultArrangementState.recordDefaultArrangementLater();
-		}
-	}
-
-	/**
-	 * Switches to a layout in storage.
-	 *
-	 * @param layoutPersistenceProfile identifies the layout to switch to. Comes
-	 * from the catalog, so it already carries the codec and storage it was
-	 * listed with.
-	 */
-	private void restoreStoredLayout(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		final boolean isSwitched = switchToLayout(
-				() -> dockingLayoutRestorable.getDockingLayout(
-						layoutPersistenceProfile,
-
-						// An empty layout rather than the default one. A read
-						// that fails should leave what is on screen alone;
-						// falling back here would answer "restore this" with a
-						// different layout.
-						() -> new DockingLayoutBuilder().build()
-				)
-		);
-
-		if (isSwitched) {
-			setActiveCustomLayoutProfile(layoutPersistenceProfile);
-		}
-	}
-
-	/**
-	 * {@return {@code true} when the layout was applied; otherwise,
-	 * {@code false}, having told the user that what is on screen was left as it
-	 * is.}
-	 *
-	 * @param dockingLayoutSupplier supplies the layout to switch to.
-	 */
-	private boolean switchToLayout(
-			final Supplier<DockingLayout> dockingLayoutSupplier
-	) {
-		if (dockingLayoutRestorable.switchToLayout(dockingLayoutSupplier)) {
-			return true;
-		}
-
-		showLayoutError(
-				getTextFromResourceBundle(HEADER_RESTORE_FAILED_ERROR_KEY),
-				getTextFromResourceBundle(CONTENT_RESTORE_FAILED_ERROR_KEY)
-		);
-		return false;
-	}
-
-	/**
-	 * Asks for a name, asks which group it belongs in, and saves the layout
-	 * showing now under both.
-	 *
-	 * <p>The group is asked for only when there is a group to choose, so an
-	 * application whose users never make one never sees a second dialog.</p>
-	 */
-	private void saveCurrentLayoutAsNew() {
-		final Optional<String> displayName = findLayoutName(
-				getTextFromResourceBundle(TITLE_SAVE_AS_NEW_DIALOG_KEY),
-				getTextFromResourceBundle(PROMPT_SAVE_AS_NEW_DIALOG_KEY),
-				""
-		);
-
-		if (displayName.isEmpty()) {
-			return;
-		}
-
-		final String layoutIdentifier =
-				LayoutNames.toIdentifier(displayName.get());
-
-		// The name a user types is not an identifier, and deriving one is this
-		// menu's step rather than the framework's. What the framework does is
-		// say which rule a derived identifier breaks.
-		final Optional<LayoutIdentifierProblem> problem =
-				LayoutIdentifiers.findUserLayoutProblem(layoutIdentifier);
-
-		if (problem.isPresent()) {
-			showLayoutError(
-					getTextFromResourceBundle(HEADER_CANNOT_SAVE_NAMED_ERROR_KEY, displayName.get()),
-					problemText(problem.get())
-			);
-			return;
-		}
-
-		final Optional<List<String>> groupNames =
-				findStoredCustomLayouts().flatMap(this::findGroupNames);
-
-		if (groupNames.isEmpty()) {
-			showLayoutError(getTextFromResourceBundle(HEADER_LIST_GROUPS_FAILED_ERROR_KEY), null);
-			return;
-		}
-
-		final String group;
-
-		if (groupNames.get().isEmpty()) {
-			group = null;
-		} else {
-			final Optional<String> choice = groupOperations.findGroupChoice(
-					getTextFromResourceBundle(TITLE_SAVE_AS_NEW_DIALOG_KEY),
-					getTextFromResourceBundle(GROUP_PROMPT_SAVE_AS_NEW_DIALOG_KEY),
-					null,
-					groupNames.get()
-			);
-
-			if (choice.isEmpty()) {
-				return;
-			}
-
-			group = groupOperations.chosenGroup(choice.get());
-		}
-
-		final LayoutPersistenceProfile newLayout = newProfile(
-				layoutIdentifier,
-				displayName.get(),
-				group
-		);
-
-		final boolean isAlreadyStored;
-
-		try {
-			isAlreadyStored = persistenceProvider().isLayoutStored(newLayout);
-		} catch (final BentoStateException e) {
-			logger.warn(
-					"Could not tell whether the layout '{}' is stored.",
-					layoutIdentifier,
-					e
-			);
-			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
-			return;
-		}
-
-		// Two names can derive one identifier, so this catches a collision the
-		// user cannot see coming as well as the same name typed twice.
-		if (isAlreadyStored && !confirmLayoutAction(
-				getTextFromResourceBundle(HEADER_REPLACE_CONFIRM_KEY, layoutIdentifier),
-				getTextFromResourceBundle(CONTENT_REPLACE_CONFIRM_KEY)
-		)) {
-			return;
-		}
-
-		writeLayout(newLayout);
-	}
-
-	/**
-	 * Saves the layout showing now over the stored layout it came from.
-	 */
-	private void saveChangesToActiveLayout() {
-		final LayoutPersistenceProfile activeLayout = activeLayoutState.getActiveLayoutProfile();
-
-		if (activeLayout == null) {
-			return;
-		}
-
-		writeLayout(activeLayout);
-	}
-
-	/**
-	 * Asks for a new name for a stored layout and stores it under that name.
-	 *
-	 * <p>The layout identifier does not change, so the layout keeps the place
-	 * in storage it already had - a display name is stored with a layout, not
-	 * what the layout is addressed by. Nor does the group, so renaming a layout
-	 * does not move it.</p>
-	 *
-	 * <p>Only the name is written. A rename used to be a save as well, because
-	 * nothing could rewrite the stored metadata on its own, which both restricted
-	 * it to the layout on screen and meant renaming a layout quietly stored
-	 * whatever arrangement happened to be showing.
-	 * {@link DockingLayoutPersistenceProvider#updateStoredLayoutNaming} rewrites
-	 * the name and leaves the docking state alone, so neither is true now.</p>
-	 *
-	 * @param storedLayout identifies the layout to rename.
-	 */
-	private void renameStoredLayout(
-			final LayoutPersistenceProfile storedLayout
-	) {
-		final Optional<String> displayName = findLayoutName(
-				getTextFromResourceBundle(TITLE_RENAME_DIALOG_KEY),
-				getTextFromResourceBundle(PROMPT_RENAME_DIALOG_KEY),
-				getLayoutLabel(storedLayout)
-		);
-
-		if (displayName.isEmpty()) {
-			return;
-		}
-
-		if (displayName.get().isBlank()) {
-			showLayoutError(
-					getTextFromResourceBundle(HEADER_BLANK_NAME_ERROR_KEY),
-					getTextFromResourceBundle(CONTENT_BLANK_NAME_ERROR_KEY)
-			);
-			return;
-		}
-
-		updateStoredLayoutNaming(
-				storedLayout,
-				displayName.get(),
-				storedLayout.group()
-		);
-	}
-
-	/**
-	 * Asks which group a stored layout belongs in and moves it there.
-	 *
-	 * <p>Offered for any stored layout rather than only the one showing, and it
-	 * rewrites nothing but the group - a layout does not have to be restored to be
-	 * filed.</p>
-	 *
-	 * @param storedLayout identifies the layout to move.
-	 */
-	private void moveStoredLayoutToGroup(
-			final LayoutPersistenceProfile storedLayout
-	) {
-		final Optional<List<String>> groupNames =
-				findStoredCustomLayouts().flatMap(this::findGroupNames);
-
-		if (groupNames.isEmpty()) {
-			showLayoutError(getTextFromResourceBundle(HEADER_LIST_GROUPS_FAILED_ERROR_KEY), null);
-			return;
-		}
-
-		final Optional<String> choice = groupOperations.findGroupChoice(
-				getTextFromResourceBundle(TITLE_MOVE_TO_GROUP_DIALOG_KEY),
-				getTextFromResourceBundle(PROMPT_MOVE_TO_GROUP_DIALOG_KEY),
-				storedLayout.group(),
-				groupNames.get()
-		);
-
-		if (choice.isEmpty()) {
-			return;
-		}
-
-		updateStoredLayoutNaming(
-				storedLayout,
-				storedLayout.displayName(),
-				groupOperations.chosenGroup(choice.get())
-		);
-	}
-
-	/**
-	 * Stores a different display name and group for a layout already in storage.
-	 *
-	 * @param storedLayout identifies the layout to rewrite.
-	 * @param displayName the name to store.
-	 * @param group the group to store, or {@code null} for no group.
-	 */
-	private void updateStoredLayoutNaming(
-			final LayoutPersistenceProfile storedLayout,
-			final @Nullable String displayName,
-			final @Nullable String group
-	) {
-		final LayoutPersistenceProfile renamedLayout =
-				storedLayout.withNaming(displayName, group);
-
-		try {
-			if (persistenceProvider().updateStoredLayoutNaming(renamedLayout)) {
-				followNamingChange(renamedLayout);
-			} else {
-				// Deleted from under the menu, which is rebuilt each time it
-				// opens, so the next open shows the truth.
-				showLayoutError(getTextFromResourceBundle(HEADER_NOT_STORED_ERROR_KEY), null);
-			}
-		} catch (final BentoStateException e) {
-			logger.warn(
-					"Could not rewrite the naming of the stored layout '{}'.",
-					storedLayout.layoutIdentifier(),
-					e
-			);
-			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
-		}
-	}
-
-	/**
-	 * Keeps the active-layout state in step with a naming change just written
-	 * to storage. Delegates to {@link ActiveLayoutState#followNamingChange}.
-	 *
-	 * @param renamedLayout the layout as it is now named in storage.
-	 */
-	private void followNamingChange(final LayoutPersistenceProfile renamedLayout) {
-		activeLayoutState.followNamingChange(renamedLayout);
-	}
-
-	/**
-	 * Removes a layout from storage.
-	 *
-	 * <p>The layout on screen is not changed, even when it is the one removed;
-	 * what changes is that there is no longer anywhere to save it back to.</p>
-	 *
-	 * @param layoutPersistenceProfile identifies the layout to remove.
-	 */
-	private void deleteStoredLayout(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		final String layoutLabel = getLayoutLabel(layoutPersistenceProfile);
-
-		if (!confirmLayoutAction(
-				getTextFromResourceBundle(HEADER_DELETE_CONFIRM_KEY, layoutLabel),
-				getTextFromResourceBundle(CONTENT_DELETE_CONFIRM_KEY)
-		)) {
-			return;
-		}
-
-		try {
-			persistenceProvider().deleteLayout(layoutPersistenceProfile);
-		} catch (final BentoStateException e) {
-			logger.warn(
-					"Could not delete the docking layout '{}'.",
-					layoutPersistenceProfile.layoutIdentifier(),
-					e
-			);
-			showLayoutError(getTextFromResourceBundle(HEADER_DELETE_FAILED_ERROR_KEY), e.getMessage());
-			return;
-		}
-
-		if (isActiveLayout(layoutPersistenceProfile)) {
-			setActiveCustomLayoutProfile(null);
-		}
-	}
-
-	/**
-	 * Writes the layout showing now to storage and makes it the active layout.
-	 *
-	 * @param layoutPersistenceProfile names the layout to write.
-	 */
-	private void writeLayout(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		try {
-			// A one-shot write rather than through the running saver: this is a
-			// layout of its own, not the session layout auto-save keeps up to
-			// date.
-			persistenceProvider().saveLayout(
-					layoutPersistenceProfile,
-					bentoProvider()
-			);
-			setActiveCustomLayoutProfile(layoutPersistenceProfile);
-		} catch (final BentoStateException e) {
-			logger.warn(
-					"Could not save the docking layout as '{}'.",
-					layoutPersistenceProfile.layoutIdentifier(),
-					e
-			);
-			showLayoutError(getTextFromResourceBundle(HEADER_SAVE_FAILED_ERROR_KEY), e.getMessage());
-		}
-	}
-
-	/**
-	 * {@return a profile naming a layout of the application's own, leaving the
-	 * codec and the storage to the framework's selection.}
-	 *
-	 * @param layoutIdentifier addresses the layout in storage.
-	 * @param displayName the name to store with the layout.
-	 * @param group the group to store with the layout, or {@code null} for no
-	 * group.
-	 */
-	private static LayoutPersistenceProfile newProfile(
-			final String layoutIdentifier,
-			final String displayName,
-			final @Nullable String group
-	) {
-		return LayoutPersistenceProfile.named(
-				layoutIdentifier,
-				displayName,
-				null,
-				null
-		).withNaming(displayName, group);
-	}
-
-	/**
-	 * {@return what to call the layout in a menu.}
-	 *
-	 * <p>A layout stored before display names were kept has none, and shows the
-	 * identifier it is addressed by rather than a name invented for it.</p>
-	 *
-	 * @param layoutPersistenceProfile identifies the layout to label.
-	 */
-	private static String getLayoutLabel(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		return layoutPersistenceProfile.findDisplayName()
-				.orElseGet(layoutPersistenceProfile::layoutIdentifier);
-	}
-
-	/**
-	 * {@return {@code true} when the supplied layout is the one showing now;
-	 * otherwise, {@code false}.}
-	 *
-	 * <p>Delegates to {@link ActiveLayoutState#isActiveLayout}.</p>
-	 *
-	 * @param layoutPersistenceProfile identifies the layout to test.
-	 */
-	private boolean isActiveLayout(
-			final LayoutPersistenceProfile layoutPersistenceProfile
-	) {
-		return activeLayoutState.isActiveLayout(layoutPersistenceProfile);
-	}
-
-	/**
-	 * Sets the active layout and records it through
-	 * {@link PersistedDockingLayoutOrganizationProvider}, when the persistence
-	 * provider supports it. Delegates to
-	 * {@link ActiveLayoutState#setActiveCustomLayoutProfile}.
-	 *
-	 * @param activeCustomLayoutProfile the layout to show as active, or
-	 * {@code null} for none.
-	 */
-	private void setActiveCustomLayoutProfile(
-			final @Nullable LayoutPersistenceProfile activeCustomLayoutProfile
-	) {
-		activeLayoutState.setActiveCustomLayoutProfile(activeCustomLayoutProfile);
-	}
-
-/**
 	 * {@return the provider layouts are read, written, and listed through.}
 	 *
 	 * <p>Asked of the application at each use rather than held here, so that
@@ -996,27 +555,7 @@ public class LayoutsMenu extends Menu {
 		return dockingLayoutRestorable.getPersistenceProvider();
 	}
 
-	/**
-	 * {@return {@link #persistenceProvider()}, narrowed to
-	 * {@link PersistedDockingLayoutOrganizationProvider}, or an empty {@link Optional} when
-	 * it does not implement that too.}
-	 */
-	private Optional<PersistedDockingLayoutOrganizationProvider> extendedPersistenceProvider() {
-		return persistenceProvider() instanceof PersistedDockingLayoutOrganizationProvider extendedProvider
-				? Optional.of(extendedProvider)
-				: Optional.empty();
-	}
-
-	/**
-	 * {@return the provider naming what a save captures.}
-	 *
-	 * @see #persistenceProvider()
-	 */
-	private BentoProvider bentoProvider() {
-		return dockingLayoutRestorable.getBentoProvider();
-	}
-
-	/**
+/**
 	 * {@return an item naming one stored layout.}
 	 *
 	 * <p>Mnemonic parsing off, because the label is a name a user typed rather
@@ -1044,32 +583,15 @@ public class LayoutsMenu extends Menu {
 	}
 
 	/**
-	 * {@return the text for a key, with its placeholder filled in.}
-	 *
-	 * <p>Separate from {@link #getTextFromResourceBundle(String)} so that only the values holding a
-	 * placeholder go through {@link MessageFormat}. Running every value through
-	 * it would make a literal apostrophe an escape character in all of
-	 * them, and so make every translated sentence a place to get that
-	 * wrong.</p>
-	 *
-	 * @param key names the text in this menu's {@link ResourceBundle}.
-	 * @param argument what to put in place of <code>{0}</code>.
-	 */
-	private String getTextFromResourceBundle(final String key, final Object argument) {
-		return MessageFormat.format(resourceBundle.getString(key), argument);
-	}
-
-	/**
 	 * {@return why a name a user typed cannot address a layout.}
 	 *
 	 * <p>Rendered here rather than shown as {@link
 	 * LayoutIdentifierProblem#message()}, which is the framework's own sentence
 	 * and comes in one language. Only the three rules below can be broken by an
-	 * identifier that came out of {@link LayoutNames#toIdentifier(String)},
-	 * which keeps nothing but letters and digits; the rest are about characters
-	 * that cannot survive it. The framework's sentence is still the default
-	 * arm, because a rule added later would otherwise arrive here as
-	 * nothing.</p>
+	 * identifier derived from a display name (letters and digits only); the rest
+	 * are about characters that cannot survive that derivation. The framework's
+	 * sentence is still the default arm, because a rule added later would
+	 * otherwise arrive here as nothing.</p>
 	 *
 	 * @param problem which rule the derived identifier broke.
 	 */
@@ -1124,29 +646,6 @@ public class LayoutsMenu extends Menu {
 		item.setMnemonicParsing(false);
 		item.setDisable(true);
 		menu.getItems().add(item);
-	}
-
-	/**
-	 * {@return the name the user typed, trimmed, or an empty {@link Optional}
-	 * when the dialog was cancelled.}
-	 *
-	 * @param title the dialog's title.
-	 * @param prompt what to ask for.
-	 * @param initialName what the field starts with.
-	 */
-	private Optional<String> findLayoutName(
-			final String title,
-			final String prompt,
-			final String initialName
-	) {
-		final TextInputDialog dialog = new TextInputDialog(initialName);
-
-		dialog.initOwner(owner);
-		dialog.setTitle(title);
-		dialog.setHeaderText(null);
-		dialog.setContentText(prompt);
-
-		return dialog.showAndWait().map(String::trim);
 	}
 
 	/**

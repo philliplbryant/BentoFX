@@ -36,8 +36,8 @@ class ActiveLayoutStateTest {
 	@Test
 	void setActiveCustomLayoutProfileRecordsTheIdentifierThroughTheProvider()
 			throws BentoStateException {
-		final DefaultDockingLayoutPersistenceProvider provider = providerFor();
-		final ActiveLayoutState state = new ActiveLayoutState(restorableFor(provider));
+		final DefaultDockingLayoutPersistenceProvider provider = createPersistenceProvider();
+		final ActiveLayoutState state = new ActiveLayoutState(createRestorable(provider));
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of("my-layout").withNaming("My Layout", null);
 
@@ -57,7 +57,7 @@ class ActiveLayoutStateTest {
 	@Test
 	void isActiveLayoutReturnsFalseWhenNoLayoutIsActive() {
 		final ActiveLayoutState state =
-				new ActiveLayoutState(restorableFor(providerFor()));
+				new ActiveLayoutState(createRestorable(createPersistenceProvider()));
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of("any-layout");
 
@@ -74,7 +74,7 @@ class ActiveLayoutStateTest {
 	 * {@return a provider backed by in-memory storage and a single in-memory
 	 * codec.}
 	 */
-	private static DefaultDockingLayoutPersistenceProvider providerFor() {
+	private static DefaultDockingLayoutPersistenceProvider createPersistenceProvider() {
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		return new DefaultDockingLayoutPersistenceProvider(
 				List.of(new SingleCodecProvider(codec)),
@@ -90,7 +90,7 @@ class ActiveLayoutStateTest {
 	 * @param provider what {@link DockingLayoutRestorable#getPersistenceProvider()}
 	 * hands back.
 	 */
-	private static DockingLayoutRestorable restorableFor(
+	private static DockingLayoutRestorable createRestorable(
 			final DockingLayoutPersistenceProvider provider
 	) {
 		return new DockingLayoutRestorable() {

@@ -5,11 +5,10 @@ import software.coley.bentofx.persistence.core.api.LayoutPersistenceProfile;
 import software.coley.bentofx.persistence.core.api.storage.LayoutIdentifierProblem;
 
 /**
- * Bridges {@link LayoutGroupOperations} back to {@link LayoutsMenu} for the helpers
- * and post-operation callbacks it needs.
+ * Callbacks a holder of {@link LayoutGroupOperations} supplies for the
+ * confirmation, error-reporting, and post-operation hooks.
  *
- * <p>Package-private because this is a seam for the refactor and is not part of
- * the public API.</p>
+ * <p>Package-private because it is not part of the public API.</p>
  *
  * @author Phil Bryant
  */

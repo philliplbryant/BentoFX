@@ -176,7 +176,7 @@ public final class LayoutIdentifiers {
 				findProblem(layoutIdentifier, codecIdentifier);
 
 		if (problem.isPresent()) {
-			throw exceptionFor(problem.get());
+			throw toException(problem.get());
 		}
 	}
 
@@ -208,7 +208,7 @@ public final class LayoutIdentifiers {
 		final Optional<LayoutIdentifierProblem> problem = findProblem(layoutIdentifier);
 
 		if (problem.isPresent()) {
-			throw exceptionFor(problem.get());
+			throw toException(problem.get());
 		}
 	}
 
@@ -394,7 +394,7 @@ public final class LayoutIdentifiers {
 	 *
 	 * @param problem the problem to describe.
 	 */
-	private static RuntimeException exceptionFor(final LayoutIdentifierProblem problem) {
+	private static RuntimeException toException(final LayoutIdentifierProblem problem) {
 		return problem.rule() == MISSING ?
 				new NullPointerException(problem.message()) :
 				new IllegalArgumentException(problem.message());

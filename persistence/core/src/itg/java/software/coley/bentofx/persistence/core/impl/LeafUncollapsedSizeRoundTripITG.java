@@ -177,7 +177,7 @@ class LeafUncollapsedSizeRoundTripITG {
 		robot.interact(() -> {
 			final DockingLayout dockingLayout = new DefaultDockingLayoutRebuilder(
 					new DefaultBentoProvider(new Bento(BENTO_ID)),
-					LeafUncollapsedSizeRoundTripITG::dockableStateFor,
+					LeafUncollapsedSizeRoundTripITG::findDockableState,
 					null,
 					null
 			).rebuild(List.of(persistedBentoState()));
@@ -253,7 +253,7 @@ class LeafUncollapsedSizeRoundTripITG {
 				.build();
 	}
 
-	private static Optional<DockableState> dockableStateFor(
+	private static Optional<DockableState> findDockableState(
 			final String identifier
 	) {
 		if (COLLAPSED_DOCKABLE_ID.equals(identifier)

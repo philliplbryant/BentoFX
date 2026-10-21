@@ -50,7 +50,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 		final List<BentoState> original = createBentoStates();
 
 		store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", original));
@@ -90,7 +90,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 
 		store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", createBentoStates()));
 		((InMemoryLayoutStorage) storage.getLayoutStorage("broken", codec.getIdentifier()))
@@ -120,7 +120,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, new EncodeFailingCodec(codec));
+				createPersistenceProvider(storage, new EncodeFailingCodec(codec));
 
 		store(storage, codec, LAYOUT_IDENTIFIER, new PersistableLayout("Wide", createBentoStates()));
 
@@ -150,7 +150,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 		final RecordingStorageProvider storage = new RecordingStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 
 		store(storage, codec, LAYOUT_IDENTIFIER,
 				new PersistableLayout("Wide", createBentoStates()));
@@ -180,7 +180,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 
 		store(storage, codec, LAYOUT_IDENTIFIER,
 				new PersistableLayout(
@@ -211,7 +211,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 
 		final boolean rewritten = provider.updateStoredLayoutNaming(
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -233,7 +233,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -255,7 +255,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 	void reportsNoGroupsWhenTheCatalogWasNeverWritten()
 			throws BentoStateException {
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+				createPersistenceProvider(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
 
 		assertThat(provider.getStoredGroups(
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -267,7 +267,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 	@Test
 	void emptyingTheCatalogLeavesNoGroups() throws BentoStateException {
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+				createPersistenceProvider(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -286,7 +286,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -307,7 +307,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 	@Test
 	void reportsNoActiveLayoutWhenNeverWritten() throws BentoStateException {
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+				createPersistenceProvider(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
 
 		assertThat(provider.getActiveLayoutIdentifier(
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER)
@@ -323,7 +323,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 	@Test
 	void clearingTheActiveLayoutLeavesNoneRecorded() throws BentoStateException {
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
+				createPersistenceProvider(new InMemoryLayoutStorageProvider(), new InMemoryLayoutCodec());
 		final LayoutPersistenceProfile profile =
 				LayoutPersistenceProfile.of(LAYOUT_IDENTIFIER);
 
@@ -346,7 +346,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 				new InMemoryLayoutStorageProvider();
 		final InMemoryLayoutCodec codec = new InMemoryLayoutCodec();
 		final DefaultDockingLayoutPersistenceProvider provider =
-				providerFor(storage, codec);
+				createPersistenceProvider(storage, codec);
 
 		store(storage, codec, LAYOUT_IDENTIFIER,
 				new PersistableLayout(
@@ -378,7 +378,7 @@ class DefaultDockingLayoutPersistenceProviderNamingTest {
 	 * @param storage the storage to write through.
 	 * @param codec the codec whose output is stored.
 	 */
-	private static DefaultDockingLayoutPersistenceProvider providerFor(
+	private static DefaultDockingLayoutPersistenceProvider createPersistenceProvider(
 			final LayoutStorageProvider storage,
 			final LayoutCodec codec
 	) {

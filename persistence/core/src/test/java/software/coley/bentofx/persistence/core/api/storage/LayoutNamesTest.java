@@ -131,19 +131,19 @@ class LayoutNamesTest {
 
 	@Test
 	void leavesTheNamesOnlyValidationCanRefuse() {
-		assertThat(findProblemRuleFor("Session"))
+		assertThat(findProblemRule("Session"))
 				.describedAs("a name reducing to the reserved identifier")
 				.contains(Rule.RESERVED);
 
-		assertThat(findProblemRuleFor("NUL"))
+		assertThat(findProblemRule("NUL"))
 				.describedAs("a name reducing to a device name")
 				.contains(Rule.DEVICE_NAME);
 
-		assertThat(findProblemRuleFor("!!!"))
+		assertThat(findProblemRule("!!!"))
 				.describedAs("a name reducing to nothing")
 				.contains(Rule.BLANK);
 
-		assertThat(findProblemRuleFor("Multi-Monitor"))
+		assertThat(findProblemRule("Multi-Monitor"))
 				.describedAs("a name a user may take")
 				.isEmpty();
 	}
@@ -154,7 +154,7 @@ class LayoutNamesTest {
 	 *
 	 * @param displayName the name to derive an identifier from.
 	 */
-	private static Optional<Rule> findProblemRuleFor(
+	private static Optional<Rule> findProblemRule(
 			final String displayName
 	) {
 		return LayoutIdentifiers
