@@ -35,6 +35,27 @@ import java.util.Map;
  * {@link LayoutStorageLocations#HOME_DIRECTORY_PROPERTY} and
  * {@link LayoutStorageLocations#NAMESPACE_PROPERTY}.</p>
  *
+ * <p><b>Deployment surface.</b> Supported on the class path and on the module
+ * path (JPMS). The module descriptor already declares the Jakarta Persistence,
+ * Hibernate, H2 and HikariCP dependencies and opens the entity package for
+ * reflection, and the integration tests run on both paths. No extra
+ * configuration is required of the application.</p>
+ *
+ * <p><b>OSGi is out of scope.</b> This module is not an OSGi bundle: it ships
+ * no bundle manifest and no {@code Meta-Persistence} header, and the ORM it
+ * depends on no longer publishes an OSGi integration module. Dropping this
+ * JAR into an OSGi container is not expected to work. An application that
+ * targets OSGi should implement its own {@code LayoutStorageProvider} against
+ * whatever persistence stack its container supports; the Extending
+ * Persistence guide describes the path.</p>
+ *
+ * <p><b>Nested classloader environments.</b> Jakarta Persistence resolves its
+ * provider via the context classloader at the time of the first call to
+ * {@code createEntityManagerFactory}. This provider caches one factory per
+ * database file, so an application that reconfigures its module layer at
+ * runtime would need to switch to a different home directory to pick up the
+ * change.</p>
+ *
  * @author Phil Bryant
  */
 public class DatabaseLayoutStorageProvider implements LayoutStorageProvider {

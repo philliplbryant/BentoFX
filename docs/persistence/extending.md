@@ -21,6 +21,7 @@ Persistence can be extended at two levels:
   - [The Capture and Rebuild Building Blocks](#advanced-building-blocks)
   - [Example: Relational Database](#advanced-example-relational)
   - [What to Keep in Mind](#advanced-notes)
+- [Deployment Environments](#deployment-environments)
 - [Complete Examples](#complete-examples)
 - [See Also](#see-also)
 
@@ -301,6 +302,22 @@ A custom `DockingLayoutPersistenceProvider` implementation owns thread disciplin
 A custom `DockingLayoutPersistenceProvider` implementation that wants `LayoutsMenu` to offer group management and active-layout tracking also implements [`PersistedDockingLayoutOrganizationProvider`](../../persistence/core/src/main/java/software/coley/bentofx/persistence/core/api/provider/PersistedDockingLayoutOrganizationProvider.java). It is a separate, optional interface. The menu checks for it with `instanceof` and degrades gracefully when it is absent.
 
 A custom `DockingLayoutPersistenceProvider` implementation should be discoverable through `ServiceLoader`, the same way the default implementation is, so the `provides` clause in `module-info.java` and the matching `META-INF/services` file both apply. Point them at `DockingLayoutPersistenceProvider`, not at `LayoutCodecProvider` or `LayoutStorageProvider`.
+
+<h2 id="deployment-environments">Deployment Environments</h2>
+
+The bundled codec and storage providers target the standard Java deployment surface: an application launched on the class path, on the module path (JPMS), or packaged with `jlink` or `jpackage`. Both launch styles are covered by the `provides`/`META-INF/services` pattern [described above](#how-discovery-works) and no extra configuration is required of the application.
+
+Deployment environments outside that surface are the application's responsibility. The most common one worth calling out:
+
+- **OSGi containers.** The bundled storage and codec modules are not OSGi bundles: they ship no bundle manifest, no `Meta-Persistence` header, and their transitive dependencies may not all be published as bundles either. Dropping these JARs into an OSGi container is not expected to work.
+
+An application that needs to persist layouts inside an OSGi container (or any other environment the bundled providers do not support) implements its own `LayoutStorageProvider` against whatever persistence stack its environment supports, and registers it the same way as any other provider. The implementation path is identical to [Adding a Storage Destination](#adding-a-storage-destination):
+
+1. Write a `LayoutStorage` whose `openOutputStream` and `openInputStream` talk to the chosen persistence stack.
+2. Write a `LayoutStorageProvider` that returns one.
+3. Register the provider via `module-info.java` for module-path launches and `META-INF/services` for class-path launches, plus whatever manifest the target container expects (an OSGi `Bundle-SymbolicName` and `Export-Package`, for example).
+
+The application module takes on the container-specific wiring. The framework contracts stay the same: a `LayoutStorage` reads and writes bytes, a `LayoutCodec` turns those bytes into a layout and back, and the identifier a provider returns from `getIdentifier()` is how an application selects it from a `LayoutPersistenceProfile`.
 
 <h2 id="complete-examples">Complete Examples</h2>
 
