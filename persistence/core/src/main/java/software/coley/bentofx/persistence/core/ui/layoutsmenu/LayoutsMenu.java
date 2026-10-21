@@ -78,17 +78,12 @@ public class LayoutsMenu extends Menu {
 	/** Every word a user reads from this menu. */
 	private final ResourceBundle resourceBundle;
 
-	/** Handles group CRUD and catalog operations. */
-	private final LayoutGroupOperations groupOperations;
-
-	/** Tracks which named layout is currently active. */
-	private final ActiveLayoutState activeLayoutState;
-
-	/** Tracks whether the default layout is currently showing. */
-	private final DefaultArrangementState defaultArrangementState;
-
-	/** Handles layout CRUD: save, restore, rename, delete, and write. */
-	private final LayoutOperations layoutOperations;
+	/**
+	 * The four collaborators that drive this menu's behaviour, in one place.
+	 * Replaces the four separate collaborator fields that existed before
+	 * {@link LayoutsController} grouped them.
+	 */
+	private final LayoutsController controller;
 
 	/**
 	 * Builds a menu that reads the text this framework provides, in the
@@ -102,41 +97,39 @@ public class LayoutsMenu extends Menu {
 			final Window owner,
 			final DockingLayoutRestorable dockingLayoutRestorable
 	) {
-		this(
-				owner,
-				dockingLayoutRestorable,
-				ResourceBundle.getBundle(BUNDLE_BASE_NAME)
-		);
+		this(owner, dockingLayoutRestorable, ResourceBundle.getBundle(BUNDLE_BASE_NAME));
 	}
 
 	/**
-	 * Builds a menu that reads the supplied text.
-	 *
-	 * <p>For an application that keeps its own wording, or that supports a
-	 * language no translation here covers. The bundle has to carry
-	 * every key in {@code LayoutsMenu.properties}: a missing one raises
-	 * {@link java.util.MissingResourceException} when the item that needs it is
-	 * built, which is the first time the menu opens rather than at
-	 * construction.</p>
+	 * Builds a menu around a pre-loaded resource bundle. Private because the
+	 * public constructor's {@code super(...)} call must be its first statement,
+	 * so the bundle has to be loaded before the body runs and then referenced
+	 * both for the menu's own title and for every item it builds. Delegating
+	 * through this constructor is the one way to share one load between the
+	 * two without reading the bundle twice.
 	 *
 	 * @param owner the window the dialogs these items raise belong to.
 	 * @param dockingLayoutRestorable the application whose docking layout these
 	 * items switch, and whose providers they read and write it through.
 	 * @param resourceBundle every word a user reads from this menu.
 	 */
-	public LayoutsMenu(
+	private LayoutsMenu(
 			final Window owner,
 			final DockingLayoutRestorable dockingLayoutRestorable,
 			final ResourceBundle resourceBundle
 	) {
-		super(Objects.requireNonNull(resourceBundle, "resourceBundle")
-				.getString(LAYOUTS_MENU_KEY));
+		super(resourceBundle.getString(LAYOUTS_MENU_KEY));
 
 		this.dockingLayoutRestorable =
 				Objects.requireNonNull(dockingLayoutRestorable, "dockingLayoutRestorable");
 		this.owner = Objects.requireNonNull(owner, "owner");
 		this.resourceBundle = resourceBundle;
-		this.groupOperations = new LayoutGroupOperations(
+
+		final ActiveLayoutState activeLayoutState =
+				new ActiveLayoutState(dockingLayoutRestorable);
+		final DefaultArrangementState defaultArrangementState =
+				new DefaultArrangementState(dockingLayoutRestorable);
+		final LayoutGroupOperations groupOperations = new LayoutGroupOperations(
 				dockingLayoutRestorable,
 				owner,
 				resourceBundle,
@@ -173,9 +166,7 @@ public class LayoutsMenu extends Menu {
 					}
 				}
 		);
-		this.activeLayoutState = new ActiveLayoutState(dockingLayoutRestorable);
-		this.defaultArrangementState = new DefaultArrangementState(dockingLayoutRestorable);
-		this.layoutOperations = new LayoutOperations(
+		final LayoutOperations layoutOperations = new LayoutOperations(
 				dockingLayoutRestorable,
 				owner,
 				resourceBundle,
@@ -200,52 +191,12 @@ public class LayoutsMenu extends Menu {
 					}
 				}
 		);
-
-		wireMenu();
-	}
-
-	/**
-	 * Builds a menu whose collaborators are supplied rather than constructed,
-	 * for tests that drive menu behavior against stubs.
-	 *
-	 * <p>Package-private: the collaborator types are not public API. Production
-	 * code uses one of the public constructors.</p>
-	 *
-	 * @param owner the window the dialogs these items raise belong to.
-	 * @param dockingLayoutRestorable the application whose docking layout these
-	 * items switch, and whose providers they read and write it through.
-	 * @param resourceBundle every word a user reads from this menu.
-	 * @param groupOperations handles group CRUD and catalog operations.
-	 * @param activeLayoutState tracks which named layout is currently active.
-	 * @param defaultArrangementState tracks whether the default layout is
-	 * currently showing.
-	 * @param layoutOperations handles layout CRUD: save, restore, rename,
-	 * delete, and write.
-	 */
-	LayoutsMenu(
-			final Window owner,
-			final DockingLayoutRestorable dockingLayoutRestorable,
-			final ResourceBundle resourceBundle,
-			final LayoutGroupOperations groupOperations,
-			final ActiveLayoutState activeLayoutState,
-			final DefaultArrangementState defaultArrangementState,
-			final LayoutOperations layoutOperations
-	) {
-		super(Objects.requireNonNull(resourceBundle, "resourceBundle")
-				.getString(LAYOUTS_MENU_KEY));
-
-		this.owner = Objects.requireNonNull(owner, "owner");
-		this.dockingLayoutRestorable =
-				Objects.requireNonNull(dockingLayoutRestorable, "dockingLayoutRestorable");
-		this.resourceBundle = resourceBundle;
-		this.groupOperations =
-				Objects.requireNonNull(groupOperations, "groupOperations");
-		this.activeLayoutState =
-				Objects.requireNonNull(activeLayoutState, "activeLayoutState");
-		this.defaultArrangementState =
-				Objects.requireNonNull(defaultArrangementState, "defaultArrangementState");
-		this.layoutOperations =
-				Objects.requireNonNull(layoutOperations, "layoutOperations");
+		this.controller = new LayoutsController(
+				groupOperations,
+				activeLayoutState,
+				defaultArrangementState,
+				layoutOperations
+		);
 
 		wireMenu();
 	}
@@ -272,7 +223,7 @@ public class LayoutsMenu extends Menu {
 		// as the session layout the application starts with, which checks
 		// Custom and nothing under it.
 		final boolean isDefaultShowing =
-				activeLayoutState.getActiveLayoutProfile() == null && defaultArrangementState.isDefaultLayoutShowing();
+				controller.getActiveLayoutState().getActiveLayoutProfile() == null && controller.getDefaultArrangementState().isDefaultLayoutShowing();
 
 		final MenuItem defaultItem = new MenuItem(
 				markedText(
@@ -280,7 +231,7 @@ public class LayoutsMenu extends Menu {
 						isDefaultShowing
 				)
 		);
-		defaultItem.setOnAction(event -> layoutOperations.restoreDefaultLayout());
+		defaultItem.setOnAction(event -> controller.getLayoutOperations().restoreDefaultLayout());
 
 		final Menu customMenu = new Menu(
 				markedText(
@@ -292,7 +243,7 @@ public class LayoutsMenu extends Menu {
 
 		final MenuItem saveAsNewItem =
 				new MenuItem(getTextFromResourceBundle(SAVE_AS_NEW_ITEM_KEY));
-		saveAsNewItem.setOnAction(event -> layoutOperations.saveCurrentLayoutAsNew());
+		saveAsNewItem.setOnAction(event -> controller.getLayoutOperations().saveCurrentLayoutAsNew());
 
 		getItems().setAll(defaultItem, customMenu, saveAsNewItem);
 	}
@@ -316,8 +267,8 @@ public class LayoutsMenu extends Menu {
 		final Menu groupsMenu = new Menu(getTextFromResourceBundle(GROUPS_MENU_KEY));
 
 		final MenuItem saveChangesItem = new MenuItem(getTextFromResourceBundle(SAVE_CHANGES_ITEM_KEY));
-		saveChangesItem.setDisable(activeLayoutState.getActiveLayoutProfile() == null);
-		saveChangesItem.setOnAction(event -> layoutOperations.saveChangesToActiveLayout());
+		saveChangesItem.setDisable(controller.getActiveLayoutState().getActiveLayoutProfile() == null);
+		saveChangesItem.setOnAction(event -> controller.getLayoutOperations().saveChangesToActiveLayout());
 
 		// One reading of storage fills every list below. Listing with display
 		// names decodes every stored layout, so asking again would decode again.
@@ -344,21 +295,21 @@ public class LayoutsMenu extends Menu {
 					storedLayouts.get(),
 					groupNames.get(),
 					true,
-					layoutOperations::restoreStoredLayout
+					controller.getLayoutOperations()::restoreStoredLayout
 			);
 			addLayoutItems(
 					renameMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					layoutOperations::renameStoredLayout
+					controller.getLayoutOperations()::renameStoredLayout
 			);
 			addLayoutItems(
 					deleteMenu,
 					storedLayouts.get(),
 					groupNames.get(),
 					false,
-					layoutOperations::deleteStoredLayout
+					controller.getLayoutOperations()::deleteStoredLayout
 			);
 
 			// Nothing to move a layout into until a group exists, and an item
@@ -372,7 +323,7 @@ public class LayoutsMenu extends Menu {
 						storedLayouts.get(),
 						groupNames.get(),
 						false,
-						layoutOperations::moveStoredLayoutToGroup
+						controller.getLayoutOperations()::moveStoredLayoutToGroup
 				);
 			}
 
@@ -405,7 +356,7 @@ public class LayoutsMenu extends Menu {
 			final List<String> groupNames
 	) {
 		final MenuItem newGroupItem = new MenuItem(getTextFromResourceBundle(NEW_GROUP_ITEM_KEY));
-		newGroupItem.setOnAction(event -> groupOperations.createGroup(groupNames));
+		newGroupItem.setOnAction(event -> controller.getGroupOperations().createGroup(groupNames));
 
 		final Menu renameGroupMenu = new Menu(getTextFromResourceBundle(RENAME_GROUP_MENU_KEY));
 		final Menu deleteGroupMenu = new Menu(getTextFromResourceBundle(DELETE_GROUP_MENU_KEY));
@@ -417,13 +368,13 @@ public class LayoutsMenu extends Menu {
 			for (final String groupName : groupNames) {
 				final MenuItem renameItem = layoutItem(groupName);
 				renameItem.setOnAction(event ->
-						groupOperations.renameGroup(groupName, groupNames, storedLayouts)
+						controller.getGroupOperations().renameGroup(groupName, groupNames, storedLayouts)
 				);
 				renameGroupMenu.getItems().add(renameItem);
 
 				final MenuItem deleteItem = layoutItem(groupName);
 				deleteItem.setOnAction(event ->
-						groupOperations.deleteGroup(groupName, storedLayouts)
+						controller.getGroupOperations().deleteGroup(groupName, storedLayouts)
 				);
 				deleteGroupMenu.getItems().add(deleteItem);
 			}
@@ -502,7 +453,7 @@ public class LayoutsMenu extends Menu {
 		final Menu groupMenu = new Menu(markedText(
 				groupName,
 				marksActiveLayout
-						&& groupLayouts.stream().anyMatch(activeLayoutState::isActiveLayout)
+						&& groupLayouts.stream().anyMatch(controller.getActiveLayoutState()::isActiveLayout)
 		));
 		groupMenu.setMnemonicParsing(false);
 
@@ -538,7 +489,7 @@ public class LayoutsMenu extends Menu {
 	) {
 		final MenuItem item = layoutItem(markedText(
 				StoredLayouts.getLayoutLabel(storedLayout),
-				marksActiveLayout && activeLayoutState.isActiveLayout(storedLayout)
+				marksActiveLayout && controller.getActiveLayoutState().isActiveLayout(storedLayout)
 		));
 		item.setOnAction(event -> action.accept(storedLayout));
 
