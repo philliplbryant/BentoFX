@@ -2,9 +2,11 @@ name: CodeQL
 
 on:
   push:
+    # Every branch, but not tags. Covers same-repo pull requests through
+    # their head-branch push - adding `pull_request:` on top fires a
+    # duplicate run for every PR synchronize event.
     branches:
       - '**'
-  pull_request:
   workflow_dispatch:
 
 concurrency:
