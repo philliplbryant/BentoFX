@@ -8,22 +8,21 @@ import org.junit.jupiter.api.io.TempDir;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static software.coley.bentofx.persistence.core.api.storage.LayoutStorageLocations.*;
 
 /**
  * Coverage for resolving where storage providers keep their data.
  *
- * <p>{@link LayoutStorageLocations#readSetting} is tested directly, against a
- * made-up system property paired with a real, reliably-set environment
- * variable ({@code NUMBER_OF_PROCESSORS} on Windows), rather than trying to
- * control {@code BENTOFX_PERSISTENCE_HOME}/{@code BENTOFX_PERSISTENCE_NAMESPACE}
- * themselves - a JVM cannot change its own environment once it is running, so
- * that is the only way to exercise the "falls back to the environment
- * variable" branch deterministically.
+ * <p>{@link LayoutStorageLocations#readSetting} is tested through its
+ * package-private seam that takes an environment-lookup function, so the
+ * "falls back to the environment variable" branch exercises against a
+ * caller-supplied map rather than the real process environment - which a JVM
+ * cannot change once it is already running. Deterministic on every platform
+ * the CI exercises, no reflection, no new test dependency.
  *
  * @author Phil Bryant
  */
@@ -32,9 +31,14 @@ class LayoutStorageLocationsTest {
 	private static final String NAMESPACE = "acme-widgets";
 
 	/**
-	 * Reliably set on Windows to a simple digit string.
+	 * A made-up environment variable name the fake env lookup responds to.
 	 */
-	private static final String RELIABLE_ENV_VARIABLE = "NUMBER_OF_PROCESSORS";
+	private static final String TEST_ENV_VARIABLE = "BENTOFX_PERSISTENCE_TEST_ENV_MARKER";
+
+	/**
+	 * The value the fake env lookup returns for {@link #TEST_ENV_VARIABLE}.
+	 */
+	private static final String TEST_ENV_VALUE = "env-wins";
 
 	/**
 	 * A system property name this suite never sets by itself, kept apart from the constant it stands in for.
@@ -211,37 +215,30 @@ class LayoutStorageLocationsTest {
 
 	@Test
 	void readSettingFallsBackToTheEnvironmentVariableWhenThePropertyIsUnset() {
-		final String variableValue = System.getenv(RELIABLE_ENV_VARIABLE);
-		assumeTrue(
-				variableValue != null,
-				RELIABLE_ENV_VARIABLE + " is not set in this environment"
-		);
+		final Map<String, String> fakeEnv = Map.of(TEST_ENV_VARIABLE, TEST_ENV_VALUE);
 		System.clearProperty(UNSET_TEST_PROPERTY);
 
 		assertThat(
 				LayoutStorageLocations.readSetting(
 						UNSET_TEST_PROPERTY,
-						RELIABLE_ENV_VARIABLE
+						TEST_ENV_VARIABLE,
+						fakeEnv::get
 				)
 		)
 				.describedAs("readSetting with the property unset")
-				.isEqualTo(variableValue);
+				.isEqualTo(TEST_ENV_VALUE);
 	}
 
 	@Test
 	void readSettingPrefersThePropertyOverTheEnvironmentVariable() {
-		final String variableValue = System.getenv(RELIABLE_ENV_VARIABLE);
-		assumeTrue(
-				variableValue != null,
-				RELIABLE_ENV_VARIABLE + " is not set in this environment"
-		);
-
+		final Map<String, String> fakeEnv = Map.of(TEST_ENV_VARIABLE, TEST_ENV_VALUE);
 		System.setProperty(UNSET_TEST_PROPERTY, "property-wins");
 		try {
 			assertThat(
 					LayoutStorageLocations.readSetting(
 							UNSET_TEST_PROPERTY,
-							RELIABLE_ENV_VARIABLE
+							TEST_ENV_VARIABLE,
+							fakeEnv::get
 					)
 			)
 					.describedAs("readSetting with both the property and the variable set")

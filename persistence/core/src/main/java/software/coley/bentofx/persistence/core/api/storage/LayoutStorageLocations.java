@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Where a {@link LayoutStorage} implementation that keeps its data on this
@@ -118,12 +119,6 @@ public final class LayoutStorageLocations {
 	 * {@return the value of {@code systemProperty}, or {@code environmentVariable}
 	 * when the property is not set, or {@code null} when neither is.}
 	 *
-	 * <p>Package-private rather than private so its precedence rule can be
-	 * tested directly against an arbitrary property/variable pair, instead of
-	 * needing control over the real environment variables this class reads by
-	 * name - something a JVM cannot give a test once it is already
-	 * running.</p>
-	 *
 	 * @param systemProperty the system property to check first.
 	 * @param environmentVariable the environment variable to fall back to.
 	 */
@@ -131,8 +126,30 @@ public final class LayoutStorageLocations {
 			final String systemProperty,
 			final String environmentVariable
 	) {
+		return readSetting(systemProperty, environmentVariable, System::getenv);
+	}
+
+	/**
+	 * {@return the value of {@code systemProperty}, or {@code envLookup}'s
+	 * response for {@code environmentVariable} when the property is not set,
+	 * or {@code null} when neither is.}
+	 *
+	 * <p>Package-private seam: tests pass a map-backed {@code envLookup} to
+	 * exercise the fallback branch deterministically on every platform,
+	 * without touching the real process environment - which a JVM cannot
+	 * change once it is already running.</p>
+	 *
+	 * @param systemProperty the system property to check first.
+	 * @param environmentVariable the environment variable name to pass to {@code envLookup}.
+	 * @param envLookup the function that resolves environment variable names to values.
+	 */
+	static @Nullable String readSetting(
+			final String systemProperty,
+			final String environmentVariable,
+			final Function<String, @Nullable String> envLookup
+	) {
 		final String propertyValue = System.getProperty(systemProperty);
-		return propertyValue != null ? propertyValue : System.getenv(environmentVariable);
+		return propertyValue != null ? propertyValue : envLookup.apply(environmentVariable);
 	}
 
 	/**
