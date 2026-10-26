@@ -12,7 +12,7 @@ java-jdk = "21"
 
 # Libraries
 assertj = "3.27.7"
-errorprone = "2.50.0"
+errorprone = "2.51.0"
 javafx = "21.0.13"
 jspecify = "1.0.1"
 junit = "6.1.3"
